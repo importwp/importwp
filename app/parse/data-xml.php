@@ -127,22 +127,23 @@ class JC_XML_Parser extends JC_Parser{
 	 * @return integer
 	 */
 	public function get_total_rows($importer_id = 0){
-		global $post;
+
+		global $jcimporter;
 
 		if($importer_id > 0){
 			$id = $importer_id;
+			$file = ImporterModel::getImportSettings($id, 'import_file');
+			$import_base = ImporterModel::getImporterMetaArr($id, array('_parser_settings', 'import_base'));
 		}else{
-			$id = $post->ID;
+			$id = $jcimporter->importer->ID;
+			$file = $jcimporter->importer->get_file();
+			$import_base = $jcimporter->importer->addon_settings['import_base'];
 		}
-
-		// load settings
-		$file = ImporterModel::getImportSettings($id, 'import_file');
-		$addon_settings = ImporterModel::getImporterMeta($id, 'addon_settings');
 
 		// load xml and count records
 		$xml = simplexml_load_file($file);
-		if(isset($addon_settings['import_base']) && !empty($addon_settings['import_base'])){
-			$result = $this->count_rows($xml, $addon_settings['import_base']);
+		if(isset($import_base) && !empty($import_base)){
+			$result = $this->count_rows($xml, $import_base);
 		}else{
 			$result = 1;
 		}

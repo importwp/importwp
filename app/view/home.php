@@ -1,4 +1,5 @@
 <?php
+global $jcimporter;
 $tab = isset($_GET['tab']) && !empty($_GET['tab']) ? $_GET['tab'] : 'home';
 $action = isset($_GET['action']) && !empty($_GET['action']) ? $_GET['action'] : 'index';
 ?>
@@ -15,9 +16,11 @@ $action = isset($_GET['action']) && !empty($_GET['action']) ? $_GET['action'] : 
 			$id = isset($_GET['import']) && !empty($_GET['import']) ? $_GET['import'] : 0;
 			switch($action){
 				case 'logs':
+					$jcimporter->importer = new JC_Importer_Core($id);
 					require 'imports/logs.php';
 					break;
 				case 'edit':
+					$jcimporter->importer = new JC_Importer_Core($id);
 					require 'imports/edit.php';
 					break;
 				case 'add':

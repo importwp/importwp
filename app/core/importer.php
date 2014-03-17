@@ -19,11 +19,16 @@ class JC_Importer_Core{
      */
     protected $permissions;
     protected $attachments = array();
-    protected $import_type;
+    protected $import_type; // upload|remote
+    protected $template_type; // post|user|table|virtial
     protected $template;
+    protected $template_name;
     protected $taxonomies = array();
     protected $taxonomies_permissions = array();
     protected $groups = array();
+    protected $start_line = 0;
+    protected $row_count = 0;
+    protected $name = '';
 
 	public function __construct($id = 0){
         
@@ -38,11 +43,17 @@ class JC_Importer_Core{
                 return false;
 
             $this->ID = $id;
+            $this->name = get_the_title($this->ID);
             $this->file = ImporterModel::getImportSettings($id, 'import_file');
             $this->permissions = ImporterModel::getImportSettings($id, 'permissions');
             $this->attachments = ImporterModel::getImporterMeta($id, 'attachments');
+
+            //todo fix this import_type != template_type
             $this->import_type = ImporterModel::getImportSettings($id, 'template_type');
-            $this->template = get_import_template(ImporterModel::getImportSettings($id, 'template'));
+            $this->template_name = ImporterModel::getImportSettings($id, 'template');
+            $this->template = get_import_template($this->template_name);
+            $this->start_line = ImporterModel::getImportSettings($id, 'start_line');
+            $this->row_count = ImporterModel::getImportSettings($id, 'row_count');
 
             // load taxonomies
             $taxonomies = ImporterModel::getImporterMeta($id, 'taxonomies');
@@ -137,8 +148,32 @@ class JC_Importer_Core{
         return false;
     }
 
-    public function get_parser($import_type){
+    public function get_parser(){
+        return $this->parser;
+    }
 
+    public function get_template_name(){
+        return $this->template_name;
+    }
+
+    public function get_template(){
+        return $this->template;
+    }
+
+    public function get_start_line(){
+        return $this->start_line;
+    }
+
+    public function get_row_count(){
+        return $this->row_count;
+    }
+
+    public function get_file(){
+        return $this->file;
+    }
+
+    public function get_name(){
+        return $this->name;
     }
 }
 ?>

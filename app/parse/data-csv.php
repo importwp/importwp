@@ -186,12 +186,12 @@ class JC_CSV_Parser extends JC_Parser{
 	 * @return integer
 	 */
 	public function get_total_rows($importer_id = 0){
-		global $post;
+		global $jcimporter;
 
 		if($importer_id > 0){
 			$id = $importer_id;
 		}else{
-			$id = $post->ID;
+			$id = $jcimporter->importer->ID;
 		}
 
 		// load settings

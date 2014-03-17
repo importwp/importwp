@@ -1,33 +1,21 @@
 <?php 
 global $jcimporter;
-$name = '';
 
-$importer = ImporterModel::getImporter($id);
-$template = ImporterModel::getImportSettings($id, 'template');
-$template_type = ImporterModel::getImportSettings($id, 'template_type');
-$meta = get_metadata( 'post', $id , '', true);
+// load settings from gloabl
+$parser = $jcimporter->importer->get_parser();
+$template_name = $jcimporter->importer->get_template_name();
+$template = $jcimporter->importer->get_template();
+$start_line = $jcimporter->importer->get_start_line();
+$row_count = $jcimporter->importer->get_row_count();
+$name = $jcimporter->importer->get_name();
 
-$settings = isset($meta['_import_settings']) ? unserialize($meta['_import_settings'][0]) : array();	
-$start_line = isset($settings['start_line']) ? $settings['start_line'] : 1;
-$row_count = isset($settings['row_count']) ? $settings['row_count'] : 0;
-
-while($importer->have_posts()){
-	$importer->the_post();
-	$name = get_the_title();
-}
-
-// load parser class
-if(!isset($this->_parser)){
-    $this->_parser = $jcimporter->parsers[$template_type];
-}
 if($row_count  <= 0){
-	$record_count = $this->_parser->get_total_rows();	
+	$record_count = $parser->get_total_rows();	
 }else{
 	$record_count = ($start_line -1) + $row_count;	
 }
 
-$columns = apply_filters( "jci/log_{$template}_columns", array());
-$template = $this->config->templates[$template];
+$columns = apply_filters( "jci/log_{$template_name}_columns", array());
 ?>
 
 <div id="icon-tools" class="icon32"><br></div>
@@ -105,7 +93,6 @@ jQuery(document).ready(function($){
 			$('#the-list').html("");	
 		}
 		
-
 		function getNextRecord(){
 			$.ajax({
 				url: ajax_object.ajax_url,
