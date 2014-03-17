@@ -22,6 +22,17 @@ class JC_Attachment{
 		require_once(ABSPATH . 'wp-admin/includes/image.php');
 	}
 
+	public function has_error(){
+		if(!empty($this->_errors)){
+			return true;
+		}
+		return false;
+	}
+
+	public function set_error($msg){
+		$this->_errors[] = $msg;
+	}
+
 	public function get_error(){
 		return array_pop($this->_errors);
 	}

@@ -187,8 +187,13 @@ class JC_Importer_Admin{
             $general = apply_filters('jci/process_create_form', $general, $import_type, $post_id );
             $result = apply_filters( 'jci/process_create_file', $result, $import_type, $post_id );
 
-            
-
+            // escape and remove inserted importer if attach errors have happened
+            // todo: allow for hooked datasources to rollback on error, at the moment only 
+            if($attach->has_error()){
+                JCI_FormHelper::$errors['import_file'] = $attach->get_error();
+                wp_delete_post( $post_id, true );
+                return;
+            }
 
             // process results
             if($result && is_array($result)){

@@ -11,8 +11,23 @@ class JC_Upload_Attachments extends JC_Attachment{
 
 	public function attach_upload($post_id, $attachment){
 
+        switch ($attachment['error']) {
+            case UPLOAD_ERR_OK:
+                break;
+            case UPLOAD_ERR_NO_FILE:
+                $this->set_error('No file sent.');
+                break;
+            case UPLOAD_ERR_INI_SIZE:
+            case UPLOAD_ERR_FORM_SIZE:
+                $this->set_error('Exceeded filesize limit.');
+                break;
+            default:
+                $this->set_error('Unknown errors.');
+                break;
+        }
+
 		if(isset($attachment['error']) 
-			&& $attachment['error'] == 0){
+			&& $attachment['error'] == UPLOAD_ERR_OK){
 
             // uploaded without errors
             $a_name = $attachment['name'];

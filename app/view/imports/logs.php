@@ -145,7 +145,7 @@ jQuery(document).ready(function($){
 						}
 						
 					}else{
-						$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Import Successful of '+(record_total- <?php echo $start_line -1; ?>)+' Records</p></div>');
+						$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Import of '+(record_total- <?php echo $start_line -1; ?>)+' Records</p></div>');
 						running = 3;
 						$('.form-actions').hide();
 					}
