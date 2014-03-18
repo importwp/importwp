@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<orders>
+    <order>
+        <orderId>12345678</orderId>
+        <orderDate>2013/07/23</orderDate>
+        <orderTime>13:30:45</orderTime>
+        <orderTotal>1000</orderTotal>
+        <customer>
+        	<title>Mr</title>
+        	<forename>Customer</forename>
+        	<surname>One</surname>
+        	<phone>00000 000000</phone>
+        	<email>test1@test.com</email>
+        </customer>
+        <items>
+            <item>
+                <isbn>1234</isbn>
+                <qty>1</qty>
+                <vat>0</vat>
+                <total>10</total>
+            </item>
+            <item>
+                <isbn>3456</isbn>
+                <qty>2</qty>
+                <vat>0</vat>
+                <total>18</total>
+            </item>
+        </items>
+    </order>
+    <order>
+        <orderId>12345679</orderId>
+        <orderDate>2013/07/24</orderDate>
+        <orderTime>14:30:45</orderTime>
+        <orderTotal>1000</orderTotal>
+        <customer>
+            <title>Mrs</title>
+            <forename>Customer</forename>
+            <surname>Two</surname>
+            <phone>00000 000000</phone>
+            <email>test2@test.com</email>
+        </customer>
+        <items>
+            <item>
+                <isbn>1234</isbn>
+                <qty>2</qty>
+                <vat>0</vat>
+                <total>12</total>
+            </item>
+            <item>
+                <isbn>3456</isbn>
+                <qty>3</qty>
+                <vat>0</vat>
+                <total>15</total>
+            </item>
+        </items>
+    </order>
+</orders>

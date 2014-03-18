@@ -14,7 +14,7 @@ class PostImporterTest extends WP_UnitTestCase{
      */
     public function testCSVPostImporter(){
 
-        $post_id = create_csv_importer(null, 'post', $this->importer->plugin_dir . '/tests/data/data-post.csv', array(
+        $post_id = create_csv_importer(null, 'post', $this->importer->plugin_dir . '/tests/data/data-posts.csv', array(
             'post' => array(
             	'post_title' => '{0}',
 				'post_name' => '{1}',
