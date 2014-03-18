@@ -6,11 +6,11 @@ class JC_Post_Template extends JC_Importer_Template{
 	public $_field_groups = array(
 
 		'post' => array(
-			'import_type' => 'post',
-			'import_type_name' => 'post',
-			'field_type' => 'single',
-			'post_status' => 'publish',
-			'group' => 'post',
+			'import_type' => 'post',				// which map to use
+			'import_type_name' => 'post',			// post_type
+			'field_type' => 'single',				// single|repeater
+			'post_status' => 'publish',				// default group publish
+			'group' => 'post',						// group name, for old time sake
 			'unique' => array('post_name'),
 			'key' => array( 'ID', 'post_name' ),
 			'relationship' => array(),

@@ -1,39 +1,11 @@
 <?php 
 global $jcimporter;
-$name = '';
-$template_type = 0;
-
-$importer = ImporterModel::getImporter($id);
-while($importer->have_posts()){
-	$importer->the_post();
-	$name = get_the_title();
-}
-
-// settings
-$importer_type = ImporterModel::getImportSettings($id, 'import_type');
-$template_name = ImporterModel::getImportSettings($id, 'template');
-$template_type = ImporterModel::getImportSettings($id, 'template_type');
-$start_line = ImporterModel::getImportSettings($id, 'start_line');
-$row_count = ImporterModel::getImportSettings($id, 'row_count');
-$permissions_general = ImporterModel::getImportSettings($id, 'permissions');
-
-// meta settings
-$addon_settings = ImporterModel::getImporterMeta($id, 'addon_settings'); //isset($meta['_setting_addons']) ? unserialize($meta['_setting_addons'][0]) : array();
-$addon_fields = ImporterModel::getImporterMeta($id, 'addon_fields'); //isset($meta['_field_addons']) ? unserialize($meta['_field_addons'][0]) : array();
-$attachments = ImporterModel::getImporterMeta($id, 'attachments'); //isset($meta['_attachments']) ? unserialize($meta['_attachments'][0]) : array();
-$taxonomies = ImporterModel::getImporterMeta($id, 'taxonomies'); //isset($meta['_taxonomies']) ? unserialize($meta['_taxonomies'][0]) : array();
-$fields = ImporterModel::getImporterMeta($id, 'fields'); //isset($meta['_mapped_fields']) ? unserialize($meta['_mapped_fields'][0]) : array();
-
-$template_groups = get_import_template($template_name)->_field_groups;
-
-// load parser settings
-$parser_settings = array('general' => array(), 'group' => array());
-$parser_settings = apply_filters( 'jci/register_'.$template_type.'_addon_settings', $parser_settings );
-
-// addon settings value
-foreach($parser_settings['general'] as &$field){
-	$field['value'] = isset($addon_settings[$field['name']]) ? $addon_settings[$field['name']] : '';
-}
+$name = $jcimporter->importer->get_name();
+$template_type = $jcimporter->importer->get_template_type();
+$template_groups = $jcimporter->importer->get_template_groups();
+$start_line = $jcimporter->importer->get_start_line();
+$row_count = $jcimporter->importer->get_row_count();
+$permissions_general = $jcimporter->importer->get_permissions();
 ?>
 
 <div id="icon-tools" class="icon32"><br></div>
@@ -78,13 +50,9 @@ echo JCI_FormHelper::hidden('import_id', array('value' => $id));
 						// core fields
 						do_action("jci/output_{$template_type}_general_settings", $id);
 
-						do_action('jci/after_import_settings', 'edit', $id, $importer_type);
+						do_action('jci/after_import_settings');
 						?>
 						</div>
-
-						<?php 
-						do_action('jci/output_edit_section', $id, $importer_type);
-						?>
 
 						<div class="jci-group-permissions jci-group-section" data-section-id="permissions">
 						<div class="permissions">
@@ -104,7 +72,7 @@ echo JCI_FormHelper::hidden('import_id', array('value' => $id));
 						<div class="file_hostory">
 							<h4>Files:</h4>	
 							<?php
-							$current_import_file = basename(ImporterModel::getImportSettings($id, 'import_file'));
+							$current_import_file = basename($jcimporter->importer->get_file());
 							
 							// list of previously uploaded files
 							$importer_attachments = new WP_Query(array('post_type' => 'attachment', 'post_parent' => $id, 'post_status' => 'any'));
@@ -153,7 +121,7 @@ echo JCI_FormHelper::hidden('import_id', array('value' => $id));
 					<?php foreach($template_groups as $group_id => $group): ?>
 					<!--Container-->
 					<div id="pageparentdiv" class="postbox " style="display: block;">
-						<div class="handlediv" title="Click to toggle"><br></div><h3 class="hndle"><span>Template Fields: <?php echo $group['group']; ?></span></h3>
+						<div class="handlediv" title="Click to toggle"><br></div><h3 class="hndle"><span>Template Fields: <?php echo $group_id; ?></span></h3>
 						<div class="inside jci-node-group">
 
 							<ul class="jci-node-group-tabs subsubsub">
@@ -165,17 +133,15 @@ echo JCI_FormHelper::hidden('import_id', array('value' => $id));
 
 								<?php
 								$group_type = $group['import_type'];
-								// $group_id = $group['group'];
 
 								// output addon group fields
 								do_action("jci/output_{$template_type}_group_settings", $id, $group_id);
 
-								foreach($group['map'] as $key => $field){
-
-									$title = isset($field['title'])  ? $field['title'] : '';
-									$value = isset($fields[$group_id][$field['field']]) ? $fields[$group_id][$field['field']] : '';// $value = isset($fields[$group_id][$field['field']]) ? $fields[$field['type']][$field['field']] : '';
-									echo JCI_FormHelper::text('field['.$group_id.']['.$field['field'].']', array('label' => $title, 'default' => $value, 'class' => 'xml-drop jci-group', 'after' => ' <a href="#" class="jci-import-edit">[edit]</a>'));
+								foreach($group['fields'] as $key => $value){
+									$title = $group['titles'][$key];
+									echo JCI_FormHelper::text('field['.$group_id.']['.$key.']', array('label' => $title, 'default' => $value, 'class' => 'xml-drop jci-group', 'after' => ' <a href="#" class="jci-import-edit">[edit]</a>'));
 								}
+
 								?>
 							</div>
 

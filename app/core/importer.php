@@ -79,13 +79,20 @@ class JC_Importer_Core{
                 $data['group'] = $group;
                 
                 $output_fields = array();
+                $titles = array();
                 foreach($data['map'] as $id => $field_data){
                     $output_fields[$field_data['field']] = isset($fields[$data['group']][$field_data['field']]) ? $fields[$data['group']][$field_data['field']] : ''; // null; //$fields[$field_data['type']][$field_data['field']];
+                    $titles[$field_data['field']] = isset($field_data['title']) ? $field_data['title'] : $field_data['field'];
                 }
 
                 $this->groups[$data['group']] = array(
                     'type' => $data['field_type'],
-                    'fields' => $output_fields
+                    'fields' => $output_fields,
+                    'import_type' => $data['import_type'],
+                    'titles' => $titles,
+                    'import_type_name' => $data['import_type_name'],
+                    'taxonomies' => isset($data['taxonomies']) ? $data['taxonomies'] : 0,
+                    'attachments' => isset($data['attachments']) ? $data['attachments'] : 0
                 );
             }
             
@@ -151,8 +158,20 @@ class JC_Importer_Core{
         return $this->parser;
     }
 
+    public function get_permissions(){
+        return $this->permissions;
+    }
+
     public function get_template_name(){
         return $this->template_name;
+    }
+
+    public function get_template_type(){
+        return $this->template_type;
+    }
+
+    public function get_template_groups(){
+        return $this->groups;
     }
 
     public function get_template(){
