@@ -47,9 +47,8 @@ class JC_Importer_Core{
             $this->file = ImporterModel::getImportSettings($id, 'import_file');
             $this->permissions = ImporterModel::getImportSettings($id, 'permissions');
             $this->attachments = ImporterModel::getImporterMeta($id, 'attachments');
-
-            //todo fix this import_type != template_type
-            $this->import_type = ImporterModel::getImportSettings($id, 'template_type');
+            $this->template_type = ImporterModel::getImportSettings($id, 'template_type');
+            $this->import_type = ImporterModel::getImportSettings($id, 'import_type');
             $this->template_name = ImporterModel::getImportSettings($id, 'template');
             $this->template = get_import_template($this->template_name);
             $this->start_line = ImporterModel::getImportSettings($id, 'start_line');
@@ -91,17 +90,17 @@ class JC_Importer_Core{
             }
             
             // load parser specific settings
-            $this->addon_settings = apply_filters( "jci/load_{$this->import_type}_settings", array(), $this->ID );
+            $this->addon_settings = apply_filters( "jci/load_{$this->template_type}_settings", array(), $this->ID );
 
             // load parser class
             global $jcimporter;
-            $this->parser = $jcimporter->parsers[$this->import_type];
+            $this->parser = $jcimporter->parsers[$this->template_type];
         }
 	}
 
     public function __get($key){
         
-        $allowed_keys = array('ID', 'groups', 'permissions', 'taxonomies', 'taxonomies_permissions', 'import_type', 'file', 'attachments', 'addon_settings');
+        $allowed_keys = array('ID', 'groups', 'permissions', 'taxonomies', 'taxonomies_permissions', 'import_type', 'template_type', 'file', 'attachments', 'addon_settings');
         if(in_array($key, $allowed_keys))
             return $this->$key;
         return null;
@@ -118,11 +117,11 @@ class JC_Importer_Core{
         global $jcimporter;
         $jci_file = $jcimporter->importer->file;
         $jci_template = $jcimporter->importer->template;
-        $jci_import_type = $jcimporter->importer->import_type;
+        $jci_template_type = $jcimporter->importer->template_type;
 
         $mapper = new JC_BaseMapper();
         
-        $this->_parser = $jcimporter->parsers[$jci_import_type];
+        $this->_parser = $jcimporter->parsers[$jci_template_type];
         $this->_parser->loadFile($jci_file);
 
         if($row){

@@ -395,7 +395,7 @@ class JC_BaseMapper{
 		global $jcimporter;
 		$jci_taxonomies = $jcimporter->importer->taxonomies;
 		$jci_taxonomies_permissions = $jcimporter->importer->taxonomies_permissions;
-		$jci_import_type = $jcimporter->importer->import_type;
+		$jci_template_type = $jcimporter->importer->template_type;
 		$jci_file = $jcimporter->importer->file;
 		
 		if(!isset($jci_taxonomies) || !$jci_taxonomies || empty($jci_taxonomies))
@@ -431,15 +431,15 @@ class JC_BaseMapper{
 				foreach($term_arr as $term_value){					
 					
 					//@TODO: Add xml to filter
-					if($jci_import_type == 'xml'){
+					if($jci_template_type == 'xml'){
 
-						$field_map = apply_filters( 'jci/process_'.$jci_import_type.'_map_field', $group_id, $this->_current_row);
+						$field_map = apply_filters( 'jci/process_'.$jci_template_type.'_map_field', $group_id, $this->_current_row);
 
 						$xml = simplexml_load_file($jci_file);
-						$terms = apply_filters( 'jci/parse_'.$jci_import_type.'_field', $term_value, $field_map, $xml);
+						$terms = apply_filters( 'jci/parse_'.$jci_template_type.'_field', $term_value, $field_map, $xml);
 					}else{
-						$field_map = apply_filters( 'jci/process_'.$jci_import_type.'_map_field', $group_id, $this->_current_row );
-						$terms = apply_filters( 'jci/parse_'.$jci_import_type.'_field', $term_value, $field_map, '');
+						$field_map = apply_filters( 'jci/process_'.$jci_template_type.'_map_field', $group_id, $this->_current_row );
+						$terms = apply_filters( 'jci/parse_'.$jci_template_type.'_field', $term_value, $field_map, '');
 					}
 					
 					$terms = explode(',', $terms);
@@ -478,7 +478,7 @@ class JC_BaseMapper{
 
 		global $jcimporter;
 		$jci_attachments = $jcimporter->importer->attachments;
-		$jci_import_type = $jcimporter->importer->import_type;
+		$jci_template_type = $jcimporter->importer->template_type;
 		$jci_file = $jcimporter->importer->file;
 
 		if(!isset($jci_attachments) || !$jci_attachments || empty($jci_attachments))
@@ -529,16 +529,16 @@ class JC_BaseMapper{
 
 					// parse fields	
 					//@TODO: Add xml to filter
-					if($jci_import_type == 'xml'){
+					if($jci_template_type == 'xml'){
 
 						// parse fields
-						$field_map = apply_filters( 'jci/process_'.$jci_import_type.'_map_field', $group_id, $this->_current_row);
+						$field_map = apply_filters( 'jci/process_'.$jci_template_type.'_map_field', $group_id, $this->_current_row);
 
 						$xml = simplexml_load_file($jci_file);
-						$src = apply_filters( 'jci/parse_'.$jci_import_type.'_field', $src, $field_map, $xml);
+						$src = apply_filters( 'jci/parse_'.$jci_template_type.'_field', $src, $field_map, $xml);
 					}else{
-						$field_map = apply_filters( 'jci/process_'.$jci_import_type.'_map_field', $group_id, $this->_current_row );
-						$src = apply_filters( 'jci/parse_'.$jci_import_type.'_field', $src, $field_map);
+						$field_map = apply_filters( 'jci/process_'.$jci_template_type.'_map_field', $group_id, $this->_current_row );
+						$src = apply_filters( 'jci/parse_'.$jci_template_type.'_field', $src, $field_map);
 					}
 
 					$dest = basename($src);
