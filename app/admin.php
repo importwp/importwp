@@ -79,7 +79,6 @@ class JC_Importer_Admin{
                 // file upload settings
                 case 'upload':
 
-                    // @TODO : include file upload validation  
                     $this->config->forms['CreateImporter']['validation']['import_file'] = array(
                         'rule' => array('required'),
                         'message' => 'This Field is required',
@@ -119,7 +118,6 @@ class JC_Importer_Admin{
         }
 
         // trash importers
-        // @todo: quick fix
         $action = isset($_GET['action']) && !empty($_GET['action']) ? $_GET['action'] : 'index';
         $importer = isset($_GET['import']) && intval($_GET['import']) > 0 ? intval($_GET['import']) : false;
         $template = isset($_GET['template']) && intval($_GET['template']) > 0 ? intval($_GET['template']) : false;
@@ -155,7 +153,6 @@ class JC_Importer_Admin{
             $post_id = ImporterModel::insertImporter(0, array('name' => $name));
             $general = array();
 
-            // @todo: add error messages, e.g. unable to connect
             $import_type = $_POST['jc-importer_import_type'];
             switch($import_type){
                     

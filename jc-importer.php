@@ -60,6 +60,10 @@ class JC_Importer{
         add_action('admin_init',array($this, 'load_plugin'));
 	}
 
+	/**
+	 * Setup plugin, loading all classes
+	 * @return void
+	 */
 	public function init(){
 
 		$this->register_post_types();
@@ -70,7 +74,6 @@ class JC_Importer{
 		
 		// load importer
 		require_once 'app/core/importer.php';
-		// $this->importer = new JC_Importer_Core();
 
 		// core models
 		require_once 'app/models/importer.php';
@@ -89,11 +92,12 @@ class JC_Importer{
 		ImportLog::init($this);
 		JCI_FormHelper::init($this);
 
+		// loaded
 		do_action('jci/init');
 	}
 
 	/**
-	 * Register custom post types
+	 * Register jc-imports custom post types
 	 * @return void
 	 */
 	function register_post_types(){
@@ -122,8 +126,9 @@ class JC_Importer{
 
         if(is_admin() && get_option('Activated_Plugin') == 'jcimporter') {
 
-			delete_option('Activated_Plugin');
+			// scaffold log table
 			ImportLog::scaffold();
+			delete_option('Activated_Plugin');
         }
     }
 }
