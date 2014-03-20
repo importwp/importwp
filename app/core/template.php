@@ -22,7 +22,5 @@ class JC_Template_Core{
 			'label' => 'Template'
 		));
 	}
-
-	
 }
 ?>

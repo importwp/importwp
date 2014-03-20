@@ -66,6 +66,8 @@ class JC_Importer{
 	 */
 	public function init(){
 
+		do_action('jci/before_init');
+
 		$this->register_post_types();
 
 		// core files

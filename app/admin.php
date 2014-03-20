@@ -19,10 +19,7 @@ class JC_Importer_Admin{
         // ajax import
         add_action('wp_ajax_jc_import_row', array($this, 'admin_ajax_import_row'));
 
-        // add_action( 'init');
         $this->setup_forms();
-
-        // $this->config->parsers = apply_filters( 'jci/register_parser', array() );
 	}
 
     public function admin_enqueue_styles(){
@@ -162,6 +159,9 @@ class JC_Importer_Admin{
                     // upload
                     $attach = new JC_Upload_Attachments();
                     $result = $attach->attach_upload( $post_id, $_FILES['jc-importer_import_file']);
+
+                    // todo: replace the result 
+                    $result['attachment'] = $attach;
                 break;
                 
                 // remote/curl settings
@@ -173,6 +173,9 @@ class JC_Importer_Admin{
                     $attach = new JC_CURL_Attachments();
                     $result = $attach->attach_remote_file($post_id, $src, $dest);
                     $general['remote_url'] = $src;
+
+                    // todo: replace the result 
+                    $result['attachment'] = $attach;
                 break;
 
                 // no attachment
@@ -186,8 +189,8 @@ class JC_Importer_Admin{
 
             // escape and remove inserted importer if attach errors have happened
             // todo: allow for hooked datasources to rollback on error, at the moment only 
-            if($attach->has_error()){
-                JCI_FormHelper::$errors['import_file'] = $attach->get_error();
+            if(isset($result['attachment']) && $result['attachment']->has_error()){
+                JCI_FormHelper::$errors['import_file'] = $result['attachment']->get_error();
                 wp_delete_post( $post_id, true );
                 return;
             }
