@@ -94,7 +94,7 @@ class JC_CSV_Parser extends JC_Parser{
 	 */
 	public function parse_field($field, $row){
 
-		$field_parser = new JC_CSV_ParseField($row);
+		$field_parser = new JCI_CSV_ParseField($row);
 		return $field_parser->parse_field($field);
 	}
 
@@ -219,20 +219,22 @@ function register_csv_parser($parsers = array()){
 	return $parsers;
 }
 
-class JC_CSV_ParseField{
+class JCI_CSV_ParseField extends JCI_ParseField{
 
 	var $row = '';
 
 	function __construct($row){
 		$this->row = $row;
 	}
-	
+
 	function parse_field($field){
-		return preg_replace_callback('/{(.*?)}/', array($this, 'parse_value'), $field);
+		$result = preg_replace_callback('/{(.*?)}/', array($this, 'parse_value'), $field);
+		$result = preg_replace_callback('/\[jci::([a-z]+)\(([a-zA-Z0-9]+)\)\]/', array($this, 'parse_func'), $result);
+		return $result;
 	}
 
 	function parse_value($field){
-		$col = intval($field[1]);
+		$col = $this->parse_field(intval($field[1]));
 		return isset($this->row[$col]) ? $this->row[$col] : $field[0];
 	}
 }

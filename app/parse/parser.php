@@ -136,4 +136,19 @@ class JC_Parser{
 	public function register_config($general, $fields){}
 
 }
+
+class JCI_ParseField{
+
+	function parse_func($field){
+
+		switch($field[1]){
+			case 'strtolower':
+				return strtolower($field[2]);
+			break;
+			case 'strtoupper':
+				return strtoupper($field[2]);
+		}
+		return '';
+	}
+}
 ?>

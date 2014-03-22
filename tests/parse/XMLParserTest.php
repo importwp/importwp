@@ -18,7 +18,7 @@ class XMLParserTest extends WP_UnitTestCase{
     public function testParseXMLField(){
 
         $xml = simplexml_load_string('<xml><cows><cow id="123">Ted</cow><cow id="456">Steve</cow><cow id="789">Jeff</cow></cows></xml>');
-        $parser = new JC_XML_ParseField($xml);
+        $parser = new JCI_XML_ParseField($xml);
         
         $this->assertEquals('Ted', $parser->parse_field('{/cow[1]}', '/xml/cows[1]'));
         $this->assertEquals('Ted', $parser->parse_field('{/cow[1]}', '/xml[1]/cows[1]'));
@@ -26,6 +26,9 @@ class XMLParserTest extends WP_UnitTestCase{
         $this->assertEquals('Jeff', $parser->parse_field('{//cow[3]}', ''));
         $this->assertEquals('', $parser->parse_field('', '/'));
         $this->assertEquals('', $parser->parse_field('{}', '/'));
+
+        $this->assertEquals('ted', $parser->parse_field('[jci::strtolower({/cow[1]})]', '/xml/cows[1]'));
+        $this->assertEquals('tedSTEVE', $parser->parse_field('[jci::strtolower({/cow[1]})][jci::strtoupper({/cow[2]})]', '/xml/cows[1]'));
     }
 
     /**

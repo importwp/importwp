@@ -116,7 +116,7 @@ class JC_XML_Parser extends JC_Parser{
 	 */
 	public function parse_field($field, $base_node, $xml){
 
-		$field_parser = new JC_XML_ParseField($xml);
+		$field_parser = new JCI_XML_ParseField($xml);
 		return $field_parser->parse_field($field, $base_node);
 	}
 
@@ -302,7 +302,7 @@ function register_xml_parser($parsers = array()){
 	return $parsers;
 }
 
-class JC_XML_ParseField{
+class JCI_XML_ParseField extends JCI_ParseField{
 
 	var $base_node = '';
 	var $xml = '';
@@ -315,7 +315,9 @@ class JC_XML_ParseField{
 	function parse_field($field, $base_node){
 
 		$this->base_node = $base_node;
-		return preg_replace_callback('/{(.*?)}/', array($this, 'parse_value'), $field);
+		$result = preg_replace_callback('/{(.*?)}/', array($this, 'parse_value'), $field);
+		$result = preg_replace_callback('/\[jci::([a-z]+)\(([a-zA-Z0-9]+)\)\]/', array($this, 'parse_func'), $result);
+		return $result;
 	}
 
 	function parse_value($field){
