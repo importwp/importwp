@@ -1,12 +1,33 @@
 <?php
+/**
+ * Log Imports
+ *
+ * Log data imported using JC Importer
+ */
 class ImportLog{
 
+	/**
+	 * Config Instance
+	 * @var class
+	 */
 	static $config;
 
+	/**
+	 * Create an instance of config
+	 * @param  class $config 
+	 * @return void
+	 */
 	static function init(&$config){
 		self::$config = $config;
 	}
 
+	/**
+	 * Insert Record into log table
+	 * @param  int $import_id 
+	 * @param  int $row       
+	 * @param  array $record    
+	 * @return void
+	 */
 	static function insert($import_id, $row, $record){
 
 		global $wpdb;
@@ -28,6 +49,11 @@ class ImportLog{
 			VALUES('".$importer->post->post_name."', '".$import_id."', '".$template['template']."', '".$template['template_type']."', '".$template['import_file']."', '".$version."', '".$row."', '', '".mysql_real_escape_string(serialize($record))."', NOW());");
 	}
 
+	/**
+	 * Get Latest Import Log Version
+	 * @param  int $import_id 
+	 * @return int
+	 */
 	static function get_current_version($import_id){
 		global $wpdb;
 		$import_id = intval($import_id);
@@ -39,6 +65,10 @@ class ImportLog{
 		return $row->version;
 	}
 
+	/**
+	 * Create Log Table
+	 * @return void
+	 */
 	static function scaffold(){
 
 		global $wpdb;

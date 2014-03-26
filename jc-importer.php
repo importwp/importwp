@@ -71,8 +71,9 @@ class JC_Importer{
 		$this->register_post_types();
 
 		// core files
-		require_once 'app/core/template.php';
-		new JC_Template_Core($this);
+		
+		// register templates
+		$this->templates = apply_filters( 'jci/register_template', $this->templates );
 		
 		// load importer
 		require_once 'app/core/importer.php';
@@ -105,6 +106,13 @@ class JC_Importer{
 	function register_post_types(){
 
 		register_post_type( 'jc-imports', array(
+			'public' => false,
+			'has_archive' => false,
+			'show_in_nav_menus' => false,
+			'label' => 'Importer'
+		));
+
+		register_post_type( 'jc-import-template', array(
 			'public' => false,
 			'has_archive' => false,
 			'show_in_nav_menus' => false,

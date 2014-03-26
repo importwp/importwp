@@ -41,11 +41,12 @@ echo JCI_FormHelper::hidden('import_id', array('value' => $id));
 						<div class="jci-group-general jci-group-section" data-section-id="general">
 
 						<?php
+
+						do_action('jci/before_import_settings');
+
 						echo JCI_FormHelper::text('start-line', array('label' => 'Start Line', 'default' => $start_line));
 						echo JCI_FormHelper::text('row-count', array('label' => 'End Line', 'default' => $row_count));
 						echo JCI_FormHelper::select('template_type', array('label' => 'Template Type', 'options' => array('csv' => 'CSV', 'xml' => 'XML'), 'default' => $template_type));
-
-						do_action('jci/before_import_settings');
 
 						// core fields
 						do_action("jci/output_{$template_type}_general_settings", $id);
@@ -53,6 +54,12 @@ echo JCI_FormHelper::hidden('import_id', array('value' => $id));
 						do_action('jci/after_import_settings');
 						?>
 						</div>
+
+						<?php 
+						/**
+						 * Output Importer Settings Sections
+						 */
+						do_action('jci/importer_setting_section'); ?>
 
 						<div class="jci-group-permissions jci-group-section" data-section-id="permissions">
 						<div class="permissions">

@@ -22,6 +22,10 @@ class JC_Attachment{
 		require_once(ABSPATH . 'wp-admin/includes/image.php');
 	}
 
+	/**
+	 * Check if an error has occured
+	 * @return boolean 
+	 */
 	public function has_error(){
 		if(!empty($this->_errors)){
 			return true;
@@ -29,10 +33,18 @@ class JC_Attachment{
 		return false;
 	}
 
+	/**
+	 * Add Error Message
+	 * @param string $msg 
+	 */
 	public function set_error($msg){
 		$this->_errors[] = $msg;
 	}
 
+	/**
+	 * Get Latest Error Message
+	 * @return string
+	 */
 	public function get_error(){
 		return array_pop($this->_errors);
 	}
@@ -108,16 +120,35 @@ class JC_Attachment{
 		return false;
 	}
 
+	/**
+	 * Get mime type
+	 * @param  string $file 
+	 * @return string
+	 */
 	public function get_file_mime($file){
 
 		$mime = mime_content_type($file);
 		return $mime;
 	}
 
+	/**
+	 * Get files mime type
+	 * @param  string $file 
+	 * @return string/bool
+	 */
 	public function get_template_type($file){
 		
 		// get template type
 		$mime = $this->get_file_mime($file);
+		return $this->check_mime_header($mime);
+	}
+
+	/**
+	 * Get mime type
+	 * @param  string $mime
+	 * @return string/bool
+	 */
+	public function check_mime_header($mime){
 		switch($mime){
             case 'text/comma-separated-values':
             case 'text/csv':
@@ -175,11 +206,21 @@ class JC_Attachment{
 		
 	}
 
-	
+	/**
+	 * Scaffikd for child classes to fetch an image
+	 * @param  string $src  
+	 * @param  string $dest 
+	 * @return bool
+	 */
 	public function fetch_image($src, $dest){
 		return false;
 	}
 
+	/**
+	 * Attach local file to post
+	 * @param  string $src 
+	 * @return string/bool
+	 */
 	public function attach_local_file($src){
 
     	$wp_upload_dir = wp_upload_dir();

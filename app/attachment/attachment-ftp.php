@@ -23,10 +23,17 @@ class JC_FTP_Attachments extends JC_Attachment{
 		}
 	}
 
+	/**
+	 * Disconnect ftp connection
+	 */
 	public function __destruct(){
 		$this->_disconnect();
 	}
 
+	/**
+	 * Check to see if an ftp connection exists
+	 * @return boolean
+	 */
 	public function is_connected(){
 		if($this->_conn)
 			return true;

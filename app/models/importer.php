@@ -1,14 +1,29 @@
 <?php 
+/**
+ * Get Importer Settings
+ */
 class ImporterModel{
 
+	/**
+	 * Config Instance
+	 * @var class
+	 */
 	static $config;
-	static $settings = false;
+
+	/**
+	 * Cached Settings
+	 * @var boolean
+	 */
 	static $meta = false;
 
 	static function init(&$config){
 		self::$config = $config;
 	}
 
+	/**
+	 * Get all importers
+	 * @return WP_Query
+	 */
 	static function getImporters(){
 
 		$query = new WP_Query(array(
@@ -16,9 +31,13 @@ class ImporterModel{
 		));
 
 		return $query;
-
 	}
 
+	/**
+	 * Get Importer by Id
+	 * @param  integer $id 
+	 * @return WP_Query
+	 */
 	static function getImporter($id = 0){
 
 		if($id > 0){
@@ -34,6 +53,11 @@ class ImporterModel{
 
 	}
 
+	/**
+	 * Set Import File
+	 * @param int $id   
+	 * @param string $file 
+	 */
 	static function setImportFile($id, $file){
 
 		if(empty($file))
@@ -56,6 +80,12 @@ class ImporterModel{
         }
 	}
 
+	/**
+	 * Add Importer
+	 * @param  int $post_id 
+	 * @param  array  $data    
+	 * @return int
+	 */
 	static function insertImporter($post_id, $data = array()){
 
 		$args = array(
@@ -98,10 +128,20 @@ class ImporterModel{
 		return $post_id;
 	}
 
+	/**
+	 * Clear cached importer
+	 * @return void
+	 */
 	static function clearImportSettings(){
 		self::$meta = false;
 	}
 
+	/**
+	 * Load Importer Settings
+	 * @param  int $post_id 
+	 * @param  string $section 
+	 * @return string
+	 */
 	static function getImportSettings($post_id, $section = null){
 
 		$settings = self::getImporterMeta($post_id, 'settings');
@@ -120,16 +160,6 @@ class ImporterModel{
 			case 'remote':
 				$settings = array(
 					'remote_url' => isset($settings['general']['remote_url']) ? $settings['general']['remote_url'] : '',
-				);
-			break;
-			
-			// get post settings
-			// TODO: remove to post addon
-			case 'post':
-				$settings = array(
-					'post_field' => isset($settings['general']['post_field']) ? $settings['general']['post_field'] : '',
-					'post_key' => isset($settings['general']['post_key']) ? $settings['general']['post_key'] : '',
-					'post_field_type' => isset($settings['general']['post_field_type']) ? $settings['general']['post_field_type'] : '',
 				);
 			break;
 
@@ -220,7 +250,7 @@ class ImporterModel{
 
 		return $meta;
 	}
-
+	
 	private static function get_key(&$arr, $keys = array(), $value = '', $counter = 0){
 
 		$key = $keys[$counter];

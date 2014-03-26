@@ -9,8 +9,15 @@
 */
 class JC_Upload_Attachments extends JC_Attachment{
 
+    /**
+     * Attach uploaded file to post
+     * @param  int $post_id    
+     * @param  $_FILES $attachment 
+     * @return array/bool
+     */
 	public function attach_upload($post_id, $attachment){
 
+        // check for upload status
         switch ($attachment['error']) {
             case UPLOAD_ERR_OK:
                 break;
@@ -34,22 +41,8 @@ class JC_Upload_Attachments extends JC_Attachment{
             $a_tmp_name = $attachment['tmp_name'];
             $template_type = '';
 
-            switch($attachment['type']){
-                case 'text/comma-separated-values':
-                case 'text/csv':
-                case 'application/csv':
-                case 'application/excel':
-                case 'application/vnd.ms-excel':
-                case 'application/vnd.msexcel':
-                case 'text/anytext':
-                    $template_type = 'csv';
-                break;
-                case 'text/xml':
-                case 'application/xml':
-                case 'application/x-xml':
-                    $template_type = 'xml';
-                break;
-            }
+            // determine file type from mimetype
+            $template_type = $this->check_mime_header($attachment['type']);
 
             $wp_upload_dir = wp_upload_dir();
             $wp_dest = $wp_upload_dir['path'] . '/' . $a_name;
@@ -57,8 +50,10 @@ class JC_Upload_Attachments extends JC_Attachment{
             $dest = wp_unique_filename( $wp_upload_dir['path'], $a_name);
             $wp_dest = $wp_upload_dir['path'] . '/' . $dest;
 
+            // check to see if file was created
             if(move_uploaded_file($a_tmp_name, $wp_dest)){
 
+                // return result array
             	return array(
             		'dest' => $wp_dest,
             		'type' => $template_type,

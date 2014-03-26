@@ -1,11 +1,16 @@
 <?php 
+/**
+ * JCI Importer Class
+ *
+ * Class to load importers, parsing settings automatically.
+ */
 class JC_Importer_Core{
 
     /**
      * Importer ID
      * @var integer
      */
-    protected $ID;
+    protected $ID = null;
 
     /**
      * File Location
@@ -154,6 +159,10 @@ class JC_Importer_Core{
         return false;
     }
 
+    public function get_ID(){
+        return $this->ID;
+    }
+
     public function get_parser(){
         return $this->parser;
     }
@@ -168,6 +177,10 @@ class JC_Importer_Core{
 
     public function get_template_type(){
         return $this->template_type;
+    }
+
+    public function get_import_type(){
+        return $this->import_type;
     }
 
     public function get_template_groups(){
