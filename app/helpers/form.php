@@ -59,7 +59,7 @@ class JCI_FormHelper{
 		}
 
 		if(!empty(self::$errors)){
-			$output .= '<div class="error_msg warn"><p>'.$error_msg.'</p></div>';
+			$output .= '<div id="message" class="error_msg warn error below-h2"><p>'.$error_msg.'</p></div>';
 		}
 
 		if(isset($args['type']) && $args['type'] == 'file'){
@@ -347,7 +347,16 @@ class JCI_FormHelper{
 		$classes = array('input', 'radio');
 		$value = isset($args['value']) ? $args['value'] : false;
 		$label = isset($args['label']) ? $args['label'] : false;
-		$checked = isset($args['checked']) && $args['checked'] ? ' checked="checked"' : '';
+		$default = isset($args['checked']) ? $args['checked'] : false;
+		
+		// get checked vars
+
+		$checked = self::get_value($name);
+		if($checked == $value || ($default == true && (empty($checked) || $checked == 'false'))){
+			$checked =  ' checked="checked"';
+		}else{
+			$checked = '';
+		}
 
 		if(isset($args['class']) && !empty($args['class']))
 			$classes = array_merge($classes, explode(' ', $args['class']));

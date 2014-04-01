@@ -17,6 +17,19 @@ $permissions_general = $jcimporter->importer->get_permissions();
 <div id="ajaxResponse"></div>
 
 <?php 
+
+// output messages
+if(isset($_GET['message']) && $_GET['message'] >= 0){
+
+	switch(intval($_GET['message'])){
+		case 0:
+			// success in uploading and creating importer
+			echo'<div id="message" class="error_msg warn updated below-h2"><p>Importer Has been Created, Enter the fields or columns you wish to map the data to.</p></div>';
+		break;
+	}
+} ?>
+
+<?php 
 echo JCI_FormHelper::create('EditImporter', array('type' => 'file'));
 
 // hidden fields

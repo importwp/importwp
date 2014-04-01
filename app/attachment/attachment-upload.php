@@ -57,6 +57,7 @@ class JC_Upload_Attachments extends JC_Attachment{
             	return array(
             		'dest' => $wp_dest,
             		'type' => $template_type,
+                    'mime' => $attachment['type'],
                     'id' => $this->wp_insert_attachment( $post_id, $wp_dest, array())
             	);
             }

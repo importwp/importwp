@@ -140,6 +140,8 @@ class JC_Importer_Admin{
      */
     public function process_import_create_from(){
 
+        $errors = array();
+
         JCI_FormHelper::process_form('CreateImporter');
         if(JCI_FormHelper::is_complete()){
 
@@ -149,6 +151,8 @@ class JC_Importer_Admin{
 
             $post_id = ImporterModel::insertImporter(0, array('name' => $name));
             $general = array();
+
+            // @todo: fix upload so no file is uploaded unless it is the correct type, currently file is uploaded then removed.
 
             $import_type = $_POST['jc-importer_import_type'];
             switch($import_type){
@@ -187,10 +191,20 @@ class JC_Importer_Admin{
             $general = apply_filters('jci/process_create_form', $general, $import_type, $post_id );
             $result = apply_filters( 'jci/process_create_file', $result, $import_type, $post_id );
 
+            // restrict file attached filetype
+            if(!in_array($result['type'], array('xml','csv'))){
+                @wp_delete_attachment( $result['id'], true );
+                $errors[] = 'Filetype not supported';
+            }
+
             // escape and remove inserted importer if attach errors have happened
             // todo: allow for hooked datasources to rollback on error, at the moment only 
             if(isset($result['attachment']) && $result['attachment']->has_error()){
-                JCI_FormHelper::$errors['import_file'] = $result['attachment']->get_error();
+                $errors[] = $result['attachment']->get_error();
+            }
+
+            if(!empty($errors)){
+                JCI_FormHelper::$errors['import_file'] = array_pop($errors);
                 wp_delete_post( $post_id, true );
                 return;
             }
@@ -209,7 +223,7 @@ class JC_Importer_Admin{
                     ),
                 ));
 
-                wp_redirect( '/wp-admin/admin.php?page=jci-importers&import='.$post_id.'&action=edit');
+                wp_redirect( '/wp-admin/admin.php?page=jci-importers&import='.$post_id.'&action=edit&message=0');
                 exit();
             }
         }
