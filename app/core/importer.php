@@ -71,8 +71,8 @@ class JC_Importer_Core{
                     if(!isset($tax_arr['term'][$key]))
                         continue;
 
-                    $this->taxonomies[$group_id][$tax][] = $tax_arr['term'][$key];    
-                    $this->taxonomies_permissions[$group_id] = isset($tax_arr['permissions'][$key]) ? $tax_arr['permissions'][$key] : 'create';
+                    $this->taxonomies[$group_id][$tax][] = (string)$tax_arr['term'][$key];    
+                    $this->taxonomies_permissions[$group_id][$tax] = isset($tax_arr['permissions'][$key]) ? $tax_arr['permissions'][$key] : 'create';
                 }
             }
 
@@ -205,6 +205,18 @@ class JC_Importer_Core{
 
     public function get_name(){
         return $this->name;
+    }
+
+    public function get_taxonomies(){
+        return $this->taxonomies;
+    }
+
+    public function get_taxonomies_permissions(){
+        return $this->taxonomies_permissions;
+    }
+
+    public function get_attachments(){
+        return $this->attachments;
     }
 }
 ?>

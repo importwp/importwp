@@ -413,7 +413,7 @@ class JC_BaseMapper{
 			foreach($taxonomies as $tax => $term_arr){
 
 				// permission check (create, append, overwrite)
-				$permission = $jci_taxonomies_permissions[$group_id];
+				$permission = $jci_taxonomies_permissions[$group_id][$tax];
 
 				if($permission == 'create'){
 

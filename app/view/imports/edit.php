@@ -6,6 +6,8 @@ $template_groups = $jcimporter->importer->get_template_groups();
 $start_line = $jcimporter->importer->get_start_line();
 $row_count = $jcimporter->importer->get_row_count();
 $permissions_general = $jcimporter->importer->get_permissions();
+$taxonomies = $jcimporter->importer->get_taxonomies();
+$taxonomy_permissions = $jcimporter->importer->get_taxonomies_permissions();
 ?>
 
 <div id="icon-tools" class="icon32"><br></div>
@@ -195,13 +197,15 @@ echo JCI_FormHelper::hidden('import_id', array('value' => $id));
 								<div id="<?php echo $group_id; ?>-taxonomies" class="taxonomies multi-rows">
 									<?php if(isset($taxonomies[$group_id]) && !empty($taxonomies[$group_id])): ?>
 
-									<?php foreach($taxonomies[$group_id]['tax'] as $key => $taxonomy): ?>
+									<?php foreach($taxonomies[$group_id] as $tax => $term_arr): $term = isset($term_arr[0]) ? $term_arr[0] : ''; ?>
+
+									<?php //foreach($taxonomies[$group_id]['tax'] as $key => $taxonomy): ?>
 									<div class="taxonomy multi-row">
-										<?php echo JCI_FormHelper::select('taxonomies['.$group_id.'][tax][]' , array('label' => 'Tax', 'default' => $taxonomies[$group_id]['tax'][$key], 'options' => $post_taxonomies)); ?>
-										<?php echo JCI_FormHelper::text('taxonomies['.$group_id.'][term][]' , array('label' => 'Term', 'default' => $taxonomies[$group_id]['term'][$key], 'class' => 'xml-drop jci-group', 'after' => ' <a href="#" class="jci-import-edit">[edit]</a>')); ?>
+										<?php echo JCI_FormHelper::select('taxonomies['.$group_id.'][tax][]' , array('label' => 'Tax', 'default' => $tax, 'options' => $post_taxonomies)); ?>
+										<?php echo JCI_FormHelper::text('taxonomies['.$group_id.'][term][]' , array('label' => 'Term', 'default' => $term, 'class' => 'xml-drop jci-group', 'after' => ' <a href="#" class="jci-import-edit">[edit]</a>')); ?>
 										<?php
-										$permissions = isset($taxonomies[$group_id]['permissions'][$key]) && !empty($taxonomies[$group_id]['permissions'][$key]) ? $taxonomies[$group_id]['permissions'][$key] : 'overwrite'; 
-										echo JCI_FormHelper::select('taxonomies['.$group_id.'][permissions][]', array('label' => 'Permissions', 'default' => $permissions, 'options' => array(
+										// $permissions = isset($taxonomies[$group_id]['permissions'][$key]) && !empty($taxonomies[$group_id]['permissions'][$key]) ? $taxonomies[$group_id]['permissions'][$key] : 'overwrite'; 
+										echo JCI_FormHelper::select('taxonomies['.$group_id.'][permissions][]', array('label' => 'Permissions', 'default' => $taxonomy_permissions[$group_id][$tax], 'options' => array(
 											'create' => 'Add if no existing terms',
 											'overwrite' => 'Overwrite Existing terms',
 											'append' => 'Append New terms'

@@ -26,6 +26,13 @@ class PostImporterTest extends WP_UnitTestCase{
             )
         ));
 
+        // setup taxonomies
+        ImporterModel::setImporterMeta($post_id, array('_taxonomies', 'post'), array(
+            'tax' => array( 'post_tag'),
+            'term' => array('{6}'),
+            'permissions' => array('create')
+        ));
+
     	/**
     	 * Test: Check if one record is returned
     	 */
@@ -42,6 +49,10 @@ class PostImporterTest extends WP_UnitTestCase{
         $this->assertEquals('status', $import_data['post']['post_status']);
         $this->assertEquals('I', $import_data['post']['_jci_type']);
         $this->assertEquals('S', $import_data['post']['_jci_status']);
+        $this->assertEquals('S', $import_data['_jci_status']);
+
+        //  Test Taxonomies
+        $this->assertEquals('tags', $import_data['taxonomies']['post_tag'][0]);
     }
 
     /**
@@ -66,7 +77,14 @@ class PostImporterTest extends WP_UnitTestCase{
             'group_base' => array(
                  'post' => array('base' => '')
             )
-        ));   
+        ));  
+
+        // setup taxonomies
+        ImporterModel::setImporterMeta($post_id, array('_taxonomies', 'post'), array(
+            'tax' => array( 'category', 'post_tag'),
+            'term' => array('{/categories[1]/category}', '{/tags[1]}'),
+            'permissions' => array('overwrite', 'overwrite')
+        ));
 
         /**
          * Test: Check if one record is returned
@@ -76,6 +94,7 @@ class PostImporterTest extends WP_UnitTestCase{
         $import_data = $this->importer->importer->run_import(1);
         $this->assertEquals(1, count($import_data));
 
+
         $import_data = array_shift($import_data);
         $this->assertEquals('Post One', $import_data['post']['post_title']);
         $this->assertEquals('post-one-123', $import_data['post']['post_name']);
@@ -84,6 +103,9 @@ class PostImporterTest extends WP_UnitTestCase{
         $this->assertEquals('publish', $import_data['post']['post_status']);
         $this->assertEquals('I', $import_data['post']['_jci_type']);
         $this->assertEquals('S', $import_data['post']['_jci_status']);
+        $this->assertEquals('S', $import_data['_jci_status']);
+
+        
     }
 }
 ?>
