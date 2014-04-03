@@ -103,10 +103,6 @@ class JC_Importer_Core{
             
             // load parser specific settings
             $this->addon_settings = apply_filters( "jci/load_{$this->template_type}_settings", array(), $this->ID );
-
-            // load parser class
-            global $jcimporter;
-            $this->parser = $jcimporter->parsers[$this->template_type];
         }
 	}
 
@@ -130,15 +126,16 @@ class JC_Importer_Core{
         $jci_file = $jcimporter->importer->file;
         $jci_template = $jcimporter->importer->template;
         $jci_template_type = $jcimporter->importer->template_type;
+        $parser = $jcimporter->parsers[$this->template_type];
 
         $mapper = new JC_BaseMapper();
         
-        $this->_parser = $jcimporter->parsers[$jci_template_type];
-        $this->_parser->loadFile($jci_file);
+        // $this->_parser = $jcimporter->parsers[$jci_template_type];
+        $parser->loadFile($jci_file);
 
         if($row){
 
-            $results = $this->_parser->parse(intval($row));
+            $results = $parser->parse(intval($row));
             
             // escape if row doesn't exist
             if(!$results){
@@ -148,7 +145,7 @@ class JC_Importer_Core{
             $result = $mapper->process($jci_template, $results, $row);
         }else{
 
-            $results = $this->_parser->parse();
+            $results = $parser->parse();
             $result = $mapper->process($jci_template, $results);
         }
 
