@@ -44,6 +44,15 @@ class JC_Upload_Attachments extends JC_Attachment{
             // determine file type from mimetype
             $template_type = $this->check_mime_header($attachment['type']);
 
+            // if header doesnt match check for file extension
+            if(!$template_type){
+                if(stripos($attachment['name'], '.csv')){
+                    $template_type = 'csv';
+                }elseif(stripos($attachment['name'], '.xml')){
+                    $template_type = 'xml';
+                }
+            }
+
             $wp_upload_dir = wp_upload_dir();
             $wp_dest = $wp_upload_dir['path'] . '/' . $a_name;
 
