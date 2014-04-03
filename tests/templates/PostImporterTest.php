@@ -93,9 +93,9 @@ class PostImporterTest extends WP_UnitTestCase{
         $this->importer->importer = new JC_Importer_Core($post_id);
         $import_data = $this->importer->importer->run_import(1);
         $this->assertEquals(1, count($import_data));
-
-
         $import_data = array_shift($import_data);
+
+        // assetions
         $this->assertEquals('Post One', $import_data['post']['post_title']);
         $this->assertEquals('post-one-123', $import_data['post']['post_name']);
         $this->assertEquals('This is the post one\'s excerpt', $import_data['post']['post_excerpt']);
@@ -103,8 +103,9 @@ class PostImporterTest extends WP_UnitTestCase{
         $this->assertEquals('publish', $import_data['post']['post_status']);
         $this->assertEquals('I', $import_data['post']['_jci_type']);
         $this->assertEquals('S', $import_data['post']['_jci_status']);
-        $this->assertEquals('S', $import_data['_jci_status']);
 
+        // need to fix failing test, but not failing on real import
+        $this->assertEquals('S', $import_data['_jci_status']);
         
     }
 }

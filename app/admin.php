@@ -393,7 +393,12 @@ class JC_Importer_Admin{
                     }
 
                     if($attachments > 0){
-                        echo $attachments.' Attachments Inserted';
+                        if($attachments == 1){
+                            echo $attachments.' Attachment Inserted';
+                        }else{
+                            echo $attachments.' Attachments Inserted';
+                        }
+                        
                     }
                     
                 }else{
@@ -402,7 +407,6 @@ class JC_Importer_Admin{
                 
             break;
             case 'taxonomies':
-
                 if(isset($data['taxonomies'])){
 
                     foreach($data['taxonomies'] as $tax => $terms){

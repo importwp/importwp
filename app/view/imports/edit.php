@@ -8,6 +8,7 @@ $row_count = $jcimporter->importer->get_row_count();
 $permissions_general = $jcimporter->importer->get_permissions();
 $taxonomies = $jcimporter->importer->get_taxonomies();
 $taxonomy_permissions = $jcimporter->importer->get_taxonomies_permissions();
+$attachments = $jcimporter->importer->get_attachments();
 ?>
 
 <div id="icon-tools" class="icon32"><br></div>

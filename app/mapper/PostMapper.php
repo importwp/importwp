@@ -255,7 +255,7 @@ class JC_PostMapper{
 	 * @todo Check field maps for post_status
 	 */
 	function getGroupPostStatus($group_id = ''){
-		return $this->_template->_field_groups[$group_id]['post_status'];
+		return isset($this->_template->_field_groups[$group_id]['post_status']) ? $this->_template->_field_groups[$group_id]['post_status'] : null;
 	}
 
 	/**
