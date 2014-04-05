@@ -338,7 +338,6 @@ class JC_Importer_Admin{
         }
 
         if(!$error){
-            ImportLog::insert($importer_id, $row, $data);
 
             if(!$error && $data['_jci_status'] == 'S'){
                 // success

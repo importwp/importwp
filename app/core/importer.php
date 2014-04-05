@@ -161,7 +161,8 @@ class JC_Importer_Core{
     }
 
     public function get_parser(){
-        return $this->parser;
+        global $jcimporter;
+        return $jcimporter->parsers[$this->template_type];
     }
 
     public function get_permissions(){

@@ -47,10 +47,14 @@ class JC_BaseMapper{
 			// @quickfix: set current row to selected row
 			$this->_current_row = ($row - 1);
 		}
+
+		global $jcimporter;
+		$importer_id = $jcimporter->importer->get_ID();
 		
 		foreach($data as $data_row){
 			
 			$this->processRow($data_row);
+			ImportLog::insert($importer_id, $this->_current_row, $this->_insert[$this->_current_row]);
 		}
 
 		return $this->_insert;
