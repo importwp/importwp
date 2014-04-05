@@ -197,6 +197,11 @@ class JC_CSV_Parser extends JC_Parser{
 		// load settings
 		$file = ImporterModel::getImportSettings($id, 'import_file');
 
+		// todo: throw error
+		if(!is_file($file)){
+			return 0;
+		}
+
 		$linecount = 0;
 		$fh = fopen($file, 'r');
 

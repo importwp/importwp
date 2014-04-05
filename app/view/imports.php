@@ -36,6 +36,7 @@ $importers = ImporterModel::getImporters();
 							<div class="row-actions">
 								<span class="edit"><a href="<?php echo site_url('/wp-admin/admin.php?page=jci-importers&import='.get_the_ID().'&action=edit'); ?>" title="Edit this item">Edit</a> | </span>
 								<span class="edit"><a href="<?php echo site_url('/wp-admin/admin.php?page=jci-importers&import='.get_the_ID().'&action=logs'); ?>" title="Run this item">Run</a> | </span>
+								<span class="edit"><a href="<?php echo site_url('/wp-admin/admin.php?page=jci-importers&import='.get_the_ID().'&action=history'); ?>" title="View this item">History</a> | </span>
 								<span class="trash"><a class="submitdelete" title="Move this item to the Trash" href="<?php echo site_url('/wp-admin/admin.php?page=jci-importers&import='.get_the_ID().'&action=trash'); ?>">Trash</a></span>
 							</div>
 						</td>

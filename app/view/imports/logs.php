@@ -2,6 +2,7 @@
 global $jcimporter;
 
 // load settings from gloabl
+$importer_id = $jcimporter->importer->get_ID();
 $parser = $jcimporter->importer->get_parser();
 $template_name = $jcimporter->importer->get_template_name();
 $template = $jcimporter->importer->get_template();
@@ -21,7 +22,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array());
 <div id="icon-tools" class="icon32"><br></div>
 <h2 class="nav-tab-wrapper">
 	<a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=edit" class="nav-tab tab"><?php echo $name; ?></a>
-	<a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=logs" class="nav-tab nav-tab-active tab">Logs</a>
+	<a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=history" class="nav-tab tab">History</a>
+	<a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=logs" class="nav-tab nav-tab-active tab">Run Import</a>
 </h2>
 
 <div id="ajaxResponse"></div>
@@ -57,8 +59,6 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array());
 					<a href="#" class="jc-importer_update-run button-primary">Run Import</a>
 				</div>
 			</div>
-
-			
 
 		</div>
 

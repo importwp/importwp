@@ -140,6 +140,11 @@ class JC_XML_Parser extends JC_Parser{
 			$import_base = $jcimporter->importer->addon_settings['import_base'];
 		}
 
+		// todo: throw error
+		if(!is_file($file)){
+			return 0;
+		}
+
 		// load xml and count records
 		$xml = simplexml_load_file($file);
 		if(isset($import_base) && !empty($import_base)){

@@ -14,7 +14,7 @@ $attachments = $jcimporter->importer->get_attachments();
 <div id="icon-tools" class="icon32"><br></div>
 <h2 class="nav-tab-wrapper">
 	<a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=edit" class="nav-tab nav-tab-active tab"><?php echo $name; ?></a>
-	<a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=logs" class="nav-tab tab">Logs</a>
+	<a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=history" class="nav-tab tab">History</a>
 </h2>
 
 <div id="ajaxResponse"></div>

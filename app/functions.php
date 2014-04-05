@@ -112,3 +112,55 @@ if(!function_exists('mime_content_type')) {
         }
     }
 }
+
+/**
+ * Output column data
+ * @param  array $column 
+ * @param  array $data   
+ * @return void
+ */
+function log_content($column, $data){
+
+    switch ($column) {
+        case 'attachments':
+            if(isset($data['attachments'])){
+
+                //
+                $attachments = 0;
+                foreach($data['attachments'] as $result){
+                    if($result['status'] == 'E'){
+
+                        // error
+                        echo "Error: ".$result['msg'];
+                    }elseif($result['status'] == 'S'){
+
+                        $attachments++;
+                    }
+                }
+
+                if($attachments > 0){
+                    if($attachments == 1){
+                        echo $attachments.' Attachment Inserted';
+                    }else{
+                        echo $attachments.' Attachments Inserted';
+                    }
+                    
+                }
+                
+            }else{
+                echo 'No Attachments Inserted';
+            }
+            
+        break;
+        case 'taxonomies':
+            if(isset($data['taxonomies'])){
+
+                foreach($data['taxonomies'] as $tax => $terms){
+                    echo "<strong>{$tax}</strong>: ".implode(',', $terms).'<br />';
+                }
+            }else{
+                echo 'No Taxonomies Inserted';
+            }
+        break;
+    }
+}

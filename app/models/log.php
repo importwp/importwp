@@ -30,12 +30,18 @@ class ImportLog{
 	 */
 	static function insert($import_id, $row, $record){
 
-		global $wpdb;
+		global $wpdb, $jcimporter;
+
+		// todo: replace this fix with a $_GET key to know the real start of the import
+		$start_row = $jcimporter->importer->get_start_line();
+		if($start_row <= 0){
+			$start_row = 1;
+		}
 
 		$template = ImporterModel::getImportSettings($import_id);
 		$importer = ImporterModel::getImporter($import_id);
 
-		if($row == 1){
+		if($start_row == $row){
 			// increase next row
 			$version = self::get_current_version($import_id);
 			$version++;
@@ -98,4 +104,28 @@ class ImportLog{
 
 		dbDelta($sql);
 	}
+
+	/**
+	 * Get Importer Logs
+	 * @param int $importer_id
+	 * @return array
+	 */
+	static function get_importer_logs($importer_id = null){
+
+		global $wpdb;
+		$importer_id = intval($importer_id);
+
+		return $wpdb->get_results("SELECT version, type, file,  created, MAX(row) as row_total FROM `wp_importer_log` WHERE object_id='{$importer_id}' GROUP BY version ORDER BY version DESC", OBJECT);
+	}
+
+	static function get_importer_log($importer_id, $log){
+		
+		global $wpdb;
+
+		$importer_id = intval($importer_id);
+		$log = intval($log);
+
+		return $wpdb->get_results("SELECT * FROM `wp_importer_log` WHERE object_id='{$importer_id}' AND version='{$log}' ORDER BY version DESC", OBJECT);
+	}
+	
 }

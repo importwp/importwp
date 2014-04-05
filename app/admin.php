@@ -319,49 +319,7 @@ class JC_Importer_Admin{
         $jcimporter->importer = new JC_Importer_Core($importer_id);
         $data = $jcimporter->importer->run_import($row);
 
-        $template = ImporterModel::getImportSettings($importer_id, 'template');
-        $columns = apply_filters( "jci/log_{$template}_columns", array());
-
-        // attach default columns for attachments 
-        add_action("jci/log_{$template}_content", array($this, 'loc_content'), 5, 2);
-
-        $error = false;
-
-        if(!is_array($data)){
-            $error = 'No Record Data';
-        }else{
-            $data = array_shift($data);
-        }
-
-        if(isset($data['_jci_status']) && $data['_jci_status'] != 'S'){
-            $error = $data['_jci_msg'];
-        }
-
-        if(!$error){
-
-            if(!$error && $data['_jci_status'] == 'S'){
-                // success
-                ?>
-            <tr>
-                <td><?php echo $row; ?></td>
-                <?php foreach($columns as $key => $col): ?>
-                <td><?php do_action( "jci/log_{$template}_content", $key, $data ); ?></td>
-                <?php endforeach; ?>
-            </tr>
-                <?php
-
-            }
-
-        }
-
-        // display error message
-        if($error !== false){
-            ?>
-        <tr>
-            <td colspan="<?php echo count($columns) + 1; ?>">Error: <?php echo $error; ?></td>
-        </tr>
-            <?php
-        }
+        require_once $jcimporter->plugin_dir . 'app/view/imports/log/log_table_record.php';
 
         die();
     }

@@ -19,6 +19,10 @@ $action = isset($_GET['action']) && !empty($_GET['action']) ? $_GET['action'] : 
 					$jcimporter->importer = new JC_Importer_Core($id);
 					require 'imports/logs.php';
 					break;
+				case 'history':
+					$jcimporter->importer = new JC_Importer_Core($id);
+					require 'imports/history.php';
+					break;
 				case 'edit':
 					$jcimporter->importer = new JC_Importer_Core($id);
 					require 'imports/edit.php';
