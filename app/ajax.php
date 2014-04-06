@@ -27,8 +27,7 @@ class JC_Importer_Ajax{
 		if(isset($_GET['page']) && $_GET['page'] == 'jci-importers' && isset($_GET['import']) && intval($_GET['import']) > 0){
 
 			$post_id = intval($_GET['import']);
-
-			wp_enqueue_script( 'ajax-importer', plugins_url( '/assets/js/importer.js', __FILE__ ), array('jquery'), 0.1, true);
+			wp_enqueue_script( 'ajax-importer', plugins_url( '/assets/js/importer.js', __FILE__ ), array('jquery'), 0.1, false);
 			wp_localize_script( 'ajax-importer', 'ajax_object', array( 
 				'ajax_url' => admin_url( 'admin-ajax.php' ), 
 				'id' => $post_id ,

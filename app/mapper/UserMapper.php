@@ -32,30 +32,19 @@ class JC_UserMapper extends JC_BaseMapper{
 	 */
 	function insert($group_id = null, $fields = array()){		
 
-		if(!isset($fields['user_login']) && empty($fields['user_login'])){
+		if(!isset($fields['user_login']) || empty($fields['user_login'])){
 			throw new JCI_Exception("No username present", JCI_ERR);	
 		}
 
-		// $username = $fields['user_login'];
-		
-		// $c = 1;
-		// while(username_exists( $username ) !== null){
-		// 	$username = $fields['user_login'].$c;
-		// 	$c++;
-		// }
-
-		// $fields['user_login'] = $username;
-		$fields['user_pass'] = 'pass';
+		if(!isset($fields['user_pass']) || empty($fields['user_pass'])){
+			throw new JCI_Exception("No password present", JCI_ERR);
+		}
 
 		$result = wp_insert_user( $fields );
 		if(is_wp_error($result )){
 			throw new JCI_Exception($result->get_error_message(), JCI_ERR);
 		}
 
-		// email user notification
-		if($this->notify_insert){
-			wp_new_user_notification( $result, $fields['user_pass'] );
-		}
 		do_action('jci/after_user_insert', $result, $fields);
 		
 		return $result;

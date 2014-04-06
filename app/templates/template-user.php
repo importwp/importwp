@@ -16,6 +16,14 @@ class JC_User_Template extends JC_Importer_Template{
 			'relationship' => array(),
 			'map' => array(
 				array(
+					'title' => 'Username',
+					'field' => 'user_login'
+				),
+				array(
+					'title' => 'Email',
+					'field' => 'user_email'
+				),
+				array(
 					'title' => 'First Name',
 					'field' => 'first_name'
 				),
@@ -24,21 +32,16 @@ class JC_User_Template extends JC_Importer_Template{
 					'field' => 'last_name'
 				),
 				array(
-					'title' => 'Email',
-					'field' => 'user_email'
-				),
-				array(
-					'title' => 'Username',
-					'field' => 'user_login'
-				),
-				
-				array(
-					'title' => 'Role',
-					'field' => 'role',
+					'title' => 'Website',
+					'field' => 'user_url'
 				),
 				array(
 					'title' => 'Password',
 					'field' => 'user_pass'
+				),
+				array(
+					'title' => 'Role',
+					'field' => 'role',
 				),
 				array(
 					'title' => 'Nice Name',
@@ -56,14 +59,20 @@ class JC_User_Template extends JC_Importer_Template{
 					'title' => 'Description',
 					'field' => 'description',
 				),
-				array(
-					'title' => 'Website',
-					'field' => 'user_url'
-				),
+				
 			)
 		)
 	);
-
+	
+	/**
+	 * Check for errors before any data is saved
+	 * 
+	 * Hooked Action: jci/before_{$template_name}_row_save
+	 * 
+	 * @param  array $data
+	 * @param  string $group_id	template group name
+	 * @return void
+	 */
 	public function before_template_save($data, $group_id){
 
 		if(empty($data['user']['user_login'])){
@@ -78,20 +87,70 @@ class JC_User_Template extends JC_Importer_Template{
 			throw new JCI_Exception(strval($data['user']['user_email'])." is not a valid email address", JCI_WARN);
 		}
 
-		global $jcimporter;
-		$importer_id = $jcimporter->importer->ID;
+		
+	}
 
-		// generate password
-		$generate_pass = ImporterModel::getImporterMetaArr($importer_id, array('_template_settings','generate_pass'));
-		if($generate_pass == 1){
-			$data['user']['user_pass'] = wp_generate_password( 10);
-		}
+	/**
+	 * Pre Process data before each record saves data
+	 *
+	 * Hooked Filter: jci/before_{$template_name}_group_save
+	 * 
+	 * @param  array $data     
+	 * @param  string $group_id template group name
+	 * @return array
+	 */
+	public function before_group_save($data, $group_id){
+
+		if($group_id == 'user'){
+
+			global $jcimporter;
+			$importer_id = $jcimporter->importer->ID;
+
+			$enable_user_nicename = ImporterModel::getImporterMetaArr($importer_id, array('_template_settings','enable_user_nicename'));
+			$enable_display_name = ImporterModel::getImporterMetaArr($importer_id, array('_template_settings','enable_display_name'));
+			$enable_nickname = ImporterModel::getImporterMetaArr($importer_id, array('_template_settings','enable_nickname'));
+			$enable_description = ImporterModel::getImporterMetaArr($importer_id, array('_template_settings','enable_description'));
+			$enable_pass = ImporterModel::getImporterMetaArr($importer_id, array('_template_settings','enable_pass'));
+
+			if($enable_user_nicename == 0){
+				unset($data['user_nicename']);
+			}
+
+			if($enable_display_name == 0){
+				unset($data['display_name']);
+			}
+
+			if($enable_nickname == 0){
+				unset($data['nickname']);
+			}
+
+			if($enable_description == 0){
+				unset($data['description']);
+			}
+
+			if($enable_description == 0){
+				unset($data['description']);
+			}
+
+			if($enable_pass == 0){
+				unset($data['user_pass']);
+			}
+
+			// generate password
+			$generate_pass = ImporterModel::getImporterMetaArr($importer_id, array('_template_settings','generate_pass'));
+			if($generate_pass == 1 && (!isset($data['user_pass']) || empty($data['user_pass']))){
+				$data['user_pass'] = wp_generate_password( 10);
+			}
+		}	
+
+		return $data;	
 	}
 
 	public function __construct(){
 		parent::__construct();
 		add_action('jci/after_template_fields', array($this, 'field_settings'));
 		add_action('jci/save_template', array($this, 'save_template'));
+		add_action('jci/after_user_insert', array($this, 'after_user_insert'), 10 , 2);
 
 		add_filter('jci/log_user_columns', array($this, 'log_user_columns'));
 		add_action('jci/log_user_content', array($this, 'log_user_content'), 10, 2);
@@ -108,38 +167,46 @@ class JC_User_Template extends JC_Importer_Template{
 		if($template == $this->_name){
 
 			$enable_pass = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_pass'));
+			$enable_user_nicename = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_user_nicename'));
+			$enable_display_name = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_display_name'));
+			$enable_nickname = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_nickname'));
+			$enable_description = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_description'));
 			$generate_pass = ImporterModel::getImporterMetaArr($id, array('_template_settings','generate_pass'));
 			$notify_pass = ImporterModel::getImporterMetaArr($id, array('_template_settings','notify_pass'));
 			$notify_reg = ImporterModel::getImporterMetaArr($id, array('_template_settings','notify_reg'));
 			?>
 			<div class="jci-group-settings jci-group-section" data-section-id="settings">
+				<h4>Fields</h4>
+				<?php 
+				echo JCI_FormHelper::checkbox('template_settings[enable_user_nicename]', array('label' => 'Enable Nice Name Field', 'checked' => $enable_user_nicename));
+				echo JCI_FormHelper::checkbox('template_settings[enable_display_name]', array('label' => 'Enable Display Name Field', 'checked' => $enable_display_name));
+				echo JCI_FormHelper::checkbox('template_settings[enable_nickname]', array('label' => 'Enable Nickname Field', 'checked' => $enable_nickname));
+				echo JCI_FormHelper::checkbox('template_settings[enable_description]', array('label' => 'Enable Description Field', 'checked' => $enable_description));
+				?>
+
 				<h4>Passwords:</h4>
 				<?php 
 				echo JCI_FormHelper::checkbox('template_settings[enable_pass]', array('label' => 'Enable Password Field', 'checked' => $enable_pass));
 				echo JCI_FormHelper::checkbox('template_settings[generate_pass]', array('label' => 'Generate Password', 'checked' => $generate_pass));
 				?>
-
+				
 				<h4>Notifications:</h4>
 				<?php 
-				echo JCI_FormHelper::checkbox('template_settings[notify_pass]', array('label' => 'Send new Password', 'checked' => $notify_pass));
+				//echo JCI_FormHelper::checkbox('template_settings[notify_pass]', array('label' => 'Send new Password', 'checked' => $notify_pass));
 				echo JCI_FormHelper::checkbox('template_settings[notify_reg]', array('label' => 'Send User Registration', 'checked' => $notify_reg));
 				?>
 			</div>
 
 			<script type="text/javascript">
-			jQuery(document).ready(function($){
-				
-				// ID Field
-				$('input[name="jc-importer_template_settings[enable_pass]"]').change(function(){
-					var elem = $('#jc-importer_field-user-user_pass').parent();
-					if(!$(this).is(':checked')){
-						elem.hide();
-					}else{
-						elem.show();
-					}
-				});
 
-				$('input[name="jc-importer_template_settings[enable_pass]"]').trigger('change');
+			jQuery(document).ready(function($){
+
+				$.fn.jci_enableField('enable_pass', 'user-user_pass');
+				$.fn.jci_enableField('enable_user_nicename', 'user-user_nicename');
+				$.fn.jci_enableField('enable_display_name', 'user-display_name');
+				$.fn.jci_enableField('enable_nickname', 'user-nickname');
+				$.fn.jci_enableField('enable_description', 'user-description');
+				
 			});
 			</script>
 			<?php
@@ -158,15 +225,39 @@ class JC_User_Template extends JC_Importer_Template{
 
 			// get template settings
 			$enable_pass = isset($_POST['jc-importer_template_settings']['enable_pass']) ? $_POST['jc-importer_template_settings']['enable_pass'] : 0;
+			$enable_user_nicename = isset($_POST['jc-importer_template_settings']['enable_user_nicename']) ? $_POST['jc-importer_template_settings']['enable_user_nicename'] : 0;
+			$enable_display_name = isset($_POST['jc-importer_template_settings']['enable_display_name']) ? $_POST['jc-importer_template_settings']['enable_display_name'] : 0;
+			$enable_nickname = isset($_POST['jc-importer_template_settings']['enable_nickname']) ? $_POST['jc-importer_template_settings']['enable_nickname'] : 0;
+			$enable_description = isset($_POST['jc-importer_template_settings']['enable_description']) ? $_POST['jc-importer_template_settings']['enable_description'] : 0;
 			$generate_pass = isset($_POST['jc-importer_template_settings']['generate_pass']) ? $_POST['jc-importer_template_settings']['generate_pass'] : 0;
 			$notify_pass = isset($_POST['jc-importer_template_settings']['notify_pass']) ? $_POST['jc-importer_template_settings']['notify_pass'] : 0;
 			$notify_reg = isset($_POST['jc-importer_template_settings']['notify_reg']) ? $_POST['jc-importer_template_settings']['notify_reg'] : 0;
 
 			// update template settings
 			ImporterModel::setImporterMeta($id, array('_template_settings','enable_pass'), $enable_pass);
+			ImporterModel::setImporterMeta($id, array('_template_settings','enable_user_nicename'), $enable_user_nicename);
+			ImporterModel::setImporterMeta($id, array('_template_settings','enable_display_name'), $enable_display_name);
+			ImporterModel::setImporterMeta($id, array('_template_settings','enable_nickname'), $enable_nickname);
+			ImporterModel::setImporterMeta($id, array('_template_settings','enable_description'), $enable_description);
 			ImporterModel::setImporterMeta($id, array('_template_settings','generate_pass'), $generate_pass);
 			ImporterModel::setImporterMeta($id, array('_template_settings','notify_pass'), $notify_pass);
 			ImporterModel::setImporterMeta($id, array('_template_settings','notify_reg'), $notify_reg);
+		}
+	}
+
+	public function after_user_insert($user_id, $fields){
+		print_r($user_id);
+		print_r($fields);
+
+		global $jcimporter;
+		$importer_id = $jcimporter->importer->ID;
+
+		$notify_reg = ImporterModel::getImporterMetaArr($importer_id, array('_template_settings','notify_reg'));
+
+		if($notify_reg == 1){
+
+			$pass = isset($fields['user_pass']) ? $fields['user_pass'] : '';
+			wp_new_user_notification( $user_id, $pass );
 		}
 	}
 

@@ -286,6 +286,7 @@ class ImporterModel{
 		if(is_array($keys)){
 			
 			$key = array_shift($keys);
+			// todo: cache results
 			$old_value = get_post_meta($post_id, $key, true );
 
 			$temp = $old_value;
@@ -301,6 +302,7 @@ class ImporterModel{
 		}elseif(is_string($keys)){
 			
 			$key = $keys;
+			// todo: cache results
 			return get_post_meta($post_id, $key, true );
 		}
 

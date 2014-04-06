@@ -254,3 +254,29 @@ jQuery(function($){
 	});
 
 });
+
+/**
+ * Function to toggle a checkbox to enable a template field
+ * @param  string trigger
+ * @param  string target 
+ * @return void
+ */
+(function( $ ){
+    $.fn.jci_enableField = function(trigger_str, target_str) {
+
+    	var trigger_elem = $('input[name="jc-importer_template_settings['+trigger_str+']"]');
+    	var target_elem = $('#jc-importer_field-'+target_str);
+
+    	trigger_elem.on('change', function(){
+
+			var elem = target_elem.parent();
+			if(!$(this).is(':checked')){
+				elem.hide();
+			}else{
+				elem.show();
+			}
+		});
+
+		trigger_elem.trigger('change');
+    };
+})( jQuery );
