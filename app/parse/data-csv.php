@@ -10,7 +10,7 @@ class JC_CSV_Parser extends JC_Parser{
 	private $curr_row = 0;
 
 	private $default_csv_delimiter = ',';
-	private $default_csv_enclosure = '"';
+	private $default_csv_enclosure = '&quot;';
 
 	/**
 	 * Setup Actions and filters

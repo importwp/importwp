@@ -25,6 +25,8 @@ class UserImporterTest extends WP_UnitTestCase{
             )
         ));
 
+        ImporterModel::setImporterMeta($post_id, array('_template_settings','generate_pass'), 1);
+
     	/**
     	 * Test: Check if one record is returned
     	 */
@@ -155,6 +157,8 @@ class UserImporterTest extends WP_UnitTestCase{
                 'user' => array('base' => '')
             )
         ));   
+
+        ImporterModel::setImporterMeta($post_id, array('_template_settings','generate_pass'), 1);
 
         /**
          * Test: Check if one record is returned

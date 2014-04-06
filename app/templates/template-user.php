@@ -246,8 +246,6 @@ class JC_User_Template extends JC_Importer_Template{
 	}
 
 	public function after_user_insert($user_id, $fields){
-		print_r($user_id);
-		print_r($fields);
 
 		global $jcimporter;
 		$importer_id = $jcimporter->importer->ID;
@@ -313,7 +311,6 @@ class JC_User_Template extends JC_Importer_Template{
 
 add_filter('jci/register_template', 'register_user_template', 10, 1);
 function register_user_template($templates = array()){
-	$template = new JC_User_Template();
-	$templates[$template->get_name()] = $template;
+	$templates['user'] = 'JC_User_Template';
 	return $templates;
 }

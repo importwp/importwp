@@ -295,7 +295,6 @@ class JC_Page_Template extends JC_Importer_Template{
 
 add_filter('jci/register_template', 'register_page_template', 10, 1);
 function register_page_template($templates = array()){
-	$template = new JC_Page_Template();
-	$templates[$template->get_name()] = $template;
+	$templates['page'] = 'JC_Page_Template';
 	return $templates;
 }

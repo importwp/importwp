@@ -87,7 +87,7 @@ class ImportLog{
 
 		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 		
-		$sql = "CREATE TABLE `".$wpdb->prefix."importer_log` (
+		$sql = "CREATE TABLE IF NOT EXISTS `".$wpdb->prefix."importer_log` (
 			  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 			  `importer_name` varchar(255) DEFAULT NULL,
 			  `object_id` int(11) DEFAULT NULL,

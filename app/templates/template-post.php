@@ -290,7 +290,6 @@ class JC_Post_Template extends JC_Importer_Template{
 
 add_filter('jci/register_template', 'register_post_template', 10, 1);
 function register_post_template($templates = array()){
-	$template = new JC_Post_Template();
-	$templates[$template->get_name()] = $template;
+	$templates['post'] = 'JC_Post_Template';
 	return $templates;
 }
