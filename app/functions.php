@@ -9,9 +9,9 @@ function get_template_list(){
 	global $jcimporter;
 
 	$templates = array();
-	foreach($jcimporter->templates as $template){
-		$templates[$template->get_name()] = $template->get_name();
-	}
+    foreach($jcimporter->templates as $key => $template){
+        $templates[$key] = $template;
+    }
 
 	return $templates;
 }
