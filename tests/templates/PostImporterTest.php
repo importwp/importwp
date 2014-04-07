@@ -33,6 +33,8 @@ class PostImporterTest extends WP_UnitTestCase{
             'permissions' => array('create')
         ));
 
+        ImporterModel::setImporterMeta($post_id, array('_template_settings','enable_post_status'), 1);
+
     	/**
     	 * Test: Check if one record is returned
     	 */
@@ -85,6 +87,8 @@ class PostImporterTest extends WP_UnitTestCase{
             'term' => array('{/categories[1]/category}', '{/tags[1]}'),
             'permissions' => array('overwrite', 'overwrite')
         ));
+
+        ImporterModel::setImporterMeta($post_id, array('_template_settings','enable_post_status'), 1);
 
         /**
          * Test: Check if one record is returned

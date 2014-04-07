@@ -190,7 +190,9 @@ class JC_Post_Template extends JC_Importer_Template{
 			unset($data['ID']);
 		}
 		if($this->enable_post_status == 0){
-			unset($data['post_status']);
+
+			// set default post status if none present
+			$data['post_status'] = $this->_field_groups[$group_id]['post_status'];
 		}
 		if($this->enable_post_author == 0){
 			unset($data['post_author']);

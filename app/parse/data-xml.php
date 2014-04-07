@@ -96,7 +96,7 @@ class JC_XML_Parser extends JC_Parser{
 		global $jcimporter;
 
 		// setup current group node
-		$group = $jcimporter->importer->addon_settings['group_base'][$group_id];
+		$group = isset($jcimporter->importer->addon_settings['group_base'][$group_id]) ? $jcimporter->importer->addon_settings['group_base'][$group_id] : '';
 		$group_node = isset($group['base']) ? $group['base'] : '';
 
 		// setup template base node
