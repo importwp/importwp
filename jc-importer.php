@@ -83,6 +83,12 @@ class JC_Importer{
 		require_once 'app/models/log.php';
 
 		if(is_admin()){
+
+			// load importer
+            $importer_id = isset($_GET['import']) && !empty($_GET['import']) ? intval($_GET['import']) : 0;
+            if($importer_id > 0){
+                $this->importer = new JC_Importer_Core($importer_id);
+            }
 			
 			require_once 'app/admin.php';
 			new JC_Importer_Admin($this);	

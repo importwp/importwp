@@ -22,17 +22,22 @@ class JC_Post_Template extends JC_Importer_Template{
 					'field' => 'ID'
 				),
 				array(
+					'title' => 'Title',
+					'field' => 'post_title'
+				),
+				array(
 					'title' => 'Content',
 					'field' => 'post_content'
+				),
+				array(
+					'title' => 'Excerpt',
+					'field' => 'post_excerpt'
 				),
 				array(
 					'title' => 'Slug',
 					'field' => 'post_name'
 				),
-				array(
-					'title' => 'Title',
-					'field' => 'post_title'
-				),
+				
 				array(
 					'title' => 'Status',
 					'field' => 'post_status'
@@ -54,10 +59,6 @@ class JC_Post_Template extends JC_Importer_Template{
 					'field' => 'post_password'
 				),
 				array(
-					'title' => 'Excerpt',
-					'field' => 'post_excerpt'
-				),
-				array(
 					'title' => 'Date',
 					'field' => 'post_date'
 				),
@@ -71,11 +72,6 @@ class JC_Post_Template extends JC_Importer_Template{
 					'field' => 'ping_status',
 					'values' => array('closed','open')
 				),
-				array(
-					'title' => 'Page Template',
-					'field' => 'page_template'
-				),
-
 			)
 		)
 	);
@@ -95,11 +91,14 @@ class JC_Post_Template extends JC_Importer_Template{
 		if($template == $this->_name){
 
 			$enable_id = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_id'));
-			$enable_order = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_order'));
-			$enable_password = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_password'));
-			$enable_template = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_template'));
-			$enable_comments = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_comments'));
-			$enable_ping = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_ping'));
+			$enable_post_status = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_post_status'));
+			$enable_post_author = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_post_author'));
+			$enable_post_parent = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_post_parent'));
+			$enable_menu_order = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_menu_order'));
+			$enable_post_password = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_post_password'));
+			$enable_post_date = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_post_date'));
+			$enable_comment_status = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_comment_status'));
+			$enable_ping_status = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_ping_status'));
 
 			?>
 			<div class="jci-group-settings jci-group-section" data-section-id="settings">
@@ -107,78 +106,30 @@ class JC_Post_Template extends JC_Importer_Template{
 				<h4>Fields:</h4>
 				<?php 
 				echo JCI_FormHelper::checkbox('template_settings[enable_id]', array('label' => 'Enable ID Field', 'checked' => $enable_id));
-				echo JCI_FormHelper::checkbox('template_settings[enable_order]', array('label' => 'Enable Order Field', 'checked' => $enable_order));
-				echo JCI_FormHelper::checkbox('template_settings[enable_password]', array('label' => 'Enable Password Field', 'checked' => $enable_password));
-				echo JCI_FormHelper::checkbox('template_settings[enable_template]', array('label' => 'Enable Template Field', 'checked' => $enable_template));
-				echo JCI_FormHelper::checkbox('template_settings[enable_comments]', array('label' => 'Enable Comments Field', 'checked' => $enable_comments));
-				echo JCI_FormHelper::checkbox('template_settings[enable_ping]', array('label' => 'Enable Trackbacks Field', 'checked' => $enable_ping));
+				echo JCI_FormHelper::checkbox('template_settings[enable_post_status]', array('label' => 'Enable Post Status Field', 'checked' => $enable_post_status));
+				echo JCI_FormHelper::checkbox('template_settings[enable_post_author]', array('label' => 'Enable Author Field', 'checked' => $enable_post_author));
+				echo JCI_FormHelper::checkbox('template_settings[enable_post_parent]', array('label' => 'Enable Parent Field', 'checked' => $enable_post_parent));
+				echo JCI_FormHelper::checkbox('template_settings[enable_menu_order]', array('label' => 'Enable Order Field', 'checked' => $enable_menu_order));
+				echo JCI_FormHelper::checkbox('template_settings[enable_post_password]', array('label' => 'Enable Password Field', 'checked' => $enable_post_password));
+				echo JCI_FormHelper::checkbox('template_settings[enable_post_date]', array('label' => 'Enable Date Field', 'checked' => $enable_post_date));
+				echo JCI_FormHelper::checkbox('template_settings[enable_comment_status]', array('label' => 'Enable Comment Field', 'checked' => $enable_comment_status));
+				echo JCI_FormHelper::checkbox('template_settings[enable_ping_status]', array('label' => 'Enable Ping Field', 'checked' => $enable_ping_status));
 				?>
 				</div>
 			</div>
 			<script type="text/javascript">
 			jQuery(document).ready(function($){
 				
-				// ID Field
-				$('input[name="jc-importer_template_settings[enable_id]"]').change(function(){
-					var elem = $('#jc-importer_field-post-ID').parent();
-					if(!$(this).is(':checked')){
-						elem.hide();
-					}else{
-						elem.show();
-					}
-				});
+				$.fn.jci_enableField('enable_id', 'post-ID');
+				$.fn.jci_enableField('enable_post_status', 'post-post_status');
+				$.fn.jci_enableField('enable_post_author', 'post-post_author');
+				$.fn.jci_enableField('enable_post_parent', 'post-post_parent');
+				$.fn.jci_enableField('enable_menu_order', 'post-menu_order');
+				$.fn.jci_enableField('enable_post_password', 'post-post_password');
+				$.fn.jci_enableField('enable_post_date', 'post-post_date');
+				$.fn.jci_enableField('enable_comment_status', 'post-comment_status');
+				$.fn.jci_enableField('enable_ping_status', 'post-ping_status');
 
-				// order field
-				$('input[name="jc-importer_template_settings[enable_order]"]').change(function(){
-					var elem = $('#jc-importer_field-post-menu_order').parent();
-					if(!$(this).is(':checked')){
-						elem.hide();
-					}else{
-						elem.show();
-					}
-				});
-
-				// password field
-				$('input[name="jc-importer_template_settings[enable_password]"]').change(function(){
-					var elem = $('#jc-importer_field-post-post_password').parent();
-					if(!$(this).is(':checked')){
-						elem.hide();
-					}else{
-						elem.show();
-					}
-				});
-
-				// template field
-				$('input[name="jc-importer_template_settings[enable_template]"]').change(function(){
-					var elem = $('#jc-importer_field-post-page_template').parent();
-					if(!$(this).is(':checked')){
-						elem.hide();
-					}else{
-						elem.show();
-					}
-				});
-
-				// comments field
-				$('input[name="jc-importer_template_settings[enable_comments]"]').change(function(){
-					var elem = $('#jc-importer_field-post-comment_status').parent();
-					if(!$(this).is(':checked')){
-						elem.hide();
-					}else{
-						elem.show();
-					}
-				});
-
-				//ping_status
-				$('input[name="jc-importer_template_settings[enable_ping]"]').change(function(){
-					var elem = $('#jc-importer_field-post-ping_status').parent();
-					if(!$(this).is(':checked')){
-						elem.hide();
-					}else{
-						elem.show();
-					}
-				});
-
-				$('#jci_post_enable_fields input').trigger('change');
 			});
 			</script>
 			<?php
@@ -192,19 +143,25 @@ class JC_Post_Template extends JC_Importer_Template{
 
 			// get template settings
 			$enable_id = isset($_POST['jc-importer_template_settings']['enable_id']) ? $_POST['jc-importer_template_settings']['enable_id'] : 0;
-			$enable_order = isset($_POST['jc-importer_template_settings']['enable_order']) ? $_POST['jc-importer_template_settings']['enable_order'] : 0;
-			$enable_password = isset($_POST['jc-importer_template_settings']['enable_password']) ? $_POST['jc-importer_template_settings']['enable_password'] : 0;
-			$enable_template = isset($_POST['jc-importer_template_settings']['enable_template']) ? $_POST['jc-importer_template_settings']['enable_template'] : 0;
-			$enable_comments = isset($_POST['jc-importer_template_settings']['enable_comments']) ? $_POST['jc-importer_template_settings']['enable_comments'] : 0;
-			$enable_ping = isset($_POST['jc-importer_template_settings']['enable_ping']) ? $_POST['jc-importer_template_settings']['enable_ping'] : 0;
+			$enable_post_status = isset($_POST['jc-importer_template_settings']['enable_post_status']) ? $_POST['jc-importer_template_settings']['enable_post_status'] : 0;
+			$enable_post_author = isset($_POST['jc-importer_template_settings']['enable_post_author']) ? $_POST['jc-importer_template_settings']['enable_post_author'] : 0;
+			$enable_post_parent = isset($_POST['jc-importer_template_settings']['enable_post_parent']) ? $_POST['jc-importer_template_settings']['enable_post_parent'] : 0;
+			$enable_menu_order = isset($_POST['jc-importer_template_settings']['enable_menu_order']) ? $_POST['jc-importer_template_settings']['enable_menu_order'] : 0;
+			$enable_post_password = isset($_POST['jc-importer_template_settings']['enable_post_password']) ? $_POST['jc-importer_template_settings']['enable_post_password'] : 0;
+			$enable_post_date = isset($_POST['jc-importer_template_settings']['enable_post_date']) ? $_POST['jc-importer_template_settings']['enable_post_date'] : 0;
+			$enable_comment_status = isset($_POST['jc-importer_template_settings']['enable_comment_status']) ? $_POST['jc-importer_template_settings']['enable_comment_status'] : 0;
+			$enable_ping_status = isset($_POST['jc-importer_template_settings']['enable_ping_status']) ? $_POST['jc-importer_template_settings']['enable_ping_status'] : 0;
 
 			// update template settings
 			ImporterModel::setImporterMeta($id, array('_template_settings','enable_id'), $enable_id);
-			ImporterModel::setImporterMeta($id, array('_template_settings','enable_order'), $enable_order);
-			ImporterModel::setImporterMeta($id, array('_template_settings','enable_password'), $enable_password);
-			ImporterModel::setImporterMeta($id, array('_template_settings','enable_template'), $enable_template);
-			ImporterModel::setImporterMeta($id, array('_template_settings','enable_comments'), $enable_comments);
-			ImporterModel::setImporterMeta($id, array('_template_settings','enable_ping'), $enable_ping);
+			ImporterModel::setImporterMeta($id, array('_template_settings','enable_post_status'), $enable_post_status);
+			ImporterModel::setImporterMeta($id, array('_template_settings','enable_post_author'), $enable_post_author);
+			ImporterModel::setImporterMeta($id, array('_template_settings','enable_post_parent'), $enable_post_parent);
+			ImporterModel::setImporterMeta($id, array('_template_settings','enable_menu_order'), $enable_menu_order);
+			ImporterModel::setImporterMeta($id, array('_template_settings','enable_post_password'), $enable_post_password);
+			ImporterModel::setImporterMeta($id, array('_template_settings','enable_post_date'), $enable_post_date);
+			ImporterModel::setImporterMeta($id, array('_template_settings','enable_comment_status'), $enable_comment_status);
+			ImporterModel::setImporterMeta($id, array('_template_settings','enable_ping_status'), $enable_ping_status);
 		}
 	}
 
@@ -214,11 +171,14 @@ class JC_Post_Template extends JC_Importer_Template{
 		$id = $jcimporter->importer->ID;
 
 		$this->enable_id = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_id'));
-		$this->enable_order = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_order'));
-		$this->enable_password = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_password'));
-		$this->enable_template = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_template'));
-		$this->enable_comments = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_comments'));
-		$this->enable_ping = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_ping'));
+		$this->enable_post_status = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_post_status'));
+		$this->enable_post_author = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_post_author'));
+		$this->enable_post_parent = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_post_parent'));
+		$this->enable_menu_order = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_menu_order'));
+		$this->enable_post_password = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_post_password'));
+		$this->enable_post_date = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_post_date'));
+		$this->enable_comment_status = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_comment_status'));
+		$this->enable_ping_status = ImporterModel::getImporterMetaArr($id, array('_template_settings','enable_ping_status'));
 	}
 
 	public function before_group_save( $data, $group_id ){
@@ -229,19 +189,28 @@ class JC_Post_Template extends JC_Importer_Template{
 		if($this->enable_id == 0){
 			unset($data['ID']);
 		}
-		if($this->enable_order == 0){
+		if($this->enable_post_status == 0){
+			unset($data['post_status']);
+		}
+		if($this->enable_post_author == 0){
+			unset($data['post_author']);
+		}
+		if($this->enable_post_parent == 0){
+			unset($data['post_parent']);
+		}
+		if($this->enable_menu_order == 0){
 			unset($data['menu_order']);
 		}
-		if($this->enable_password == 0){
+		if($this->enable_post_password == 0){
 			unset($data['post_password']);
 		}
-		if($this->enable_template == 0){
-			unset($data['page_template']);
+		if($this->enable_post_date == 0){
+			unset($data['post_date']);
 		}
-		if($this->enable_comments == 0){
+		if($this->enable_comment_status == 0){
 			unset($data['comment_status']);
 		}
-		if($this->enable_ping == 0){
+		if($this->enable_ping_status == 0){
 			unset($data['ping_status']);
 		}
 
