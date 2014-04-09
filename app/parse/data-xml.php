@@ -184,13 +184,8 @@ class JC_XML_Parser extends JC_Parser{
 		$fields = $jcimporter->importer->addon_settings['group_base']; //[$group_id]['base'];
 		$groups = $jcimporter->importer->groups;
 		foreach($groups as $key => $group){
-			$groups[$key]['base_node'] = isset($fields[$key]['base']) ? $fields[$key]['base'] : '';
+			$groups[$key]['base_node'] = isset($fields[$key]) ? $fields[$key] : '';
 		}
-
-		// print_r($jcimporter->importer);
-		// echo "BASE NODE: {$base_node}";
-		// print_r($groups);
-
 
 		$xml = simplexml_load_file($this->file);
 		return $this->parse_xml($xml, $row, $base_node, $groups);

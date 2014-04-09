@@ -16,7 +16,6 @@ class PageImporterTest extends WP_UnitTestCase{
 
         $post_id = create_xml_importer(null, 'page', $this->importer->plugin_dir . '/tests/data/data-pages.xml', array(
             'page' => array(
-                'base' => '',
                 'post_title' => '{/title}',
                 'post_name' => '{/slug}',
                 'post_excerpt' => '{/excerpt}',
@@ -28,7 +27,7 @@ class PageImporterTest extends WP_UnitTestCase{
         ), array(
             'import_base' => '/pages/page',
             'group_base' => array(
-                'page' => array('base' => '')
+                'page' => ''
             )
         ));   
 

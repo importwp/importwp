@@ -65,7 +65,6 @@ class PostImporterTest extends WP_UnitTestCase{
 
         $post_id = create_xml_importer(null, 'post', $this->importer->plugin_dir . '/tests/data/data-posts.xml', array(
             'post' => array(
-                'base' => '',
                 'post_title' => '{/title}',
                 'post_name' => '{/slug}',
                 'post_excerpt' => '{/excerpt}',
@@ -77,7 +76,7 @@ class PostImporterTest extends WP_UnitTestCase{
         ), array(
             'import_base' => '/posts/post',
             'group_base' => array(
-                 'post' => array('base' => '')
+                 'post' => ''
             )
         ));  
 

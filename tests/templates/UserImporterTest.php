@@ -145,7 +145,6 @@ class UserImporterTest extends WP_UnitTestCase{
 
         $post_id = create_xml_importer(null, 'user', $this->importer->plugin_dir . '/tests/data/data-users.xml', array(
             'user' => array(
-                'base' => '',
                 'first_name' => '{/first_name}',
                 'last_name' => '{/last_name}',
                 'user_email' => '{/email}',
@@ -154,7 +153,7 @@ class UserImporterTest extends WP_UnitTestCase{
         ), array(
             'import_base' => '/users/user',
             'group_base' => array(
-                'user' => array('base' => '')
+                'user' => ''
             )
         ));   
 
@@ -213,7 +212,6 @@ class UserImporterTest extends WP_UnitTestCase{
 
         $post_id = create_xml_importer( $post_id, 'user', $this->importer->plugin_dir . '/tests/data/data-users.xml', array(
             'user' => array(
-                'base' => '',
                 'first_name' => '{/first_name}',
                 'last_name' => '{/last_name}',
                 'user_email' => '',
@@ -222,7 +220,7 @@ class UserImporterTest extends WP_UnitTestCase{
         ), array(
             'import_base' => '/users/user',
             'group_base' => array(
-                'user' => array('base' => '')
+                'user' => ''
             )
         )); 
 
@@ -248,7 +246,6 @@ class UserImporterTest extends WP_UnitTestCase{
 
         $post_id = create_xml_importer( $post_id, 'user', $this->importer->plugin_dir . '/tests/data/data-users.xml', array(
             'user' => array(
-                'base' => '',
                 'first_name' => '{/first_name}',
                 'last_name' => '{/last_name}',
                 'user_email' => '',
@@ -257,7 +254,7 @@ class UserImporterTest extends WP_UnitTestCase{
         ), array(
             'import_base' => '/users/user',
             'group_base' => array(
-                'user' => array('base' => '')
+                'user' => ''
             )
         )); 
 

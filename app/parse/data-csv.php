@@ -154,11 +154,7 @@ class JC_CSV_Parser extends JC_Parser{
 				foreach($group['fields'] as $key => $val){
 
 					$val = apply_filters( 'jci/parse_csv_field', $val, $line );
-					if(array_key_exists($val, $line)){
-						$row[$group_id][$key] = $line[$val];
-					}elseif(!empty($val)){
-						$row[$group_id][$key] = $val;
-					}
+					$row[$group_id][$key] = $val;
 				}
 			}
 
