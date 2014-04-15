@@ -71,6 +71,20 @@ echo JCI_FormHelper::hidden('import_id', array('value' => $id));
 						?>
 						</div>
 
+						<?php if($jcimporter->importer->get_import_type() == 'remote'): ?>
+						<div class="jci-group-remote jci-group-section" data-section-id="Remote">
+						<div class="remote">
+							<?php 
+							$remote_settings = ImporterModel::getImportSettings($id, 'remote');
+							$url = $remote_settings['remote_url'];
+							echo JCI_FormHelper::text('remote_url', array('label' => 'Remote Url', 'default' => $url));
+							echo JCI_FormHelper::select('remote_frequency', array('label' => 'Frequency', 'options' => array('None', 'Hourly','Daily', 'Weekly', 'Monthly')));
+							?>
+							<a href="admin.php?page=jci-importers&import=80&action=fetch">Fetch Now</a>
+						</div>
+						</div>
+						<?php endif; ?>
+
 						<?php 
 						/**
 						 * Output Importer Settings Sections

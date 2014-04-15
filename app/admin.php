@@ -119,6 +119,36 @@ class JC_Importer_Admin{
         $importer = isset($_GET['import']) && intval($_GET['import']) > 0 ? intval($_GET['import']) : false;
         $template = isset($_GET['template']) && intval($_GET['template']) > 0 ? intval($_GET['template']) : false;
 
+        global $jcimporter;
+
+        // if remote and fetch do that, else continue
+        if($importer && $action == 'fetch' && $jcimporter->importer->get_import_type() == 'remote'){
+            
+            // fetch remote file
+            $remote_settings = ImporterModel::getImportSettings($importer, 'remote');
+            $url = $remote_settings['remote_url'];
+            $dest = basename($url);
+            $attach = new JC_CURL_Attachments();
+            $result = $attach->attach_remote_file($importer, $url, $dest);
+
+            // update settings with new file
+            ImporterModel::setImporterMeta($importer, array('_import_settings', 'import_file'), $result['id']);
+
+            // reload importer settings
+            ImporterModel::clearImportSettings();
+
+            // run import
+            $jcimporter->importer = new JC_Importer_Core($importer);
+            if($import_result = $jcimporter->importer->run_import()){
+
+                // import successful
+                do_action( 'jci/after_import_run', $import_result);    
+            }
+
+            wp_redirect( 'admin.php?page=jci-importers&import='.$importer.'&action=edit');    
+            exit();
+        }
+
         if($action == 'trash' && ($importer || $template)){
 
             if($importer){
