@@ -12,11 +12,46 @@ class JC_BaseMapper {
 
 	protected $_insert = array();
 	protected $_current_row = 0;
-	protected $_importers = array();
+	protected $_mappers = array();
 
 	protected $_data = false;
 
 	private $attachment_class = false;
+
+	function __construct(){
+
+		add_action( 'jci/import_finished', array( $this, 'on_import_complete' ) );
+	}
+
+	/**
+	 * Remove objects which arn't being import
+	 * 
+	 * @param  int $importer_id 
+	 * @return void
+	 */
+	public function on_import_complete( $importer_id ) {
+
+		global $jcimporter;
+		$permissions = $jcimporter->importer->get_permissions();
+
+		if( $permissions['delete'] == 0 )
+			return;
+
+		$groups = $jcimporter->importer->get_template_groups();
+		$version = $jcimporter->importer->get_version();
+
+		// loop through all groups
+		foreach($groups as $group => $args) {
+
+			// get importer
+			$importer = $this->_mappers[ $args['import_type'] ];
+
+			// if mapper has remove function
+			if( method_exists( $importer, 'remove' ) ){
+				$importer->remove( $importer_id, $version, $args['import_type_name'] );
+			}
+		}
+	}
 
 	final function process( $template = array(), $data = array(), $row = null ) {
 		$this->_template = $template;
@@ -24,19 +59,19 @@ class JC_BaseMapper {
 		foreach ( $template->_field_groups as $template_data ) {
 
 			// get keys
-			$this->parseKeys( $template_data );
+			$this->parse_keys( $template_data );
 
 			// get relationships
-			$this->parseRelationship( $template_data );
+			$this->parse_relationship( $template_data );
 
 			// get field type
-			$this->parseFieldType( $template_data );
+			$this->parse_field_type( $template_data );
 
 			// get unique field
-			$this->parseUniqueField( $template_data );
+			$this->parse_unique_field( $template_data );
 
 			// load importers
-			$this->loadImporter( $template_data );
+			$this->load_mapper( $template_data );
 		}
 
 		// $this->setGroupProcessOrder();
@@ -249,7 +284,7 @@ class JC_BaseMapper {
 	/**
 	 * Set Keys
 	 */
-	final function parseKeys( $data ) {
+	final function parse_keys( $data ) {
 		if ( ! isset( $data['key'] ) ) {
 			return;
 		}
@@ -265,21 +300,21 @@ class JC_BaseMapper {
 	/**
 	 * Set Relationships
 	 */
-	final function parseRelationship( $data ) {
+	final function parse_relationship( $data ) {
 		$this->_relationship[ $data['group'] ] = $data['relationship'];
 	}
 
 	/**
 	 * Set Field Type
 	 */
-	final function parseFieldType( $data ) {
+	final function parse_field_type( $data ) {
 		$this->_field_types[ $data['group'] ] = $data['field_type'];
 	}
 
 	/**
 	 * Set Unique Field
 	 */
-	final function parseUniqueField( $data ) {
+	final function parse_unique_field( $data ) {
 
 		// set unique via template (new templates)
 		if ( isset( $data['unique'] ) ) {
@@ -352,7 +387,7 @@ class JC_BaseMapper {
 			// get import type: post | table | user
 			$import_type = $this->_template->_field_groups[ $group_id ]['import_type'];
 
-			$importer = $this->_importers[ $import_type ];
+			$mapper = $this->_mappers[ $import_type ];
 
 			// merge relational fields
 			if ( isset( $this->_relationship[ $group_id ] ) && is_array( $this->_relationship[ $group_id ] ) ) {
@@ -367,11 +402,11 @@ class JC_BaseMapper {
 
 			$data = apply_filters( 'jci/before_' . $this->_template->get_name() . '_group_save', $data, $group_id );
 
-			if ( ! $post_id = $importer->exists( $group_id, $data ) ) {
+			if ( ! $post_id = $mapper->exists( $group_id, $data ) ) {
 
 				// create if allowed
 				if ( isset( $permissions['create'] ) && $permissions['create'] == 1 ) {
-					$result = $importer->insert( $group_id, $data );
+					$result = $mapper->insert( $group_id, $data );
 					if ( ! is_wp_error( $result ) ) {
 						$data['ID']        = $result;
 						$data['_jci_type'] = 'I';
@@ -387,7 +422,7 @@ class JC_BaseMapper {
 
 				// update if allowed
 				if ( isset( $permissions['update'] ) && $permissions['update'] == 1 ) {
-					$data['ID']        = $importer->update( $post_id, $group_id, $data );
+					$data['ID']        = $mapper->update( $post_id, $group_id, $data );
 					$data['_jci_type'] = 'U';
 					// $this->_insert[$this->_current_row]['type'] = 'U';
 				} else {
@@ -396,8 +431,8 @@ class JC_BaseMapper {
 				}
 			}
 
-			$data['_jci_updated_fields'] = $importer->changed_fields;
-			$data['_jci_updated']        = $importer->changed_field_count;
+			$data['_jci_updated_fields'] = $mapper->changed_fields;
+			$data['_jci_updated']        = $mapper->changed_field_count;
 
 			$data = apply_filters( 'jci/after_' . $this->_template->get_name() . '_group_save', $data, $group_id );
 
@@ -733,20 +768,20 @@ class JC_BaseMapper {
 	 *
 	 * @return void
 	 */
-	final function loadImporter( $data ) {
+	final function load_mapper( $data ) {
 
 		$type      = $data['import_type'];
-		$importers = array();
+		$mappers   = array();
 
-		// load importers
-		$importers = apply_filters( 'jci/register_importer', $importers );
+		// load mappers
+		$mappers = apply_filters( 'jci/register_importer', $mappers );
 
-		if ( ! array_key_exists( $type, $importers ) ) {
+		if ( ! array_key_exists( $type, $mappers ) ) {
 			return false;
 		}
 
 		// load importer
-		$importer                  = $importers[ $type ];
-		$this->_importers[ $type ] = new $importer( $this->_template, $this->_unique );
+		$mapper                  = $mappers[ $type ];
+		$this->_mappers[ $type ] = new $mapper( $this->_template, $this->_unique );
 	}
 }

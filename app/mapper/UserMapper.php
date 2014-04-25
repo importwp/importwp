@@ -146,9 +146,9 @@ class JC_UserMapper extends JC_BaseMapper {
 }
 
 // register post importer
-add_filter( 'jci/register_importer', 'register_user_importer', 10, 1 );
-function register_user_importer( $importers = array() ) {
-	$importers['user'] = 'JC_UserMapper';
+add_filter( 'jci/register_importer', 'register_user_mapper', 10, 1 );
+function register_user_mapper( $mappers = array() ) {
+	$mappers['user'] = 'JC_UserMapper';
 
-	return $importers;
+	return $mappers;
 }

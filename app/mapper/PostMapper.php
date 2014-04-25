@@ -349,12 +349,37 @@ class JC_PostMapper {
 		}
 	}
 
+	function remove( $importer_id, $version, $post_type ) {
+
+		// get a list of all objects which were not in current update
+		$q = new WP_Query( array(
+			'post_type'  => $post_type,
+			'meta_query' => array(
+				array(
+					'key'     => '_jci_version_' . $importer_id,
+					'value'   => $version,
+					'compare' => '!='
+				)
+			),
+			'fields'     => 'ids'
+		) );
+
+		// delete list of objects
+		if ( $q->have_posts() ) {
+			$ids = $q->posts;
+			foreach ( $ids as $id ) {
+				wp_delete_post( $id, true );
+			}
+		}
+
+	}
+
 }
 
 // register post importer
-add_filter( 'jci/register_importer', 'register_post_importer', 10, 1 );
-function register_post_importer( $importers = array() ) {
-	$importers['post'] = 'JC_PostMapper';
+add_filter( 'jci/register_importer', 'register_post_mapper', 10, 1 );
+function register_post_mapper( $mappers = array() ) {
+	$mappers['post'] = 'JC_PostMapper';
 
-	return $importers;
+	return $mappers;
 }

@@ -123,9 +123,9 @@ class JC_TableMapper extends JC_BaseMapper {
 }
 
 // register post importer
-add_filter( 'jci/register_importer', 'register_table_importer', 10, 1 );
-function register_table_importer( $importers = array() ) {
-	$importers['table'] = 'JC_TableMapper';
+add_filter( 'jci/register_importer', 'register_table_mapper', 10, 1 );
+function register_table_mapper( $mappers = array() ) {
+	$mappers['table'] = 'JC_TableMapper';
 
-	return $importers;
+	return $mappers;
 }

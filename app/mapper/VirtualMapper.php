@@ -61,9 +61,9 @@ class JC_VirtualMapper {
 }
 
 // register virtual importer
-add_filter( 'jci/register_importer', 'register_virtual_importer', 10, 1 );
-function register_virtual_importer( $importers = array() ) {
-	$importers['virtual'] = 'JC_VirtualMapper';
+add_filter( 'jci/register_importer', 'register_virtual_mapper', 10, 1 );
+function register_virtual_mapper( $mappers = array() ) {
+	$mappers['virtual'] = 'JC_VirtualMapper';
 
-	return $importers;
+	return $mappers;
 }
