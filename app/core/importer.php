@@ -33,7 +33,9 @@ class JC_Importer_Core{
     protected $groups = array();
     protected $start_line = 0;
     protected $row_count = 0;
+    protected $total_rows = 0;
     protected $name = '';
+    protected $version = 0;
 
 	public function __construct($id = 0){
         
@@ -100,6 +102,14 @@ class JC_Importer_Core{
                     'attachments' => isset($data['attachments']) ? $data['attachments'] : 0
                 );
             }
+
+            // check import history version
+            $ver = get_post_meta( $this->ID, '_import_version', true );
+            if(intval($ver) > 0){
+                $this->version = intval($ver);
+            }else{
+                $this->version = 0;
+            }
             
             // load parser specific settings
             $this->addon_settings = apply_filters( "jci/load_{$this->template_type}_settings", array(), $this->ID );
@@ -139,6 +149,10 @@ class JC_Importer_Core{
             
             // escape if row doesn't exist
             if(!$results){
+
+                // check to see if last row
+                $mapper->complete_check(intval($row));
+                
                 return false;
             }
 
@@ -197,6 +211,12 @@ class JC_Importer_Core{
         return $this->row_count;
     }
 
+    public function get_total_rows(){
+        
+        $parser = $this->get_parser();
+        return $parser->get_total_rows();
+    }
+
     public function get_file(){
         return $this->file;
     }
@@ -215,6 +235,14 @@ class JC_Importer_Core{
 
     public function get_attachments(){
         return $this->attachments;
+    }
+
+    public function get_version(){
+        return $this->version;
+    }
+
+    public function set_version($version){
+        $this->version = intval($version);
     }
 }
 ?>

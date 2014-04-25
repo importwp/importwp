@@ -97,10 +97,11 @@ echo JCI_FormHelper::hidden('import_id', array('value' => $id));
 							<?php
 							$perm_create = isset($permissions_general['create']) && $permissions_general['create'] == 1 ? 1 : 0;
 							$perm_update = isset($permissions_general['update']) && $permissions_general['update'] == 1 ? 1 : 0;
-							// $perm_delete = isset($permissions_general['delete']) && $permissions_general['delete'] == 1 ? 1 : 0;
+							$perm_delete = isset($permissions_general['delete']) && $permissions_general['delete'] == 1 ? 1 : 0;
+							
 							echo JCI_FormHelper::checkbox('permissions[create]', array('label' => 'Create', 'default' => 1, 'checked' => $perm_create));
 							echo JCI_FormHelper::checkbox('permissions[update]', array('label' => 'Update', 'default' => 1, 'checked' => $perm_update));
-							// echo JCI_FormHelper::checkbox('permissions[delete]', array('label' => 'Delete', 'default' => 1, 'checked' => $perm_delete));
+							echo JCI_FormHelper::checkbox('permissions[delete]', array('label' => 'Delete', 'default' => 1, 'checked' => $perm_delete));
 							?>
 						</div>
 						</div>

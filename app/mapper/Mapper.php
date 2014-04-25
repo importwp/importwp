@@ -53,11 +53,84 @@ class JC_BaseMapper{
 		
 		foreach($data as $data_row){
 			
+			$this->set_import_version();
 			$this->processRow($data_row);
 			ImportLog::insert($importer_id, $this->_current_row, $this->_insert[$this->_current_row]);
 		}
 
+		// check to see if last row
+		$this->complete_check($this->_current_row);
+
 		return $this->_insert;
+	}
+
+	/**
+	 * Check to see if the current row is the last
+	 * 
+	 * @param  integer $row 
+	 * @return void
+	 */
+	function complete_check($row = 0){
+
+		global $jcimporter;
+		$importer_id = $jcimporter->importer->get_ID();
+		$start_row = $jcimporter->importer->get_start_line();	// row to start from
+		$row_count = $jcimporter->importer->get_row_count();	// how many rows to import
+		$total_rows = $jcimporter->importer->get_total_rows();
+
+		// check to see if complete
+		if($row_count == 0){
+			
+			if($row == $total_rows){
+				do_action('jci/import_finished', $importer_id);
+			}
+		}else{
+
+			if(($start_row - 1) + $row_count == $row ){
+				do_action('jci/import_finished', $importer_id);	
+			}
+		}
+	}
+
+	/**
+	 * Update import version if current row equals the starting row
+	 */
+	function set_import_version(){
+
+		global $jcimporter;
+
+		$import_id = $jcimporter->importer->get_ID();
+		$start_row = $jcimporter->importer->get_start_line();
+		$version = $jcimporter->importer->get_version();
+
+		if($start_row <= 0){
+			$start_row = 1;
+		}
+
+		if($this->_current_row == ($start_row -1)){
+
+			// increate import version
+			$version++;
+
+			// copy version settings
+			add_post_meta( $import_id, '_import_settings_'.$version, get_post_meta( $import_id, '_import_settings', true ));
+			add_post_meta( $import_id, '_mapped_fields_'.$version, get_post_meta( $import_id, '_mapped_fields', true ));
+			add_post_meta( $import_id, '_attachments_'.$version, get_post_meta( $import_id, '_attachments', true ));
+			add_post_meta( $import_id, '_taxonomies_'.$version, get_post_meta( $import_id, '_taxonomies', true ));
+			add_post_meta( $import_id, '_parser_settings_'.$version, get_post_meta( $import_id, '_parser_settings', true ));
+			add_post_meta( $import_id, '_template_settings_'.$version, get_post_meta( $import_id, '_template_settings', true ));
+
+			// update import version in db
+			$old_version = get_post_meta( $import_id, '_import_version', true );
+			if($old_version){
+				update_post_meta( $import_id, '_import_version', $version, $old_version);
+			}else{
+				add_post_meta( $import_id, '_import_version', $version, true);	
+			}
+
+			// update importer class
+			$jcimporter->importer->set_version($version);
+		}
 	}
 
 	/**

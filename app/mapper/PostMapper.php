@@ -76,6 +76,9 @@ class JC_PostMapper{
 			}
 		}
 
+		echo "INSERT $post_id\n";
+		$this->add_version_tag($post_id);
+
 		return $post_id;
 	}
 
@@ -160,6 +163,9 @@ class JC_PostMapper{
 				}
 			}
 		}
+
+		echo "UPDATE $post_id\n";
+		$this->update_version_tag($post_id);
 
 		return $post_id;
 	}
@@ -265,6 +271,29 @@ class JC_PostMapper{
 	 */
 	function getGroupPostType($group_id = ''){
 		return $this->_template->_field_groups[$group_id]['import_type_name'];
+	}
+
+	function add_version_tag($post_id = 0){
+
+		global $jcimporter;
+		$importer_id = $jcimporter->importer->get_ID();
+		$version = $jcimporter->importer->get_version();
+
+		add_post_meta( $post_id, '_jci_version_'.$importer_id, $version, true);	
+	}
+
+	function update_version_tag($post_id = 0){
+
+		global $jcimporter;
+		$importer_id = $jcimporter->importer->get_ID();
+		$version = $jcimporter->importer->get_version();
+
+		$old_version = get_post_meta( $post_id, '_jci_version_'.$importer_id, true );
+		if($old_version){
+			update_post_meta( $post_id, '_jci_version_'.$importer_id, $version, $old_version);
+		}else{
+			add_post_meta( $post_id, '_jci_version_'.$importer_id, $version, true);	
+		}
 	}
 	
 }
