@@ -1,29 +1,31 @@
-<?php 
+<?php
 global $jcimporter;
 
 // load settings from gloabl
-$importer_id = $jcimporter->importer->get_ID();
-$parser = $jcimporter->importer->get_parser();
+$importer_id   = $jcimporter->importer->get_ID();
+$parser        = $jcimporter->importer->get_parser();
 $template_name = $jcimporter->importer->get_template_name();
-$template = $jcimporter->importer->get_template();
-$start_line = $jcimporter->importer->get_start_line();
-$row_count = $jcimporter->importer->get_row_count();
-$name = $jcimporter->importer->get_name();
+$template      = $jcimporter->importer->get_template();
+$start_line    = $jcimporter->importer->get_start_line();
+$row_count     = $jcimporter->importer->get_row_count();
+$name          = $jcimporter->importer->get_name();
 
-if($row_count  <= 0){
-	$record_count = $parser->get_total_rows();	
-}else{
-	$record_count = ($start_line -1) + $row_count;	
+if ( $row_count <= 0 ) {
+	$record_count = $parser->get_total_rows();
+} else {
+	$record_count = ( $start_line - 1 ) + $row_count;
 }
 
-$columns = apply_filters( "jci/log_{$template_name}_columns", array());
+$columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 ?>
 
 <div id="icon-tools" class="icon32"><br></div>
 <h2 class="nav-tab-wrapper">
-	<a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=edit" class="nav-tab tab"><?php echo $name; ?></a>
+	<a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=edit"
+	   class="nav-tab tab"><?php echo $name; ?></a>
 	<a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=history" class="nav-tab tab">History</a>
-	<a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=logs" class="nav-tab nav-tab-active tab">Run Import</a>
+	<a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=logs" class="nav-tab nav-tab-active tab">Run
+		Import</a>
 </h2>
 
 <div id="ajaxResponse"></div>
@@ -32,7 +34,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array());
 <div id="poststuff">
 	<div id="post-body" class="metabox-holder columns-2">
 
-			
+
 		<div id="post-body-content">
 
 			<div id="postbox-container-2" class="postbox-container">
@@ -40,22 +42,23 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array());
 				<div id="test-response"></div>
 
 				<div id="jci-table-wrapper">
-				<table class="wp-list-table widefat fixed posts" cellspacing="0">
-					<thead>
-					<tr>
-						<th scope="col" id="author" class="manage-column column-author" style="width:30px;">ID</th>
-						<?php foreach($columns as $key => $col): ?>
-						<th scope="col" id="<?php echo $key; ?>" class="manage-column column-<?php echo $key; ?>" style=""><?php echo $col; ?></th>
-						<?php endforeach; ?>
-					</tr>
-					</thead>
-					<tbody id="the-list">
-					</tbody>
-				</table>
+					<table class="wp-list-table widefat fixed posts" cellspacing="0">
+						<thead>
+						<tr>
+							<th scope="col" id="author" class="manage-column column-author" style="width:30px;">ID</th>
+							<?php foreach ( $columns as $key => $col ): ?>
+								<th scope="col" id="<?php echo $key; ?>"
+								    class="manage-column column-<?php echo $key; ?>" style=""><?php echo $col; ?></th>
+							<?php endforeach; ?>
+						</tr>
+						</thead>
+						<tbody id="the-list">
+						</tbody>
+					</table>
 				</div>
-				
+
 				<div class="form-actions">
-					<br />
+					<br/>
 					<a href="#" class="jc-importer_update-run button-primary">Run Import</a>
 				</div>
 			</div>
@@ -66,100 +69,101 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array());
 
 			<?php include $this->config->plugin_dir . '/app/view/elements/about_block.php'; ?>
 
-		</div><!-- /postbox-container-1 -->
+		</div>
+		<!-- /postbox-container-1 -->
 
 	</div>
 </div>
 
 <script type="text/javascript">
-jQuery(document).ready(function($){
+	jQuery(document).ready(function ($) {
 
-	var running = 0; // 0 = stopped , 1 = paused, 2 = running, 3 = complete
-	var record_total = <?php echo $record_count; ?>;
-	var record = <?php echo $start_line; ?>;
-	var columns = <?php echo json_encode($columns); ?>;
-	var startDate = false;
-	var avgTimes = new Array();
-	var estimatedFinishDate = new Date();
+		var running = 0; // 0 = stopped , 1 = paused, 2 = running, 3 = complete
+		var record_total = <?php echo $record_count; ?>;
+		var record = <?php echo $start_line; ?>;
+		var columns = <?php echo json_encode($columns); ?>;
+		var startDate = false;
+		var avgTimes = new Array();
+		var estimatedFinishDate = new Date();
 
-	// ajax import
-	$('.jc-importer_update-run').click(function(event){
+		// ajax import
+		$('.jc-importer_update-run').click(function (event) {
 
-		if(running == 3){
-			return;
-		}
+			if (running == 3) {
+				return;
+			}
 
-		if(running == 0){
-			$('#the-list').html("");	
-		}
-		
-		function getNextRecord(){
-			$.ajax({
-				url: ajax_object.ajax_url,
-				data: {
-					action: 'jc_import_row',
-					id: ajax_object.id,
-					row: record,
-				},
-				dataType: 'html',
-				type: "POST",
-				beforeSend: function(){
-					$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Importing Record #'+(record- <?php echo $start_line -1; ?>)+' out of #'+(record_total- <?php echo $start_line -1; ?>)+' Estimated Finish time at '+estimatedFinishDate+'</p></div>');
-				},
-				success: function(response){
-					$('#ajaxResponse').html('');
+			if (running == 0) {
+				$('#the-list').html("");
+			}
 
-					$('#the-list').prepend(response);
+			function getNextRecord() {
+				$.ajax({
+					url: ajax_object.ajax_url,
+					data: {
+						action: 'jc_import_row',
+						id: ajax_object.id,
+						row: record,
+					},
+					dataType: 'html',
+					type: "POST",
+					beforeSend: function () {
+						$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Importing Record #' + (record - <?php echo $start_line -1; ?>) + ' out of #' + (record_total - <?php echo $start_line -1; ?>) + ' Estimated Finish time at ' + estimatedFinishDate + '</p></div>');
+					},
+					success: function (response) {
+						$('#ajaxResponse').html('');
 
-					if(record < record_total){
-						
-						record++;
-						if(running == 2){
+						$('#the-list').prepend(response);
 
-							var currentDate = new Date();
-							var diff = currentDate.getTime() - startDate.getTime();
-							var time_in_seconds = Math.floor(diff / 1000);
-							var current_record_count = (record - <?php echo $start_line; ?>);
-							var total_records = <?php echo $record_count - $start_line; ?>;
-							var total_records_left = ( total_records - current_record_count);
-							var seconds = (time_in_seconds / current_record_count) * total_records_left;
+						if (record < record_total) {
 
-							estimatedFinishDate = new Date( new Date().getTime() + new Date(1970, 1, 1, 0, 0, parseInt(seconds), 0).getTime());
+							record++;
+							if (running == 2) {
 
-							getNextRecord();
-						}else{
-							$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Import Paused of ('+(record- <?php echo $start_line -1; ?>)+'/'+(record_total- <?php echo $start_line -1; ?>)+') Records</p></div>');
+								var currentDate = new Date();
+								var diff = currentDate.getTime() - startDate.getTime();
+								var time_in_seconds = Math.floor(diff / 1000);
+								var current_record_count = (record - <?php echo $start_line; ?>);
+								var total_records = <?php echo $record_count - $start_line; ?>;
+								var total_records_left = ( total_records - current_record_count);
+								var seconds = (time_in_seconds / current_record_count) * total_records_left;
+
+								estimatedFinishDate = new Date(new Date().getTime() + new Date(1970, 1, 1, 0, 0, parseInt(seconds), 0).getTime());
+
+								getNextRecord();
+							} else {
+								$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Import Paused of (' + (record - <?php echo $start_line -1; ?>) + '/' + (record_total - <?php echo $start_line -1; ?>) + ') Records</p></div>');
+							}
+
+						} else {
+							$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Import of ' + (record_total - <?php echo $start_line -1; ?>) + ' Records</p></div>');
+							running = 3;
+							$('.form-actions').hide();
 						}
-						
-					}else{
-						$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Import of '+(record_total- <?php echo $start_line -1; ?>)+' Records</p></div>');
-						running = 3;
-						$('.form-actions').hide();
 					}
-				}
-			});
-		}
+				});
+			}
 
-		if(running == 0){
-			startDate = new Date();
-		}
+			if (running == 0) {
+				startDate = new Date();
+			}
 
-		if(running == 0 || running == 1){
-			running = 2;
-			getNextRecord();
-		}else{
-			running = 1;
-		}
+			if (running == 0 || running == 1) {
+				running = 2;
+				getNextRecord();
+			} else {
+				running = 1;
+			}
 
-		if(running == 2){
-			$('.button-primary').text("Pause Import");
-		}else if(running == 1){
-			$('.button-primary').text("Continue Import");
-		}
+			if (running == 2) {
+				$('.button-primary').text("Pause Import");
+			} else if (running == 1) {
+				$('.button-primary').text("Continue Import");
+			}
 
-		event.preventDefault();
-		return false;
+			event.preventDefault();
+			return false;
+		});
+
 	});
-
-});
 </script>

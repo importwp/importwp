@@ -10,7 +10,7 @@
          stopOnFailure="false"
          syntaxCheck="false"
          bootstrap="tests/includes/bootstrap.php"
->
+        >
     <testsuites>
         <testsuite name="JC Importer Tests">
             <directory>./tests/</directory>

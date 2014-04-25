@@ -6,11 +6,11 @@
         <orderTime>13:30:45</orderTime>
         <orderTotal>1000</orderTotal>
         <customer>
-        	<title>Mr</title>
-        	<forename>Customer</forename>
-        	<surname>One</surname>
-        	<phone>00000 000000</phone>
-        	<email>test1@test.com</email>
+            <title>Mr</title>
+            <forename>Customer</forename>
+            <surname>One</surname>
+            <phone>00000 000000</phone>
+            <email>test1@test.com</email>
         </customer>
         <items>
             <item>

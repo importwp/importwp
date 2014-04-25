@@ -1,8 +1,9 @@
-<?php 
+<?php
+
 /**
  * Get Importer Settings
  */
-class ImporterModel{
+class ImporterModel {
 
 	/**
 	 * Config Instance
@@ -16,7 +17,7 @@ class ImporterModel{
 	 */
 	static $meta = false;
 
-	static function init(&$config){
+	static function init( &$config ) {
 		self::$config = $config;
 	}
 
@@ -24,28 +25,30 @@ class ImporterModel{
 	 * Get all importers
 	 * @return WP_Query
 	 */
-	static function getImporters(){
+	static function getImporters() {
 
-		$query = new WP_Query(array(
+		$query = new WP_Query( array(
 			'post_type' => 'jc-imports',
-		));
+		) );
 
 		return $query;
 	}
 
 	/**
 	 * Get Importer by Id
-	 * @param  integer $id 
+	 *
+	 * @param  integer $id
+	 *
 	 * @return WP_Query
 	 */
-	static function getImporter($id = 0){
+	static function getImporter( $id = 0 ) {
 
-		if($id > 0){
-			$query = new WP_Query(array(
+		if ( $id > 0 ) {
+			$query = new WP_Query( array(
 				'post_type' => 'jc-imports',
-				'p' => $id,
-			));
-		}else{
+				'p'         => $id,
+			) );
+		} else {
 			$query = false;
 		}
 
@@ -55,74 +58,79 @@ class ImporterModel{
 
 	/**
 	 * Set Import File
-	 * @param int $id   
-	 * @param string $file 
+	 *
+	 * @param int $id
+	 * @param string $file
 	 */
-	static function setImportFile($id, $file){
+	static function setImportFile( $id, $file ) {
 
-		if(empty($file))
+		if ( empty( $file ) ) {
 			return false;
+		}
 
 		$old_value = get_post_meta( $id, '_import_settings', true );
 
-		if(empty($file['type']) || $file['type'] != $old_value['template_type'])
+		if ( empty( $file['type'] ) || $file['type'] != $old_value['template_type'] ) {
 			return false;
-		
-		$value = $old_value;
+		}
+
+		$value                = $old_value;
 		$value['import_file'] = $file['id'];
-                                
-        if ( $value && '' == $old_value ){
-            add_post_meta( $id, '_import_settings', $value );
-        }elseif ( $value && $value != $old_value ){
-            update_post_meta( $id, '_import_settings', $value );
-        }elseif ( '' == $value && $old_value ){
-            delete_post_meta( $id, '_import_settings', $value );
-        }
+
+		if ( $value && '' == $old_value ) {
+			add_post_meta( $id, '_import_settings', $value );
+		} elseif ( $value && $value != $old_value ) {
+			update_post_meta( $id, '_import_settings', $value );
+		} elseif ( '' == $value && $old_value ) {
+			delete_post_meta( $id, '_import_settings', $value );
+		}
 	}
 
 	/**
 	 * Add Importer
-	 * @param  int $post_id 
-	 * @param  array  $data    
+	 *
+	 * @param  int $post_id
+	 * @param  array $data
+	 *
 	 * @return int
 	 */
-	static function insertImporter($post_id, $data = array()){
+	static function insertImporter( $post_id, $data = array() ) {
 
 		$args = array(
-			'post_title' => $data['name'],
-			'post_status' => 'publish',
-			'post_type' => 'jc-imports',
+			'post_title'     => $data['name'],
+			'post_status'    => 'publish',
+			'post_type'      => 'jc-imports',
 			'comment_status' => 'closed',
-			'ping_status' => 'closed',
+			'ping_status'    => 'closed',
 		);
 		$meta = array();
 
-		if($post_id > 0){
+		if ( $post_id > 0 ) {
 			$args['ID'] = $post_id;
-		}else{
-			$args['post_name'] = substr( md5(time()), 0, rand( 5, 10 ) );
+		} else {
+			$args['post_name'] = substr( md5( time() ), 0, rand( 5, 10 ) );
 		}
 
-		$meta['_import_settings'] = isset($data['settings']) ? $data['settings'] : array();
-		$meta['_mapped_fields'] = isset($data['fields']) ? $data['fields'] : array();
-		$meta['_setting_addons'] = isset($data['setting_addons']) ? $data['setting_addons'] : array();
-		$meta['_field_addons'] = isset($data['field_addons']) ? $data['field_addons'] : array();
-		$meta['_attachments'] = isset($data['attachments']) ? $data['attachments'] : array();
-		$meta['_taxonomies'] = isset($data['taxonomies']) ? $data['taxonomies'] : array();	
+		$meta['_import_settings'] = isset( $data['settings'] ) ? $data['settings'] : array();
+		$meta['_mapped_fields']   = isset( $data['fields'] ) ? $data['fields'] : array();
+		$meta['_setting_addons']  = isset( $data['setting_addons'] ) ? $data['setting_addons'] : array();
+		$meta['_field_addons']    = isset( $data['field_addons'] ) ? $data['field_addons'] : array();
+		$meta['_attachments']     = isset( $data['attachments'] ) ? $data['attachments'] : array();
+		$meta['_taxonomies']      = isset( $data['taxonomies'] ) ? $data['taxonomies'] : array();
 
-		$post_id = wp_insert_post($args);
+		$post_id = wp_insert_post( $args );
 
-		foreach($meta as $key => $value){
+		foreach ( $meta as $key => $value ) {
 
-			$old_value = get_post_meta( $post_id, $key, true);
-                                
-            if ( $value && '' == $old_value ){
-                    add_post_meta( $post_id, $key, $value );
-            }elseif ( $value && $value != $old_value ){
-                    update_post_meta( $post_id, $key, $value );
-            }elseif ( '' == $value && $old_value ){
-                    delete_post_meta( $post_id, $key, $value );
-            }
+			$old_value = get_post_meta( $post_id, $key, true );
+
+			if ( $value && '' == $old_value ) {
+				add_post_meta( $post_id, $key, $value );
+			} elseif ( $value && $value != $old_value ) {
+				update_post_meta( $post_id, $key, $value );
+			} elseif ( '' == $value && $old_value ) {
+				delete_post_meta( $post_id, $key, $value );
+			}
 		}
 
 		return $post_id;
@@ -132,66 +140,68 @@ class ImporterModel{
 	 * Clear cached importer
 	 * @return void
 	 */
-	static function clearImportSettings(){
+	static function clearImportSettings() {
 		self::$meta = false;
 	}
 
 	/**
 	 * Load Importer Settings
-	 * @param  int $post_id 
-	 * @param  string $section 
+	 *
+	 * @param  int $post_id
+	 * @param  string $section
+	 *
 	 * @return string
 	 */
-	static function getImportSettings($post_id, $section = null){
+	static function getImportSettings( $post_id, $section = null ) {
 
-		$settings = self::getImporterMeta($post_id, 'settings');
+		$settings = self::getImporterMeta( $post_id, 'settings' );
 
-		switch($section){
+		switch ( $section ) {
 
 			// get ftp settings
 			// TODO: remove to ftp addon
 			case 'ftp':
 				$settings = array(
-					'ftp_loc' => isset($settings['general']['ftp_loc']) ? $settings['general']['ftp_loc'] : '',
+					'ftp_loc' => isset( $settings['general']['ftp_loc'] ) ? $settings['general']['ftp_loc'] : '',
 				);
-			break;
+				break;
 
 			// get remote settings
 			case 'remote':
 				$settings = array(
-					'remote_url' => isset($settings['general']['remote_url']) ? $settings['general']['remote_url'] : '',
+					'remote_url' => isset( $settings['general']['remote_url'] ) ? $settings['general']['remote_url'] : '',
 				);
-			break;
+				break;
 
 			// indevidual settings
 			case 'template':
 				$settings = $settings['template'];
-				$settings = (string)$settings;
-			break;
+				$settings = (string) $settings;
+				break;
 			case 'template_type':
-				$settings = isset($settings['template_type']) && !empty($settings['template_type']) ? $settings['template_type'] : 'csv';
-				$settings = (string)$settings;
-			break;
+				$settings = isset( $settings['template_type'] ) && ! empty( $settings['template_type'] ) ? $settings['template_type'] : 'csv';
+				$settings = (string) $settings;
+				break;
 			case 'import_type':
 				$settings = $settings['import_type'];
-				$settings = (string)$settings;
-			break;
+				$settings = (string) $settings;
+				break;
 			case 'start_line':
-				$settings = isset($settings['start_line']) ? $settings['start_line'] : 1;
-			break;
+				$settings = isset( $settings['start_line'] ) ? $settings['start_line'] : 1;
+				break;
 			case 'row_count':
-				$settings = isset($settings['row_count']) ? $settings['row_count'] : 0;
-			break;
+				$settings = isset( $settings['row_count'] ) ? $settings['row_count'] : 0;
+				break;
 			case 'import_file':
-				if(intval($settings['import_file']) > 0){
-					$settings = get_attached_file( intval($settings['import_file']) );
-				}else{
-					$settings = isset($settings['import_file']) ? $settings['import_file'] : '';	
+				if ( intval( $settings['import_file'] ) > 0 ) {
+					$settings = get_attached_file( intval( $settings['import_file'] ) );
+				} else {
+					$settings = isset( $settings['import_file'] ) ? $settings['import_file'] : '';
 				}
-			break;
+				break;
 			case 'permissions':
-				$settings = isset($settings['permissions']) ? $settings['permissions'] : array();
-			break;
+				$settings = isset( $settings['permissions'] ) ? $settings['permissions'] : array();
+				break;
 		}
 
 		return $settings;
@@ -199,78 +209,80 @@ class ImporterModel{
 
 	/**
 	 * Get All Importer Metadata
-	 * @param  integer $post_id 
-	 * @param  string $section 
+	 *
+	 * @param  integer $post_id
+	 * @param  string $section
+	 *
 	 * @return array
 	 */
-	static function getImporterMeta($post_id, $section = null){
+	static function getImporterMeta( $post_id, $section = null ) {
 
-		if(!self::$meta){
-			$importer_meta = get_metadata( 'post', $post_id , '', true);
+		if ( ! self::$meta ) {
+			$importer_meta = get_metadata( 'post', $post_id, '', true );
 
-			$settings = isset($importer_meta['_import_settings']) ? unserialize($importer_meta['_import_settings'][0]) : array();
-	        $fields = isset($importer_meta['_mapped_fields']) ? unserialize($importer_meta['_mapped_fields'][0]) : array();
-	        $attachments = isset($importer_meta['_attachments']) ? unserialize($importer_meta['_attachments'][0]) : array();
-	        $taxonomies = isset($importer_meta['_taxonomies']) ? unserialize($importer_meta['_taxonomies'][0]) : array();
-	        $addon_settings = isset($importer_meta['_setting_addons']) ? unserialize($importer_meta['_setting_addons'][0]) : array();
-	        $addon_fields = isset($importer_meta['_field_addons']) ? unserialize($importer_meta['_field_addons'][0]) : array();
+			$settings       = isset( $importer_meta['_import_settings'] ) ? unserialize( $importer_meta['_import_settings'][0] ) : array();
+			$fields         = isset( $importer_meta['_mapped_fields'] ) ? unserialize( $importer_meta['_mapped_fields'][0] ) : array();
+			$attachments    = isset( $importer_meta['_attachments'] ) ? unserialize( $importer_meta['_attachments'][0] ) : array();
+			$taxonomies     = isset( $importer_meta['_taxonomies'] ) ? unserialize( $importer_meta['_taxonomies'][0] ) : array();
+			$addon_settings = isset( $importer_meta['_setting_addons'] ) ? unserialize( $importer_meta['_setting_addons'][0] ) : array();
+			$addon_fields   = isset( $importer_meta['_field_addons'] ) ? unserialize( $importer_meta['_field_addons'][0] ) : array();
 
 			self::$meta = array(
-				'settings' => $settings,
-				'fields' => $fields,
-				'attachments' => $attachments,
-				'taxonomies' => $taxonomies,
+				'settings'       => $settings,
+				'fields'         => $fields,
+				'attachments'    => $attachments,
+				'taxonomies'     => $taxonomies,
 				'addon_settings' => $addon_settings,
-				'addon_fields' => $addon_fields,
+				'addon_fields'   => $addon_fields,
 			);
 		}
 
 		$meta = self::$meta;
 
-		switch($section){
+		switch ( $section ) {
 			case 'settings':
 				$meta = $meta['settings'];
-			break;
+				break;
 			case 'fields':
 				$meta = $meta['fields'];
-			break;
+				break;
 			case 'attachments':
 				$meta = $meta['attachments'];
-			break;
+				break;
 			case 'taxonomies':
 				$meta = $meta['taxonomies'];
-			break;
+				break;
 			case 'addon_settings':
 				$meta = $meta['addon_settings'];
-			break;
+				break;
 			case 'addon_fields':
 				$meta = $meta['addon_fields'];
-			break;
+				break;
 		}
 
 		return $meta;
 	}
-	
-	private static function get_key(&$arr, $keys = array(), $value = '', $counter = 0){
 
-		$key = $keys[$counter];
-		$counter++;
-		if(isset($arr[$key])){
+	private static function get_key( &$arr, $keys = array(), $value = '', $counter = 0 ) {
+
+		$key = $keys[ $counter ];
+		$counter ++;
+		if ( isset( $arr[ $key ] ) ) {
 
 			// if keys exist
-			if($counter == count($keys)){
-				$arr[$key] = $value;
-			}else{
-				$arr[$key] = self::get_key($arr[$key], $keys, $value, $counter);
+			if ( $counter == count( $keys ) ) {
+				$arr[ $key ] = $value;
+			} else {
+				$arr[ $key ] = self::get_key( $arr[ $key ], $keys, $value, $counter );
 			}
-		}else{
+		} else {
 
 			// create keys
-			$arr[$key] = array();
-			if($counter == count($keys)){
-				$arr[$key] = $value;
-			}else{
-				$arr[$key] = self::get_key($arr[$key], $keys, $value, $counter);
+			$arr[ $key ] = array();
+			if ( $counter == count( $keys ) ) {
+				$arr[ $key ] = $value;
+			} else {
+				$arr[ $key ] = self::get_key( $arr[ $key ], $keys, $value, $counter );
 			}
 
 		}
@@ -278,136 +290,143 @@ class ImporterModel{
 		return $arr;
 	}
 
-	static function getImporterMetaArr($post_id, $keys){
+	static function getImporterMetaArr( $post_id, $keys ) {
 
-		if(is_null($keys) || empty($keys))
+		if ( is_null( $keys ) || empty( $keys ) ) {
 			return false;
+		}
 
-		if(is_array($keys)){
-			
-			$key = array_shift($keys);
+		if ( is_array( $keys ) ) {
+
+			$key = array_shift( $keys );
 			// todo: cache results
-			$old_value = get_post_meta($post_id, $key, true );
+			$old_value = get_post_meta( $post_id, $key, true );
 
 			$temp = $old_value;
-			foreach($keys as $k){
-				if(isset($temp[$k])){
-					$temp = $temp[$k];
-				}else{
+			foreach ( $keys as $k ) {
+				if ( isset( $temp[ $k ] ) ) {
+					$temp = $temp[ $k ];
+				} else {
 					return '';
 				}
 			}
+
 			return $temp;
 
-		}elseif(is_string($keys)){
-			
+		} elseif ( is_string( $keys ) ) {
+
 			$key = $keys;
+
 			// todo: cache results
-			return get_post_meta($post_id, $key, true );
+			return get_post_meta( $post_id, $key, true );
 		}
 
 	}
 
-	static function setImporterMeta($post_id, $keys = null, $value = null){
+	static function setImporterMeta( $post_id, $keys = null, $value = null ) {
 
-		if(is_null($keys) || is_null($value))
+		if ( is_null( $keys ) || is_null( $value ) ) {
 			return false;
+		}
 
-		if(is_array($keys)){
+		if ( is_array( $keys ) ) {
 
 			//settings/test/test1 = test
-			$key = array_shift($keys);
-			$old_value = get_post_meta($post_id, $key, true );
+			$key       = array_shift( $keys );
+			$old_value = get_post_meta( $post_id, $key, true );
 
-			$temp = $old_value;
-			$value = self::get_key($temp, $keys, $value);			
+			$temp  = $old_value;
+			$value = self::get_key( $temp, $keys, $value );
 
-		}elseif(is_string($keys)){
-			$key = $keys;
-			$old_value = get_post_meta($post_id, $key, true );
+		} elseif ( is_string( $keys ) ) {
+			$key       = $keys;
+			$old_value = get_post_meta( $post_id, $key, true );
 		}
 
-		if ( $value && '' == $old_value ){
-            add_post_meta( $post_id, $key, $value );
-        }elseif ( $value && $value != $old_value ){
-            update_post_meta( $post_id, $key, $value );
-        }elseif ( '' == $value && $old_value ){
-            delete_post_meta( $post_id, $key, $value );
-        }
+		if ( $value && '' == $old_value ) {
+			add_post_meta( $post_id, $key, $value );
+		} elseif ( $value && $value != $old_value ) {
+			update_post_meta( $post_id, $key, $value );
+		} elseif ( '' == $value && $old_value ) {
+			delete_post_meta( $post_id, $key, $value );
+		}
 	}
 
-	static function update($post_id, $data = array()){
+	static function update( $post_id, $data = array() ) {
 
-		$meta['_mapped_fields'] = isset($data['fields']) ? $data['fields'] : array();
-		$meta['_attachments'] = isset($data['attachments']) ? $data['attachments'] : array();
-		$meta['_taxonomies'] = isset($data['taxonomies']) ? $data['taxonomies'] : array();
-		$meta['_field_addons'] = isset($data['addon_fields']) ? $data['addon_fields'] : array();
-		$meta['_setting_addons'] = isset($data['addon_settings']) ? $data['addon_settings'] : array();
+		$meta['_mapped_fields']  = isset( $data['fields'] ) ? $data['fields'] : array();
+		$meta['_attachments']    = isset( $data['attachments'] ) ? $data['attachments'] : array();
+		$meta['_taxonomies']     = isset( $data['taxonomies'] ) ? $data['taxonomies'] : array();
+		$meta['_field_addons']   = isset( $data['addon_fields'] ) ? $data['addon_fields'] : array();
+		$meta['_setting_addons'] = isset( $data['addon_settings'] ) ? $data['addon_settings'] : array();
 
-		$settings = get_post_meta( $post_id, '_import_settings', true );
-		$settings['start_line'] = isset($data['settings']['start_line']) ? $data['settings']['start_line'] : 1;
-		$settings['row_count'] = isset($data['settings']['row_count']) ? $data['settings']['row_count'] : 0;
+		$settings               = get_post_meta( $post_id, '_import_settings', true );
+		$settings['start_line'] = isset( $data['settings']['start_line'] ) ? $data['settings']['start_line'] : 1;
+		$settings['row_count']  = isset( $data['settings']['row_count'] ) ? $data['settings']['row_count'] : 0;
 
-		if(isset($data['settings']['template_type']) && in_array($data['settings']['template_type'], array('csv','xml'))){
+		if ( isset( $data['settings']['template_type'] ) && in_array( $data['settings']['template_type'], array(
+					'csv',
+					'xml'
+				) )
+		) {
 			$settings['template_type'] = $data['settings']['template_type'];
 		}
 		// $settings['template_type'] = isset($data['settings']['template_type']) ? $data['settings']['template_type'] : 0;
 
-		if(isset($data['settings']['import_file']) && !empty($data['settings']['import_file'])){
+		if ( isset( $data['settings']['import_file'] ) && ! empty( $data['settings']['import_file'] ) ) {
 			$settings['import_file'] = $data['settings']['import_file'];
 		}
 
-		$permissions = isset($data['settings']['permissions']) ? $data['settings']['permissions'] : array();
+		$permissions = isset( $data['settings']['permissions'] ) ? $data['settings']['permissions'] : array();
 
 		// permissions
-		$permission_keys = array('create', 'update', 'delete');
+		$permission_keys         = array( 'create', 'update', 'delete' );
 		$settings['permissions'] = array();
-		foreach($permission_keys as $key){
-			if(isset($permissions[$key])){
-				$settings['permissions'][$key] = $permissions[$key];
-			}else{
-				$settings['permissions'][$key] = 0;
+		foreach ( $permission_keys as $key ) {
+			if ( isset( $permissions[ $key ] ) ) {
+				$settings['permissions'][ $key ] = $permissions[ $key ];
+			} else {
+				$settings['permissions'][ $key ] = 0;
 			}
 		}
 
 
 		// validate row start/count
 		global $jcimporter;
-		$template_type = ImporterModel::getImportSettings($post_id, 'template_type');
+		$template_type = ImporterModel::getImportSettings( $post_id, 'template_type' );
 
-		$importer_settings = ImporterModel::getImportSettings($post_id);
+		$importer_settings = ImporterModel::getImportSettings( $post_id );
 
 		// set specific import_type settings
-		$settings = apply_filters( "jci/importer_save", $settings, $importer_settings['import_type'], $data);
+		$settings = apply_filters( "jci/importer_save", $settings, $importer_settings['import_type'], $data );
 
-		
 
 		// TODO: remove tie to post datasource
-		if($importer_settings['import_type'] != 'post'){
-			
+		if ( $importer_settings['import_type'] != 'post' ) {
+
 			// if file exists get total rows
-			$parser = $jcimporter->parsers[$template_type];
-			$meta2 = get_metadata( 'post', $post_id , '', true);
-			$row_count = $parser->get_total_rows($post_id);	
-		
-			if($settings['start_line'] > $row_count){
-				if($settings['row_count'] > $row_count){
+			$parser    = $jcimporter->parsers[ $template_type ];
+			$meta2     = get_metadata( 'post', $post_id, '', true );
+			$row_count = $parser->get_total_rows( $post_id );
+
+			if ( $settings['start_line'] > $row_count ) {
+				if ( $settings['row_count'] > $row_count ) {
 					$settings['start_line'] = 1;
-					$settings['row_count'] = 0;
-				}else{
-					if($settings['row_count'] > 0){
-						$settings['start_line'] = $row_count - ($settings['row_count']-1);		
-					}else{
-						$settings['start_line'] = 1;		
+					$settings['row_count']  = 0;
+				} else {
+					if ( $settings['row_count'] > 0 ) {
+						$settings['start_line'] = $row_count - ( $settings['row_count'] - 1 );
+					} else {
+						$settings['start_line'] = 1;
 					}
 				}
-			}elseif($settings['start_line'] + $settings['row_count'] > ($row_count+1)){
-				$settings['row_count'] = $row_count - ($settings['start_line'] - 1);
+			} elseif ( $settings['start_line'] + $settings['row_count'] > ( $row_count + 1 ) ) {
+				$settings['row_count'] = $row_count - ( $settings['start_line'] - 1 );
 			}
-			if($settings['start_line'] <= 0){
+			if ( $settings['start_line'] <= 0 ) {
 				$settings['start_line'] = 1;
 			}
-			if($settings['row_count'] < 0){
+			if ( $settings['row_count'] < 0 ) {
 				$settings['row_count'] = 0;
 			}
 		}
@@ -415,20 +434,21 @@ class ImporterModel{
 		// save settings
 		$meta['_import_settings'] = $settings;
 
-		foreach($meta as $key => $value){
+		foreach ( $meta as $key => $value ) {
 
-			$old_value = get_post_meta( $post_id, $key, true);
-                                
-            if ( $value && '' == $old_value ){
-                    add_post_meta( $post_id, $key, $value );
-            }elseif ( $value && $value != $old_value ){
-                    update_post_meta( $post_id, $key, $value );
-            }elseif ( '' == $value && $old_value ){
-                    delete_post_meta( $post_id, $key, $value );
-            }
+			$old_value = get_post_meta( $post_id, $key, true );
+
+			if ( $value && '' == $old_value ) {
+				add_post_meta( $post_id, $key, $value );
+			} elseif ( $value && $value != $old_value ) {
+				update_post_meta( $post_id, $key, $value );
+			} elseif ( '' == $value && $old_value ) {
+				delete_post_meta( $post_id, $key, $value );
+			}
 		}
 
 		return $post_id;
 	}
 }
+
 ?>

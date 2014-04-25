@@ -1,41 +1,41 @@
-.input.text{
-    overflow:hidden;
+.input.text {
+    overflow: hidden;
 }
 
-.input.text label, .input.select label, .input.textarea label{
+.input.text label, .input.select label, .input.textarea label {
     width: 130px;
     display: inline-block;
 }
 
-.input.textarea label{
-	vertical-align: top;
+.input.textarea label {
+    vertical-align: top;
 }
 
-.input.text label:after, .input.select label:after, .input.textarea label:after{
-    content:": ";
+.input.text label:after, .input.select label:after, .input.textarea label:after {
+    content: ": ";
 }
 
-.input.radio input{
-	/*margin-left: 130px;*/
-	margin-right: 10px;
+.input.radio input {
+    /*margin-left: 130px;*/
+    margin-right: 10px;
 }
 
-.input{
-    margin-top:5px;
-    margin-bottom:5px;
+.input {
+    margin-top: 5px;
+    margin-bottom: 5px;
     display: block;
 }
 
 .validation_msg {
-	margin-left: 130px;
+    margin-left: 130px;
 }
 
-.jci-node-group-tabs{
+.jci-node-group-tabs {
     text-transform: capitalize;
 }
 
-div.form-actions .input{
-    float:left;
+div.form-actions .input {
+    float: left;
     margin-right: 10px;
 }
 

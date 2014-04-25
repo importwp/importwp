@@ -1,20 +1,20 @@
 <?php
 global $jcimporter;
-$tab = isset($_GET['tab']) && !empty($_GET['tab']) ? $_GET['tab'] : 'home';
-$action = isset($_GET['action']) && !empty($_GET['action']) ? $_GET['action'] : 'index';
+$tab    = isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ? $_GET['tab'] : 'home';
+$action = isset( $_GET['action'] ) && ! empty( $_GET['action'] ) ? $_GET['action'] : 'index';
 ?>
 <div class="wrap">
-	<?php 
-	switch($tab){
+	<?php
+	switch ( $tab ) {
 		case 'templates':
 			require 'templates.php';
-		break;
+			break;
 		case 'settings':
 			require 'settings.php';
-		break;
+			break;
 		default:
-			$id = isset($_GET['import']) && !empty($_GET['import']) ? $_GET['import'] : 0;
-			switch($action){
+			$id = isset( $_GET['import'] ) && ! empty( $_GET['import'] ) ? $_GET['import'] : 0;
+			switch ( $action ) {
 				case 'logs':
 					require 'imports/logs.php';
 					break;
@@ -31,8 +31,8 @@ $action = isset($_GET['action']) && !empty($_GET['action']) ? $_GET['action'] : 
 					require 'imports.php';
 					break;
 			}
-			
-		break;
+
+			break;
 	}
 	?>
 </div>
