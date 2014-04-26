@@ -66,6 +66,8 @@ class JC_UserMapper extends JC_BaseMapper {
 			throw new JCI_Exception( $result->get_error_message(), JCI_ERR );
 		}
 
+		$this->add_version_tag( $result );
+
 		do_action( 'jci/after_user_insert', $result, $fields );
 
 		return $result;
@@ -86,6 +88,8 @@ class JC_UserMapper extends JC_BaseMapper {
 		if ( is_wp_error( $result ) ) {
 			throw new JCI_Exception( $result->get_error_message(), JCI_ERR );
 		}
+
+		$this->update_version_tag( $user_id );
 
 		return $user_id;
 	}
@@ -141,6 +145,70 @@ class JC_UserMapper extends JC_BaseMapper {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Add Import Tracking Tag
+	 *
+	 * @param integer $user_id
+	 */
+	function add_version_tag( $user_id = 0 ) {
+
+		global $jcimporter;
+		$importer_id = $jcimporter->importer->get_ID();
+		$version     = $jcimporter->importer->get_version();
+
+		add_post_meta( $user_id, '_jci_version_' . $importer_id, $version, true );
+	}
+
+	/**
+	 * Update Import Tracking Tag
+	 *
+	 * @param integer $user_id
+	 */
+	function update_version_tag( $user_id = 0 ) {
+
+		global $jcimporter;
+		$importer_id = $jcimporter->importer->get_ID();
+		$version     = $jcimporter->importer->get_version();
+
+		$old_version = get_user_meta( $user_id, '_jci_version_' . $importer_id, true );
+		if ( $old_version ) {
+			update_user_meta( $user_id, '_jci_version_' . $importer_id, $version, $old_version );
+		} else {
+			add_user_meta( $user_id, '_jci_version_' . $importer_id, $version, true );
+		}
+	}
+
+	/**
+	 * Remove Users who were not in latest import
+	 * 
+	 * @param  int $importer_id 
+	 * @param  int $version     
+	 * @param  string $post_type   Not Used
+	 * @return void
+	 */
+	function remove( $importer_id, $version, $post_type ) {
+
+		// get a list of all objects which were not in current update
+		$user_query = new WP_User_Query( array (
+			'meta_query'     	=> array(
+				array(
+					'key'     	=> '_jci_version_' . $importer_id,
+					'value'   	=> $version,
+					'compare'   => '!=',
+				),
+			),
+			'fields'			=> array( 'id' ),
+		) );
+
+		// delete list of objects
+		if ( ! empty( $user_query->results ) ) {
+			foreach ( $user_query->results as $user ) {
+				wp_delete_user( $user->id);
+			}
+		}
+
 	}
 
 }

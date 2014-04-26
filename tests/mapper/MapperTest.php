@@ -22,13 +22,13 @@ class MapperTest extends WP_UnitTestCase {
 			'key'   => array( 'KEY1', 'KEY2' ),
 			'group' => 'group1'
 		);
-		$mapper->parseKeys( $data );
+		$mapper->parse_keys( $data );
 
 		$data = array(
 			'key'   => array( 'KEY3', 'KEY4' ),
 			'group' => 'group2'
 		);
-		$mapper->parseKeys( $data );
+		$mapper->parse_keys( $data );
 
 		$result = $mapper->get_var( '_key' );
 		$this->assertEquals( array(
@@ -44,7 +44,7 @@ class MapperTest extends WP_UnitTestCase {
 	public function test_parse_relationship() {
 
 		$mapper = new TEST_BaseMapper();
-		$mapper->parseRelationship( array(
+		$mapper->parse_relationship( array(
 			'group'        => 'group1',
 			'relationship' => array( 'post_id' => '{group2.ID}' )
 		) );
@@ -62,7 +62,7 @@ class MapperTest extends WP_UnitTestCase {
 	public function test_parse_field_type() {
 
 		$mapper = new TEST_BaseMapper();
-		$mapper->parseFieldType( array(
+		$mapper->parse_field_type( array(
 			'group'      => 'group1',
 			'field_type' => 'single'
 		) );
@@ -80,7 +80,7 @@ class MapperTest extends WP_UnitTestCase {
 	public function test_parse_unique_field() {
 
 		$mapper = new TEST_BaseMapper();
-		$mapper->parseUniqueField( array(
+		$mapper->parse_unique_field( array(
 			'group'  => 'group1',
 			'unique' => array( 'ID' )
 		) );
