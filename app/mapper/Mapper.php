@@ -115,19 +115,31 @@ class JC_BaseMapper {
 			ImportLog::insert( $importer_id, $this->_current_row, $this->_insert[ $this->_current_row ] );
 
 			// add/update last import record row
-			$version = $jcimporter->importer->get_version();
-			$last_record = get_post_meta( $importer_id, '_jci_last_row_' . $version, true );
-			if ( $last_record ) {
-				update_post_meta( $importer_id, '_jci_last_row_' . $version, $this->_current_row, $last_record );
-			} else {
-				add_post_meta( $importer_id, '_jci_last_row_' . $version, $this->_current_row, true );
-			}
+			$this->track_import( $importer_id, $this->_current_row , $jcimporter->importer->get_version() );
 		}
 
 		// check to see if last row
 		$this->complete_check( $this->_current_row );
 
 		return $this->_insert;
+	}
+
+	/**
+	 * Keep track of the last imported from on importer
+	 * 
+	 * @param  int $importer_id 
+	 * @param  int $row         
+	 * @param  int $version     
+	 * @return void
+	 */
+	function track_import($importer_id, $row, $version){
+
+		$last_record = get_post_meta( $importer_id, '_jci_last_row_' . $version, true );
+		if ( $last_record ) {
+			update_post_meta( $importer_id, '_jci_last_row_' . $version, $row, $last_record );
+		} else {
+			add_post_meta( $importer_id, '_jci_last_row_' . $version, $row, true );
+		}
 	}
 
 	/**

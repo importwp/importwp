@@ -94,17 +94,21 @@ class JC_PostMapper {
 
 		$post_id = wp_insert_post( $post, true );
 
-		// create post meta
-		if ( $post_id && ! empty( $meta ) ) {
-			foreach ( $meta as $key => $value ) {
+		// check to see if is error
+		if(!is_wp_error($post_id )){
 
-				if ( $value != '' ) {
-					add_post_meta( $post_id, $key, $value );
+			// create post meta
+			if ( $post_id && ! empty( $meta ) ) {
+				foreach ( $meta as $key => $value ) {
+
+					if ( $value != '' ) {
+						add_post_meta( $post_id, $key, $value );
+					}
 				}
 			}
-		}
 
-		$this->add_version_tag( $post_id );
+			$this->add_version_tag( $post_id );
+		}
 
 		return $post_id;
 	}

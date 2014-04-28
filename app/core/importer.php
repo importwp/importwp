@@ -162,17 +162,18 @@ class JC_Importer_Core {
 	public function run_import( $row = null ) {
 
 		global $jcimporter;
+		$importer_id = $jcimporter->importer->get_ID();
 		$jci_file          = $jcimporter->importer->file;
 		$jci_template      = $jcimporter->importer->template;
 		$jci_template_type = $jcimporter->importer->template_type;
 		$parser            = $jcimporter->parsers[ $this->template_type ];
 
 		$mapper = new JC_BaseMapper();
-
-		// $this->_parser = $jcimporter->parsers[$jci_template_type];
 		$parser->loadFile( $jci_file );
 
 		if ( $row ) {
+
+			// ajax importer one record at a time
 
 			$results = $parser->parse( intval( $row ) );
 
@@ -182,12 +183,17 @@ class JC_Importer_Core {
 				// check to see if last row
 				$mapper->complete_check( intval( $row ) );
 
+				// track row as import is skipped
+				$mapper->track_import( $importer_id, $row, $jcimporter->importer->get_version() );
+
 				return false;
 			}
 
 			$result = $mapper->process( $jci_template, $results, $row );
 		} else {
 
+			// import all at one, may take a while to complete
+			
 			$results = $parser->parse();
 			$result  = $mapper->process( $jci_template, $results );
 		}

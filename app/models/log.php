@@ -133,14 +133,18 @@ class ImportLog {
 		return $wpdb->get_results( "SELECT version, type, file,  created, MAX(row) as row_total FROM `wp_importer_log` WHERE object_id='{$importer_id}' GROUP BY version ORDER BY version DESC", OBJECT );
 	}
 
-	static function get_importer_log( $importer_id, $log ) {
+	static function get_importer_log( $importer_id, $log, $order = 'DESC' ) {
 
 		global $wpdb;
 
 		$importer_id = intval( $importer_id );
 		$log         = intval( $log );
 
-		return $wpdb->get_results( "SELECT * FROM `wp_importer_log` WHERE object_id='{$importer_id}' AND version='{$log}' ORDER BY version DESC", OBJECT );
+		if(!in_array($order, array('DESC', 'ASC'))){
+			$order = 'DESC';
+		}
+
+		return $wpdb->get_results( "SELECT * FROM `wp_importer_log` WHERE object_id='{$importer_id}' AND version='{$log}' ORDER BY id $order", OBJECT );
 	}
 
 }

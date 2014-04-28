@@ -65,6 +65,20 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 						</tr>
 						</thead>
 						<tbody id="the-list">
+							<?php 
+							if(isset($_GET['continue'])){
+
+								$rows = ImportLog::get_importer_log( $importer_id, $jcimporter->importer->get_version() );
+
+								if ( $rows ){
+									foreach ( $rows as $r ){
+										$row  = $r->row;
+										$data = array( unserialize( $r->value ) );
+										require $jcimporter->plugin_dir . 'app/view/imports/log/log_table_record.php';
+									}
+								}
+							}
+							?>
 						</tbody>
 					</table>
 				</div>
