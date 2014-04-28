@@ -35,6 +35,7 @@ class JC_Importer_Core {
 	protected $start_line = 0;
 	protected $row_count = 0;
 	protected $total_rows = 0;
+	protected $last_import_row = 0;
 	protected $name = '';
 	protected $version = 0;
 
@@ -116,6 +117,14 @@ class JC_Importer_Core {
 				$this->version = 0;
 			}
 
+			// get last imported record for latest version
+			$last_row = get_post_meta( $this->ID, '_jci_last_row_'.$this->version, true );
+			if ( intval( $last_row ) > 0 ) {
+				$this->last_import_row = intval( $last_row );
+			} else {
+				$this->last_import_row = 0;
+			}
+			
 			// load parser specific settings
 			$this->addon_settings = apply_filters( "jci/load_{$this->template_type}_settings", array(), $this->ID );
 		}
@@ -266,6 +275,10 @@ class JC_Importer_Core {
 
 	public function set_version( $version ) {
 		$this->version = intval( $version );
+	}
+
+	public function get_last_import_row(){
+		return $this->last_import_row;
 	}
 }
 

@@ -9,6 +9,8 @@ $permissions_general  = $jcimporter->importer->get_permissions();
 $taxonomies           = $jcimporter->importer->get_taxonomies();
 $taxonomy_permissions = $jcimporter->importer->get_taxonomies_permissions();
 $attachments          = $jcimporter->importer->get_attachments();
+$total_rows 		  = $jcimporter->importer->get_total_rows();
+$last_import_row 	  = $jcimporter->importer->get_last_import_row();
 ?>
 
 	<div id="icon-tools" class="icon32"><br></div>
@@ -31,7 +33,15 @@ if ( isset( $_GET['message'] ) && $_GET['message'] >= 0 ) {
 			echo '<div id="message" class="error_msg warn updated below-h2"><p>Importer Has been Created, Enter the fields or columns you wish to map the data to.</p></div>';
 			break;
 	}
-} ?>
+}
+
+// check for incomplete import and show message to resume
+// todo: link this up to the complete flag
+if($total_rows > $last_import_row){
+	echo '<div id="message" class="error_msg warn updated below-h2"><p>Do you want to continue your last import? <a href="admin.php?page=jci-importers&import='.$id.'&action=logs&continue=1">Click here</a>.</p></div>';
+}
+
+?>
 
 <?php
 echo JCI_FormHelper::create( 'EditImporter', array( 'type' => 'file' ) );

@@ -9,6 +9,7 @@ class JC_BaseMapper {
 	protected $_relationship = array();
 	protected $_field_types = array();
 	protected $_unique = array();
+	protected $_setup = false;
 
 	protected $_insert = array();
 	protected $_current_row = 0;
@@ -39,6 +40,10 @@ class JC_BaseMapper {
 
 		$groups = $jcimporter->importer->get_template_groups();
 		$version = $jcimporter->importer->get_version();
+		$template = $jcimporter->importer->get_template();
+
+		// setup if not already
+		$this->setup($template);
 
 		// loop through all groups
 		foreach($groups as $group => $args) {
@@ -53,7 +58,19 @@ class JC_BaseMapper {
 		}
 	}
 
-	final function process( $template = array(), $data = array(), $row = null ) {
+	/**
+	 * Setup template for processing import
+	 * 
+	 * @param  array  $template 
+	 * @return void
+	 */
+	function setup($template = array()){
+
+		// check to see if already setup
+		if($this->_setup)
+			return;
+
+		// set template
 		$this->_template = $template;
 
 		foreach ( $template->_field_groups as $template_data ) {
@@ -76,7 +93,12 @@ class JC_BaseMapper {
 
 		// $this->setGroupProcessOrder();
 		$this->_group_process_order = $this->set_group_process_order( $template->_field_groups );
+		$this->_setup = true;
+	}
 
+	final function process( $template = array(), $data = array(), $row = null ) {
+		
+		$this->setup($template);
 
 		if ( $row ) {
 			// @quickfix: set current row to selected row
@@ -91,6 +113,15 @@ class JC_BaseMapper {
 			$this->set_import_version();
 			$this->processRow( $data_row );
 			ImportLog::insert( $importer_id, $this->_current_row, $this->_insert[ $this->_current_row ] );
+
+			// add/update last import record row
+			$version = $jcimporter->importer->get_version();
+			$last_record = get_post_meta( $importer_id, '_jci_last_row_' . $version, true );
+			if ( $last_record ) {
+				update_post_meta( $importer_id, '_jci_last_row_' . $version, $this->_current_row, $last_record );
+			} else {
+				add_post_meta( $importer_id, '_jci_last_row_' . $version, $this->_current_row, true );
+			}
 		}
 
 		// check to see if last row
@@ -103,7 +134,6 @@ class JC_BaseMapper {
 	 * Check to see if the current row is the last
 	 *
 	 * @param  integer $row
-	 *
 	 * @return void
 	 */
 	function complete_check( $row = 0 ) {
@@ -231,7 +261,7 @@ class JC_BaseMapper {
 	 *
 	 * Loop through group keys, and foreign keys to find which order the groups can be processed
 	 *
-	 * @param array $field_groups [description]
+	 * @param array $field_groups
 	 */
 	public function set_group_process_order( $field_groups = array() ) {
 
