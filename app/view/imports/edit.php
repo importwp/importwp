@@ -31,7 +31,15 @@ if ( isset( $_GET['message'] ) && $_GET['message'] >= 0 ) {
 			echo '<div id="message" class="error_msg warn updated below-h2"><p>Importer Has been Created, Enter the fields or columns you wish to map the data to.</p></div>';
 			break;
 	}
-} ?>
+}
+
+// check for incomplete import and show message to resume
+// todo: link this up to the complete flag
+if(true == true){
+	echo '<div id="message" class="error_msg warn updated below-h2"><p>Do you want to continue your last import? <a href="admin.php?page=jci-importers&import='.$id.'&action=logs&continue=1">Click here</a>.</p></div>';
+}
+
+?>
 
 <?php
 echo JCI_FormHelper::create( 'EditImporter', array( 'type' => 'file' ) );

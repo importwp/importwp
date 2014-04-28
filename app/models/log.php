@@ -45,14 +45,15 @@ class ImportLog {
 
 		$template = ImporterModel::getImportSettings( $import_id );
 		$importer = ImporterModel::getImporter( $import_id );
+		$version = $jcimporter->importer->get_version();
 
-		if ( $start_row == $row ) {
-			// increase next row
-			$version = self::get_current_version( $import_id );
-			$version ++;
-		} else {
-			$version = self::get_current_version( $import_id );
-		}
+		// if ( $start_row == $row ) {
+		// 	// increase next row
+		// 	$version = self::get_current_version( $import_id );
+		// 	$version ++;
+		// } else {
+		// 	$version = self::get_current_version( $import_id );
+		// }
 
 
 		$wpdb->query( "

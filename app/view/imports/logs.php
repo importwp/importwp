@@ -9,6 +9,18 @@ $template      = $jcimporter->importer->get_template();
 $start_line    = $jcimporter->importer->get_start_line();
 $row_count     = $jcimporter->importer->get_row_count();
 $name          = $jcimporter->importer->get_name();
+$import_status = 0;
+
+// check for continue
+if(isset($_GET['continue'])){
+
+	$last_import_row = $jcimporter->importer->get_last_import_row();
+	if($last_import_row >= $start_line){
+		$start_line = $last_import_row + 1;
+	}
+
+	$import_status = 1; // 1 = paused
+}
 
 if ( $row_count <= 0 ) {
 	$record_count = $parser->get_total_rows();
@@ -59,7 +71,11 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
 				<div class="form-actions">
 					<br/>
+					<?php if($import_status == 1): ?>
+						<a href="#" class="jc-importer_update-run button-primary">Continue Import</a>
+					<?php else: ?>
 					<a href="#" class="jc-importer_update-run button-primary">Run Import</a>
+					<?php endif; ?>
 				</div>
 			</div>
 
@@ -78,7 +94,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 <script type="text/javascript">
 	jQuery(document).ready(function ($) {
 
-		var running = 0; // 0 = stopped , 1 = paused, 2 = running, 3 = complete
+		var running = <?php echo $import_status; ?>; // 0 = stopped , 1 = paused, 2 = running, 3 = complete
 		var record_total = <?php echo $record_count; ?>;
 		var record = <?php echo $start_line; ?>;
 		var columns = <?php echo json_encode($columns); ?>;
@@ -143,6 +159,10 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 					}
 				});
 			}
+
+			<?php if(isset($_GET['continue'])): ?>
+			startDate = new Date();
+			<?php endif; ?>
 
 			if (running == 0) {
 				startDate = new Date();
