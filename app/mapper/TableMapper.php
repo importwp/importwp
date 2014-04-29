@@ -8,7 +8,7 @@
  * @author James Collngs <james@jclabs.co.uk>
  * @version 0.0.1
  */
-class JC_TableMapper extends JC_BaseMapper {
+class JC_TableMapper{
 
 	protected $_template = array();
 	protected $_unique = array();

@@ -115,6 +115,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 		var startDate = false;
 		var avgTimes = new Array();
 		var estimatedFinishDate = new Date();
+		var curr_del_record = 0;
+		var del_count = 0;
 
 		// ajax import
 		$('.jc-importer_update-run').click(function (event) {
@@ -162,14 +164,71 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
 								getNextRecord();
 							} else {
-								$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Import Paused of (' + (record - <?php echo $start_line -1; ?>) + '/' + (record_total - <?php echo $start_line -1; ?>) + ') Records</p></div>');
+								$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Import Paused of (' + (record - <?php echo $start_line; ?>) + '/' + (record_total - <?php echo $start_line -1; ?>) + ') Records</p></div>');
 							}
 
 						} else {
 							$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Import of ' + (record_total - <?php echo $start_line -1; ?>) + ' Records</p></div>');
 							running = 3;
 							$('.form-actions').hide();
+
+							// ajax process delete items
+							deleteNextRecord();
 						}
+					}
+				});
+			}
+
+
+
+			function deleteNextRecord(){
+
+				var params = {
+					id: ajax_object.id,
+					action: 'jc_process_delete'
+				};
+
+				if(curr_del_record > 0){
+					params.delete = 1;
+				}
+
+				$.ajax({
+					url: ajax_object.ajax_url,
+					data: params,
+					dataType: 'json',
+					type: "POST",
+					success: function(response){
+
+						if(del_count == 0){
+
+							if(response.status == 'S'){
+								del_count = response.response.total;
+								if(del_count == 0){
+									$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Import Complete, No Items to delete</p></div>');
+									running = 3;
+									$('.form-actions').hide();
+								}else{
+									$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Deleting Items (0/'+del_count+')</p></div>');
+								}
+								
+							}
+						}
+
+						if(del_count > curr_del_record){
+							curr_del_record++;
+							deleteNextRecord();
+							$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Deleting Items ('+curr_del_record+'/'+del_count+')</p></div>');
+						}else{
+
+							if(del_count > 0){
+								$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Import of ' + (record_total - <?php echo $start_line -1; ?>) + ' Items, '+del_count+' Items Deleted</p></div>');
+								running = 3;
+								$('.form-actions').hide();
+							}
+							
+						}
+
+						
 					}
 				});
 			}
@@ -181,10 +240,16 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 			if (running == 0) {
 				startDate = new Date();
 			}
-
 			if (running == 0 || running == 1) {
+
 				running = 2;
+				<?php if( $jcimporter->importer->get_object_delete() !== false && $jcimporter->importer->get_object_delete() == 0): ?>
+				$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Continue Deleting Items</p></div>');
+				deleteNextRecord();
+				<?php else: ?>
 				getNextRecord();
+				<?php endif; ?>
+				
 			} else {
 				running = 1;
 			}

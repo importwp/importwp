@@ -19,6 +19,7 @@ class JC_Importer_Admin {
 
 		// ajax import
 		add_action( 'wp_ajax_jc_import_row', array( $this, 'admin_ajax_import_row' ) );
+		add_action( 'wp_ajax_jc_process_delete' , array( $this , 'admin_ajax_process_delete' ) );
 
 		$this->setup_forms();
 	}
@@ -356,7 +357,7 @@ class JC_Importer_Admin {
 
 	/**
 	 * Process Import Ajax
-	 * @return json
+	 * @return HTML
 	 */
 	public function admin_ajax_import_row() {
 
@@ -370,6 +371,46 @@ class JC_Importer_Admin {
 
 		require_once $jcimporter->plugin_dir . 'app/view/imports/log/log_table_record.php';
 
+		die();
+	}
+
+	/**
+	 * Process Ajax Deletion of missing records from tracked import
+	 * @return json
+	 */
+	public function admin_ajax_process_delete(){
+
+		global $jcimporter;
+		$importer_id = intval( $_POST['id'] );
+		$delete = isset($_POST['delete']) && $_POST['delete'] == 1 ? true : false;
+
+		$mapper = new JC_BaseMapper();
+		$jcimporter->importer = new JC_Importer_Core( $importer_id );
+		
+		
+
+		if(!$delete){
+
+			// return info about objects to delete
+			$objects = apply_filters( 'jci/import_removal_check', array(), $importer_id );
+			echo json_encode(array(
+				'status' => 'S',
+				'response' => array(
+					'total' => count($objects)
+				),
+				'msg' => ''
+			));
+
+		}else{
+
+			$out = $mapper->remove_single_object( $importer_id );
+			echo json_encode(array(
+				'status' => 'S',
+				'response' => $out,
+				'msg' => ''
+			));
+		}
+		
 		die();
 	}
 }

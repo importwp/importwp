@@ -38,6 +38,7 @@ class JC_Importer_Core {
 	protected $last_import_row = 0;
 	protected $name = '';
 	protected $version = 0;
+	protected $object_delete = -1;
 
 	public function __construct( $id = 0 ) {
 
@@ -124,6 +125,19 @@ class JC_Importer_Core {
 			} else {
 				$this->last_import_row = 0;
 			}
+
+
+			$delete_object_state = get_post_meta( $this->ID, '_jci_remove_complete_'.$this->version, true );
+			if ( $delete_object_state !== false && $delete_object_state != '') {
+
+				if($delete_object_state == 0){
+					$this->object_delete =  0;
+				}else{
+					$this->object_delete =  1;
+				}
+			} else {
+				$this->object_delete =  -1;
+			}			
 			
 			// load parser specific settings
 			$this->addon_settings = apply_filters( "jci/load_{$this->template_type}_settings", array(), $this->ID );
@@ -285,6 +299,10 @@ class JC_Importer_Core {
 
 	public function get_last_import_row(){
 		return $this->last_import_row;
+	}
+
+	public function get_object_delete(){
+		return $this->object_delete;
 	}
 }
 

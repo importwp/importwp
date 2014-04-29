@@ -8,7 +8,7 @@
  * @author James Collngs <james@jclabs.co.uk>
  * @version 0.0.1
  */
-class JC_UserMapper extends JC_BaseMapper {
+class JC_UserMapper{
 
 	protected $_template = array();
 	protected $_unique = array();
@@ -158,7 +158,7 @@ class JC_UserMapper extends JC_BaseMapper {
 		$importer_id = $jcimporter->importer->get_ID();
 		$version     = $jcimporter->importer->get_version();
 
-		add_post_meta( $user_id, '_jci_version_' . $importer_id, $version, true );
+		add_post_meta( $user_id, '_jci_version_' . $importer_id, $version );
 	}
 
 	/**
@@ -176,19 +176,19 @@ class JC_UserMapper extends JC_BaseMapper {
 		if ( $old_version ) {
 			update_user_meta( $user_id, '_jci_version_' . $importer_id, $version, $old_version );
 		} else {
-			add_user_meta( $user_id, '_jci_version_' . $importer_id, $version, true );
+			add_user_meta( $user_id, '_jci_version_' . $importer_id, $version );
 		}
 	}
 
 	/**
-	 * Remove Users who were not in latest import
+	 * Remove all users from the current tracked import
 	 * 
 	 * @param  int $importer_id 
 	 * @param  int $version     
 	 * @param  string $post_type   Not Used
 	 * @return void
 	 */
-	function remove( $importer_id, $version, $post_type ) {
+	function remove_all_objects( $importer_id, $version, $post_type ) {
 
 		// get a list of all objects which were not in current update
 		$user_query = new WP_User_Query( array (
@@ -209,6 +209,73 @@ class JC_UserMapper extends JC_BaseMapper {
 			}
 		}
 
+	}
+
+	/**
+	 * Remove the next user from the current tracked import
+	 * 
+	 * @param  int $importer_id 
+	 * @param  int $version     
+	 * @param  string $post_type   Not Used
+	 * @return mixed
+	 */
+	function remove_single_object( $importer_id, $version, $post_type ){
+
+		// get a list of all objects which were not in current update
+		$user_query = new WP_User_Query( array (
+			'meta_query'     	=> array(
+				array(
+					'key'     	=> '_jci_version_' . $importer_id,
+					'value'   	=> $version,
+					'compare'   => '!=',
+				),
+			),
+			'fields'			=> array( 'id' ),
+			'number'         => '1',
+		) );
+
+		// delete list of objects
+		if ( ! empty( $user_query->results ) ) {
+			foreach ( $user_query->results as $user ) {
+				return wp_delete_user( $user->id);
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get list of users to be removed from current tracked import
+	 * 
+	 * @param  int $importer_id 
+	 * @param  int $version     
+	 * @param  string $post_type   
+	 * @return mixed
+	 */
+	function get_objects_for_removal( $importer_id, $version, $post_type ) {
+
+		// get a list of all objects which were not in current update
+		$user_query = new WP_User_Query( array (
+			'meta_query'     	=> array(
+				array(
+					'key'     	=> '_jci_version_' . $importer_id,
+					'value'   	=> $version,
+					'compare'   => '!=',
+				),
+			),
+			'fields'			=> array( 'id' ),
+		) );
+		$ids = array();
+
+		// delete list of objects
+		if ( ! empty( $user_query->results ) ) {
+			foreach ( $user_query->results as $user ) {
+				$ids[] = $user->id;
+			}
+			return $ids;
+		}
+
+		return false;
 	}
 
 }
