@@ -12,6 +12,7 @@ class JC_Importer_Ajax {
 
 		add_action( 'wp_ajax_jc_import_file', array( $this, 'admin_ajax_import_file' ) );
 		add_action( 'wp_ajax_jc_base_node', array( $this, 'admin_ajax_base_node' ) );
+		add_action( 'wp_ajax_jc_preview_record', array( $this, 'admin_ajax_preview_record' ) );
 
 		add_action( 'wp_ajax_jc_node_select', array( $this, 'admin_ajax_node_select' ) );
 
@@ -34,6 +35,7 @@ class JC_Importer_Ajax {
 				'id'                 => $post_id,
 				'node_ajax_url'      => admin_url( 'admin-ajax.php?action=jc_node_select&importer_id=' . $post_id ),
 				'base_node_ajax_url' => admin_url( 'admin-ajax.php?action=jc_base_node&importer_id=' . $post_id ),
+				'record_preview_url' => admin_url( 'admin-ajax.php?action=jc_preview_record&importer_id=' . $post_id ),
 			) );
 		}
 	}
@@ -176,6 +178,24 @@ class JC_Importer_Ajax {
 		$results = $xml->xpath( $base );
 
 		echo $results[0]->asXml();
+		die();
+	}
+
+	public function admin_ajax_preview_record(){
+
+		$importer_id = $_POST['id'];
+		$map = $_POST['map'];
+		$row = isset($_POST['row']) && intval($_POST['row']) > 0 ? intval($_POST['row']) : 1;
+
+		global $jcimporter;
+		$importer = new JC_Importer_Core($importer_id);
+		$jci_file          = $importer->file;
+		$jci_template      = $importer->template;
+		$jci_template_type = $importer->template_type;
+		$parser            = $jcimporter->parsers[ $importer->template_type ];
+
+		$parser->loadFile( $jci_file );
+		echo "Preview: ".$parser->preview_field( $map, $row );
 		die();
 	}
 }

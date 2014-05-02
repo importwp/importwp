@@ -243,7 +243,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 							'label'   => $title,
 							'default' => $value,
 							'class'   => 'xml-drop jci-group',
-							'after'   => ' <a href="#" class="jci-import-edit">[edit]</a>'
+							'after'   => ' <a href="#" class="jci-import-edit">[edit]</a><span class="preview-text">Preview:</span>'
 						) );
 				}
 
@@ -293,7 +293,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 												'label'   => 'Term',
 												'default' => $term,
 												'class'   => 'xml-drop jci-group',
-												'after'   => ' <a href="#" class="jci-import-edit">[edit]</a>'
+												'after'   => ' <a href="#" class="jci-import-edit">[edit]</a><span class="preview-text">Preview:</span>'
 											) ); ?>
 										<?php
 										// $permissions = isset($taxonomies[$group_id]['permissions'][$key]) && !empty($taxonomies[$group_id]['permissions'][$key]) ? $taxonomies[$group_id]['permissions'][$key] : 'overwrite'; 
@@ -324,7 +324,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 											'label'   => 'Term',
 											'default' => '',
 											'class'   => 'xml-drop jci-group',
-											'after'   => ' <a href="#" class="jci-import-edit">[edit]</a>'
+											'after'   => ' <a href="#" class="jci-import-edit">[edit]</a><span class="preview-text">Preview:</span>'
 										) ); ?>
 									<?php
 									echo JCI_FormHelper::select( 'taxonomies[' . $group_id . '][permissions][]', array(
@@ -364,7 +364,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 												'label'   => 'Location',
 												'default' => $val,
 												'class'   => 'xml-drop jci-group',
-												'after'   => ' <a href="#" class="jci-import-edit">[edit]</a>'
+												'after'   => ' <a href="#" class="jci-import-edit">[edit]</a><span class="preview-text">Preview:</span>'
 											) ); ?>
 										<?php
 										$permissions = isset( $attachments[ $group_id ]['permissions'][ $key ] ) && ! empty( $attachments[ $group_id ]['permissions'][ $key ] ) ? $attachments[ $group_id ]['permissions'][ $key ] : 'overwrite';
@@ -395,7 +395,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 											'label'   => 'Location',
 											'default' => '',
 											'class'   => 'xml-drop jci-group',
-											'after'   => ' <a href="#" class="jci-import-edit">[edit]</a>'
+											'after'   => ' <a href="#" class="jci-import-edit">[edit]</a><span class="preview-text">Preview:</span>'
 										) ); ?>
 									<?php
 									echo JCI_FormHelper::select( 'attachment[' . $group_id . '][permissions][]', array(
@@ -545,6 +545,38 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 			});
 
 			$('.download-toggle select').trigger('change');
+
+			// new record preview
+			$('.xml-drop input').on('change', function(){
+				var val = $(this).val();
+				var obj = $(this).parent();
+				if(val != ''){
+					$.ajax({
+						url: ajax_object.ajax_url,
+						data: {
+							action: 'jc_preview_record',
+							id: ajax_object.id,
+							map: val,
+							row: $('#jc-importer_start-line').val()
+						},
+						dataType: 'html',
+						type: "POST",
+						success: function(response){
+							obj.find('.preview-text').text(response);
+						}
+					});
+				}
+
+			});
+
+			$('#jc-importer_start-line').change('change', function(){
+				$('.xml-drop .preview-text').each(function(){
+					$(this).text('Preview:');
+				});
+				$('.xml-drop input').trigger('change');
+			});
+
+			$('#jc-importer_start-line').trigger('change');
 		});
 
 		/**

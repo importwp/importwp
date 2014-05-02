@@ -201,6 +201,33 @@ class JC_CSV_Parser extends JC_Parser {
 		return $records;
 	}
 
+	public function preview_field($map = '', $selected_row = null ) {
+
+		global $jcimporter;
+
+		$fh      = fopen( $this->file, 'r' );
+		$counter = 1;
+
+		// set enclosure and delimiter
+		$delimiter = isset( $jcimporter->importer->addon_settings->csv_delimiter ) ? $jcimporter->importer->addon_settings->csv_delimiter : ',';
+		$enclosure = isset( $jcimporter->importer->addon_settings->csv_enclosure ) ? $jcimporter->importer->addon_settings->csv_enclosure : '"';
+
+		while ( $line = fgetcsv( $fh, null, $delimiter, $enclosure ) ) {
+
+			// skip if not selected row
+			if ( ! is_null( $selected_row ) && $counter != $selected_row ) {
+				$counter ++;
+				continue;
+			}
+
+			$result = apply_filters( 'jci/parse_csv_field', $map, $line );
+			break;
+		}
+
+		fclose( $fh );
+		return $result;
+	}
+
 	/**
 	 * Get the total of rows matching the Importers settings
 	 *
@@ -258,7 +285,7 @@ class JCI_CSV_ParseField extends JCI_ParseField {
 
 	function parse_field( $field ) {
 		$result = preg_replace_callback( '/{(.*?)}/', array( $this, 'parse_value' ), $field );
-		$result = preg_replace_callback( '/\[jci::([a-z]+)\(([a-zA-Z0-9]+)\)\]/', array(
+		$result = preg_replace_callback( '/\[jci::([a-z]+)\(([a-zA-Z0-9_ -]+)\)\]/', array(
 				$this,
 				'parse_func'
 			), $result );

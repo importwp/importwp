@@ -348,7 +348,7 @@ class JCI_XML_ParseField extends JCI_ParseField {
 
 		$this->base_node = $base_node;
 		$result          = preg_replace_callback( '/{(.*?)}/', array( $this, 'parse_value' ), $field );
-		$result          = preg_replace_callback( '/\[jci::([a-z]+)\(([a-zA-Z0-9]+)\)\]/', array(
+		$result          = preg_replace_callback( '/\[jci::([a-z]+)\(([a-zA-Z0-9_ -]+)\)\]/', array(
 				$this,
 				'parse_func'
 			), $result );

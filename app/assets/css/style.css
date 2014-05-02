@@ -43,3 +43,10 @@ div.form-actions .input {
     max-height: 390px;
     overflow-y: auto;
 }
+
+.preview-text{
+    clear: left;
+    display: block;
+    margin-left: 131px;
+    color: #999;
+}
