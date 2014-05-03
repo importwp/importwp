@@ -21,7 +21,8 @@ class JC_BaseMapper {
 
 	function __construct(){
 
-		add_action( 'jci/import_finished', array( $this, 'on_import_complete' ) );
+		add_action( 'jci/import_finished', array( $this, 'on_import_complete' ) , 10 , 2 );
+		add_filter( 'jci/import_removal_check' , array( $this, 'get_objects_for_removal' ), 10 , 2 );
 	}
 
 	/**
@@ -30,7 +31,10 @@ class JC_BaseMapper {
 	 * @param  int $importer_id 
 	 * @return void
 	 */
-	public function on_import_complete( $importer_id ) {
+	public function on_import_complete( $importer_id , $is_ajax ) {
+
+		if($is_ajax)
+			return false;
 
 		global $jcimporter;
 		$permissions = $jcimporter->importer->get_permissions();
@@ -52,10 +56,88 @@ class JC_BaseMapper {
 			$importer = $this->_mappers[ $args['import_type'] ];
 
 			// if mapper has remove function
-			if( method_exists( $importer, 'remove' ) ){
-				$importer->remove( $importer_id, $version, $args['import_type_name'] );
+			if( method_exists( $importer, 'remove_all_objects' ) ){
+				$importer->remove_all_objects( $importer_id, $version, $args['import_type_name'] );
 			}
 		}
+	}
+
+	function get_objects_for_removal( $objects = array() , $importer_id ){
+
+		global $jcimporter;
+		$permissions = $jcimporter->importer->get_permissions();
+
+		if( $permissions['delete'] == 0 )
+			return;
+
+		$groups = $jcimporter->importer->get_template_groups();
+		$version = $jcimporter->importer->get_version();
+		$template = $jcimporter->importer->get_template();
+
+		// setup if not already
+		$this->setup($template);
+
+		// loop through all groups
+		foreach($groups as $group => $args) {
+
+			// get importer
+			$importer = $this->_mappers[ $args['import_type'] ];
+
+			// if mapper has remove function
+			if( method_exists( $importer, 'get_objects_for_removal' ) ){
+				$result = $importer->get_objects_for_removal( $importer_id , $version , $args['import_type_name'] );
+				if( is_array( $result ) && !empty( $result ) ){
+					$objects = array_merge( $objects , $result );
+				}
+			}
+		}
+
+		$remove_complete = 1;
+		if(count($objects) > 0){
+			$remove_complete = 0;
+		}
+
+		$old_version = get_post_meta( $importer_id, '_jci_remove_complete_' . $version, true );
+		if ( $old_version !== false ) {
+			update_post_meta( $importer_id, '_jci_remove_complete_' . $version, $remove_complete, $old_version );
+		} else {
+			add_post_meta( $importer_id, '_jci_remove_complete_' . $version, $remove_complete);
+		}
+
+		return array_unique( $objects );
+	}
+
+	function remove_single_object( $importer_id ){
+
+		global $jcimporter;
+		$permissions = $jcimporter->importer->get_permissions();
+
+		if( $permissions['delete'] == 0 )
+			return;
+
+		$groups = $jcimporter->importer->get_template_groups();
+		$version = $jcimporter->importer->get_version();
+		$template = $jcimporter->importer->get_template();
+		$result = false;
+
+		// setup if not already
+		$this->setup($template);
+
+		// loop through all groups
+		foreach($groups as $group => $args) {
+
+			// get importer
+			$importer = $this->_mappers[ $args['import_type'] ];
+
+			// if mapper has remove function
+			if( method_exists( $importer, 'remove_single_object' ) ){
+				$result[] = $importer->remove_single_object( $importer_id , $version , $args['import_type_name'] );
+			}
+		}
+
+		$this->get_objects_for_removal( array(), $importer_id );
+
+		return $result;
 	}
 
 	/**
@@ -99,6 +181,10 @@ class JC_BaseMapper {
 	final function process( $template = array(), $data = array(), $row = null ) {
 		
 		$this->setup($template);
+		$is_ajax = true;
+
+		if(is_null($row))
+			$is_ajax = false;
 
 		if ( $row ) {
 			// @quickfix: set current row to selected row
@@ -119,7 +205,7 @@ class JC_BaseMapper {
 		}
 
 		// check to see if last row
-		$this->complete_check( $this->_current_row );
+		$this->complete_check( $this->_current_row, $is_ajax);
 
 		return $this->_insert;
 	}
@@ -148,7 +234,7 @@ class JC_BaseMapper {
 	 * @param  integer $row
 	 * @return void
 	 */
-	function complete_check( $row = 0 ) {
+	function complete_check( $row = 0 , $is_ajax = true ) {
 
 		global $jcimporter;
 		$importer_id = $jcimporter->importer->get_ID();
@@ -160,12 +246,12 @@ class JC_BaseMapper {
 		if ( $row_count == 0 ) {
 
 			if ( $row == $total_rows ) {
-				do_action( 'jci/import_finished', $importer_id );
+				do_action( 'jci/import_finished', $importer_id, $is_ajax );
 			}
 		} else {
 
 			if ( ( $start_row - 1 ) + $row_count == $row ) {
-				do_action( 'jci/import_finished', $importer_id );
+				do_action( 'jci/import_finished', $importer_id, $is_ajax );
 			}
 		}
 	}

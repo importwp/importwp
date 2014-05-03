@@ -353,7 +353,15 @@ class JC_PostMapper {
 		}
 	}
 
-	function remove( $importer_id, $version, $post_type ) {
+	/**
+	 * Remove all posts from the current tracked import
+	 * 
+	 * @param  int $importer_id 
+	 * @param  int $version     
+	 * @param  string $post_type
+	 * @return void
+	 */
+	function remove_all_objects( $importer_id, $version, $post_type ) {
 
 		// get a list of all objects which were not in current update
 		$q = new WP_Query( array(
@@ -376,6 +384,72 @@ class JC_PostMapper {
 			}
 		}
 
+	}
+
+	/**
+	 * Remove the next post from the current tracked import
+	 * 
+	 * @param  int $importer_id 
+	 * @param  int $version     
+	 * @param  string $post_type
+	 * @return mixed
+	 */
+	function remove_single_object( $importer_id, $version, $post_type ){
+
+		// get a list of all objects which were not in current update
+		$q = new WP_Query( array(
+			'post_type'  => $post_type,
+			'meta_query' => array(
+				array(
+					'key'     => '_jci_version_' . $importer_id,
+					'value'   => $version,
+					'compare' => '!='
+				)
+			),
+			'fields'     => 'ids',
+			'posts_per_page' => 1
+		) );
+
+		// delete list of objects
+		if ( $q->have_posts() ) {
+			$ids = $q->posts;
+			// return 'FAKE DELETE';
+			return wp_delete_post(array_shift($ids) , true );
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get list of posts to be removed from current tracked import
+	 * 
+	 * @param  int $importer_id 
+	 * @param  int $version     
+	 * @param  string $post_type   
+	 * @return mixed
+	 */
+	function get_objects_for_removal( $importer_id, $version, $post_type ) {
+
+		// get a list of all objects which were not in current update
+		$q = new WP_Query( array(
+			'post_type'  => $post_type,
+			'meta_query' => array(
+				array(
+					'key'     => '_jci_version_' . $importer_id,
+					'value'   => $version,
+					'compare' => '!='
+				)
+			),
+			'fields'     => 'ids',
+			'posts_per_page' => -1
+		) );
+
+		// delete list of objects
+		if ( $q->have_posts() ) {
+			return $q->posts;
+		}
+
+		return false;
 	}
 
 }

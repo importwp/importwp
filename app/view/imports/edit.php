@@ -36,16 +36,23 @@ if ( isset( $_GET['message'] ) && $_GET['message'] >= 0 ) {
 }
 
 // check for incomplete import and show message to resume
+$import_complete = true;
 if ($row_count > 0){
 
-	if((($start_line-1) + $row_count) > $last_import_row){
+	if((($start_line-1) + $row_count) > $last_import_row && $last_import_row > 0){
 		echo '<div id="message" class="error_msg warn updated below-h2"><p>Do you want to continue your last import (' . ( $last_import_row - ( $start_line - 1 ) ) . '/' . $row_count . ')? <a href="admin.php?page=jci-importers&import='.$id.'&action=logs&continue=1">Click here</a>.</p></div>';
+		$import_complete = false;
 	}
 }else{
 
-	if($total_rows > $last_import_row){
+	if($total_rows > $last_import_row && $last_import_row > 0){
 		echo '<div id="message" class="error_msg warn updated below-h2"><p>Do you want to continue your last import (' . ( $last_import_row - ( $start_line -1 ) ) . '/' . ( $total_rows - ( $start_line - 1 ) ) .')? <a href="admin.php?page=jci-importers&import='.$id.'&action=logs&continue=1">Click here</a>.</p></div>';
+		$import_complete = false;
 	}
+}
+
+if($jcimporter->importer->get_object_delete() == 0 && $import_complete){
+	echo '<div id="message" class="error_msg warn updated below-h2"><p>Do you want to continue your last import? <a href="admin.php?page=jci-importers&import='.$id.'&action=logs&continue=1">Click here</a>.</p></div>';
 }
 
 ?>
