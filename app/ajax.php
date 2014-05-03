@@ -188,11 +188,11 @@ class JC_Importer_Ajax {
 		$row = isset($_POST['row']) && intval($_POST['row']) > 0 ? intval($_POST['row']) : 1;
 
 		global $jcimporter;
-		$importer = new JC_Importer_Core($importer_id);
-		$jci_file          = $importer->file;
-		$jci_template      = $importer->template;
-		$jci_template_type = $importer->template_type;
-		$parser            = $jcimporter->parsers[ $importer->template_type ];
+		$jcimporter->importer = new JC_Importer_Core($importer_id);
+		$jci_file          = $jcimporter->importer->file;
+		$jci_template      = $jcimporter->importer->template;
+		$jci_template_type = $jcimporter->importer->template_type;
+		$parser            = $jcimporter->parsers[ $jcimporter->importer->template_type ];
 
 		$parser->loadFile( $jci_file );
 		echo "Preview: ".$parser->preview_field( $map, $row );

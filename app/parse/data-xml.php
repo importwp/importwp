@@ -323,6 +323,19 @@ class JC_XML_Parser extends JC_Parser {
 
 		return $output_group_record;
 	}
+
+	public function preview_field($map = '', $selected_row = null ) {
+
+		global $jcimporter;
+
+		$xml = simplexml_load_file( $this->file );
+		$base_node = $jcimporter->importer->addon_settings['import_base'];
+		$output_base_node = $base_node . "[$selected_row]";
+
+		// return $output_base_node;
+
+		return apply_filters( 'jci/parse_xml_field', $map, $output_base_node, $xml );
+	}
 }
 
 /**
