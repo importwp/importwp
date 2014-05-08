@@ -18,6 +18,7 @@
 			$(this).find('td').each(function (index) {
 				$(this).click(function (e) {
 					jci_element.val('{' + index + '}');
+					jci_element.trigger('change');
 					tb_remove();
 					e.preventDefault();
 					return false;

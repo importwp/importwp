@@ -195,7 +195,24 @@ class JC_Importer_Ajax {
 		$parser            = $jcimporter->parsers[ $jcimporter->importer->template_type ];
 
 		$parser->loadFile( $jci_file );
-		echo "Preview: ".$parser->preview_field( $map, $row );
+		$result = array();
+
+		if(is_array($map)){
+
+			foreach($map as $val){
+				
+				if($val == "")
+					continue;
+
+				$result[] = array($val, $parser->preview_field( $val, $row ));
+			}
+		}else{
+
+			$result[] = array($map, $parser->preview_field( $map, $row ));
+		}
+
+		echo json_encode($result);
+
 		die();
 	}
 }

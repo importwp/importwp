@@ -2,7 +2,7 @@
 /**
  * Display preview record box and display preview text under template fields.
  *
- * @todo pass array of all fields to save each field being indevidually processed.
+ * @todo pass xml base and group nodes with fields, so user doesnt have to save to see the updated version
  */
 ?>
 <div id="postimagediv" class="postbox">
@@ -41,6 +41,7 @@
 
 			// new record preview
 			$('.xml-drop input').on('change', function(){
+
 				var val = $(this).val();
 				var obj = $(this).parent();
 				if(val != ''){
@@ -52,21 +53,64 @@
 							map: val,
 							row: $('#preview-record').val()
 						},
-						dataType: 'html',
+						dataType: 'json',
 						type: "POST",
+						beforeSend: function(){
+							obj.find('.preview-text').text('Loading...');
+						},
 						success: function(response){
-							obj.find('.preview-text').text(response);
+							
+							$.each(response, function(index, value){
+								obj.find('.preview-text').text('Preview: '+value[1]);
+							});
+
 						}
 					});
+				}else{
+					obj.find('.preview-text').text('Preview:');
 				}
 
 			});
 
-			$('#preview-record').change('change', function(){
-				$('.xml-drop .preview-text').each(function(){
-					$(this).text('Preview:');
+			// change all inputs
+			function refreshPreview(){
+				var nodes = [];
+
+				$('.xml-drop input').each(function(){
+
+					input_val = $(this).val();
+					if(input_val != '' && $.inArray(input_val, nodes) == -1){
+						// add to array if unique and not empty
+						nodes.push(input_val);
+					}
 				});
-				$('.xml-drop input').trigger('change');
+
+				$.ajax({
+					url: ajax_object.ajax_url,
+					data: {
+						action: 'jc_preview_record',
+						id: ajax_object.id,
+						map: nodes,
+						row: $('#preview-record').val()
+					},
+					dataType: 'json',
+					type: "POST",
+					success: function(response){
+
+						$.each(response, function(index, value){
+
+							$('.xml-drop input').each(function(){
+								if($(this).val() == value[0]){
+									$(this).parent().find('.preview-text').text('Preview: '+value[1]);
+								}
+							})
+						});
+					}
+				});
+			}
+
+			$('#preview-record').change('change', function(){
+				refreshPreview();
 			});
 
 			$('#preview-record').val($('#jc-importer_start-line').val());

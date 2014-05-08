@@ -50,6 +50,7 @@ jQuery(document).ready(function ($) {
             $('.xml-draggable').click(function () {
                 xpath = $(this).data('xpath');
                 jci_element.val('{' + xpath + '}');
+                jci_element.trigger("change");
                 tb_remove();
             });
 
