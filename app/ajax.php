@@ -66,13 +66,13 @@ class JC_Importer_Ajax {
 				$records = array();
 
 				$csv_delimiter = ImporterModel::getImporterMetaArr( $post_id, array(
-						'_parser_settings',
-						'csv_delimiter'
-					) );
+					'_parser_settings',
+					'csv_delimiter'
+				) );
 				$csv_enclosure = ImporterModel::getImporterMetaArr( $post_id, array(
-						'_parser_settings',
-						'csv_enclosure'
-					) );
+					'_parser_settings',
+					'csv_enclosure'
+				) );
 				$csv_enclosure = stripslashes( $csv_enclosure );
 
 				if ( empty( $csv_delimiter ) ) {

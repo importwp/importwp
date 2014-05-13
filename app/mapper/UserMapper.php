@@ -155,6 +155,10 @@ class JC_UserMapper{
 	function add_version_tag( $user_id = 0 ) {
 
 		global $jcimporter;
+
+		if(!isset($jcimporter->importer))
+			return;
+
 		$importer_id = $jcimporter->importer->get_ID();
 		$version     = $jcimporter->importer->get_version();
 
@@ -169,6 +173,10 @@ class JC_UserMapper{
 	function update_version_tag( $user_id = 0 ) {
 
 		global $jcimporter;
+
+		if(!isset($jcimporter->importer))
+			return;
+
 		$importer_id = $jcimporter->importer->get_ID();
 		$version     = $jcimporter->importer->get_version();
 

@@ -47,15 +47,6 @@ class ImportLog {
 		$importer = ImporterModel::getImporter( $import_id );
 		$version = $jcimporter->importer->get_version();
 
-		// if ( $start_row == $row ) {
-		// 	// increase next row
-		// 	$version = self::get_current_version( $import_id );
-		// 	$version ++;
-		// } else {
-		// 	$version = self::get_current_version( $import_id );
-		// }
-
-
 		$wpdb->query( "
 			INSERT INTO `" . $wpdb->prefix . "importer_log` (importer_name, object_id, template,type,file, version, row, src, value, created)
 			VALUES('" . $importer->post->post_name . "', '" . $import_id . "', '" . $template['template'] . "', '" . $template['template_type'] . "', '" . $template['import_file'] . "', '" . $version . "', '" . $row . "', '', '" . mysql_real_escape_string( serialize( $record ) ) . "', NOW());" );

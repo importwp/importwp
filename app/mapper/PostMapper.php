@@ -328,6 +328,10 @@ class JC_PostMapper {
 	function add_version_tag( $post_id = 0 ) {
 
 		global $jcimporter;
+
+		if(!isset($jcimporter->importer))
+			return;
+
 		$importer_id = $jcimporter->importer->get_ID();
 		$version     = $jcimporter->importer->get_version();
 
@@ -342,6 +346,10 @@ class JC_PostMapper {
 	function update_version_tag( $post_id = 0 ) {
 
 		global $jcimporter;
+
+		if(!isset($jcimporter->importer))
+			return;
+		
 		$importer_id = $jcimporter->importer->get_ID();
 		$version     = $jcimporter->importer->get_version();
 

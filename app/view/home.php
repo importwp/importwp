@@ -6,9 +6,6 @@ $action = isset( $_GET['action'] ) && ! empty( $_GET['action'] ) ? $_GET['action
 <div class="wrap">
 	<?php
 	switch ( $tab ) {
-		case 'templates':
-			require 'templates.php';
-			break;
 		case 'settings':
 			require 'settings.php';
 			break;

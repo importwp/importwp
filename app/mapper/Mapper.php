@@ -46,6 +46,7 @@ class JC_BaseMapper {
 		$version = $jcimporter->importer->get_version();
 		$template = $jcimporter->importer->get_template();
 
+
 		// setup if not already
 		$this->setup($template);
 
@@ -148,9 +149,10 @@ class JC_BaseMapper {
 	 */
 	function setup($template = array()){
 
+		// removed due to problem clearing mapper
 		// check to see if already setup
-		if($this->_setup)
-			return;
+		// if($this->_setup)
+		// 	return;
 
 		// set template
 		$this->_template = $template;
@@ -295,63 +297,6 @@ class JC_BaseMapper {
 			// update importer class
 			$jcimporter->importer->set_version( $version );
 		}
-	}
-
-	/**
-	 * Set group process order
-	 *
-	 * Loop through group keys, and foreignKeys to find which order the groups can be processed
-	 * @deprecated Use set_group_process_order instead
-	 */
-	final function setGroupProcessOrder() {
-
-		$processed_order   = array();
-		$unprocessed_order = array();
-		$order             = array(); // store final order
-
-		if ( count( $this->_template->_field_groups ) == 1 ) {
-
-			foreach ( $this->_template->_field_groups as $template ) {
-				$order[] = $template['group'];
-			}
-			$this->_group_process_order = $order;
-
-			return;
-		}
-
-		// get unrestrained groups
-		foreach ( $this->_template->_field_groups as $template ) {
-			if ( empty( $template['relationship'] ) ) {
-
-				foreach ( $template['key'] as $key ) {
-					$processed_order[ $template['group'] . '.' . $key ] = $template['group'];
-				}
-
-				if ( ! in_array( $template['group'], $order ) ) {
-					$order[] = $template['group'];
-				}
-			} else {
-				$unprocessed_order[] = $template;
-			}
-		}
-
-		foreach ( $unprocessed_order as $template ) {
-			foreach ( $template['relationship'] as $target ) {
-
-				$target = str_replace( array( "{", "}" ), "", $target );
-				if ( array_key_exists( $target, $processed_order ) ) {
-					foreach ( $template['key'] as $key ) {
-						$processed_order[ $template['group'] . '.' . $key ] = $template['group'];
-					}
-
-					if ( ! in_array( $template['group'], $order ) ) {
-						$order[] = $template['group'];
-					}
-				}
-			}
-		}
-
-		$this->_group_process_order = $order;
 	}
 
 	/**
@@ -508,9 +453,6 @@ class JC_BaseMapper {
 		}
 
 		try {
-
-			// print_r($jcimporter->importer);
-			// var_dump($permissions);
 
 			// get import type: post | table | user
 			$import_type = $this->_template->_field_groups[ $group_id ]['import_type'];

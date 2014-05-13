@@ -12,9 +12,7 @@ class JC_Importer_Admin {
 
 		// add_action( 'admin_init', array($this, 'register_settings' ));
 		add_action( 'admin_menu', array( $this, 'settings_menu' ) );
-
 		add_action( 'wp_loaded', array( $this, 'process_forms' ) );
-
 		add_action( 'admin_init', array( $this, 'admin_enqueue_styles' ) );
 
 		// ajax import
@@ -31,32 +29,23 @@ class JC_Importer_Admin {
 	public function settings_menu() {
 
 		add_menu_page( 'jc-importer', 'JC Importer', 'manage_options', 'jci-importers', array(
-				$this,
-				'admin_imports_view'
-			) );
+			$this,
+			'admin_imports_view'
+		) );
 		add_submenu_page( 'jci-importers', 'Importers', 'Importers', 'manage_options', 'jci-importers', array(
-				$this,
-				'admin_imports_view'
-			) );
+			$this,
+			'admin_imports_view'
+		) );
 		add_submenu_page( 'jci-importers', 'Add New', 'Add New', 'manage_options', 'jci-importers&action=add', array(
-				$this,
-				'admin_imports_view'
-			) );
-		// add_submenu_page( 'jci-importers', 'Templates', 'Templates', 'manage_options', 'jci-templates', array($this, 'admin_templates_view') );
-		// add_submenu_page( 'jci-importers', 'Addons', 'Addons', 'manage_options', 'jci-addons', array($this, 'admin_addons_view') );
-		// add_submenu_page( 'jci-importers', 'Settings', 'Settings', 'manage_options', 'jci-settings', array($this, 'admin_settings_view') );
+			$this,
+			'admin_imports_view'
+		) );
+
+		add_submenu_page( 'jci-importers', 'Settings', 'Settings', 'manage_options', 'jci-settings', array($this, 'admin_settings_view') );
 	}
 
 	public function admin_imports_view() {
 		require 'view/home.php';
-	}
-
-	public function admin_templates_view() {
-		require 'view/templates.php';
-	}
-
-	public function admin_addons_view() {
-		require 'view/addons.php';
 	}
 
 	public function admin_settings_view() {
@@ -305,13 +294,7 @@ class JC_Importer_Admin {
 			}
 
 			$settings = apply_filters( 'jci/process_edit_form', $settings );
-
-			// $settings = array(
-			//     'start_line' => $_POST['jc-importer_start-line'],
-			//     'row_count' => $_POST['jc-importer_row-count'],
-			//     'permissions' => $_POST['jc-importer_permissions'],
-			// );
-
+			
 			$fields      = isset( $_POST['jc-importer_field'] ) ? $_POST['jc-importer_field'] : array();
 			$attachments = isset( $_POST['jc-importer_attachment'] ) ? $_POST['jc-importer_attachment'] : array();
 			$taxonomies  = isset( $_POST['jc-importer_taxonomies'] ) ? $_POST['jc-importer_taxonomies'] : array();

@@ -120,7 +120,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 							)
 						) );
 					?>
-					<a href="admin.php?page=jci-importers&import=80&action=fetch" class="button">Fetch Now</a>
+					<a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=fetch" class="button">Fetch Now</a>
 				</div>
 			</div>
 		<?php endif; ?>
