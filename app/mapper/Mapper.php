@@ -569,7 +569,7 @@ class JC_BaseMapper {
 		} catch ( JCI_Exception $e ) {
 
 			$data['_jci_status'] = 'E';
-			$data['_jci_msg']    = $e->getMessage() . ' on line ' . $e->getLine();
+			$data['_jci_msg']    = jci_error_message($e);
 
 			// throw errors not warnings to row
 			if ( $e->getCode() == JCI_ERR ) {
@@ -581,7 +581,7 @@ class JC_BaseMapper {
 
 			// catch group errors
 			$data['_jci_status'] = 'E';
-			$data['_jci_msg']    = $e->getMessage() . ' on line ' . $e->getLine();
+			$data['_jci_msg']    = jci_error_message($e);
 
 			throw $e;
 		}
@@ -633,14 +633,14 @@ class JC_BaseMapper {
 
 			// catch record errors
 			$this->_insert[ $this->_current_row ]['_jci_status'] = 'E';
-			$this->_insert[ $this->_current_row ]['_jci_msg']    = $e->getMessage() . ' in file ' . $e->getFile() . ' on line ' . $e->getLine();
+			$this->_insert[ $this->_current_row ]['_jci_msg']    = jci_error_message($e);
 
 
 		} catch ( Exception $e ) {
 
 			// catch record errors
 			$this->_insert[ $this->_current_row ]['_jci_status'] = 'E';
-			$this->_insert[ $this->_current_row ]['_jci_msg']    = $e->getMessage() . ' in file ' . $e->getFile() . ' on line ' . $e->getLine();
+			$this->_insert[ $this->_current_row ]['_jci_msg']    = jci_error_message($e);
 		}
 	}
 
@@ -655,6 +655,9 @@ class JC_BaseMapper {
 		if ( ! isset( $jci_taxonomies ) || ! $jci_taxonomies || empty( $jci_taxonomies ) ) {
 			return false;
 		}
+
+		if(!isset($this->_insert[ $this->_current_row ]))
+			return;
 
 		$row = $this->_insert[ $this->_current_row ];
 
@@ -743,6 +746,9 @@ class JC_BaseMapper {
 			return false;
 		}
 
+		if(!isset($this->_insert[ $this->_current_row ]))
+			return;
+
 		$row = $this->_insert[ $this->_current_row ];
 
 		foreach ( $jci_attachments as $group_id => $attachments ) {
@@ -820,13 +826,13 @@ class JC_BaseMapper {
 					} else {
 						$this->_insert[ $this->_current_row ]['attachments'][] = array(
 							'status' => 'E',
-							'msg'    => $this->attachment_class->get_error()
+							'msg'    => $this->attachment_class->get_error_message()
 						);
 					}
 				} catch ( Exception $e ) {
 					$this->_insert[ $this->_current_row ]['attachments'][] = array(
 						'status' => 'E',
-						'msg'    => $e->getMessage()
+						'msg'    => jci_error_message($e)
 					);
 				}
 

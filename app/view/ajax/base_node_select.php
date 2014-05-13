@@ -15,6 +15,7 @@ if ( ! empty( $nodes ) ) {
 			// $('#jc-importer_general_addons-import_base').val(url);
 			// $('#jc-importer_general_addons-import_base').trigger('change');
 			jci_element.val(url);
+			jci_element.trigger("change");
 			tb_remove();
 			return false;
 		});

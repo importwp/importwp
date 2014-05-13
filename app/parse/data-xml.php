@@ -19,6 +19,8 @@ class JC_XML_Parser extends JC_Parser {
 		add_filter( 'jci/parse_xml_field', array( $this, 'parse_field' ), 10, 3 );
 		add_filter( 'jci/process_xml_map_field', array( $this, 'process_map_field' ), 10, 2 );
 		add_filter( 'jci/load_xml_settings', array( $this, 'load_settings' ), 10, 2 );
+		add_filter( 'jci/ajax_xml/preview_record', array ( $this, 'ajax_preview_record'), 10, 3);
+		add_filter( 'jci/ajax_xml/record_count', array ( $this, 'ajax_record_count'), 10, 1);
 
 		add_action( 'jci/save_template', array( $this, 'save_template' ), 10, 2 );
 		add_action( 'jci/output_' . $this->get_name() . '_general_settings', array(
@@ -324,17 +326,35 @@ class JC_XML_Parser extends JC_Parser {
 		return $output_group_record;
 	}
 
-	public function preview_field($map = '', $selected_row = null ) {
+	public function preview_field($map = '', $selected_row = null, $general_base = null, $group_base = null ) {
 
 		global $jcimporter;
 
 		$xml = simplexml_load_file( $this->file );
-		$base_node = $jcimporter->importer->addon_settings['import_base'];
-		$output_base_node = $base_node . "[$selected_row]";
+		
+		$base_node = is_null($general_base) ? $jcimporter->importer->addon_settings['import_base'] : $general_base; // set general xml base
+		$group_base = is_null($group_base) ? '' : $group_base; // set xml group base if one is provided
 
-		// return $output_base_node;
+		$output_base_node = $base_node . "[$selected_row]" . $group_base;
 
 		return apply_filters( 'jci/parse_xml_field', $map, $output_base_node, $xml );
+	}
+
+	public function ajax_preview_record($result = '', $row, $map ){
+
+		$general_base = isset($_POST['general_base']) ? $_POST['general_base'] : null;
+		$group_base = isset($_POST['group_base']) ? $_POST['group_base'] : null;
+		
+		return $this->preview_field($map, $row, $general_base, $group_base);
+	}
+
+	public function ajax_record_count($result = 0){
+
+		$xml = simplexml_load_file( $this->file );
+
+		$general_base = isset($_POST['general_base']) ? $_POST['general_base'] : '';
+		$result = $this->count_rows($xml, $general_base);
+		return $result;
 	}
 }
 

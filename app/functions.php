@@ -168,3 +168,14 @@ function log_content( $column, $data ) {
 			break;
 	}
 }
+
+function jci_error_message($e){
+
+	global $jcimporter;
+
+	if($jcimporter->debug){
+		return $e->getMessage() . ' in file ' . $e->getFile() . ' on line ' . $e->getLine();
+	}else{
+		return $e->getMessage();
+	}
+}

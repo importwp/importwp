@@ -22,6 +22,8 @@ class JC_CSV_Parser extends JC_Parser {
 		add_filter( 'jci/parse_csv_field', array( $this, 'parse_field' ), 10, 2 );
 		add_filter( 'jci/process_csv_map_field', array( $this, 'process_map_field' ), 10, 2 );
 		add_filter( 'jci/load_xml_settings', array( $this, 'load_settings' ), 10, 2 );
+		add_filter( 'jci/ajax_csv/preview_record', array ( $this, 'ajax_preview_record'), 10, 3);
+		add_filter( 'jci/ajax_csv/record_count', array ( $this, 'ajax_record_count'), 10, 1);
 
 		add_action( 'jci/save_template', array( $this, 'save_template' ), 10, 2 );
 		add_action( 'jci/output_' . $this->get_name() . '_general_settings', array(
@@ -207,6 +209,7 @@ class JC_CSV_Parser extends JC_Parser {
 
 		$fh      = fopen( $this->file, 'r' );
 		$counter = 1;
+		$result = '';
 
 		// set enclosure and delimiter
 		$delimiter = isset( $jcimporter->importer->addon_settings->csv_delimiter ) ? $jcimporter->importer->addon_settings->csv_delimiter : ',';
@@ -226,6 +229,14 @@ class JC_CSV_Parser extends JC_Parser {
 
 		fclose( $fh );
 		return $result;
+	}
+
+	public function ajax_preview_record($result = '', $row, $map ){
+		return $this->preview_field($map, $row);
+	}
+
+	public function ajax_record_count($result = 0){
+		return $this->get_total_rows() - 1;
 	}
 
 	/**

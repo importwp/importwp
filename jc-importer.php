@@ -45,6 +45,7 @@ class JC_Importer {
 	var $templates = array();
 	var $db_version = 1;
 	var $core_version = 1;
+	var $debug = false;
 
 	public function __construct() {
 

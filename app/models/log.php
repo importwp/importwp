@@ -130,7 +130,7 @@ class ImportLog {
 		global $wpdb;
 		$importer_id = intval( $importer_id );
 
-		return $wpdb->get_results( "SELECT version, type, file,  created, MAX(row) as row_total FROM `wp_importer_log` WHERE object_id='{$importer_id}' GROUP BY version ORDER BY version DESC", OBJECT );
+		return $wpdb->get_results( "SELECT version, type, file,  created, COUNT(row) as row_total FROM `wp_importer_log` WHERE object_id='{$importer_id}' GROUP BY version ORDER BY version DESC", OBJECT );
 	}
 
 	static function get_importer_log( $importer_id, $log, $order = 'DESC' ) {

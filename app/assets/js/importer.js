@@ -23,11 +23,12 @@ jQuery(document).ready(function ($) {
             data.base = base_arg;
         }
 
-        console.log(base_arg);
-
         // get xml node offset via import_base
-        base = data.base.split("/");
-        nodeOffset = base[base.length - 1];
+        if(base){
+        
+            base = data.base.split("/");
+            nodeOffset = base[base.length - 1];
+        }
 
         // get xml
         $.post(ajax_object.ajax_url, data, function (xml) {

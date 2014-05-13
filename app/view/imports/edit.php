@@ -87,8 +87,8 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
 			do_action( 'jci/before_import_settings' );
 
-			echo JCI_FormHelper::text( 'start-line', array( 'label' => 'Start Line', 'default' => $start_line ) );
-			echo JCI_FormHelper::text( 'row-count', array( 'label' => 'End Line', 'default' => $row_count ) );
+			echo JCI_FormHelper::text( 'start-line', array( 'label' => 'Start Row', 'default' => $start_line ) );
+			echo JCI_FormHelper::text( 'row-count', array( 'label' => 'Max Rows', 'default' => $row_count ) );
 			echo JCI_FormHelper::select( 'template_type', array(
 					'label'   => 'Template Type',
 					'options' => array( 'csv' => 'CSV', 'xml' => 'XML' ),
@@ -120,7 +120,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 							)
 						) );
 					?>
-					<a href="admin.php?page=jci-importers&import=80&action=fetch">Fetch Now</a>
+					<a href="admin.php?page=jci-importers&import=80&action=fetch" class="button">Fetch Now</a>
 				</div>
 			</div>
 		<?php endif; ?>
