@@ -28,6 +28,13 @@
 
 .validation_msg {
     margin-left: 130px;
+    color: #dd3d36;
+}
+.form-error input{
+    border: 1px solid #dd3d36 !important;
+}
+.form-error label{
+    color: #dd3d36;
 }
 
 .jci-node-group-tabs {

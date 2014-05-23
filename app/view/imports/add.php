@@ -25,7 +25,7 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 						// core fields
 						echo JCI_FormHelper::text( 'name', array( 'label' => 'Name', 'default' => '' ) );
 						echo JCI_FormHelper::select( 'template', array(
-								'options' => get_template_list(),
+								'options' => get_template_list(false),
 								'label'   => 'Template'
 							) );
 

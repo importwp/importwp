@@ -17,9 +17,9 @@ $importers = ImporterModel::getImporters();
 					<input id="cb-select-all-1" type="checkbox">
 				</th>
 				<th>Title</th>
-				<th width="75px">Groups</th>
-				<th width="75px">Fields</th>
-				<th width="150px">Modified</th>
+				<th width="50px">Groups</th>
+				<th width="50px">Fields</th>
+				<th width="100px">Modified</th>
 				</thead>
 
 

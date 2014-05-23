@@ -146,10 +146,6 @@ class JC_User_Template extends JC_Importer_Template {
 				unset( $data['description'] );
 			}
 
-			if ( $enable_description == 0 ) {
-				unset( $data['description'] );
-			}
-
 			if ( $enable_pass == 0 ) {
 				unset( $data['user_pass'] );
 			}

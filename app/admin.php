@@ -332,7 +332,7 @@ class JC_Importer_Admin {
 			if ( isset( $_POST['jc-importer_btn-continue'] ) ) {
 				wp_redirect( '/wp-admin/admin.php?page=jci-importers&import=' . $result . '&action=logs' );
 			} else {
-				wp_redirect( '/wp-admin/admin.php?page=jci-importers&import=' . $result . '&action=edit' );
+				wp_redirect( '/wp-admin/admin.php?page=jci-importers&import=' . $result . '&action=edit&message=1' );
 			}
 			exit();
 		}

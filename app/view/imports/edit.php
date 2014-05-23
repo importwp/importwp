@@ -32,6 +32,10 @@ if ( isset( $_GET['message'] ) && $_GET['message'] >= 0 ) {
 			// success in uploading and creating importer
 			echo '<div id="message" class="error_msg warn updated below-h2"><p>Importer Has been Created, Enter the fields or columns you wish to map the data to.</p></div>';
 			break;
+		case 1:
+			// save importer settings
+			echo '<div id="message" class="error_msg warn updated below-h2"><p>Importer Settings has been saved</p></div>';
+			break;
 	}
 }
 

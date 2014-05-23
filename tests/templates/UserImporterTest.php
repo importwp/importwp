@@ -7,6 +7,9 @@ class UserImporterTest extends WP_UnitTestCase {
 	public function setUp() {
 		parent::setUp();
 		$this->importer = $GLOBALS['jcimporter'];
+
+		$_SERVER['SERVER_NAME'] = 'example.com';
+		unset( $GLOBALS['phpmailer']->mock_sent );
 	}
 
 	/**
@@ -135,7 +138,6 @@ class UserImporterTest extends WP_UnitTestCase {
 			$this->assertArrayHasKey( '_jci_status', $response );
 			$this->assertEquals( 'E', $response['_jci_status'] );
 		}
-
 	}
 
 	/**
@@ -266,6 +268,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$test                     = $this->importer->importer->run_import( 1 );
 		$test                     = array_shift( $test );
+
 		$this->assertArrayHasKey( '_jci_status', $test );
 		$this->assertEquals( 'E', $test['_jci_status'] );
 
@@ -279,6 +282,171 @@ class UserImporterTest extends WP_UnitTestCase {
 			$this->assertEquals( 'E', $response['_jci_status'] );
 		}
 
+	}
+
+	/**
+	 * Test for error when no password is set
+	 */
+	public function testUserTemplateRequirePass(){
+
+		$post_id = create_csv_importer( null, 'user', $this->importer->plugin_dir . '/tests/data/data-users.csv', array(
+			'user' => array(
+				'first_name' => '{0}',
+				'last_name'  => '{1}',
+				'user_email' => '{2}',
+				'user_login' => '{2}'
+			)
+		) );
+
+		ImporterModel::clearImportSettings();
+
+		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$test                     = $this->importer->importer->run_import( 1 );
+		$test = array_shift($test);
+
+		$this->assertEquals('E', $test['_jci_status']);
+	}
+
+	/**
+	 * Test to see if the user template generates a password
+	 */
+	public function testUserTemplateGeneratePass(){
+
+		$post_id = create_csv_importer( null, 'user', $this->importer->plugin_dir . '/tests/data/data-users.csv', array(
+			'user' => array(
+				'first_name' => '{0}',
+				'last_name'  => '{1}',
+				'user_email' => '{2}',
+				'user_login' => '{2}'
+			)
+		) );
+
+		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'generate_pass' ), 1 );
+
+		ImporterModel::clearImportSettings();
+
+		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$test                     	= $this->importer->importer->run_import( 1 );
+		$test 						= array_shift($test);
+
+		$this->assertTrue(isset($test['user']['user_pass']));
+		$this->assertGreaterThan(2, strlen($test['user']['user_pass']));
+		$this->assertEquals('S', $test['_jci_status']);
+	}
+
+	/**
+	 * Test unenabled Optional Fields
+	 */
+	public function testEnableOptionalFields(){
+
+		$user_nicename 	= 'user_nicename';
+		$display_name 	= 'display_name';
+		$nickname 		= 'nickname';
+		$description 	= 'description';
+		$user_pass 		= 'user_pass';
+
+		$post_id = create_csv_importer( null, 'user', $this->importer->plugin_dir . '/tests/data/data-users.csv', array(
+			'user' => array(
+				'first_name' => '{0}',
+				'last_name'  => '{1}',
+				'user_email' => '{2}',
+				'user_login' => '{2}',
+				'user_nicename' => $user_nicename,
+				'display_name' => $display_name,
+				'nickname' => $nickname,
+				'description' => $description,
+				'user_pass' => $user_pass,
+			)
+		) );
+
+		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_pass' ), 1 );
+
+		ImporterModel::clearImportSettings();
+
+		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$test                     	= $this->importer->importer->run_import( 1 );
+		$test 						= array_shift($test);
+
+		$this->assertFalse(array_key_exists('user_nicename', $test['user']));
+		$this->assertFalse(array_key_exists('display_name', $test['user']));
+		$this->assertFalse(array_key_exists('nickname', $test['user']));
+		$this->assertFalse(array_key_exists('description', $test['user']));
+		$this->assertEquals('S', $test['_jci_status']);
+	}
+
+	/**
+	 * Test Setting Optional Fields Values
+	 */
+	public function testSetOptionalFields(){
+
+		$user_nicename 	= 'user_nicename';
+		$display_name 	= 'display_name';
+		$nickname 		= 'nickname';
+		$description 	= 'description';
+		$user_pass 		= 'user_pass';
+
+		$post_id = create_csv_importer( null, 'user', $this->importer->plugin_dir . '/tests/data/data-users.csv', array(
+			'user' => array(
+				'first_name' => '{0}',
+				'last_name'  => '{1}',
+				'user_email' => '{2}',
+				'user_login' => '{2}',
+				'user_nicename' => $user_nicename,
+				'display_name' => $display_name,
+				'nickname' => $nickname,
+				'description' => $description,
+				'user_pass' => $user_pass,
+			)
+		) );
+
+		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_user_nicename' ), 1 );
+		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_display_name' ), 1 );
+		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_nickname' ), 1 );
+		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_description' ), 1 );
+		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_pass' ), 1 );
+
+		ImporterModel::clearImportSettings();
+
+		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$test                     	= $this->importer->importer->run_import( 1 );
+		$test 						= array_shift($test);
+		
+		$this->assertEquals($user_nicename, $test['user']['user_nicename']);
+		$this->assertEquals($display_name, $test['user']['display_name']);
+		$this->assertEquals($nickname, $test['user']['nickname']);
+		$this->assertEquals($description, $test['user']['description']);
+		$this->assertEquals($user_pass, $test['user']['user_pass']);
+		$this->assertEquals('S', $test['_jci_status']);
+	}
+
+	/**
+	 * Test to see if user registration notification is sent out
+	 */
+	public function testUserEmailNotification(){
+
+		$post_id = create_csv_importer( null, 'user', $this->importer->plugin_dir . '/tests/data/data-users.csv', array(
+			'user' => array(
+				'first_name' => '{0}',
+				'last_name'  => '{1}',
+				'user_email' => '{2}',
+				'user_login' => '{2}'
+			)
+		) );
+
+		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'notify_reg' ), 1 );
+		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'generate_pass' ), 1 );
+
+		ImporterModel::clearImportSettings();
+
+		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$test                     	= $this->importer->importer->run_import( 1 );
+		$test 						= array_shift($test);
+
+		$body = "New user registration on your site Test Blog:\n\n";
+		$body .= "Username: {$test['user']['user_login']}\n\n";
+		$body .= "E-mail: {$test['user']['user_email']}\n";
+
+		$this->assertEquals($body, $GLOBALS['phpmailer']->mock_sent[0]['body']);
 	}
 
 }

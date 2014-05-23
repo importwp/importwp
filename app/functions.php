@@ -1,16 +1,30 @@
 <?php
 
 /**
- * Get list of templates for
+ * Get list of installed importer templates
+ * 
+ * @param bool $class_name output class name as array value
  * @return array
  */
-function get_template_list() {
+function get_template_list($class_name = true) {
 
 	global $jcimporter;
 
 	$templates = array();
 	foreach ( $jcimporter->templates as $key => $template ) {
-		$templates[ $key ] = $template;
+
+		if($class_name){
+
+			// output class name as value
+			$templates[ $key ] 	= $template;
+		}else{
+
+			// output human readable version of key
+			$temp 				= $key;
+			$temp 				= str_replace('-', ' ', $temp);
+			$temp 				= ucfirst($temp);
+			$templates[ $key ] 	= $temp;
+		}
 	}
 
 	return $templates;
