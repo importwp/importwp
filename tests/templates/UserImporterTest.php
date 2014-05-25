@@ -417,6 +417,9 @@ class UserImporterTest extends WP_UnitTestCase {
 		$this->assertEquals($description, $test['user']['description']);
 		$this->assertEquals($user_pass, $test['user']['user_pass']);
 		$this->assertEquals('S', $test['_jci_status']);
+
+		// test to see if email has not been sent
+		$this->assertFalse(isset($GLOBALS['phpmailer']->mock_sent));
 	}
 
 	/**
@@ -445,7 +448,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		$body = "New user registration on your site Test Blog:\n\n";
 		$body .= "Username: {$test['user']['user_login']}\n\n";
 		$body .= "E-mail: {$test['user']['user_email']}\n";
-
+		
 		$this->assertEquals($body, $GLOBALS['phpmailer']->mock_sent[0]['body']);
 	}
 

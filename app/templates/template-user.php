@@ -129,6 +129,10 @@ class JC_User_Template extends JC_Importer_Template {
 					'_template_settings',
 					'enable_pass'
 				) );
+			$enable_role          = ImporterModel::getImporterMetaArr( $importer_id, array(
+					'_template_settings',
+					'enable_role'
+				) );
 
 			if ( $enable_user_nicename == 0 ) {
 				unset( $data['user_nicename'] );
@@ -217,6 +221,10 @@ class JC_User_Template extends JC_Importer_Template {
 					'_template_settings',
 					'notify_reg'
 				) );
+			$enable_role          = ImporterModel::getImporterMetaArr( $id, array(
+					'_template_settings',
+					'enable_role'
+				) );
 			?>
 			<div class="jci-group-settings jci-group-section" data-section-id="settings">
 				<h4>Fields</h4>
@@ -236,6 +244,10 @@ class JC_User_Template extends JC_Importer_Template {
 				echo JCI_FormHelper::checkbox( 'template_settings[enable_description]', array(
 						'label'   => 'Enable Description Field',
 						'checked' => $enable_description
+					) );
+				echo JCI_FormHelper::checkbox( 'template_settings[enable_role]', array(
+						'label'   => 'Enable Role Field',
+						'checked' => $enable_role
 					) );
 				?>
 
@@ -260,8 +272,25 @@ class JC_User_Template extends JC_Importer_Template {
 					) );
 				?>
 			</div>
+			<?php 
+			// output role select
+			global $wp_roles;
+			$all_roles = $wp_roles->roles;
+
+			$roleSelect = "<select name='jc-importer_field[user][role]' id='jc-importer_field-user-role'>";
+			foreach($all_roles as $role => $role_arr){
+				$roleSelect .= "<option value='{$role}'>{$role_arr['name']}</option>";
+			}
+			$roleSelect .= "</select>";
+			?>
 
 			<script type="text/javascript">
+
+				var roleSelect = "<?php echo $roleSelect; ?>";
+				var roleInput = "";
+				var roleInputVal = false;
+				var roleSelectVal = false;
+				var init = false;
 
 				jQuery(document).ready(function ($) {
 
@@ -271,7 +300,58 @@ class JC_User_Template extends JC_Importer_Template {
 					$.fn.jci_enableField('enable_nickname', 'user-nickname');
 					$.fn.jci_enableField('enable_description', 'user-description');
 
+					roleInput = $('input#jc-importer_field-user-role')[0].outerHTML;
+					var trigger_role = $('input[name="jc-importer_template_settings[enable_role]"]');
+					
+					roleInputVal = $('input#jc-importer_field-user-role').val();
+					roleSelectVal = $('select#jc-importer_field-user-role').val();
+
+					trigger_role.on('change', function () {
+
+			            if ($(this).is(':checked')) {
+			            	
+			            	// show input
+			            	if(!init){
+			            		// load default input on first check
+			            		roleInputVal = $('input#jc-importer_field-user-role').val(); 
+			            	}
+			            	
+			            	roleSelectVal = $('select#jc-importer_field-user-role').val();
+			            	
+			            	// switch element and remove select class if present
+			            	$('#jc-importer_field-user-role').replaceWith(roleInput);
+			                $('#jc-importer_field-user-role').parent().removeClass("select");
+			                
+			                if(roleInputVal){
+			                	// set value if there is a value to set
+			                	$('#jc-importer_field-user-role').val(roleInputVal);
+			                }
+
+			            } else {
+			            	
+			            	// show role select
+			            	if(!init){
+			            		// load default input on first check
+			            		roleSelectVal = $('input#jc-importer_field-user-role').val();
+			            	}
+			            	roleInputVal = $('input#jc-importer_field-user-role').val();
+			            	
+			            	// switch element and add select class
+			            	$('#jc-importer_field-user-role').replaceWith(roleSelect);
+							$('#jc-importer_field-user-role').parent().addClass("select");
+							
+							if(roleSelectVal){
+								// set value if there is a value to set
+								$('select#jc-importer_field-user-role').val(roleSelectVal);
+							}
+							
+			            }
+			        });
+
+			        trigger_role.trigger('change');
+			        init = true;
 				});
+
 			</script>
 		<?php
 		}
@@ -291,6 +371,7 @@ class JC_User_Template extends JC_Importer_Template {
 
 			// get template settings
 			$enable_pass          = isset( $_POST['jc-importer_template_settings']['enable_pass'] ) ? $_POST['jc-importer_template_settings']['enable_pass'] : 0;
+			$enable_role          = isset( $_POST['jc-importer_template_settings']['enable_role'] ) ? $_POST['jc-importer_template_settings']['enable_role'] : 0;
 			$enable_user_nicename = isset( $_POST['jc-importer_template_settings']['enable_user_nicename'] ) ? $_POST['jc-importer_template_settings']['enable_user_nicename'] : 0;
 			$enable_display_name  = isset( $_POST['jc-importer_template_settings']['enable_display_name'] ) ? $_POST['jc-importer_template_settings']['enable_display_name'] : 0;
 			$enable_nickname      = isset( $_POST['jc-importer_template_settings']['enable_nickname'] ) ? $_POST['jc-importer_template_settings']['enable_nickname'] : 0;
@@ -317,6 +398,7 @@ class JC_User_Template extends JC_Importer_Template {
 			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'generate_pass' ), $generate_pass );
 			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'notify_pass' ), $notify_pass );
 			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'notify_reg' ), $notify_reg );
+			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'enable_role' ), $enable_role );
 		}
 	}
 

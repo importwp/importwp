@@ -57,3 +57,7 @@ div.form-actions .input {
     margin-left: 131px;
     color: #999;
 }
+
+.input.select .jci-import-edit, .input.select .preview-text{
+    display: none;
+}
