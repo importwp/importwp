@@ -24,7 +24,7 @@ jQuery(document).ready(function ($) {
         }
 
         // get xml node offset via import_base
-        if(base){
+        if(data.base){
         
             base = data.base.split("/");
             nodeOffset = base[base.length - 1];
@@ -162,15 +162,14 @@ function createXPathFromElement(elm) {
             if (sib.localName == elm.localName)
                 i++;
         }
-        ;
-
+        
         // remove base node from selection : console.log(elm.localName);
         if (elm.localName != nodeOffset) {
             segs.unshift(elm.localName + '[' + i + ']');
         }
 
     }
-    ;
+
     return segs.length ? '/' + segs.join('/') : '';
 };
 
