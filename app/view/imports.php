@@ -5,6 +5,8 @@ $importers = ImporterModel::getImporters();
 <h2>Importer <a href="<?php echo site_url( '/wp-admin/admin.php?page=jci-importers&action=add' ); ?>"
                 class="add-new-h2">Add New</a></h2>
 
+<?php jci_display_messages(); ?>
+
 <div id="poststuff">
 	<div id="post-body" class="metabox-holder columns-2">
 		<div id="post-body-content">

@@ -310,6 +310,7 @@ class JCI_FormHelper {
 		$label    = $name;
 		$options  = array();
 		$empty    = false;
+		$id = false;
 		extract( $args );
 
 		$value   = self::get_value( $name );
@@ -334,13 +335,18 @@ class JCI_FormHelper {
 			$classes[] = 'form-required';
 		}
 
-		$output = '<div class="' . implode( ' ', $classes ) . '" />';
+		$id_string = '';
+		if($id){
+				$id_string = ' id="'.$id.'"';
+		}
+
+		$output = '<div class="' . implode( ' ', $classes ) . '" '.$id_string.' />';
 
 		if ( $label !== false ) {
 			$output .= self::get_label( $label );
 		}
 
-		$output .= '<select name="' . self::$prefix . $name . '" id="' . self::$prefix . $name . '">';
+		$output .= '<select name="' . self::$prefix . $name . '" id="' . self::get_id(self::$prefix . $name) . '">';
 
 		if ( $empty ) {
 			$empty_val = $empty == true ? '' : $empty;

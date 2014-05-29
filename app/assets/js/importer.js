@@ -283,4 +283,44 @@ jQuery(function ($) {
 
         trigger_elem.trigger('change');
     };
+
+    $.fn.jci_enableSelectField = function (trigger_str, target_str) {
+
+        var trigger_elem = $('input[name="jc-importer_template_settings[' + trigger_str + ']"]');
+        var target_elem_input = $('input#jc-importer_field-' + target_str);
+        var target_elem_select = $('select#jc-importer_field-' + target_str);
+
+        var select = target_elem_select[0].outerHTML;
+        var input = target_elem_input[0].outerHTML;
+
+        var val = target_elem_input.val();
+        var init = 0;
+
+        trigger_elem.on('change', function(){
+
+            if ($(this).is(':checked')) {
+                
+                if(init == 1){
+                    val = $('select#jc-importer_field-' + target_str).val();
+                }
+
+                $('select#jc-importer_field-' + target_str).replaceWith(input);
+                $('input#jc-importer_field-' + target_str).val(val);
+                $('input#jc-importer_field-' + target_str).parent().removeClass("select");
+            }else{
+
+                if(init == 1){
+                    val = $('input#jc-importer_field-' + target_str).val();    
+                }
+                
+                $('input#jc-importer_field-' + target_str).replaceWith(select);
+                $('select#jc-importer_field-' + target_str).val(val);
+                $('select#jc-importer_field-' + target_str).parent().addClass("select");
+            }
+        });
+
+        trigger_elem.trigger('change');
+        init = 1;
+
+    }
 })(jQuery);

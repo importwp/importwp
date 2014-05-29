@@ -175,6 +175,22 @@ class JC_User_Template extends JC_Importer_Template {
 
 		add_filter( 'jci/log_user_columns', array( $this, 'log_user_columns' ) );
 		add_action( 'jci/log_user_content', array( $this, 'log_user_content' ), 10, 2 );
+
+		// output role select
+		global $wp_roles;
+		$test_roles = array();
+
+		foreach($wp_roles->roles as $role => $role_arr){
+			$test_roles[$role] = $role_arr['name'];
+		}
+
+		foreach( $this->_field_groups['user']['map'] as &$field){
+			
+			if($field['field'] == 'role'){
+				$field['options'] = $test_roles;
+			}
+		}
+		
 	}
 
 	/**
@@ -272,84 +288,20 @@ class JC_User_Template extends JC_Importer_Template {
 					) );
 				?>
 			</div>
-			<?php 
-			// output role select
-			global $wp_roles;
-			$all_roles = $wp_roles->roles;
-
-			$roleSelect = "<select name='jc-importer_field[user][role]' id='jc-importer_field-user-role'>";
-			foreach($all_roles as $role => $role_arr){
-				$roleSelect .= "<option value='{$role}'>{$role_arr['name']}</option>";
-			}
-			$roleSelect .= "</select>";
-			?>
 
 			<script type="text/javascript">
 
-				var roleSelect = "<?php echo $roleSelect; ?>";
-				var roleInput = "";
-				var roleInputVal = false;
-				var roleSelectVal = false;
-				var init = false;
-
 				jQuery(document).ready(function ($) {
 
+					// show/hide input fields
 					$.fn.jci_enableField('enable_pass', 'user-user_pass');
 					$.fn.jci_enableField('enable_user_nicename', 'user-user_nicename');
 					$.fn.jci_enableField('enable_display_name', 'user-display_name');
 					$.fn.jci_enableField('enable_nickname', 'user-nickname');
 					$.fn.jci_enableField('enable_description', 'user-description');
 
-					roleInput = $('input#jc-importer_field-user-role')[0].outerHTML;
-					var trigger_role = $('input[name="jc-importer_template_settings[enable_role]"]');
-					
-					roleInputVal = $('input#jc-importer_field-user-role').val();
-					roleSelectVal = $('select#jc-importer_field-user-role').val();
-
-					trigger_role.on('change', function () {
-
-			            if ($(this).is(':checked')) {
-			            	
-			            	// show input
-			            	if(!init){
-			            		// load default input on first check
-			            		roleInputVal = $('input#jc-importer_field-user-role').val(); 
-			            	}
-			            	
-			            	roleSelectVal = $('select#jc-importer_field-user-role').val();
-			            	
-			            	// switch element and remove select class if present
-			            	$('#jc-importer_field-user-role').replaceWith(roleInput);
-			                $('#jc-importer_field-user-role').parent().removeClass("select");
-			                
-			                if(roleInputVal){
-			                	// set value if there is a value to set
-			                	$('#jc-importer_field-user-role').val(roleInputVal);
-			                }
-
-			            } else {
-			            	
-			            	// show role select
-			            	if(!init){
-			            		// load default input on first check
-			            		roleSelectVal = $('input#jc-importer_field-user-role').val();
-			            	}
-			            	roleInputVal = $('input#jc-importer_field-user-role').val();
-			            	
-			            	// switch element and add select class
-			            	$('#jc-importer_field-user-role').replaceWith(roleSelect);
-							$('#jc-importer_field-user-role').parent().addClass("select");
-							
-							if(roleSelectVal){
-								// set value if there is a value to set
-								$('select#jc-importer_field-user-role').val(roleSelectVal);
-							}
-							
-			            }
-			        });
-
-			        trigger_role.trigger('change');
-			        init = true;
+					// optional selects
+					$.fn.jci_enableSelectField('enable_role', 'user-role');
 				});
 
 			</script>

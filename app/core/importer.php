@@ -91,17 +91,22 @@ class JC_Importer_Core {
 
 				// backwards comp
 				$data['group'] = $group;
-
 				$output_fields = array();
+				$field_options = array();
 				$titles        = array();
 				foreach ( $data['map'] as $id => $field_data ) {
 					$output_fields[ $field_data['field'] ] = isset( $fields[ $data['group'] ][ $field_data['field'] ] ) ? $fields[ $data['group'] ][ $field_data['field'] ] : ''; // null; //$fields[$field_data['type']][$field_data['field']];
 					$titles[ $field_data['field'] ]        = isset( $field_data['title'] ) ? $field_data['title'] : $field_data['field'];
+
+					if(isset($field_data['options'])){
+						$field_options[$field_data['field']] = $field_data['options'];	
+					}
 				}
 
 				$this->groups[ $data['group'] ] = array(
 					'type'             => $data['field_type'],
 					'fields'           => $output_fields,
+					'field_options'    => $field_options,
 					'import_type'      => $data['import_type'],
 					'titles'           => $titles,
 					'import_type_name' => $data['import_type_name'],

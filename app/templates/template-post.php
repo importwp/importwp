@@ -40,11 +40,12 @@ class JC_Post_Template extends JC_Importer_Template {
 				),
 				array(
 					'title' => 'Status',
-					'field' => 'post_status'
+					'field' => 'post_status',
+					'options' => array('draft' => 'Draft', 'publish' => 'Published', 'pending' => 'Pending', 'future' => 'Future', 'private' => 'Private', 'trash' => 'Trash')
 				),
 				array(
 					'title' => 'Author',
-					'field' => 'post_author'
+					'field' => 'post_author',
 				),
 				array(
 					'title' => 'Parent',
@@ -65,12 +66,12 @@ class JC_Post_Template extends JC_Importer_Template {
 				array(
 					'title'  => 'Allow Comments',
 					'field'  => 'comment_status',
-					'values' => array( 0, 1 )
+					'options' => array( 0 => 'Disabled', 1 => 'Enabled' )
 				),
 				array(
 					'title'  => 'Allow Pingbacks',
 					'field'  => 'ping_status',
-					'values' => array( 'closed', 'open' )
+					'options' => array( 'closed' => 'Closed', 'open' => 'Open' )
 				),
 			)
 		)
@@ -83,6 +84,18 @@ class JC_Post_Template extends JC_Importer_Template {
 
 		add_filter( 'jci/log_post_columns', array( $this, 'log_post_columns' ) );
 		add_action( 'jci/log_post_content', array( $this, 'log_post_content' ), 10, 2 );
+
+		foreach( $this->_field_groups['post']['map'] as &$field){
+
+			if($field['field'] == 'post_author'){
+				$users = get_users(array('fields' => 'all'));
+				$temp_list = array();
+				foreach($users as $u){
+					$temp_list[$u->data->ID] = $u->data->user_nicename;
+				}
+				$field['options'] = $temp_list;
+			}
+		}
 	}
 
 	public function field_settings( $id ) {
@@ -174,16 +187,18 @@ class JC_Post_Template extends JC_Importer_Template {
 			<script type="text/javascript">
 				jQuery(document).ready(function ($) {
 
+					// show/hide input fields
 					$.fn.jci_enableField('enable_id', 'post-ID');
-					$.fn.jci_enableField('enable_post_status', 'post-post_status');
-					$.fn.jci_enableField('enable_post_author', 'post-post_author');
 					$.fn.jci_enableField('enable_post_parent', 'post-post_parent');
 					$.fn.jci_enableField('enable_menu_order', 'post-menu_order');
 					$.fn.jci_enableField('enable_post_password', 'post-post_password');
 					$.fn.jci_enableField('enable_post_date', 'post-post_date');
-					$.fn.jci_enableField('enable_comment_status', 'post-comment_status');
-					$.fn.jci_enableField('enable_ping_status', 'post-ping_status');
 
+					// optional selects
+					$.fn.jci_enableSelectField('enable_post_status', 'post-post_status');
+					$.fn.jci_enableSelectField('enable_post_author', 'post-post_author');
+					$.fn.jci_enableSelectField('enable_comment_status', 'post-comment_status');
+					$.fn.jci_enableSelectField('enable_ping_status', 'post-ping_status');
 				});
 			</script>
 		<?php
@@ -291,14 +306,14 @@ class JC_Post_Template extends JC_Importer_Template {
 		if ( $this->enable_id == 0 ) {
 			unset( $data['ID'] );
 		}
-		if ( $this->enable_post_status == 0 ) {
+		/*if ( $this->enable_post_status == 0 ) {
 
 			// set default post status if none present
 			$data['post_status'] = $this->_field_groups[ $group_id ]['post_status'];
-		}
-		if ( $this->enable_post_author == 0 ) {
+		}*/
+		/*if ( $this->enable_post_author == 0 ) {
 			unset( $data['post_author'] );
-		}
+		}*/
 		if ( $this->enable_post_parent == 0 ) {
 			unset( $data['post_parent'] );
 		}
@@ -311,12 +326,12 @@ class JC_Post_Template extends JC_Importer_Template {
 		if ( $this->enable_post_date == 0 ) {
 			unset( $data['post_date'] );
 		}
-		if ( $this->enable_comment_status == 0 ) {
+		/*if ( $this->enable_comment_status == 0 ) {
 			unset( $data['comment_status'] );
 		}
 		if ( $this->enable_ping_status == 0 ) {
 			unset( $data['ping_status'] );
-		}
+		}*/
 
 		return $data;
 	}

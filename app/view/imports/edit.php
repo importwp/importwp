@@ -23,21 +23,7 @@ $last_import_row 	  = $jcimporter->importer->get_last_import_row();
 	<div id="ajaxResponse"></div>
 
 <?php
-
-// output messages
-if ( isset( $_GET['message'] ) && $_GET['message'] >= 0 ) {
-
-	switch ( intval( $_GET['message'] ) ) {
-		case 0:
-			// success in uploading and creating importer
-			echo '<div id="message" class="error_msg warn updated below-h2"><p>Importer Has been Created, Enter the fields or columns you wish to map the data to.</p></div>';
-			break;
-		case 1:
-			// save importer settings
-			echo '<div id="message" class="error_msg warn updated below-h2"><p>Importer Settings has been saved</p></div>';
-			break;
-	}
-}
+jci_display_messages();
 
 // check for incomplete import and show message to resume
 $import_complete = true;
@@ -620,3 +606,28 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 <?php
 echo JCI_FormHelper::end();
 ?>
+<div class="field-option" style="display:none;">
+<?php
+foreach ( $template_groups as $group_id => $group ){
+	
+	$group_type = $group['import_type'];
+
+	// output addon group fields
+	do_action( "jci/output_{$template_type}_group_settings", $id, $group_id );
+
+	foreach ( $group['field_options'] as $key => $value ) {
+
+		$title = $group['titles'][ $key ];
+
+		echo JCI_FormHelper::select( 'field[' . $group_id . '][' . $key . ']', array(
+			'label'   => false,
+			'id' => "{$group_id}-{$key}-options",
+			// 'default' => $value,
+			'options' => $value,
+			'class'   => 'xml-drop jci-group jci-default-dropdown'
+		) );
+	}
+
+}
+?>	
+</div>

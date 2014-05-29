@@ -193,3 +193,25 @@ function jci_error_message($e){
 		return $e->getMessage();
 	}
 }
+
+function jci_display_messages(){
+
+	// output messages
+	if ( isset( $_GET['message'] ) && $_GET['message'] >= 0 ) {
+
+		switch ( intval( $_GET['message'] ) ) {
+			case 0:
+				// success in uploading and creating importer
+				echo '<div id="message" class="error_msg warn updated below-h2"><p>Importer Has been Created, Enter the fields or columns you wish to map the data to.</p></div>';
+				break;
+			case 1:
+				// save importer settings
+				echo '<div id="message" class="error_msg warn updated below-h2"><p>Importer Settings has been saved</p></div>';
+				break;
+			case 2:
+				// save importer settings
+				echo '<div id="message" class="error_msg warn updated below-h2"><p>Importer has been deleted</p></div>';
+				break;
+		}
+	}
+}

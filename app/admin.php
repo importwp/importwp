@@ -159,7 +159,7 @@ class JC_Importer_Admin {
 				wp_delete_post( $template );
 			}
 
-			wp_redirect( '/wp-admin/admin.php?page=jci-importers&message=1&trash=1' );
+			wp_redirect( '/wp-admin/admin.php?page=jci-importers&message=2&trash=1' );
 			exit();
 		}
 	}
