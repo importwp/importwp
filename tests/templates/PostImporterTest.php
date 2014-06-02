@@ -112,6 +112,61 @@ class PostImporterTest extends WP_UnitTestCase {
 		$this->assertEquals( 'S', $import_data['_jci_status'] );
 
 	}
+
+	/**
+	 * Test unenabled Optional Fields
+	 */
+	public function testUnEnableOptionalFields(){
+
+		$ID = 'ID';
+		$post_title = 'post_title';
+		$post_content = 'post_content';
+		$post_excerpt = 'post_excerpt';
+		$post_name = 'post_name';
+		$post_status = 'post_status';
+		$post_author = 'post_author';
+		$post_parent = 'post_parent';
+		$menu_order = 'menu_order';
+		$post_password = 'post_password';
+		$post_date = 'post_date';
+		$comment_status = 'comment_status';
+		$ping_status = 'ping_status';
+
+		$post_id = create_csv_importer( null, 'post', $this->importer->plugin_dir . '/tests/data/data-posts.csv', array(
+			'post' => array(
+				'ID' => $ID,
+				'post_title' => $post_title,
+				'post_content' => $post_content,
+				'post_excerpt' => $post_excerpt,
+				'post_name' => $post_name,
+				'post_status' => $post_status,
+				'post_author' => $post_author,
+				'post_parent' => $post_parent,
+				'menu_order' => $menu_order,
+				'post_password' => $post_password,
+				'post_date' => $post_date,
+				'comment_status' => $comment_status,
+				'ping_status' => $ping_status,
+			)
+		) );
+
+		ImporterModel::clearImportSettings();
+
+		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$test                     	= $this->importer->importer->run_import( 1 );
+		$test 						= array_shift($test);
+
+		$this->assertTrue(array_key_exists('post_status', $test['post']));
+		$this->assertTrue(array_key_exists('post_author', $test['post']));
+		$this->assertTrue(array_key_exists('post_parent', $test['post']));
+		$this->assertTrue(array_key_exists('comment_status', $test['post']));
+		$this->assertTrue(array_key_exists('ping_status', $test['post']));
+		$this->assertFalse(array_key_exists('menu_order', $test['post']));
+		$this->assertFalse(array_key_exists('post_password', $test['post']));
+		$this->assertFalse(array_key_exists('post_date', $test['post']));
+
+		$this->assertEquals('S', $test['_jci_status']);
+	}
 }
 
 ?>

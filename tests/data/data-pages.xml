@@ -18,7 +18,7 @@
         <author id="1">admin</author>
         <excerpt>Page Excerpt</excerpt>
         <content>Page Content</content>
-        <parent>page-1</parent>
+        <parent>page-100</parent>
         <template>default</template>
         <order>0</order>
         <comments>0</comments>
@@ -30,7 +30,7 @@
         <author id="1">admin</author>
         <excerpt>Page Excerpt</excerpt>
         <content>Page Content</content>
-        <parent>page-1</parent>
+        <parent>page-100</parent>
         <template>default</template>
         <order>0</order>
         <comments>0</comments>

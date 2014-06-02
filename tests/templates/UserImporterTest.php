@@ -337,7 +337,7 @@ class UserImporterTest extends WP_UnitTestCase {
 	/**
 	 * Test unenabled Optional Fields
 	 */
-	public function testEnableOptionalFields(){
+	public function testUnEnableOptionalFields(){
 
 		$user_nicename 	= 'user_nicename';
 		$display_name 	= 'display_name';

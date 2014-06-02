@@ -258,13 +258,15 @@ jQuery(function ($) {
 
 });
 
-/**
- * Function to toggle a checkbox to enable a template field
- * @param  string trigger
- * @param  string target
- * @return void
- */
+
 (function ($) {
+
+    /**
+     * Function to toggle a checkbox to enable a template field
+     * @param  string trigger
+     * @param  string target
+     * @return void
+     */
     $.fn.jci_enableField = function (trigger_str, target_str) {
 
         var trigger_elem = $('input[name="jc-importer_template_settings[' + trigger_str + ']"]');
@@ -283,6 +285,12 @@ jQuery(function ($) {
         trigger_elem.trigger('change');
     };
 
+    /**
+     * Function to toggle a checkbox to enable a template field, defaulting to a populated dropdown
+     * @param  string trigger_str
+     * @param  string target_str  
+     * @return void
+     */
     $.fn.jci_enableSelectField = function (trigger_str, target_str) {
 
         var trigger_elem = $('input[name="jc-importer_template_settings[' + trigger_str + ']"]');
@@ -304,7 +312,11 @@ jQuery(function ($) {
                 }
 
                 $('select#jc-importer_field-' + target_str).replaceWith(input);
-                $('input#jc-importer_field-' + target_str).val(val);
+
+                if(val.length > 0){
+                    $('input#jc-importer_field-' + target_str).val(val);
+                }
+
                 $('input#jc-importer_field-' + target_str).parent().removeClass("select");
             }else{
 
@@ -313,7 +325,11 @@ jQuery(function ($) {
                 }
                 
                 $('input#jc-importer_field-' + target_str).replaceWith(select);
-                $('select#jc-importer_field-' + target_str).val(val);
+
+                if(val.length > 0){
+                    $('select#jc-importer_field-' + target_str).val(val);
+                }
+
                 $('select#jc-importer_field-' + target_str).parent().addClass("select");
             }
         });

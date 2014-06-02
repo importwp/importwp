@@ -90,14 +90,20 @@ class JC_Page_Template extends JC_Importer_Template {
 		add_action( 'jci/log_page_content', array( $this, 'log_page_content' ), 10, 2 );
 
 		foreach( $this->_field_groups['page']['map'] as &$field){
-	
+			
+			
 			if($field['field'] == 'post_author'){
-				$users = get_users(array('fields' => 'all'));
-				$temp_list = array();
-				foreach($users as $u){
-					$temp_list[$u->data->ID] = $u->data->user_nicename;
-				}
-				$field['options'] = $temp_list;
+				
+				/**
+				 * Populate authors dropdown
+				 */
+				$field['options'] = jci_get_user_list();
+			}elseif( $field['field'] == 'post_parent' ){
+
+				/**
+				 * Populate parent pages
+				 */
+				$field['options'] = jci_get_post_list('page');
 			}
 		}
 	}
@@ -201,13 +207,13 @@ class JC_Page_Template extends JC_Importer_Template {
 
 					// show/hide input fields
 					$.fn.jci_enableField('enable_id', 'page-ID');
-					$.fn.jci_enableField('enable_post_parent', 'page-post_parent');
 					$.fn.jci_enableField('enable_menu_order', 'page-menu_order');
 					$.fn.jci_enableField('enable_post_password', 'page-post_password');
 					$.fn.jci_enableField('enable_post_date', 'page-post_date');
 					$.fn.jci_enableField('enable_page_template', 'page-page_template');
 
 					// optional selects
+					$.fn.jci_enableSelectField('enable_post_parent', 'page-post_parent');
 					$.fn.jci_enableSelectField('enable_post_status', 'page-post_status');
 					$.fn.jci_enableSelectField('enable_post_author', 'page-post_author');
 					$.fn.jci_enableSelectField('enable_comment_status', 'page-comment_status');
@@ -326,17 +332,12 @@ class JC_Page_Template extends JC_Importer_Template {
 		global $jcimporter;
 		$id = $jcimporter->importer->ID;
 
+		/**
+		 * Clear unenabled fields
+		 */
 		if ( $this->enable_id == 0 ) {
 			unset( $data['ID'] );
 		}
-		/*if ( $this->enable_post_status == 0 ) {
-
-			// set default post status if none present
-			$data['post_status'] = $this->_field_groups[ $group_id ]['post_status'];
-		}
-		if ( $this->enable_post_author == 0 ) {
-			unset( $data['post_author'] );
-		}*/
 		if ( $this->enable_post_parent == 0 ) {
 			unset( $data['post_parent'] );
 		}
@@ -349,14 +350,22 @@ class JC_Page_Template extends JC_Importer_Template {
 		if ( $this->enable_post_date == 0 ) {
 			unset( $data['post_date'] );
 		}
-		/*if ( $this->enable_comment_status == 0 ) {
-			unset( $data['comment_status'] );
-		}
-		if ( $this->enable_ping_status == 0 ) {
-			unset( $data['ping_status'] );
-		}*/
 		if ( $this->enable_page_template == 0 ) {
 			unset( $data['page_template'] );
+		}
+
+		/**
+		 * Check to see if post_parent
+		 */
+		if( intval($data['post_parent']) == 0 && $data['post_parent'] != ''){
+
+			$pages = new WP_Query(array(
+				'post_type' => 'page',
+				'pagename' => sanitize_title($data['post_parent'])
+			));
+			if($pages->have_posts() && $pages->post_count == 1){
+				$data['post_parent'] = intval($pages->post->ID);
+			}
 		}
 
 		return $data;

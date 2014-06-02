@@ -215,3 +215,40 @@ function jci_display_messages(){
 		}
 	}
 }
+
+/**
+ * Fetch all posts
+ */
+function jci_get_post_list($post_type = ''){
+
+	$posts = new WP_Query(array(
+		'post_type' => $post_type,
+		'posts_per_page' => -1
+	));
+
+	$ordered_posts = array(null => 'None');
+
+	if($posts->have_posts()){
+		while($posts->have_posts()){
+			$posts->the_post();
+			$ordered_posts[get_the_ID()] = get_the_title();
+		}
+		wp_reset_postdata();
+	}
+
+	return $ordered_posts;
+}
+
+/**
+ * Fetch all users
+ */
+function jci_get_user_list(){
+
+	$users = get_users(array('fields' => 'all'));
+	$temp_list = array();
+	foreach($users as $u){
+		$temp_list[$u->data->ID] = $u->data->user_nicename;
+	}
+
+	return $temp_list;
+}
