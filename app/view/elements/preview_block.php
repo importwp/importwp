@@ -8,7 +8,7 @@
 $jci_template_type = $jcimporter->importer->template_type;
 ?>
 <div id="postimagediv" class="postbox">
-	<h3><span>Preview Settings</span></h3>
+	<h3><span>Preview Settings</span><span id="preview-loading" class="spinner"></span></h3>
 
 	<div class="inside">
 		<p>Choose the record you wish to preview</p>
@@ -65,6 +65,10 @@ $jci_template_type = $jcimporter->importer->template_type;
 						type: "POST",
 						beforeSend: function(){
 							obj.find('.preview-text').text('Loading...');
+							$('#preview-loading').show();
+						},
+						complete: function(){
+							$('#preview-loading').hide();
 						},
 						success: function(response){
 							
@@ -109,6 +113,12 @@ $jci_template_type = $jcimporter->importer->template_type;
 					},
 					dataType: 'json',
 					type: "POST",
+					beforeSend: function(){
+						$('#preview-loading').show();
+					},
+					complete: function(){
+						$('#preview-loading').hide();
+					},
 					success: function(response){
 
 						$.each(response, function(index, value){
