@@ -42,6 +42,10 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
 <div id="ajaxResponse"></div>
 
+<?php if(!file_exists($jcimporter->importer->file)): ?>
+<div id="message" class="error_msg warn error below-h2"><p>File to import could not be found: <?php echo $jcimporter->importer->file; ?></p></div>
+<?php endif; ?>
+
 
 <div id="poststuff">
 	<div id="post-body" class="metabox-holder columns-2">
@@ -83,6 +87,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 					</table>
 				</div>
 
+				<?php if(file_exists($jcimporter->importer->file)): ?>
+
 				<div class="form-actions">
 					<br/>
 					<?php if($import_status == 1): ?>
@@ -91,6 +97,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 					<a href="#" class="jc-importer_update-run button-primary">Run Import</a>
 					<?php endif; ?>
 				</div>
+
+				<?php endif; ?>
 			</div>
 
 		</div>

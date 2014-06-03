@@ -60,7 +60,14 @@ class JC_Parser {
 	 * @return    boolean
 	 */
 	public function loadFile( $filename = '' ) {
+		
+		if(!file_exists($filename)){
+			return false;
+		}
+
 		$this->file = $filename;
+
+		return true;
 	}
 
 	/**

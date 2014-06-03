@@ -188,38 +188,47 @@ class JC_Importer_Core {
 		$parser            = $jcimporter->parsers[ $this->template_type ];
 
 		$mapper = new JC_BaseMapper();
-		$parser->loadFile( $jci_file );
+		if( $parser->loadFile( $jci_file ) ){
 
-		if ( $row ) {
+			if ( $row ) {
 
-			// ajax importer one record at a time
+				// ajax importer one record at a time
 
-			$results = $parser->parse( intval( $row ) );
+				$results = $parser->parse( intval( $row ) );
 
-			// escape if row doesn't exist
-			if ( ! $results ) {
+				// escape if row doesn't exist
+				if ( ! $results ) {
 
-				// check to see if last row
-				$mapper->complete_check( intval( $row ) );
+					// check to see if last row
+					$mapper->complete_check( intval( $row ) );
 
-				// track row as import is skipped
-				$mapper->track_import( $importer_id, $row, $jcimporter->importer->get_version() );
+					// track row as import is skipped
+					$mapper->track_import( $importer_id, $row, $jcimporter->importer->get_version() );
 
-				return false;
+					return false;
+				}
+
+				$result = $mapper->process( $jci_template, $results, $row );
+			} else {
+
+				// import all at one, may take a while to complete
+				
+				$results = $parser->parse();
+				$result  = $mapper->process( $jci_template, $results );
 			}
 
-			$result = $mapper->process( $jci_template, $results, $row );
-		} else {
+			// check result
+			if ( count( $results ) == count( $result ) ) {
+				return $result;
+			}
 
-			// import all at one, may take a while to complete
-			
-			$results = $parser->parse();
-			$result  = $mapper->process( $jci_template, $results );
-		}
-
-		// check result
-		if ( count( $results ) == count( $result ) ) {
-			return $result;
+		}else{
+			return array(
+				array(
+					'_jci_status' => 'E',
+					'_jci_msg' => 'File could not be found: '.$this->file
+				)
+			);
 		}
 
 		return false;
@@ -275,6 +284,10 @@ class JC_Importer_Core {
 	}
 
 	public function get_file() {
+		return $this->file;
+	}
+
+	public function get_file_src(){
 		return $this->file;
 	}
 
