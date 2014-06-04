@@ -451,22 +451,6 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 								'class'   => 'ftp-field input-toggle'
 							) );
 						?>
-						<?php
-						$url_user = isset( $attachments[ $group_id ]['url']['user'] ) && ! empty( $attachments[ $group_id ]['url']['user'] ) ? $attachments[ $group_id ]['url']['user'] : '';
-						echo JCI_FormHelper::text( 'attachment[' . $group_id . '][url][user]', array(
-								'label'   => 'Username',
-								'default' => $url_user,
-								'class'   => 'url-field input-toggle'
-							) );
-						?>
-						<?php
-						$url_pass = isset( $attachments[ $group_id ]['url']['pass'] ) && ! empty( $attachments[ $group_id ]['url']['pass'] ) ? $attachments[ $group_id ]['url']['pass'] : '';
-						echo JCI_FormHelper::password( 'attachment[' . $group_id . '][url][pass]', array(
-								'label'   => 'Password',
-								'default' => $url_pass,
-								'class'   => 'url-field input-toggle'
-							) );
-						?>
 					</div>
 				<?php endif; ?>
 

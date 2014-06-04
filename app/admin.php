@@ -41,7 +41,7 @@ class JC_Importer_Admin {
 			'admin_imports_view'
 		) );
 
-		add_submenu_page( 'jci-importers', 'Settings', 'Settings', 'manage_options', 'jci-settings', array($this, 'admin_settings_view') );
+		// add_submenu_page( 'jci-importers', 'Settings', 'Settings', 'manage_options', 'jci-settings', array($this, 'admin_settings_view') );
 	}
 
 	public function admin_imports_view() {

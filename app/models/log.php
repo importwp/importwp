@@ -47,9 +47,14 @@ class ImportLog {
 		$importer = ImporterModel::getImporter( $import_id );
 		$version = $jcimporter->importer->get_version();
 
-		$wpdb->query( "
+		// $wpdb->query( "
+		// 	INSERT INTO `" . $wpdb->prefix . "importer_log` (importer_name, object_id, template,type,file, version, row, src, value, created)
+		// 	VALUES('" . $importer->post->post_name . "', '" . $import_id . "', '" . $template['template'] . "', '" . $template['template_type'] . "', '" . $template['import_file'] . "', '" . $version . "', '" . $row . "', '', '" . mysql_real_escape_string( serialize( $record ) ) . "', NOW());" );
+
+		$wpdb->query( $wpdb->prepare("
 			INSERT INTO `" . $wpdb->prefix . "importer_log` (importer_name, object_id, template,type,file, version, row, src, value, created)
-			VALUES('" . $importer->post->post_name . "', '" . $import_id . "', '" . $template['template'] . "', '" . $template['template_type'] . "', '" . $template['import_file'] . "', '" . $version . "', '" . $row . "', '', '" . ( serialize( $record ) ) . "', NOW());" );
+			VALUES(%s, %d, %s, %s, %s, %d, %d, '', %s, NOW());" ,
+		$importer->post->post_name, $import_id, $template['template'], $template['template_type'], $template['import_file'], $version, $row, serialize( $record )));
 	}
 
 	/**
@@ -62,7 +67,7 @@ class ImportLog {
 	static function get_current_version( $import_id ) {
 		global $wpdb;
 		$import_id = intval( $import_id );
-		$row       = $wpdb->get_row( "SELECT version FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='" . $import_id . "' GROUP BY version ORDER BY version DESC" );
+		$row       = $wpdb->get_row( $wpdb->prepare("SELECT version FROM `" . $wpdb->prefix . "importer_log` WHERE object_id=%d GROUP BY version ORDER BY version DESC", $import_id ));
 
 		if ( ! $row ) {
 			return 0;
@@ -121,7 +126,7 @@ class ImportLog {
 		global $wpdb;
 		$importer_id = intval( $importer_id );
 
-		return $wpdb->get_results( "SELECT version, type, file,  created, COUNT(row) as row_total FROM `wp_importer_log` WHERE object_id='{$importer_id}' GROUP BY version ORDER BY version DESC", OBJECT );
+		return $wpdb->get_results( "SELECT version, type, file,  created, COUNT(row) as row_total FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' GROUP BY version ORDER BY version DESC", OBJECT );
 	}
 
 	static function get_importer_log( $importer_id, $log, $order = 'DESC' ) {
@@ -135,7 +140,7 @@ class ImportLog {
 			$order = 'DESC';
 		}
 
-		return $wpdb->get_results( "SELECT * FROM `wp_importer_log` WHERE object_id='{$importer_id}' AND version='{$log}' ORDER BY id $order", OBJECT );
+		return $wpdb->get_results( "SELECT * FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' AND version='{$log}' ORDER BY id $order", OBJECT );
 	}
 
 }

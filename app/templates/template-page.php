@@ -359,7 +359,14 @@ class JC_Page_Template extends JC_Importer_Template {
 		 */
 		if( intval($data['post_parent']) == 0 && $data['post_parent'] != ''){
 
+			// page title
 			$page = get_page_by_title($data['post_parent']);
+			if(!$page){
+				// page slug
+				$page = get_page_by_path($data['post_parent'] );
+			}
+
+			// set post parent to int or clear
 			if($page){
 				$data['post_parent'] = intval($page->ID);
 			}else{

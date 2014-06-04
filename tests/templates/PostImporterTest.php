@@ -118,35 +118,35 @@ class PostImporterTest extends WP_UnitTestCase {
 	 */
 	public function testUnEnableOptionalFields(){
 
-		$ID = 'ID';
-		$post_title = 'post_title';
-		$post_content = 'post_content';
-		$post_excerpt = 'post_excerpt';
-		$post_name = 'post_name';
-		$post_status = 'post_status';
-		$post_author = 'post_author';
-		$post_parent = 'post_parent';
-		$menu_order = 'menu_order';
-		$post_password = 'post_password';
-		$post_date = 'post_date';
+		$ID 			= 'ID';
+		$post_title 	= 'post_title';
+		$post_content 	= 'post_content';
+		$post_excerpt 	= 'post_excerpt';
+		$post_name 		= 'post_name';
+		$post_status 	= 'post_status';
+		$post_author 	= 'post_author';
+		$post_parent 	= 'post_parent';
+		$menu_order 	= 'menu_order';
+		$post_password 	= 'post_password';
+		$post_date 		= 'post_date';
 		$comment_status = 'comment_status';
-		$ping_status = 'ping_status';
+		$ping_status 	= 'ping_status';
 
 		$post_id = create_csv_importer( null, 'post', $this->importer->plugin_dir . '/tests/data/data-posts.csv', array(
 			'post' => array(
-				'ID' => $ID,
-				'post_title' => $post_title,
-				'post_content' => $post_content,
-				'post_excerpt' => $post_excerpt,
-				'post_name' => $post_name,
-				'post_status' => $post_status,
-				'post_author' => $post_author,
-				'post_parent' => $post_parent,
-				'menu_order' => $menu_order,
-				'post_password' => $post_password,
-				'post_date' => $post_date,
-				'comment_status' => $comment_status,
-				'ping_status' => $ping_status,
+				'ID' 				=> $ID,
+				'post_title' 		=> $post_title,
+				'post_content' 		=> $post_content,
+				'post_excerpt' 		=> $post_excerpt,
+				'post_name' 		=> $post_name,
+				'post_status' 		=> $post_status,
+				'post_author' 		=> $post_author,
+				'post_parent' 		=> $post_parent,
+				'menu_order' 		=> $menu_order,
+				'post_password' 	=> $post_password,
+				'post_date' 		=> $post_date,
+				'comment_status' 	=> $comment_status,
+				'ping_status' 		=> $ping_status,
 			)
 		) );
 
@@ -166,6 +166,172 @@ class PostImporterTest extends WP_UnitTestCase {
 		$this->assertFalse(array_key_exists('post_date', $test['post']));
 
 		$this->assertEquals('S', $test['_jci_status']);
+	}
+
+	/**
+	 * Test enabled Optional Fields
+	 */
+	public function testEnableOptionalFields(){
+
+		$post_title 	= 'post_title';
+		$post_content 	= 'post_content';
+		$post_excerpt 	= 'post_excerpt';
+		$post_name 		= 'post_name';
+		$post_status 	= 'post_status';
+		$post_author 	= 'post_author';
+		$post_parent 	= 'post_parent';
+		$menu_order 	= 'menu_order';
+		$post_password 	= 'post_password';
+		$post_date 		= date('Y-m-d H:i:s');
+		$comment_status = 'comment_status';
+		$ping_status 	= 'ping_status';
+
+		$post_id = create_csv_importer( null, 'post', $this->importer->plugin_dir . '/tests/data/data-posts.csv', array(
+			'post' => array(
+				'post_title' 		=> $post_title,
+				'post_content' 		=> $post_content,
+				'post_excerpt' 		=> $post_excerpt,
+				'post_name' 		=> $post_name,
+				'post_status' 		=> $post_status,
+				'post_author' 		=> $post_author,
+				'post_parent' 		=> $post_parent,
+				'menu_order' 		=> $menu_order,
+				'post_password' 	=> $post_password,
+				'post_date' 		=> $post_date,
+				'comment_status' 	=> $comment_status,
+				'ping_status' 		=> $ping_status,
+			)
+		) );
+
+		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_menu_order' ), 1 );
+		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_post_password' ), 1 );
+		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_post_date' ), 1 );
+
+		ImporterModel::clearImportSettings();
+
+		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$test                     	= $this->importer->importer->run_import( 1 );
+		$test 						= array_shift($test);
+
+		$this->assertEquals($post_title, $test['post']['post_title']);
+		$this->assertEquals($post_content, $test['post']['post_content']);
+		$this->assertEquals($post_excerpt, $test['post']['post_excerpt']);
+		$this->assertEquals($post_name, $test['post']['post_name']);
+		$this->assertEquals($post_status, $test['post']['post_status']);
+		$this->assertEquals($post_author, $test['post']['post_author']);
+		$this->assertEquals($post_parent, $test['post']['post_parent']);
+		$this->assertEquals($menu_order, $test['post']['menu_order']);
+		$this->assertEquals($post_password, $test['post']['post_password']);
+		$this->assertEquals($post_date, $test['post']['post_date']);
+		$this->assertEquals($comment_status, $test['post']['comment_status']);
+		$this->assertEquals($ping_status, $test['post']['ping_status']);
+
+		$this->assertEquals('S', $test['_jci_status']);
+	}
+
+	/**
+	 * Test to see if page id passed to post parent returns page_id
+	 */
+	public function testPostParentFieldId(){
+
+		$title = 'Post Title 01';
+		$slug = 'post-title-01';
+		$parent_id = wp_insert_post( array( 
+			'post_title'  => $title,
+			'post_name'   => $slug,
+			'post_type'   => 'post',
+			'post_status' => 'publish'
+		));
+
+		$post_id = create_csv_importer( null, 'post', $this->importer->plugin_dir . '/tests/data/data-posts.csv', array(
+			'post' => array(
+				'post_title' 		=> 'Child 01',
+				'post_content'  	=> 'child 01',
+				'post_name' 		=> 'child-01',
+				'post_status' 		=> 'publish',
+				'post_author' 		=> 'admin',
+				'post_parent' 		=> $parent_id,
+				'comment_status' 	=> '0',
+				'ping_status' 		=> 'closed',
+			)
+		));
+
+		ImporterModel::clearImportSettings();
+		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$import_data              	= $this->importer->importer->run_import( 1 );
+		$import_data 				= array_shift($import_data);
+
+		$this->assertEquals($import_data['post']['post_parent'], $parent_id);
+	}
+
+	/**
+	 * Test to see if post title passed to post parent returns post_id
+	 */
+	public function testPostParentFieldTitle(){
+
+		$title = 'Post Title 01';
+		$slug = 'post-title-01';
+		$parent_id = wp_insert_post( array( 
+			'post_title'  => $title,
+			'post_name'   => $slug,
+			'post_type'   => 'post',
+			'post_status' => 'publish'
+		));
+
+		$post_id = create_csv_importer( null, 'post', $this->importer->plugin_dir . '/tests/data/data-posts.csv', array(
+			'post' => array(
+				'post_title' 		=> 'Child 01',
+				'post_content'  	=> 'child 01',
+				'post_name' 		=> 'child-01',
+				'post_status' 		=> 'publish',
+				'post_author' 		=> 'admin',
+				'post_parent' 		=> $title,
+				'comment_status' 	=> '0',
+				'ping_status' 		=> 'closed',
+			)
+		));
+
+		ImporterModel::clearImportSettings();
+		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$import_data              	= $this->importer->importer->run_import( 1 );
+		$import_data 				= array_shift($import_data);
+
+		$this->assertEquals($import_data['post']['post_parent'], $parent_id);
+	}
+
+	/**
+	 * Test to see if post slug passed to post parent returns post_id
+	 */
+	public function testPostParentFieldSlug(){
+
+		$title = 'Post Title 01';
+		$slug = 'post-title-01';
+		$parent_id = wp_insert_post( array( 
+			'post_title'  => $title,
+			'post_name'   => $slug,
+			'post_type'   => 'post',
+			'post_status' => 'publish'
+		));
+
+		$post_id = create_csv_importer( null, 'post', $this->importer->plugin_dir . '/tests/data/data-posts.csv', array(
+			'post' => array(
+				'post_title' 		=> 'Child 01',
+				'post_content'  	=> 'child 01',
+				'post_name' 		=> 'child-01',
+				'post_status' 		=> 'publish',
+				'post_author' 		=> 'admin',
+				'post_parent' 		=> $slug,
+				'comment_status' 	=> '0',
+				'ping_status' 		=> 'closed',
+			)
+		));
+
+		ImporterModel::clearImportSettings();
+		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$import_data              	= $this->importer->importer->run_import( 1 );
+		$import_data 				= array_shift($import_data);
+
+		$this->assertEquals($import_data['post']['post_parent'], $parent_id);
 	}
 }
 
