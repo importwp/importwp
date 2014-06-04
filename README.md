@@ -12,11 +12,18 @@ JC Importer is an Advanced Wordpress CSV/XML Importer, allowing you to easily dr
 * Allow recurring importing FTP, POST, and Remote datasources
 * Visual Template Editor, allow non developers to easily create templates without writing code
 
-##Notes
-* Plugin code/tests are currently being refactored.
-
 ##Documentation
-Documentation on creating templates and using the built in actions and filters will be Coming Soon.
+[View JC Importer documenation on jamescollings.co.uk](http://jamescollings.co.uk/docs/v1/jc-importer/)
+
+##Templates
+* Post
+* Page
+* User
 
 ##FAQ
 Comming soon.
+
+##Changelog
+
+**0.1** 
+* Initial Release
