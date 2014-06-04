@@ -338,9 +338,9 @@ class JC_Page_Template extends JC_Importer_Template {
 		if ( $this->enable_id == 0 ) {
 			unset( $data['ID'] );
 		}
-		if ( $this->enable_post_parent == 0 ) {
-			unset( $data['post_parent'] );
-		}
+		// if ( $this->enable_post_parent == 0 ) {
+		// 	unset( $data['post_parent'] );
+		// }
 		if ( $this->enable_menu_order == 0 ) {
 			unset( $data['menu_order'] );
 		}
@@ -359,12 +359,11 @@ class JC_Page_Template extends JC_Importer_Template {
 		 */
 		if( intval($data['post_parent']) == 0 && $data['post_parent'] != ''){
 
-			$pages = new WP_Query(array(
-				'post_type' => 'page',
-				'pagename' => sanitize_title($data['post_parent'])
-			));
-			if($pages->have_posts() && $pages->post_count == 1){
-				$data['post_parent'] = intval($pages->post->ID);
+			$page = get_page_by_title($data['post_parent']);
+			if($page){
+				$data['post_parent'] = intval($page->ID);
+			}else{
+				unset($data['post_parent']);
 			}
 		}
 
