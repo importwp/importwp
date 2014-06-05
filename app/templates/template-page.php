@@ -374,6 +374,20 @@ class JC_Page_Template extends JC_Importer_Template {
 			}
 		}
 
+		/**
+		 * Check to see if post_author
+		 */
+		if( intval($data['post_author']) == 0 && $data['post_author'] != ''){
+
+			// get user ('slug', 'email', or 'login')
+			$user = get_user_by( 'login', $data['post_author'] );
+			if($user){
+				$data['post_author'] = $user->ID;
+			}else{
+				unset($data['post_author']);
+			}
+		}
+
 		return $data;
 	}
 
