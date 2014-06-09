@@ -343,6 +343,25 @@ class JC_Post_Template extends JC_Importer_Template {
 			}
 		}
 
+		/**
+		 * Check to see if post_author
+		 */
+		if( intval($data['post_author']) == 0 && $data['post_author'] != ''){
+
+			// get user ('slug', 'email', or 'login')
+			$user = get_user_by( 'login', $data['post_author'] );
+			if($user){
+				$data['post_author'] = $user->ID;
+			}else{
+				unset($data['post_author']);
+			}
+		}
+
+		// generate slug from title if no slug present
+		if(empty($data['post_name'])){
+			$data['post_name'] = sanitize_title( $data['post_title'] );
+		}
+
 		return $data;
 	}
 
