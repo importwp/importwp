@@ -75,7 +75,7 @@ class JC_Page_Template extends JC_Importer_Template {
 				),
 				array(
 					'title' => 'Page Template',
-					'field' => 'page_template'
+					'field' => '_wp_page_template'
 				),
 			)
 		)
@@ -104,6 +104,14 @@ class JC_Page_Template extends JC_Importer_Template {
 				 * Populate parent pages
 				 */
 				$field['options'] = jci_get_post_list('page');
+			}elseif( $field['field'] == '_wp_page_template'){
+
+				/**
+				 * Populate page templates
+				 */
+				$templates = array('default' => 'Default Template');
+				$templates = array_merge($templates, wp_get_theme()->get_page_templates() );
+				$field['options'] = $templates;
 			}
 		}
 	}
@@ -210,7 +218,7 @@ class JC_Page_Template extends JC_Importer_Template {
 					$.fn.jci_enableField('enable_menu_order', 'page-menu_order');
 					$.fn.jci_enableField('enable_post_password', 'page-post_password');
 					$.fn.jci_enableField('enable_post_date', 'page-post_date');
-					$.fn.jci_enableField('enable_page_template', 'page-page_template');
+					
 
 					// optional selects
 					$.fn.jci_enableSelectField('enable_post_parent', 'page-post_parent');
@@ -218,6 +226,7 @@ class JC_Page_Template extends JC_Importer_Template {
 					$.fn.jci_enableSelectField('enable_post_author', 'page-post_author');
 					$.fn.jci_enableSelectField('enable_comment_status', 'page-comment_status');
 					$.fn.jci_enableSelectField('enable_ping_status', 'page-ping_status');
+					$.fn.jci_enableSelectField('enable_page_template', 'page-_wp_page_template');
 
 				});
 			</script>
@@ -350,9 +359,9 @@ class JC_Page_Template extends JC_Importer_Template {
 		if ( $this->enable_post_date == 0 ) {
 			unset( $data['post_date'] );
 		}
-		if ( $this->enable_page_template == 0 ) {
-			unset( $data['page_template'] );
-		}
+		// if ( $this->enable_page_template == 0 ) {
+		// 	unset( $data['page_template'] );
+		// }
 
 		/**
 		 * Check to see if post_parent
@@ -386,6 +395,11 @@ class JC_Page_Template extends JC_Importer_Template {
 			}else{
 				unset($data['post_author']);
 			}
+		}
+
+		// generate slug from title if no slug present
+		if(empty($data['post_name'])){
+			$data['post_name'] = sanitize_title( $data['post_title'] );
 		}
 
 		return $data;
