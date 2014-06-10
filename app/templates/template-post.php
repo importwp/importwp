@@ -375,18 +375,10 @@ class JC_Post_Template extends JC_Importer_Template {
 
 			$page_id = 0;
 
-			if($post_parent_type == 'name'){
+			if($post_parent_type == 'name' || $post_parent_type == 'slug'){
 				
-				// name
-				$page = get_page_by_title($data['post_parent']);
-				if($page){
-					$page_id = intval($page->ID);
-				}
-
-			}elseif($post_parent_type == 'slug'){
-
-				// slug
-				$page = get_posts( array( 'name' => $data['post_parent'], 'post_type' => 'page' ) );
+				// name or slug
+				$page = get_posts( array( 'name' => sanitize_title($data['post_parent']), 'post_type' => 'post' ) );
 				if($page){
 					$page_id = intval($page[0]->ID);
 				}

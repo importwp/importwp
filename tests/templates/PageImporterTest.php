@@ -134,7 +134,7 @@ class PageImporterTest extends WP_UnitTestCase {
 				'post_date' 		=> $post_date,
 				'comment_status' 	=> $comment_status,
 				'ping_status' 		=> $ping_status,
-				'page_template' 	=> $page_template
+				'_wp_page_template' 	=> $page_template
 			)
 		) );
 
@@ -161,7 +161,7 @@ class PageImporterTest extends WP_UnitTestCase {
 		$this->assertEquals($post_date, $test['page']['post_date']);
 		$this->assertEquals($comment_status, $test['page']['comment_status']);
 		$this->assertEquals($ping_status, $test['page']['ping_status']);
-		$this->assertEquals($page_template, $test['page']['page_template']);
+		$this->assertEquals($page_template, $test['page']['_wp_page_template']);
 
 		$this->assertEquals('S', $test['_jci_status']);
 	}
@@ -228,6 +228,17 @@ class PageImporterTest extends WP_UnitTestCase {
 			)
 		));
 
+		ImporterModel::setImporterMeta( $post_id, array(
+					'_template_settings',
+					'enable_post_parent'
+				), 1 );
+
+		ImporterModel::setImporterMeta( $post_id, array(
+				'_template_settings',
+				'_field_type',
+				'post_parent'
+			), 'name' );
+
 		ImporterModel::clearImportSettings();
 		$this->importer->importer 	= new JC_Importer_Core( $post_id );
 		$import_data              	= $this->importer->importer->run_import( 1 );
@@ -262,6 +273,17 @@ class PageImporterTest extends WP_UnitTestCase {
 				'ping_status' 		=> 'closed',
 			)
 		));
+
+		ImporterModel::setImporterMeta( $post_id, array(
+					'_template_settings',
+					'enable_post_parent'
+				), 1 );
+
+		ImporterModel::setImporterMeta( $post_id, array(
+				'_template_settings',
+				'_field_type',
+				'post_parent'
+			), 'slug' );
 
 		ImporterModel::clearImportSettings();
 		$this->importer->importer 	= new JC_Importer_Core( $post_id );

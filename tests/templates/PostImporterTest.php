@@ -291,6 +291,17 @@ class PostImporterTest extends WP_UnitTestCase {
 			)
 		));
 
+		ImporterModel::setImporterMeta( $post_id, array(
+					'_template_settings',
+					'enable_post_parent'
+				), 1 );
+
+		ImporterModel::setImporterMeta( $post_id, array(
+				'_template_settings',
+				'_field_type',
+				'post_parent'
+			), 'name' );
+
 		ImporterModel::clearImportSettings();
 		$this->importer->importer 	= new JC_Importer_Core( $post_id );
 		$import_data              	= $this->importer->importer->run_import( 1 );
@@ -325,6 +336,17 @@ class PostImporterTest extends WP_UnitTestCase {
 				'ping_status' 		=> 'closed',
 			)
 		));
+
+		ImporterModel::setImporterMeta( $post_id, array(
+					'_template_settings',
+					'enable_post_parent'
+				), 1 );
+
+		ImporterModel::setImporterMeta( $post_id, array(
+				'_template_settings',
+				'_field_type',
+				'post_parent'
+			), 'slug' );
 
 		ImporterModel::clearImportSettings();
 		$this->importer->importer 	= new JC_Importer_Core( $post_id );
