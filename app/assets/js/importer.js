@@ -272,6 +272,11 @@ jQuery(function ($) {
         var trigger_elem = $('input[name="jc-importer_template_settings[' + trigger_str + ']"]');
         var target_elem = $('#jc-importer_field-' + target_str);
 
+        // check to see if a selector was specified not a form field
+        if(!target_elem.length){
+            target_elem = $(target_str);
+        }
+
         trigger_elem.on('change', function () {
 
             var elem = target_elem.parent();

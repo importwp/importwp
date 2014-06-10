@@ -410,6 +410,7 @@ class JCI_FormHelper {
 		$label    = $name;
 		$required = false;
 		$checked  = true;
+		$after = null;
 		extract( $args );
 		$error   = self::get_error( $name );
 		$classes = array( 'input', 'support-checkbox' );
@@ -440,6 +441,10 @@ class JCI_FormHelper {
 
 		if ( $label !== false ) {
 			$output .= self::get_label( $label );
+		}
+
+		if ( $after ) {
+			$output .= $after;
 		}
 
 		if ( $error ) {

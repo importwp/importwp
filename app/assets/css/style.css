@@ -26,6 +26,16 @@
     display: block;
 }
 
+/* Input after input */
+.input .input{
+    display: inline;
+}
+
+.input .input label{
+    width: auto;
+    margin-right: 10px;
+}
+
 .validation_msg {
     margin-left: 130px;
     color: #dd3d36;

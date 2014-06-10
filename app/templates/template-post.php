@@ -150,6 +150,17 @@ class JC_Post_Template extends JC_Importer_Template {
 					'enable_ping_status'
 				) );
 
+			/**
+			 * Field Type: Template Settings
+			 */
+			$field_types = ImporterModel::getImporterMetaArr( $id, array(
+				'_template_settings',
+				'_field_type'
+			));
+			
+			$author_field_type = isset($field_types['post_author']) ? $field_types['post_author'] : 'id';
+			$parent_field_type = isset($field_types['post_parent']) ? $field_types['post_parent'] : 'id';
+
 			?>
 			<div class="jci-group-settings jci-group-section" data-section-id="settings">
 				<div id="jci_post_enable_fields">
@@ -165,11 +176,13 @@ class JC_Post_Template extends JC_Importer_Template {
 						) );
 					echo JCI_FormHelper::checkbox( 'template_settings[enable_post_author]', array(
 							'label'   => 'Enable Author Field',
-							'checked' => $enable_post_author
+							'checked' => $enable_post_author,
+							'after' => JCI_FormHelper::select('author_field_type', array('label' => ', Using the Value', 'default' => $author_field_type , 'options' => array('id' => 'ID', 'login' => 'Login', 'email' => 'Email')))
 						) );
 					echo JCI_FormHelper::checkbox( 'template_settings[enable_post_parent]', array(
 							'label'   => 'Enable Parent Field',
-							'checked' => $enable_post_parent
+							'checked' => $enable_post_parent,
+							'after' => JCI_FormHelper::select('parent_field_type', array('label' => ', Using the Value', 'default' => $parent_field_type, 'options' => array('id' => 'ID', 'slug' => 'Slug', 'name' => 'Name')))
 						) );
 					echo JCI_FormHelper::checkbox( 'template_settings[enable_menu_order]', array(
 							'label'   => 'Enable Order Field',
@@ -202,6 +215,10 @@ class JC_Post_Template extends JC_Importer_Template {
 					$.fn.jci_enableField('enable_menu_order', 'post-menu_order');
 					$.fn.jci_enableField('enable_post_password', 'post-post_password');
 					$.fn.jci_enableField('enable_post_date', 'post-post_date');
+
+					// show select for post_author
+					$.fn.jci_enableField('enable_post_author', '#jc-importer_author_field_type');
+					$.fn.jci_enableField('enable_post_parent', '#jc-importer_parent_field_type');
 
 					// optional selects
 					$.fn.jci_enableSelectField('enable_post_parent', 'post-post_parent');
@@ -262,6 +279,22 @@ class JC_Post_Template extends JC_Importer_Template {
 					'_template_settings',
 					'enable_ping_status'
 				), $enable_ping_status );
+
+			// save field type if post_author enabled
+			$post_author_type = $enable_post_author ? $_POST['jc-importer_author_field_type'] : false;
+			ImporterModel::setImporterMeta( $id, array(
+				'_template_settings',
+				'_field_type',
+				'post_author'
+			), $post_author_type );
+
+			// save field type if parent enabled
+			$post_parent_type = $enable_post_parent ? $_POST['jc-importer_parent_field_type'] : false;
+			ImporterModel::setImporterMeta( $id, array(
+				'_template_settings',
+				'_field_type',
+				'post_parent'
+			), $post_parent_type );
 		}
 	}
 
@@ -332,29 +365,81 @@ class JC_Post_Template extends JC_Importer_Template {
 		/**
 		 * Check to see if post_parent
 		 */
-		if( intval($data['post_parent']) == 0 && $data['post_parent'] != ''){
+		if($this->enable_post_parent && !empty($data['post_parent'])){
 
-			$posts = new WP_Query(array(
-				'post_type' => 'post',
-				'name' => sanitize_title($data['post_parent'])
+			$post_parent_type = ImporterModel::getImporterMetaArr( $id, array(
+				'_template_settings',
+				'_field_type',
+				'post_parent'
 			));
-			if($posts->have_posts() && $posts->post_count == 1){
-				$data['post_parent'] = intval($posts->post->ID);
+
+			$page_id = 0;
+
+			if($post_parent_type == 'name'){
+				
+				// name
+				$page = get_page_by_title($data['post_parent']);
+				if($page){
+					$page_id = intval($page->ID);
+				}
+
+			}elseif($post_parent_type == 'slug'){
+
+				// slug
+				$page = get_posts( array( 'name' => $data['post_parent'], 'post_type' => 'page' ) );
+				if($page){
+					$page_id = intval($page[0]->ID);
+				}
+				
+			}elseif($post_parent_type == 'id'){
+
+				// ID
+				$page_id = intval($data['post_parent']);
 			}
+
+			// set post parent to int or clear
+			$data['post_parent'] = $page_id;
 		}
 
 		/**
 		 * Check to see if post_author
 		 */
-		if( intval($data['post_author']) == 0 && $data['post_author'] != ''){
+		if($this->enable_post_author && !empty($data['post_author'])){
 
-			// get user ('slug', 'email', or 'login')
-			$user = get_user_by( 'login', $data['post_author'] );
-			if($user){
-				$data['post_author'] = $user->ID;
-			}else{
-				unset($data['post_author']);
+			$post_author_type = ImporterModel::getImporterMetaArr( $id, array(
+				'_template_settings',
+				'_field_type',
+				'post_author'
+			));
+
+			$user_id = 0;
+
+			if($post_author_type == 'login'){
+				
+				// login
+				$user = get_user_by( 'login', $data['post_author'] );
+				if($user){
+					$user_id = intval($user->ID);
+				}
+				
+
+			}elseif($post_author_type == 'email'){
+
+				// email
+				$user = get_user_by( 'email', $data['post_author'] );
+				if($user){
+					$user_id = intval($user->ID);
+				}
+				
+			}elseif($post_author_type == 'id'){
+
+				// ID
+				$user_id = intval($data['post_author']);
 			}
+
+			// set post parent to int or clear
+			$data['post_author'] = $user_id;
+		
 		}
 
 		// generate slug from title if no slug present

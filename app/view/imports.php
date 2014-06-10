@@ -2,7 +2,7 @@
 $importers = ImporterModel::getImporters();
 ?>
 <div id="icon-tools" class="icon32"><br></div>
-<h2>Importer <a href="<?php echo site_url( '/wp-admin/admin.php?page=jci-importers&action=add' ); ?>"
+<h2>Importer <a href="<?php echo admin_url('admin.php?page=jci-importers&action=add' ); ?>"
                 class="add-new-h2">Add New</a></h2>
 
 <?php jci_display_messages(); ?>
@@ -37,21 +37,21 @@ $importers = ImporterModel::getImporters();
 								<div class="locked-indicator"></div>
 							</th>
 							<td class="post-title column-title">
-								<a href="<?php echo site_url( '/wp-admin/admin.php?page=jci-importers&import=' . get_the_ID() . '&action=edit' ); ?>"
+								<a href="<?php echo admin_url('admin.php?page=jci-importers&import=' . get_the_ID() . '&action=edit' ); ?>"
 								   class="row-title"><?php the_title(); ?></a>
 
 								<div class="row-actions">
 									<span class="edit"><a
-											href="<?php echo site_url( '/wp-admin/admin.php?page=jci-importers&import=' . get_the_ID() . '&action=edit' ); ?>"
+											href="<?php echo admin_url('admin.php?page=jci-importers&import=' . get_the_ID() . '&action=edit' ); ?>"
 											title="Edit this item">Edit</a> | </span>
 									<span class="edit"><a
-											href="<?php echo site_url( '/wp-admin/admin.php?page=jci-importers&import=' . get_the_ID() . '&action=logs' ); ?>"
+											href="<?php echo admin_url('admin.php?page=jci-importers&import=' . get_the_ID() . '&action=logs' ); ?>"
 											title="Run this item">Run</a> | </span>
 									<span class="edit"><a
-											href="<?php echo site_url( '/wp-admin/admin.php?page=jci-importers&import=' . get_the_ID() . '&action=history' ); ?>"
+											href="<?php echo admin_url('admin.php?page=jci-importers&import=' . get_the_ID() . '&action=history' ); ?>"
 											title="View this item">History</a> | </span>
 									<span class="trash"><a class="submitdelete" title="Move this item to the Trash"
-									                       href="<?php echo site_url( '/wp-admin/admin.php?page=jci-importers&import=' . get_the_ID() . '&action=trash' ); ?>">Trash</a></span>
+									                       href="<?php echo admin_url('admin.php?page=jci-importers&import=' . get_the_ID() . '&action=trash' ); ?>">Trash</a></span>
 								</div>
 							</td>
 							<td><?php
@@ -74,7 +74,7 @@ $importers = ImporterModel::getImporters();
 				<?php else: ?>
 					<tr>
 						<td colspan="5"><p>To start an import <a
-									href="<?php echo site_url( '/wp-admin/admin.php?page=jci-importers&action=add' ); ?>">click
+									href="<?php echo admin_url('admin.php?page=jci-importers&action=add' ); ?>">click
 									here</a> , click on add new at the top of the page.</p></td>
 					</tr>
 				<?php endif; ?>

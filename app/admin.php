@@ -159,7 +159,7 @@ class JC_Importer_Admin {
 				wp_delete_post( $template );
 			}
 
-			wp_redirect( '/wp-admin/admin.php?page=jci-importers&message=2&trash=1' );
+			wp_redirect( admin_url('admin.php?page=jci-importers&message=2&trash=1' ));
 			exit();
 		}
 	}
@@ -254,7 +254,7 @@ class JC_Importer_Admin {
 					),
 				) );
 
-				wp_redirect( '/wp-admin/admin.php?page=jci-importers&import=' . $post_id . '&action=edit&message=0' );
+				wp_redirect( admin_url('admin.php?page=jci-importers&import=' . $post_id . '&action=edit&message=0' ));
 				exit();
 			}
 		}
@@ -330,9 +330,9 @@ class JC_Importer_Admin {
 			do_action( 'jci/save_template', $id, $template_type );
 
 			if ( isset( $_POST['jc-importer_btn-continue'] ) ) {
-				wp_redirect( '/wp-admin/admin.php?page=jci-importers&import=' . $result . '&action=logs' );
+				wp_redirect( admin_url('admin.php?page=jci-importers&import=' . $result . '&action=logs' ));
 			} else {
-				wp_redirect( '/wp-admin/admin.php?page=jci-importers&import=' . $result . '&action=edit&message=1' );
+				wp_redirect( admin_url('admin.php?page=jci-importers&import=' . $result . '&action=edit&message=1' ));
 			}
 			exit();
 		}
