@@ -22,6 +22,7 @@ require_once 'app/mapper/PostMapper.php';
 require_once 'app/mapper/TableMapper.php';
 require_once 'app/mapper/UserMapper.php';
 require_once 'app/mapper/VirtualMapper.php';
+require_once 'app/mapper/TaxMapper.php';
 
 // parsers
 require_once 'app/parse/data-csv.php';
@@ -32,6 +33,7 @@ require_once 'app/templates/template.php';
 require_once 'app/templates/template-user.php';
 require_once 'app/templates/template-post.php';
 require_once 'app/templates/template-page.php';
+require_once 'app/templates/template-tax.php';
 
 
 require_once 'app/helpers/form.php';

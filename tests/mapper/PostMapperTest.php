@@ -44,10 +44,10 @@ class PostMapperTest extends WP_UnitTestCase {
 			) );
 
 		$mapper      = new JC_PostMapper();
-		$result_slug = $mapper->exists_data( array( 'post_name' => $slug ), array( 'post_name' ), 'post', 'publish' );
+		$result_id = $mapper->exists_data( array( 'post_name' => $slug ), array( 'post_name' ), 'post', 'publish' );
 
-		$this->assertGreaterThan( 0, $result_slug );
-		$this->assertEquals( $post_id, $result_slug );
+		$this->assertGreaterThan( 0, $result_id );
+		$this->assertEquals( $post_id, $result_id );
 
 	}
 
