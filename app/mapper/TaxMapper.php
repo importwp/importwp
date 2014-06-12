@@ -85,7 +85,23 @@ class JC_TaxMapper {
 
 	function update_data($term_id, $taxonomy, $fields = array()){
 
-		return wp_update_term( $term_id, $taxonomy, $fields );
+		$args = array();
+		$custom_fields = array();
+
+		foreach($fields as $key => $value){
+
+			//
+			if(empty($value))
+				continue;
+
+			if(in_array($key, $this->_tax_fields) || $key == 'name'){
+				$args[$key] = $value;
+			}else{
+				$custom_fields[$key] = $value;
+			}
+		}
+
+		return wp_update_term( $term_id, $taxonomy, $args );
 	}
 
 	/**
@@ -117,8 +133,6 @@ class JC_TaxMapper {
 	}
 
 	function exist_data($term = '', $taxonomy = '', $field_type = 'name'){
-
-		// echo "TERM: $term \n TAX: $taxonomy \n FIELD TYPE: $field_type";
 
 		$term = get_term_by( $field_type, $term, $taxonomy );
 		

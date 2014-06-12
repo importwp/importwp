@@ -76,9 +76,17 @@ class TaxMapperTest extends WP_UnitTestCase {
 		$result 	= $mapper->insert_data( array( 'term' => $term, 'taxonomy' => $taxonomy ) );
 		$term_id 	= $result['term_id'];
 
-		//
+		// name : success
 		$result = $mapper->exist_data( $term, $taxonomy, 'name' );
 		$this->assertEquals($term_id, $result);
+
+		// id: false
+		$result = $mapper->exist_data( $term_id, $taxonomy, 'name' );
+		$this->assertFalse($result);
+
+		// slug: false
+		$result = $mapper->exist_data( 'term-01', $taxonomy, 'name' );
+		$this->assertFalse($result);
 	}
 
 	/**
@@ -96,9 +104,17 @@ class TaxMapperTest extends WP_UnitTestCase {
 		$result 	= $mapper->insert_data( array( 'term' => $term, 'taxonomy' => $taxonomy, 'slug' => $slug ) );
 		$term_id 	= $result['term_id'];
 
-		//
+		// slug : success
 		$result = $mapper->exist_data( $slug, $taxonomy, 'slug' );
 		$this->assertEquals($term_id, $result);
+
+		// id : false
+		$result = $mapper->exist_data( $term_id, $taxonomy, 'slug' );
+		$this->assertFalse($result );
+
+		// name : false
+		$result = $mapper->exist_data( $term, $taxonomy, 'slug' );
+		$this->assertFalse($result );
 	}
 
 	/**
@@ -116,9 +132,17 @@ class TaxMapperTest extends WP_UnitTestCase {
 		$result 	= $mapper->insert_data( array( 'term' => $term, 'taxonomy' => $taxonomy, 'slug' => $slug ) );
 		$term_id 	= $result['term_id'];
 
-		//
+		// id : success
 		$result = $mapper->exist_data( $term_id, $taxonomy, 'term_id' );
 		$this->assertEquals($term_id, $result);
+
+		// slug : false
+		$result = $mapper->exist_data( $slug, $taxonomy, 'term_id' );
+		$this->assertFalse($result);
+
+		// name : false
+		$result = $mapper->exist_data( $term, $taxonomy, 'term_id' );
+		$this->assertFalse($result);
 	}
 
 	/**

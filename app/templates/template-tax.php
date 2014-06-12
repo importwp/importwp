@@ -82,10 +82,10 @@ class JC_Tax_Template extends JC_Importer_Template {
 	 */
 	public function log_tax_columns( $columns ) {
 
-		$columns['term']        = 'Term';
+		$columns['term'] 	= 'Term';
 		$columns['parent']  = 'Parent';
-		$columns['slug'] = 'Slug';
-		$columns['method']      = 'Method';
+		$columns['slug'] 	= 'Slug';
+		$columns['method']  = 'Method';
 
 		return $columns;
 	}
