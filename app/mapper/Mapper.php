@@ -467,7 +467,10 @@ class JC_BaseMapper {
 			$this->_current_group = $data;
 
 			foreach ( $data as $id => $field ) {
+
+				// process field
 				$data[ $id ] = $this->processField( $field );
+				$data[ $id ] = apply_filters( 'jci/' . $this->_template->get_name() . '/process_field', $data[ $id ], $id);
 			}
 
 			$data = apply_filters( 'jci/before_' . $this->_template->get_name() . '_group_save', $data, $group_id );
