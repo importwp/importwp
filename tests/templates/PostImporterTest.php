@@ -128,7 +128,7 @@ class PostImporterTest extends WP_UnitTestCase {
 		$post_parent 	= 'post_parent';
 		$menu_order 	= 'menu_order';
 		$post_password 	= 'post_password';
-		$post_date 		= 'post_date';
+		$post_date 		= date('Y-m-d H:i:s');
 		$comment_status = 'comment_status';
 		$ping_status 	= 'ping_status';
 

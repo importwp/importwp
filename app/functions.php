@@ -41,11 +41,8 @@ function get_import_template( $template ) {
 
 	global $jcimporter;
 
-	if ( ! is_object( $jcimporter->templates[ $template ] ) ) {
-
-		$temp                               = $jcimporter->templates[ $template ];
-		$jcimporter->templates[ $template ] = new $temp;
-	}
+	$temp                               = $jcimporter->templates[ $template ];
+	$jcimporter->templates[ $template ] = new $temp;
 
 	return $jcimporter->templates[ $template ];
 }

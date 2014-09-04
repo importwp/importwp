@@ -166,11 +166,13 @@ class UserImporterTest extends WP_UnitTestCase {
 		 * Test: Check if one record is returned
 		 */
 		ImporterModel::clearImportSettings();
+
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$import_data              = $this->importer->importer->run_import( 1 );
 		$this->assertEquals( 1, count( $import_data ) );
 
 		$import_data = array_shift( $import_data );
+
 		$this->assertEquals( 'First1', $import_data['user']['first_name'] );
 		$this->assertEquals( 'Last1', $import_data['user']['last_name'] );
 		$this->assertEquals( 'email1@test.com', $import_data['user']['user_email'] );

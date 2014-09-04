@@ -58,6 +58,7 @@ class JC_UserMapper{
 		}
 
 		if ( ! isset( $fields['user_pass'] ) || empty( $fields['user_pass'] ) ) {
+
 			throw new JCI_Exception( "No password present", JCI_ERR );
 		}
 

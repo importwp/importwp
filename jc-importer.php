@@ -3,7 +3,7 @@
 Plugin Name: JC Importer
 Description: Wordpress CSV/XML Importer Plugin
 Author: James Collings <james@jclabs.co.uk>
-Version: 0.1.1
+Version: 0.1.1-alpha
 */
 
 require_once 'app/core/exceptions.php';
@@ -153,5 +153,4 @@ class JC_Importer {
 }
 
 $GLOBALS['jcimporter'] = new JC_Importer();
-
 ?>
