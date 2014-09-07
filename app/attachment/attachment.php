@@ -103,8 +103,8 @@ class JC_Attachment {
 			'post_title'     => preg_replace( '/\.[^.]+$/', '', basename( $file ) ),
 			'post_content'   => '',
 			'post_status'    => 'inherit',
-			'post_author'    => 1,
-			'post_parent'    => $parent
+			'post_author'    => get_current_user_id(),
+			'post_parent'    => $post_id
 		);
 
 		$attach_id = wp_insert_attachment( $attachment, $file, $post_id );
