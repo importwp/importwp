@@ -243,6 +243,12 @@ class JC_Importer_Admin {
 			// process results
 			if ( $result && is_array( $result ) ) {
 
+				// catch and setup permissions
+				$permissions = array();
+				if ( isset( $_POST['jc-importer_permissions'] ) ) {
+					$permissions = $_POST['jc-importer_permissions'];
+				}
+
 				$post_id = ImporterModel::insertImporter( $post_id, array(
 					'name'     => $name,
 					'settings' => array(
@@ -250,7 +256,8 @@ class JC_Importer_Admin {
 						'template'      => $template,
 						'template_type' => $result['type'],
 						'import_file'   => $result['id'],
-						'general'       => $general
+						'general'       => $general,
+						'permissions' => $permissions
 					),
 				) );
 
