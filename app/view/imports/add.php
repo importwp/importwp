@@ -1,5 +1,5 @@
 <div id="icon-tools" class="icon32"><br></div>
-<h2>Importer</h2>
+<h2>JC Importer</h2>
 
 <?php
 echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
