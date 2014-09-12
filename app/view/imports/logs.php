@@ -125,6 +125,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 		var estimatedFinishDate = new Date();
 		var curr_del_record = 0;
 		var del_count = 0;
+		var records_per_row = 1;
+		var record_diffs = new Array();
 
 		// ajax import
 		$('.jc-importer_update-run').click(function (event) {
@@ -138,12 +140,15 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 			}
 
 			function getNextRecord() {
+				
+				var record_start = new Date();
 				$.ajax({
 					url: ajax_object.ajax_url,
 					data: {
 						action: 'jc_import_row',
 						id: ajax_object.id,
 						row: record,
+						records: records_per_row
 					},
 					dataType: 'html',
 					type: "POST",
@@ -158,7 +163,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
 						if (record < record_total) {
 
-							record++;
+							record += records_per_row;
 							if (running == 2) {
 
 								var currentDate = new Date();
@@ -168,6 +173,30 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 								var total_records = <?php echo $record_count - $start_line; ?>;
 								var total_records_left = ( total_records - current_record_count);
 								var seconds = (time_in_seconds / current_record_count) * total_records_left;
+
+								var record_diff = currentDate.getTime() - record_start.getTime();
+								var record_time_in_seconds = Math.floor(record_diff / 1000);
+								record_diffs.push(record_time_in_seconds);
+
+								record_diffs_sum = 0;
+								for(var l = 0; l < record_diffs.length; l++){
+									record_diffs_sum += record_diffs[l];
+								}
+
+								var record_diffs_avg = record_diffs_sum / record_diffs.length;
+
+								if(record_diffs_avg > 1){
+									// reduce
+									record_diffs = [];
+									if(records_per_row > 1){
+										records_per_row = Math.floor(records_per_row / 2);	
+									}
+								}else{
+									records_per_row++;	
+								}
+
+								console.log(records_per_row);
+								console.log('Diff: ' + record_time_in_seconds + ' Avg: '+ record_diffs_avg);
 
 								estimatedFinishDate = new Date(new Date().getTime() + new Date(1970, 1, 1, 0, 0, parseInt(seconds), 0).getTime());
 

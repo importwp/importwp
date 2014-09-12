@@ -353,14 +353,34 @@ class JC_Importer_Admin {
 
 		global $jcimporter;
 
-		$row         = intval( $_POST['row'] );
+		set_time_limit(0);
+
+		$current_row         = intval( $_POST['row'] );
 		$importer_id = intval( $_POST['id'] );
+		$records = intval($_POST['records']);
+		$output = array();
 
-		$jcimporter->importer = new JC_Importer_Core( $importer_id );
-		$data                 = $jcimporter->importer->run_import( $row );
+		if($records == 0){
+			$records = 1;
+		}
 
-		require_once $jcimporter->plugin_dir . 'app/view/imports/log/log_table_record.php';
+		// for($i = ($records - 1); $i >= 0; $i--){
+		for($i =0; $i < $records; $i++){
 
+			$row = $current_row + $i;
+
+			$jcimporter->importer = new JC_Importer_Core( $importer_id );
+			$data                 = $jcimporter->importer->run_import( $row );
+			ob_start();
+			require $jcimporter->plugin_dir . 'app/view/imports/log/log_table_record.php';	
+			$output[] = ob_get_clean();
+		}
+
+		// reverse array to follow existing import record order
+		$output = array_reverse($output);
+		foreach($output as $x){
+			echo $x;
+		}
 		die();
 	}
 
