@@ -149,6 +149,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 					type: "POST",
 					beforeSend: function () {
 						$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Importing Record #' + (record - <?php echo $start_line -1; ?>) + ' out of #' + (record_total - <?php echo $start_line -1; ?>) + ' Estimated Finish time at ' + estimatedFinishDate + '</p></div>');
+						document.title = 'Importing ('+ (record - <?php echo $start_line -1; ?>) +'/' + (record_total - <?php echo $start_line -1; ?>) +')';
 					},
 					success: function (response) {
 						$('#ajaxResponse').html('');
@@ -173,10 +174,12 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 								getNextRecord();
 							} else {
 								$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Import Paused of (' + (record - <?php echo $start_line; ?>) + '/' + (record_total - <?php echo $start_line -1; ?>) + ') Records</p></div>');
+								document.title = 'Import Paused ('+ (record - <?php echo $start_line -1; ?>) +'/' + (record_total - <?php echo $start_line -1; ?>) +')';
 							}
 
 						} else {
 							$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Import of ' + (record_total - <?php echo $start_line -1; ?>) + ' Records</p></div>');
+							document.title = 'Import Complete: '+ (record_total - <?php echo $start_line -1; ?>);
 							running = 3;
 							$('.form-actions').hide();
 
@@ -212,10 +215,12 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 							if(response.status == 'S'){
 								del_count = response.response.total;
 								if(del_count == 0){
+									document.title = 'Import Complete';
 									$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Import Complete, No Items to delete</p></div>');
 									running = 3;
 									$('.form-actions').hide();
 								}else{
+									document.title = 'Deleting Items 0/'+del_count;
 									$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Deleting Items (0/'+del_count+')</p></div>');
 								}
 								
@@ -225,10 +230,12 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 						if(del_count > curr_del_record){
 							curr_del_record++;
 							deleteNextRecord();
+							document.title = 'Deleting Items '+curr_del_record+'/'+del_count;
 							$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Deleting Items ('+curr_del_record+'/'+del_count+')</p></div>');
 						}else{
 
 							if(del_count > 0){
+								document.title = 'Import Complete';
 								$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Import of ' + (record_total - <?php echo $start_line -1; ?>) + ' Items, '+del_count+' Items Deleted</p></div>');
 								running = 3;
 								$('.form-actions').hide();

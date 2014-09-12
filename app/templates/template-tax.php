@@ -286,10 +286,12 @@ class JC_Tax_Template extends JC_Importer_Template {
 
 				break;
 			case 'parent':
-				
-				$parent = get_term_by( 'term_id', $data['taxonomy']['parent'], 'category');
+
+				$parent = get_term_by( 'term_id', $data['taxonomy']['parent'], $data['taxonomy']['taxonomy']);
 				if($parent){
 					echo $parent->name;
+				}else{
+					echo 'N/A';
 				}
 				
 				break;

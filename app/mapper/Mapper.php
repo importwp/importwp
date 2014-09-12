@@ -771,7 +771,7 @@ class JC_BaseMapper {
 					} else {
 						$this->_insert[ $this->_current_row ]['attachments'][] = array(
 							'status' => 'E',
-							'msg'    => $this->attachment_class->get_error_message()
+							'msg'    => $this->attachment_class->get_error()
 						);
 					}
 				} catch ( Exception $e ) {

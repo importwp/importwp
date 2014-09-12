@@ -63,6 +63,8 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 						echo JCI_FormHelper::text( 'remote_url', array( 'label' => 'URL' ) );
 						echo '</div>';
 
+						do_action( 'jci/output_datasource_section' );
+
 						echo '<h2 class="title">4. Setup Permissions</h2>';
 						echo '<p>Choose the permissions you wish the importer to have</p>';
 						echo JCI_FormHelper::checkbox( 'permissions[create]', array(
@@ -80,8 +82,6 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 							'default' => 1,
 							'checked' => false
 						) );
-
-						do_action( 'jci/output_datasource_section' );
 
 						do_action( 'jci/after_import_settings' );
 
