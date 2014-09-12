@@ -194,18 +194,20 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
 	</div>
 
+	<div class="form-actions">
+
+		<?php
+		echo JCI_FormHelper::Submit( 'btn-save', array( 'class' => 'button-primary button', 'value' => 'Save All' ) );
+		echo JCI_FormHelper::Submit( 'btn-continue', array(
+				'class' => 'button-secondary button',
+				'value' => 'Save & Run'
+			) );
+		?>
+	</div>
+
 </div>
 
-<div class="form-actions">
 
-	<?php
-	echo JCI_FormHelper::Submit( 'btn-save', array( 'class' => 'button-primary button', 'value' => 'Save All' ) );
-	echo JCI_FormHelper::Submit( 'btn-continue', array(
-			'class' => 'button-secondary button',
-			'value' => 'Save & Run'
-		) );
-	?>
-</div>
 <div style="clear:both;"></div>
 
 
@@ -457,6 +459,16 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 			<?php endif; ?>
 
 		</div>
+
+		<div class="form-actions">
+			<?php
+			echo JCI_FormHelper::Submit( 'btn-save', array( 'class' => 'button-primary button', 'value' => 'Save All' ) );
+			echo JCI_FormHelper::Submit( 'btn-continue', array(
+					'class' => 'button-secondary button',
+					'value' => 'Save & Run'
+				) );
+			?>
+		</div>
 	</div>
 	<!--/Container-->
 <?php endforeach; ?>
@@ -562,15 +574,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 		});
 	</script>
 <?php endif; ?>
-<div class="form-actions">
-	<?php
-	echo JCI_FormHelper::Submit( 'btn-save', array( 'class' => 'button-primary button', 'value' => 'Save All' ) );
-	echo JCI_FormHelper::Submit( 'btn-continue', array(
-			'class' => 'button-secondary button',
-			'value' => 'Save & Run'
-		) );
-	?>
-</div>
+
 </div>
 
 <div id="postbox-container-1" class="postbox-container">

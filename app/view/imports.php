@@ -2,7 +2,7 @@
 $importers = ImporterModel::getImporters();
 ?>
 <div id="icon-tools" class="icon32"><br></div>
-<h2>Importer <a href="<?php echo admin_url('admin.php?page=jci-importers&action=add' ); ?>"
+<h2>JC Importer <a href="<?php echo admin_url('admin.php?page=jci-importers&action=add' ); ?>"
                 class="add-new-h2">Add New</a></h2>
 
 <?php jci_display_messages(); ?>
