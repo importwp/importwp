@@ -166,6 +166,11 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 							record += records_per_row;
 							if (running == 2) {
 
+								// =========================================
+								// Estimate how long on the current rate 
+								// would it take to complete
+								// =========================================
+								
 								var currentDate = new Date();
 								var diff = currentDate.getTime() - startDate.getTime();
 								var time_in_seconds = Math.floor(diff / 1000);
@@ -173,32 +178,38 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 								var total_records = <?php echo $record_count - $start_line; ?>;
 								var total_records_left = ( total_records - current_record_count);
 								var seconds = (time_in_seconds / current_record_count) * total_records_left;
+								estimatedFinishDate = new Date(new Date().getTime() + new Date(1970, 1, 1, 0, 0, parseInt(seconds), 0).getTime());
 
+								// =========================================
+								// Manage how many records to import at once
+								// =========================================
+								
 								var record_diff = currentDate.getTime() - record_start.getTime();
 								var record_time_in_seconds = Math.floor(record_diff / 1000);
+								
+								if(record_diffs.length > 9)
+									record_diffs.shift();
+
 								record_diffs.push(record_time_in_seconds);
 
 								record_diffs_sum = 0;
 								for(var l = 0; l < record_diffs.length; l++){
+
 									record_diffs_sum += record_diffs[l];
 								}
 
 								var record_diffs_avg = record_diffs_sum / record_diffs.length;
+								if(record_diffs_avg > 2.5){
 
-								if(record_diffs_avg > 1){
-									// reduce
 									record_diffs = [];
 									if(records_per_row > 1){
+										
 										records_per_row = Math.floor(records_per_row / 2);	
 									}
-								}else{
+								}else if(record_diffs_avg < 2){
+
 									records_per_row++;	
 								}
-
-								console.log(records_per_row);
-								console.log('Diff: ' + record_time_in_seconds + ' Avg: '+ record_diffs_avg);
-
-								estimatedFinishDate = new Date(new Date().getTime() + new Date(1970, 1, 1, 0, 0, parseInt(seconds), 0).getTime());
 
 								getNextRecord();
 							} else {

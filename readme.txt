@@ -49,6 +49,12 @@ A guide to running and pausing an import can be viewed [here](http://jamescollin
 
 == Changelog ==
 
+= 0.1.2 =
+
+* Improved import speed
+* Fixed attachment import error message
+* Added importer permissions to add screen
+
 = 0.1 =
 
 * JC Importer

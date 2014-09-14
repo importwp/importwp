@@ -364,13 +364,13 @@ class JC_Importer_Admin {
 			$records = 1;
 		}
 
-		// for($i = ($records - 1); $i >= 0; $i--){
-		for($i =0; $i < $records; $i++){
+		$jcimporter->importer = new JC_Importer_Core( $importer_id );
+
+		for($i = 0; $i < $records; $i++){
 
 			$row = $current_row + $i;
 
-			$jcimporter->importer = new JC_Importer_Core( $importer_id );
-			$data                 = $jcimporter->importer->run_import( $row );
+			$data = $jcimporter->importer->run_import( $row );
 			ob_start();
 			require $jcimporter->plugin_dir . 'app/view/imports/log/log_table_record.php';	
 			$output[] = ob_get_clean();
