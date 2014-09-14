@@ -55,6 +55,12 @@ A guide to running and pausing an import can be viewed [here](http://jamescollin
 * Fixed attachment import error message
 * Added importer permissions to add screen
 
+= 0.1.1 =
+
+* Allow page authors to use username, or ID
+* Fix post author and post name
+* Add Tax Template and Maper
+
 = 0.1 =
 
 * JC Importer

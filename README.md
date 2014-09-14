@@ -25,6 +25,13 @@ JC Importer is an Advanced Wordpress CSV/XML Importer, allowing you to easily dr
 Comming soon.
 
 ##Changelog
+
+**0.1.2**
+
+* Improved import speed
+* Fixed attachment import error message
+* Added importer permissions to add screen
+
 **0.1.1**
 
 * Allow page authors to use username, or ID
