@@ -299,6 +299,9 @@ class JC_Importer_Admin {
 			if ( isset( $_POST['jc-importer_row-count'] ) ) {
 				$settings['row_count'] = $_POST['jc-importer_row-count'];
 			}
+			if ( isset( $_POST['jc-importer_record-import-count'] ) ) {
+				$settings['record_import_count'] = $_POST['jc-importer_record-import-count'];
+			}
 
 			$settings = apply_filters( 'jci/process_edit_form', $settings );
 			

@@ -5,6 +5,7 @@ $template_type        = $jcimporter->importer->get_template_type();
 $template_groups      = $jcimporter->importer->get_template_groups();
 $start_line           = $jcimporter->importer->get_start_line();
 $row_count            = $jcimporter->importer->get_row_count();
+$record_import_count  = $jcimporter->importer->get_record_import_count();
 $permissions_general  = $jcimporter->importer->get_permissions();
 $taxonomies           = $jcimporter->importer->get_taxonomies();
 $taxonomy_permissions = $jcimporter->importer->get_taxonomies_permissions();
@@ -79,6 +80,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
 			echo JCI_FormHelper::text( 'start-line', array( 'label' => 'Start Row', 'default' => $start_line ) );
 			echo JCI_FormHelper::text( 'row-count', array( 'label' => 'Max Rows', 'default' => $row_count ) );
+			echo JCI_FormHelper::text( 'record-import-count', array( 'label' => 'Records per Import', 'default' => $record_import_count ) );
 			echo JCI_FormHelper::select( 'template_type', array(
 					'label'   => 'Template Type',
 					'options' => array( 'csv' => 'CSV', 'xml' => 'XML' ),

@@ -34,6 +34,7 @@ class JC_Importer_Core {
 	protected $groups = array();
 	protected $start_line = 0;
 	protected $row_count = 0;
+	protected $record_import_count = 10;
 	protected $total_rows = 0;
 	protected $last_import_row = 0;
 	protected $name = '';
@@ -65,6 +66,7 @@ class JC_Importer_Core {
 			$this->template      = get_import_template( $this->template_name );
 			$this->start_line    = ImporterModel::getImportSettings( $id, 'start_line' );
 			$this->row_count     = ImporterModel::getImportSettings( $id, 'row_count' );
+			$this->record_import_count = ImporterModel::getImportSettings( $id, 'record_import_count' );
 
 			// load taxonomies
 			$taxonomies = ImporterModel::getImporterMeta( $id, 'taxonomies' );
@@ -274,6 +276,10 @@ class JC_Importer_Core {
 
 	public function get_row_count() {
 		return $this->row_count;
+	}
+
+	public function get_record_import_count(){
+		return $this->record_import_count;
 	}
 
 	public function get_total_rows() {

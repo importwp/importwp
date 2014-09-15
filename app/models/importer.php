@@ -192,6 +192,9 @@ class ImporterModel {
 			case 'row_count':
 				$settings = isset( $settings['row_count'] ) ? $settings['row_count'] : 0;
 				break;
+			case 'record_import_count':
+				$settings = isset( $settings['record_import_count'] ) ? $settings['record_import_count'] : 10;
+				break;
 			case 'import_file':
 				if ( intval( $settings['import_file'] ) > 0 ) {
 					$settings = get_attached_file( intval( $settings['import_file'] ) );
@@ -363,6 +366,7 @@ class ImporterModel {
 		$settings               = get_post_meta( $post_id, '_import_settings', true );
 		$settings['start_line'] = isset( $data['settings']['start_line'] ) ? $data['settings']['start_line'] : 1;
 		$settings['row_count']  = isset( $data['settings']['row_count'] ) ? $data['settings']['row_count'] : 0;
+		$settings['record_import_count']  = isset( $data['settings']['record_import_count'] ) ? $data['settings']['record_import_count'] : 10;
 
 		if ( isset( $data['settings']['template_type'] ) && in_array( $data['settings']['template_type'], array(
 					'csv',

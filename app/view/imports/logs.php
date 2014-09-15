@@ -8,6 +8,7 @@ $template_name = $jcimporter->importer->get_template_name();
 $template      = $jcimporter->importer->get_template();
 $start_line    = $jcimporter->importer->get_start_line();
 $row_count     = $jcimporter->importer->get_row_count();
+$record_import_count  = $jcimporter->importer->get_record_import_count();
 $name          = $jcimporter->importer->get_name();
 $import_status = 0;
 
@@ -125,7 +126,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 		var estimatedFinishDate = new Date();
 		var curr_del_record = 0;
 		var del_count = 0;
-		var records_per_row = 1;
+		var records_per_row = <?php echo $record_import_count; ?>;
 		var record_diffs = new Array();
 
 		// ajax import
@@ -184,7 +185,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 								// Manage how many records to import at once
 								// =========================================
 								
-								var record_diff = currentDate.getTime() - record_start.getTime();
+								/*var record_diff = currentDate.getTime() - record_start.getTime();
 								var record_time_in_seconds = Math.floor(record_diff / 1000);
 								
 								if(record_diffs.length > 9)
@@ -209,7 +210,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 								}else if(record_diffs_avg < 2){
 
 									records_per_row++;	
-								}
+								}*/
 
 								getNextRecord();
 							} else {
