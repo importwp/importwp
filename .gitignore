@@ -1,4 +1,2 @@
 phpunit.xml
 .idea/
-app/tmp/
-!.empty
