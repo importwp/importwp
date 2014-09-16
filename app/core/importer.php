@@ -189,6 +189,11 @@ class JC_Importer_Core {
 		$jci_template_type = $jcimporter->importer->template_type;
 		$parser            = $jcimporter->parsers[ $this->template_type ];
 
+		// clear session if first record is being imported
+		if($row == $jcimporter->importer->get_start_line()){
+			$parser->clear_session();
+		}
+
 		$mapper = new JC_BaseMapper();
 		if( $parser->loadFile( $jci_file ) ){
 

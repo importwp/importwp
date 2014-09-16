@@ -369,9 +369,22 @@ class JC_Importer_Admin {
 
 		$jcimporter->importer = new JC_Importer_Core( $importer_id );
 
+		// fetch import limit
+		$start_record = $jcimporter->importer->get_start_line();
+		$last_record = 0;
+		$max_records = $jcimporter->importer->get_row_count();
+
 		for($i = 0; $i < $records; $i++){
 
 			$row = $current_row + $i;
+
+			// escape if max record has beem met
+			if($max_records > 0){
+				$last_record = $start_record + $max_records;
+				if($row >= $last_record){
+					break;
+				}
+			}
 
 			$data = $jcimporter->importer->run_import( $row );
 			ob_start();

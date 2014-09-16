@@ -29,6 +29,10 @@ class JC_Parser {
 	 */
 	protected $start = - 1, $end = - 1;
 
+	public $seek = 0;
+	public $seek_record_count = 0;
+	protected $name = '';
+
 	/**
 	 * Parse loaded data
 	 *
@@ -37,8 +41,6 @@ class JC_Parser {
 	 */
 	public function parse() {
 	}
-
-	var $name = '';
 
 	/**
 	 * Load initial variables
@@ -150,6 +152,55 @@ class JC_Parser {
 	}
 
 	public function register_config( $general, $fields ) {
+	}
+
+	/**
+	 * Save current file progress to session
+	 * @return void
+	 */
+	public function save_session(){
+		
+		global $jcimporter;
+
+		$data = array(
+			'counter' => $this->seek_record_count, 
+			'seek' => $this->seek
+		);
+		$data = serialize($data);
+
+		file_put_contents($jcimporter->plugin_dir . '/app/tmp/session-' . $jcimporter->importer->ID.'-'.$jcimporter->importer->get_version(), $data);
+	}
+
+	/**
+	 * Load last file progress from session for current import
+	 * @return void
+	 */
+	public function load_session(){
+
+		global $jcimporter;
+
+		$tmp_session_file = $jcimporter->plugin_dir . '/app/tmp/session-' . $jcimporter->importer->ID.'-'.$jcimporter->importer->get_version();
+
+		if(file_exists($tmp_session_file)){
+			$tmp_seek = unserialize(file_get_contents($tmp_session_file));
+			$this->seek = intval($tmp_seek['seek']);
+			$this->seek_record_count = intval($tmp_seek['counter']);
+		}
+	}
+
+	/**
+	 * Wipe session data for current import
+	 * @return void
+	 */
+	public function clear_session(){
+
+		global $jcimporter;
+
+		$files = glob($jcimporter->plugin_dir . '/app/tmp/session-'.$jcimporter->importer->ID.'-*'); // get all file names
+		foreach($files as $file){ // iterate files
+		  if(is_file($file))
+		    unlink($file); // delete file
+		}
 	}
 
 }
