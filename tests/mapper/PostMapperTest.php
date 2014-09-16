@@ -60,10 +60,15 @@ class PostMapperTest extends WP_UnitTestCase {
 	 * @group core
 	 * @group mapper
 	 */
-	public function test_exists() {
+	public function test_title_exists() {
 
 		$slug    = 'test-insert-123';
 		$post_id = wp_insert_post( array( 'post_title'  => 'test insert 123',
+		                                  'post_type'   => 'post',
+		                                  'post_status' => 'publish'
+		) );
+
+		wp_insert_post( array( 'post_title'  => 'test insert 456',
 		                                  'post_type'   => 'post',
 		                                  'post_status' => 'publish'
 		) );

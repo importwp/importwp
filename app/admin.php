@@ -386,7 +386,7 @@ class JC_Importer_Admin {
 				}
 			}
 
-			$data = $jcimporter->importer->run_import( $row );
+			$data = $jcimporter->importer->run_import( $row, true );
 			ob_start();
 			require $jcimporter->plugin_dir . 'app/view/imports/log/log_table_record.php';	
 			$output[] = ob_get_clean();

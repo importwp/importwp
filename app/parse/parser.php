@@ -32,6 +32,7 @@ class JC_Parser {
 	public $seek = 0;
 	public $seek_record_count = 0;
 	protected $name = '';
+	public $session = false;
 
 	/**
 	 * Parse loaded data
@@ -159,6 +160,9 @@ class JC_Parser {
 	 * @return void
 	 */
 	public function save_session(){
+
+		if(!$this->session)
+			return;
 		
 		global $jcimporter;
 
@@ -177,6 +181,9 @@ class JC_Parser {
 	 */
 	public function load_session(){
 
+		if(!$this->session)
+			return;
+
 		global $jcimporter;
 
 		$tmp_session_file = $jcimporter->plugin_dir . '/app/tmp/session-' . $jcimporter->importer->ID.'-'.$jcimporter->importer->get_version();
@@ -193,6 +200,9 @@ class JC_Parser {
 	 * @return void
 	 */
 	public function clear_session(){
+
+		if(!$this->session)
+			return;
 
 		global $jcimporter;
 

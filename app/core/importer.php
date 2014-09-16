@@ -180,7 +180,7 @@ class JC_Importer_Core {
 	 *
 	 * @return array Response
 	 */
-	public function run_import( $row = null ) {
+	public function run_import( $row = null, $session = false ) {
 
 		global $jcimporter;
 		$importer_id = $jcimporter->importer->get_ID();
@@ -188,6 +188,11 @@ class JC_Importer_Core {
 		$jci_template      = $jcimporter->importer->template;
 		$jci_template_type = $jcimporter->importer->template_type;
 		$parser            = $jcimporter->parsers[ $this->template_type ];
+
+		// use session if row > 0
+		if($session){
+			$parser->session = true;
+		}
 
 		// clear session if first record is being imported
 		if($row == $jcimporter->importer->get_start_line()){

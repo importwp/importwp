@@ -152,13 +152,16 @@ class JC_CSV_Parser extends JC_Parser {
 		$records = array();
 		$counter = 1;
 
+		// reset file position
+		$this->seek = 0;
+		$this->seek_record_count = 0;
+
 		// load seek value from session
 		$this->load_session();		
 
 		// check to see if the file has already been read, if so load the new starting point
-		if(intval($this->seek) > 0 && intval($this->seek_record_count) > 0){
+		if( intval($this->seek) > 0 && intval($this->seek_record_count) > 0 ){
 
-			// todo: save this to a session so each time a new chunk is imported it doesnt have to start from scratch
 			fseek($fh, $this->seek);
 			$counter = $this->seek_record_count;
 		}

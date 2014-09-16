@@ -127,7 +127,6 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 		var curr_del_record = 0;
 		var del_count = 0;
 		var records_per_row = <?php echo $record_import_count; ?>;
-		var del_records_per_row = 100;
 		var record_diffs = new Array();
 
 		// ajax import
