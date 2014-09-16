@@ -22,7 +22,26 @@ JC Importer is an Advanced Wordpress CSV/XML Importer, allowing you to easily dr
 * User
 
 ##FAQ
-Comming soon.
+
+**How do i create an importer**
+
+Documentation on adding an importer can be viewed [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/adding-an-importer/)
+
+**What settings does each importer have**
+
+Documentation on using the importer settings can be found [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/importer-settings/)
+
+**How to import from an XML file**
+
+A guide to importing data from an xml file can be viewed [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/importing-from-an-xml-file/)
+
+**How to import from an CSV file**
+
+A guide to importing data from an csv file can be viewed [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/importing-from-a-csv-file/)
+
+**How do i run an importer once it is setup**
+
+A guide to running and pausing an import can be viewed [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/running-an-import/)
 
 ##Changelog
 
