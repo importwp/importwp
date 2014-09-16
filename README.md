@@ -26,7 +26,7 @@ Comming soon.
 
 ##Changelog
 
-** 0.1.3 **
+**0.1.3**
 
 * Add file session storage for CSV import
 * Save session between imports to keep track of file pointer position
