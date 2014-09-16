@@ -49,6 +49,12 @@ A guide to running and pausing an import can be viewed [here](http://jamescollin
 
 == Changelog ==
 
+= 0.1.3 =
+
+* Add file session storage for CSV import
+* Save session between imports to keep track of file pointer position
+* Allow multiple records to be imported per ajax request
+
 = 0.1.2 =
 
 * Improved import speed

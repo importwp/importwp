@@ -3,7 +3,7 @@
 Plugin Name: JC Importer
 Description: Wordpress CSV/XML Importer Plugin, Easily import users, posts, custom post types and taxonomies from XML or CSV files
 Author: James Collings <james@jclabs.co.uk>
-Version: 0.1.2
+Version: 0.1.3
 */
 
 require_once 'app/core/exceptions.php';
