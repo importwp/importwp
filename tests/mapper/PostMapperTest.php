@@ -30,6 +30,8 @@ class PostMapperTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * check to see if a post exists with the same slug
+	 * 
 	 * @depends test_insert
 	 * @group core
 	 * @group mapper
@@ -42,6 +44,29 @@ class PostMapperTest extends WP_UnitTestCase {
 		                                  'post_type'   => 'post',
 		                                  'post_status' => 'publish'
 			) );
+
+		$mapper      = new JC_PostMapper();
+		$result_id = $mapper->exists_data( array( 'post_name' => $slug ), array( 'post_name' ), 'post', 'publish' );
+
+		$this->assertGreaterThan( 0, $result_id );
+		$this->assertEquals( $post_id, $result_id );
+
+	}
+
+	/**
+	 * check if no slug is set, it will be generated from the title and used to see if a post exists
+	 * 
+	 * @depends test_insert
+	 * @group core
+	 * @group mapper
+	 */
+	public function test_exists() {
+
+		$slug    = 'test-insert-123';
+		$post_id = wp_insert_post( array( 'post_title'  => 'test insert 123',
+		                                  'post_type'   => 'post',
+		                                  'post_status' => 'publish'
+		) );
 
 		$mapper      = new JC_PostMapper();
 		$result_id = $mapper->exists_data( array( 'post_name' => $slug ), array( 'post_name' ), 'post', 'publish' );
