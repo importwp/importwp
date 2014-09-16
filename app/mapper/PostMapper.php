@@ -404,6 +404,9 @@ class JC_PostMapper {
 	 */
 	function remove_single_object( $importer_id, $version, $post_type ){
 
+		global $jcimporter;
+		$record_import_count  = $jcimporter->importer->get_record_import_count();
+
 		// get a list of all objects which were not in current update
 		$q = new WP_Query( array(
 			'post_type'  => $post_type,
@@ -415,14 +418,20 @@ class JC_PostMapper {
 				)
 			),
 			'fields'     => 'ids',
-			'posts_per_page' => 1
+			'posts_per_page' => $record_import_count
 		) );
 
 		// delete list of objects
 		if ( $q->have_posts() ) {
 			$ids = $q->posts;
 			// return 'FAKE DELETE';
-			return wp_delete_post(array_shift($ids) , true );
+			foreach ( $ids as $id ) {
+				if(!wp_delete_post( $id, true )){
+					return false;
+				}
+			}
+			return true;
+			// return wp_delete_post(array_shift($ids) , true );
 		}
 
 		return false;

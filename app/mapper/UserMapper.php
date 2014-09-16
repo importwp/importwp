@@ -230,6 +230,9 @@ class JC_UserMapper{
 	 */
 	function remove_single_object( $importer_id, $version, $post_type ){
 
+		global $jcimporter;
+		$record_import_count  = $jcimporter->importer->get_record_import_count();
+
 		// get a list of all objects which were not in current update
 		$user_query = new WP_User_Query( array (
 			'meta_query'     	=> array(
@@ -240,7 +243,7 @@ class JC_UserMapper{
 				),
 			),
 			'fields'			=> array( 'id' ),
-			'number'         => '1',
+			'number'         => $record_import_count,
 		) );
 
 		// delete list of objects

@@ -269,7 +269,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 						}
 
 						if(del_count > curr_del_record){
-							curr_del_record++;
+							curr_del_record += records_per_row;
 							deleteNextRecord();
 							document.title = 'Deleting Items '+curr_del_record+'/'+del_count;
 							$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Deleting Items ('+curr_del_record+'/'+del_count+')</p></div>');

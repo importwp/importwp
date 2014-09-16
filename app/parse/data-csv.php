@@ -137,6 +137,9 @@ class JC_CSV_Parser extends JC_Parser {
 		return $this->_records[ $row - 1 ];
 	}
 
+	private $seek = 0;
+	private $seek_record_count = 0;
+
 	/**
 	 * Parse CSV
 	 *
@@ -150,13 +153,19 @@ class JC_CSV_Parser extends JC_Parser {
 
 		$fh      = fopen( $this->file, 'r' );
 		$records = array();
-
 		$counter = 1;
+
+		// check to see if the file has already been read, if so load the new starting point
+		if($this->seek > 0 && $this->seek_record_count > 0){
+			
+			// todo: save this to a session so each time a new chunk is imported it doesnt have to start from scratch
+			fseek($fh, $this->seek);
+			$counter = $this->seek_record_count;
+		}
 
 		// set enclosure and delimiter
 		$delimiter = isset( $jcimporter->importer->addon_settings->csv_delimiter ) ? $jcimporter->importer->addon_settings->csv_delimiter : ',';
 		$enclosure = isset( $jcimporter->importer->addon_settings->csv_enclosure ) ? $jcimporter->importer->addon_settings->csv_enclosure : '"';
-
 
 		while ( $line = fgetcsv( $fh, null, $delimiter, $enclosure ) ) {
 
@@ -177,9 +186,7 @@ class JC_CSV_Parser extends JC_Parser {
 			$this->_records[ $counter - 1 ] = $line;
 
 			foreach ( $groups as $group_id => $group ) {
-
 				foreach ( $group['fields'] as $key => $val ) {
-
 					$val                      = apply_filters( 'jci/parse_csv_field', $val, $line );
 					$row[ $group_id ][ $key ] = $val;
 				}
@@ -190,6 +197,11 @@ class JC_CSV_Parser extends JC_Parser {
 
 			// escape early if selected row
 			if ( ! is_null( $selected_row ) ) {
+				
+				// save file byte location for quick resume
+				// todo: save this to session
+				$this->seek = ftell($fh);
+				$this->seek_record_count = $counter;
 				break;
 			}
 		}
