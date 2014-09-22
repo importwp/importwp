@@ -87,6 +87,17 @@ class ImporterModel {
 	}
 
 	/**
+	 * Set Importer Version
+	 * @param int $id  
+	 * @param int $ver new version number
+	 */
+	static function setImportVersion($id, $ver){
+
+		$old_ver = get_post_meta( $id, '_import_version', true );
+		update_post_meta( $id, '_import_version', $ver, $old_ver );
+	}
+
+	/**
 	 * Add Importer
 	 *
 	 * @param  int $post_id
