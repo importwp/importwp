@@ -154,7 +154,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 					dataType: 'html',
 					type: "POST",
 					beforeSend: function () {
-						$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Importing Record #' + (record - <?php echo $start_line -1; ?>) + ' out of #' + (record_total - <?php echo $start_line -1; ?>) + ' Estimated Finish time at ' + estimatedFinishDate + '</p></div>');
+						$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p><span id="preview-loading" class="spinner" style="display: block; float:left; margin: 0 5px 0 0;"></span> Importing Record #' + (record - <?php echo $start_line -1; ?>) + ' out of #' + (record_total - <?php echo $start_line -1; ?>) + ' Estimated Finish time at ' + estimatedFinishDate + '</p></div>');
 						document.title = 'Importing ('+ (record - <?php echo $start_line -1; ?>) +'/' + (record_total - <?php echo $start_line -1; ?>) +')';
 					},
 					success: function (response) {
@@ -164,7 +164,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
 						record += records_per_row;
 
-						if (record < record_total) {
+						// current record is (record - 1)
+						if ((record - 1) < record_total) {
 
 							if (running == 2) {
 
@@ -181,37 +182,6 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 								var total_records_left = ( total_records - current_record_count);
 								var seconds = (time_in_seconds / current_record_count) * total_records_left;
 								estimatedFinishDate = new Date(new Date().getTime() + new Date(1970, 1, 1, 0, 0, parseInt(seconds), 0).getTime());
-
-								// =========================================
-								// Manage how many records to import at once
-								// =========================================
-								
-								/*var record_diff = currentDate.getTime() - record_start.getTime();
-								var record_time_in_seconds = Math.floor(record_diff / 1000);
-								
-								if(record_diffs.length > 9)
-									record_diffs.shift();
-
-								record_diffs.push(record_time_in_seconds);
-
-								record_diffs_sum = 0;
-								for(var l = 0; l < record_diffs.length; l++){
-
-									record_diffs_sum += record_diffs[l];
-								}
-
-								var record_diffs_avg = record_diffs_sum / record_diffs.length;
-								if(record_diffs_avg > 2.5){
-
-									record_diffs = [];
-									if(records_per_row > 1){
-										
-										records_per_row = Math.floor(records_per_row / 2);	
-									}
-								}else if(record_diffs_avg < 2){
-
-									records_per_row++;	
-								}*/
 
 								getNextRecord();
 							} else {
