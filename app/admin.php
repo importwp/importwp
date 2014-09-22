@@ -131,21 +131,16 @@ class JC_Importer_Admin {
 			$attach          = new JC_CURL_Attachments();
 			$result          = $attach->attach_remote_file( $importer, $url, $dest );
 
+			// todo: save import frequency, setup cron
+
 			// update settings with new file
 			ImporterModel::setImporterMeta( $importer, array( '_import_settings', 'import_file' ), $result['id'] );
 
 			// reload importer settings
 			ImporterModel::clearImportSettings();
 
-			// run import
-			$jcimporter->importer = new JC_Importer_Core( $importer );
-			if ( $import_result = $jcimporter->importer->run_import() ) {
-
-				// import successful
-				do_action( 'jci/after_import_run', $import_result );
-			}
-
-			wp_redirect( 'admin.php?page=jci-importers&import=' . $importer . '&action=edit' );
+			// redirect to importer run page
+			wp_redirect( 'admin.php?page=jci-importers&import=' . $importer . '&action=logs' );
 			exit();
 		}
 
