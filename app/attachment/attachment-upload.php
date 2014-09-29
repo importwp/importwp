@@ -18,7 +18,7 @@ class JC_Upload_Attachments extends JC_Attachment {
 	 *
 	 * @return array/bool
 	 */
-	public function attach_upload( $post_id, $attachment ) {
+	public function attach_upload( $post_id, $attachment, $args = array() ) {
 
 		// check for upload status
 		switch ( $attachment['error'] ) {
@@ -71,7 +71,7 @@ class JC_Upload_Attachments extends JC_Attachment {
 					'dest' => $wp_dest,
 					'type' => $template_type,
 					'mime' => $attachment['type'],
-					'id'   => $this->wp_insert_attachment( $post_id, $wp_dest, array() )
+					'id'   => $this->wp_insert_attachment( $post_id, $wp_dest, $args )
 				);
 			}
 		}

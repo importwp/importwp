@@ -19,7 +19,7 @@ class JC_String_Attachments extends JC_Attachment {
 	 *
 	 * @return array/bool
 	 */
-	public function attach_string( $post_id, $string = '', $a_name = '' ) {
+	public function attach_string( $post_id, $string = '', $a_name = '', $args = array() ) {
 
 		if ( ! empty( $string ) ) {
 
@@ -43,7 +43,7 @@ class JC_String_Attachments extends JC_Attachment {
 				return array(
 					'dest' => $wp_dest,
 					'type' => 'application/text',
-					'id'   => $this->wp_insert_attachment( $post_id, $wp_dest, array() )
+					'id'   => $this->wp_insert_attachment( $post_id, $wp_dest, $args )
 				);
 			}
 		}

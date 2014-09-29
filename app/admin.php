@@ -129,7 +129,7 @@ class JC_Importer_Admin {
 			$url             = $remote_settings['remote_url'];
 			$dest            = basename( $url );
 			$attach          = new JC_CURL_Attachments();
-			$result          = $attach->attach_remote_file( $importer, $url, $dest );
+			$result          = $attach->attach_remote_file( $importer, $url, $dest, array('importer-file' => true) );
 
 			// todo: save import frequency, setup cron
 
@@ -187,7 +187,7 @@ class JC_Importer_Admin {
 
 					// upload
 					$attach = new JC_Upload_Attachments();
-					$result = $attach->attach_upload( $post_id, $_FILES['jc-importer_import_file'] );
+					$result = $attach->attach_upload( $post_id, $_FILES['jc-importer_import_file'], array('importer-file' => true) );
 
 					// todo: replace the result
 					$result['attachment'] = $attach;
@@ -200,7 +200,7 @@ class JC_Importer_Admin {
 					$src                   = $_POST['jc-importer_remote_url'];
 					$dest                  = basename( $src );
 					$attach                = new JC_CURL_Attachments();
-					$result                = $attach->attach_remote_file( $post_id, $src, $dest );
+					$result                = $attach->attach_remote_file( $post_id, $src, $dest, array('importer-file' => true) );
 					$general['remote_url'] = $src;
 
 					// todo: replace the result
@@ -277,12 +277,12 @@ class JC_Importer_Admin {
 			if ( isset( $_POST['jc-importer_upload_file'] ) && ! empty( $_POST['jc-importer_upload_file'] ) ) {
 
 				$attach = new JC_Upload_Attachments();
-				$result = $attach->attach_upload( $id, $_FILES['jc-importer_import_file'] );
+				$result = $attach->attach_upload( $id, $_FILES['jc-importer_import_file'], array('importer-file' => true) );
 				ImporterModel::setImportFile( $id, $result );
 
 				// increase verion number
-				$verion = get_post_meta( $id, '_import_version', true );
-				ImporterModel::setImportVersion($id, $verion + 1);
+				// $verion = get_post_meta( $id, '_import_version', true );
+				// ImporterModel::setImportVersion($id, $verion + 1);
 
 				wp_redirect( '/wp-admin/admin.php?page=jci-importers&import=' . $id . '&action=edit' );
 				exit();

@@ -154,17 +154,20 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 			<div class="file_hostory">
 				<h4>Files:</h4>
 				<?php
+				
 				$current_import_file = basename( $jcimporter->importer->get_file() );
+
+				echo '<ul>';
 
 				// list of previously uploaded files
 				$importer_attachments = new WP_Query( array(
-						'post_type'   => 'attachment',
-						'post_parent' => $id,
-						'post_status' => 'any'
-					) );
-				// print_r($attachments);
+					'post_type'   => 'jc-import-files',
+					'post_parent' => $id,
+					'post_status' => 'any'
+				) );
+				
 				if ( $importer_attachments->have_posts() ) {
-					echo '<ul>';
+					
 					while ( $importer_attachments->have_posts() ) {
 
 						$importer_attachments->the_post();
@@ -182,9 +185,47 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 									) ) . '</li>';
 						}
 					}
-					echo '</ul>';
+					
 					wp_reset_postdata();
 				}
+
+				// ===================================================================
+				// backwards compat: Switching attachments for custom post type
+				// ===================================================================
+
+				// list of previously uploaded files
+				$importer_attachments = new WP_Query( array(
+						'post_type'   => 'attachment',
+						'post_parent' => $id,
+						'post_status' => 'any'
+					) );
+				// print_r($attachments);
+				if ( $importer_attachments->have_posts() ) {
+					while ( $importer_attachments->have_posts() ) {
+
+						$importer_attachments->the_post();
+						$import_file = get_post_meta( get_the_ID(), '_wp_attached_file', true );
+						if ( $current_import_file == basename( $import_file ) ) {
+							echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
+										'value'   => get_the_ID(),
+										'label'   => $import_file . ' (' . get_the_date() . ' at ' . get_the_time() . ')',
+										'checked' => true
+									) ) . '</li>';
+						} else {
+							echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
+										'value' => get_the_ID(),
+										'label' => $import_file . ' (' . get_the_date() . ' at ' . get_the_time() . ')'
+									) ) . '</li>';
+						}
+					}
+					wp_reset_postdata();
+				}
+
+				// ===================================================================
+				// End backwards compat:
+				// ===================================================================
+
+				echo '</ul>';
 
 				// file upload
 				echo JCI_FormHelper::file( 'import_file', array( 'label' => 'Import File' ) );

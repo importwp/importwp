@@ -107,7 +107,34 @@ class JC_Attachment {
 			'post_parent'    => $post_id
 		);
 
-		$attach_id = wp_insert_attachment( $attachment, $file, $post_id );
+		// $args['importer-file'] = true;
+
+		if(isset($args['importer-file']) && $args['importer-file'] === true){
+
+			// new importer file, increase verion number
+			$verion = get_post_meta( $post_id, '_import_version', true );
+			ImporterModel::setImportVersion($post_id, $verion + 1);
+
+			// set post_type
+			$attachment['post_type'] = 'jc-import-files';
+
+			$attach_id = wp_insert_post( $attachment);
+			if($attach_id){
+
+				// get attachment path
+				$attachment_src = $wp_upload_dir['subdir'] . '/' . basename( $file );
+				if(strpos($attachment_src, '/') === 0){
+					$attachment_src = substr($attachment_src, 1);
+				}
+				// save path to post file
+				add_post_meta( $attach_id, '_wp_attached_file', $attachment_src, true );
+			}
+
+		}else{
+			$attach_id = wp_insert_attachment( $attachment, $file, $post_id );
+		}
+
+		
 
 		// generate wp sizes
 		if ( $resize ) {

@@ -208,7 +208,24 @@ class ImporterModel {
 				break;
 			case 'import_file':
 				if ( intval( $settings['import_file'] ) > 0 ) {
-					$settings = get_attached_file( intval( $settings['import_file'] ) );
+
+					if( get_post_type( $settings['import_file'] ) == 'jc-import-files'){
+
+						// fetch import file from custom post status
+						$settings = get_post_meta( intval( $settings['import_file'] ) , '_wp_attached_file', true );
+						if($settings){
+							// get full file path
+							$wp_upload_dir = wp_upload_dir();
+							$settings = $wp_upload_dir['basedir'] . DIRECTORY_SEPARATOR . $settings; 
+						}
+
+					}else{
+						
+						// get attachment file path
+						$settings = get_attached_file( intval( $settings['import_file'] ) );
+					}
+
+					
 				} else {
 					$settings = isset( $settings['import_file'] ) ? $settings['import_file'] : '';
 				}
