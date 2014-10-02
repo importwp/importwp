@@ -45,6 +45,11 @@ A guide to running and pausing an import can be viewed [here](http://jamescollin
 
 ##Changelog
 
+**0.1.4**
+
+* Switch saving importer files as attachments to custom post type, stopping filling media library with files
+* Clear current import status on new file upload globally
+
 **0.1.3**
 
 * Add file session storage for CSV import

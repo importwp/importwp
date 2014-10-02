@@ -99,6 +99,14 @@ class JC_Importer_Ajax {
 		die();
 	}
 
+	/**
+	 * Fetch an array of all possible nodes in the current xml document
+	 *
+	 * Load the importer xml file, and scan through the file to fetch a 
+	 * list of all possible xml xpath nodes
+	 * 
+	 * @return array document xml nodes xpath ['/posts'. '/posts/post']
+	 */
 	public function admin_ajax_base_node() {
 
 		$post_id   = $_GET['importer_id'];

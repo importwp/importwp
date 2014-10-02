@@ -337,7 +337,10 @@ class JC_Importer_Admin {
 
 				// increase version number
 				$verion = get_post_meta( $id, '_import_version', true );
-				ImporterModel::setImportVersion($id, $verion + 1);
+				$last_row = get_post_meta( $id, '_jci_last_row_'.$version, true );
+				if($last_row > 0){
+					ImporterModel::setImportVersion($id, $verion + 1);
+				}	
 
 				$settings['import_file'] = $selected_import_id;
 			}

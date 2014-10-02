@@ -1,5 +1,10 @@
 <?php
-
+/**
+ * Abstract Template class
+ *
+ * All templates extend this class, initializing core template hooks
+ * @since v0.0.1
+ */
 class JC_Importer_Template {
 
 	public $_name = '';
@@ -9,10 +14,7 @@ class JC_Importer_Template {
 
 		// before record gets imported
 		if ( method_exists( $this, 'before_template_save' ) ) {
-			add_action( 'jci/before_' . $this->get_name() . '_row_save', array(
-					$this,
-					'before_template_save'
-				), 10, 2 );
+			add_action( 'jci/before_' . $this->get_name() . '_row_save', array( $this, 'before_template_save' ), 10, 2 );
 		}
 
 		// before group save
