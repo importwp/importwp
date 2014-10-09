@@ -31,9 +31,9 @@ jQuery(document).ready(function ($) {
         }
 
         // get xml
-        $.post(ajax_object.ajax_url, data, function (xml) {
+        // $.post(ajax_object.ajax_url, data, function (xml) {
 
-            traverse($('#treeView li'), xml.firstChild);
+            // traverse($('#treeView li'), xml.firstChild);
 
             // this – is an &mdash;
             $('<b>–<\/b>').prependTo('#treeView li:has(li)').click(function () {
@@ -55,11 +55,11 @@ jQuery(document).ready(function ($) {
                 tb_remove();
             });
 
-        }, 'xml');
+        // }, 'xml');
 
         var currentChildNodes = {};
         var currentChildNodeCount = {};
-
+/*
         function traverse(node, tree) {
             var children = $(tree).children();
             var attrs = tree.attributes;
@@ -104,12 +104,12 @@ jQuery(document).ready(function ($) {
                 node.append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + node_open + '&lt;' + tree.nodeName + node_close + output + node_open + '&gt;' + $(tree).text() + '&lt;\/' + tree.nodeName + '&gt;' + node_close)
             }
         }
-
+*/
     };
 
 });
 
-function htmlEscape(str) {
+/*function htmlEscape(str) {
     return String(str)
         .replace(/&/g, '&amp;')
         .replace(/"/g, '&quot;')
@@ -177,7 +177,7 @@ function lookupElementByXPath(path) {
     var evaluator = new XPathEvaluator();
     var result = evaluator.evaluate(path, document.documentElement, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
     return  result.singleNodeValue;
-}
+}*/
 
 /**
  * Base Node Selector

@@ -327,13 +327,13 @@ class JC_Importer_Admin {
 
 			// select file to use for import
 			$selected_import_id = intval( $_POST['jc-importer_file_select'] );
-			$attachment_check   = new WP_Query( array(
-					'post_type'   => 'attachment',
-					'post_parent' => $id,
-					'post_status' => 'any',
-					'p'           => $selected_import_id
-				) );
-			if ( $attachment_check->post_count == 1 ) {
+			// $attachment_check   = new WP_Query( array(
+			// 		'post_type'   => 'jc-import-files',
+			// 		'post_parent' => $id,
+			// 		'post_status' => 'any',
+			// 		'p'           => $selected_import_id
+			// 	) );
+			if ( /*$attachment_check->post_count == 1*/ $selected_import_id > 0 ) {
 
 				// increase version number
 				$verion = get_post_meta( $id, '_import_version', true );

@@ -5,7 +5,9 @@
 </script>
 
 <ul id="treeView">
-	<li></li>
+	<?php
+	$xml->output();
+	?>
 </ul>
 
 <style type="text/css">

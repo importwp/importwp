@@ -45,6 +45,11 @@ A guide to running and pausing an import can be viewed [here](http://jamescollin
 
 ##Changelog
 
+**0.1.5**
+
+* Disable attachment check when switching importer file from list due to empty results
+* Add XMLReader library for creating xml node and element selectors
+
 **0.1.4**
 
 * Switch saving importer files as attachments to custom post type, stopping filling media library with files

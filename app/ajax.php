@@ -54,7 +54,16 @@ class JC_Importer_Ajax {
 
 		switch ( $type ) {
 			case 'xml':
+
 				$base_node = isset( $_GET['base'] ) ? $_GET['base'] : '';
+				$file = ImporterModel::getImportSettings( $post_id, 'import_file' );
+
+				if(!empty($base_node) && $base_node != '/'){
+					$base_node .= '[1]';
+				}
+
+				$xml = new JCI_XMLOutput($file, $base_node);
+				
 				require_once $this->_config->plugin_dir . 'app/view/ajax/xml_node_select.php';
 				break;
 			case 'csv':
@@ -113,6 +122,35 @@ class JC_Importer_Ajax {
 		$base_node = isset( $_GET['base'] ) ? $_GET['base'] : '';
 		$nodes     = array(); // array of nodes
 
+		// 
+		$file = ImporterModel::getImportSettings( $post_id, 'import_file' );
+
+		// if(!empty($base_node) && $base_node != '/'){
+		// 	$base_node .= '[1]';
+		// }
+
+		$xml = new JCI_XMLOutput($file, $base_node);
+		$nodes = $xml->generate_xpath();
+
+		if(!empty($base_node)){
+
+			$temp = array();
+
+			foreach($nodes as $node){
+
+				if(strpos($base_node, $node) === false){
+
+					if(strpos($node, $base_node) === 0){
+
+						$temp[] = !empty($base_node) && $base_node !== '/' ? substr($node, strlen($base_node)) : $node;
+					}
+				}
+			}
+
+			$nodes = $temp;
+		}
+
+		/*
 		// get xml segment
 		$file = ImporterModel::getImportSettings( $post_id, 'import_file' );
 
@@ -137,7 +175,7 @@ class JC_Importer_Ajax {
 					$nodes[] = $node;
 				}
 			}
-		}
+		}*/
 
 		require_once $this->_config->plugin_dir . 'app/view/ajax/base_node_select.php';
 		die();

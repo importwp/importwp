@@ -1,7 +1,7 @@
 <?php
 if ( ! empty( $nodes ) ) {
 	foreach ( $nodes as $node ) {
-		echo '<a href="/' . $node . '" class="set_node">' . $node . '</a><br />';
+		echo '<a href="' . $node . '" class="set_node">' . $node . '</a><br />';
 	}
 }
 ?>
