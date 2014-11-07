@@ -26,6 +26,10 @@ $last_import_row 	  = $jcimporter->importer->get_last_import_row();
 <?php
 jci_display_messages();
 
+if(!$jcimporter->importer->get_template()){
+	echo '<div id="message" class="error_msg warn error below-h2"><p>The import template could not be located</p></div>';
+}
+
 // check for incomplete import and show message to resume
 $import_complete = true;
 if ($row_count > 0){

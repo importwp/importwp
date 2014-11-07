@@ -68,6 +68,11 @@ class JC_Importer_Core {
 			$this->row_count     = ImporterModel::getImportSettings( $id, 'row_count' );
 			$this->record_import_count = ImporterModel::getImportSettings( $id, 'record_import_count' );
 
+			// todo: throw error if template returns false, e.g. doesnt exist.
+			if(!$this->template){
+				return false;
+			}
+
 			// load taxonomies
 			$taxonomies = ImporterModel::getImporterMeta( $id, 'taxonomies' );
 			foreach ( $taxonomies as $group_id => $tax_arr ) {

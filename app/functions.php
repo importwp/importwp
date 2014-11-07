@@ -41,10 +41,13 @@ function get_import_template( $template ) {
 
 	global $jcimporter;
 
-	$temp                               = $jcimporter->templates[ $template ];
-	$jcimporter->templates[ $template ] = new $temp;
+	$temp = $jcimporter->templates[ $template ];
+	if(class_exists($temp)){
+		$jcimporter->templates[ $template ] = new $temp;	
+		return $jcimporter->templates[ $template ];
+	}
 
-	return $jcimporter->templates[ $template ];
+	return false;
 }
 
 function load_import_parser( $import_id ) {
