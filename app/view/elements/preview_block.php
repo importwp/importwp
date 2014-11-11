@@ -19,7 +19,7 @@ $jci_template_type = $jcimporter->importer->template_type;
 			
 			var preview_record = $('#preview-record');
 			var min_record = 1;
-			var max_record = <?php echo $jcimporter->importer->get_total_rows(); ?>;
+			var max_record = <?php echo ($jci_template_type == 'csv') ? $jcimporter->importer->get_total_rows() + 1 : $jcimporter->importer->get_total_rows(); ?>;
 			
 			$('#prev-record').click(function(){
 
@@ -146,7 +146,7 @@ $jci_template_type = $jcimporter->importer->template_type;
 					type: "POST",
 					success: function(response){
 
-						max_record = response;
+						max_record = response<?php if($jci_template_type == 'csv'): ?>+1<?php endif; ?>;
 						if(max_record < $('#preview-record').val()){
 							$('#preview-record').val(max_record);
 						}

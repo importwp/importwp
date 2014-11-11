@@ -59,202 +59,229 @@ echo JCI_FormHelper::create( 'EditImporter', array( 'type' => 'file' ) );
 echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 ?>
 
-<div id="poststuff" class="<?php echo $template_type; ?>-import">
+<div id="poststuff" class="<?php echo $template_type; ?>-import jci-edit-screen">
 <div id="post-body" class="metabox-holder columns-2">
 
 <div id="post-body-content">
 
-<div id="postbox-container-2" class="postbox-container">
+<div id="jci-about-block" class="postbox-container jci-sidebar">
 
-<div id="pageparentdiv" class="postbox " style="display: block;">
-	<div class="handlediv" title="Click to toggle"><br></div>
-	<h3 class="hndle"><span>Import Settings</span></h3>
+	<?php include $this->config->plugin_dir . '/app/view/elements/about_block.php'; ?>
 
-	<div class="inside jci-node-group">
+</div><!-- /#jci-about-block -->
 
-		<ul class="jci-node-group-tabs subsubsub"></ul>
+<div id="jci-settings-block" class="postbox-container">
 
-		<div style="clear:both;"></div>
+	<div id="pageparentdiv" class="postbox " style="display: block;">
+		<div class="handlediv" title="Click to toggle"><br></div>
+		<h3 class="hndle"><span>Import Settings</span></h3>
 
-		<div class="jci-group-general jci-group-section" data-section-id="general">
+		<div class="inside jci-node-group">
+
+			<ul class="jci-node-group-tabs subsubsub"></ul>
+
+			<div style="clear:both;"></div>
+
+			<div class="jci-group-general jci-group-section" data-section-id="general">
+
+				<?php
+
+				do_action( 'jci/before_import_settings' );
+
+				echo JCI_FormHelper::text( 'start-line', array( 'label' => 'Start Row', 'default' => $start_line ) );
+				echo JCI_FormHelper::text( 'row-count', array( 'label' => 'Max Rows', 'default' => $row_count ) );
+				echo JCI_FormHelper::text( 'record-import-count', array( 'label' => 'Records per Import', 'default' => $record_import_count ) );
+				echo JCI_FormHelper::select( 'template_type', array(
+						'label'   => 'Template Type',
+						'options' => array( 'csv' => 'CSV', 'xml' => 'XML' ),
+						'default' => $template_type
+					) );
+
+				// core fields
+				do_action( "jci/output_{$template_type}_general_settings", $id );
+
+				do_action( 'jci/after_import_settings' );
+				?>
+			</div>
+
+			<?php if ( $jcimporter->importer->get_import_type() == 'remote' ): ?>
+				<div class="jci-group-remote jci-group-section" data-section-id="Remote">
+					<div class="remote">
+						<?php
+						$remote_settings = ImporterModel::getImportSettings( $id, 'remote' );
+						$url             = $remote_settings['remote_url'];
+						echo JCI_FormHelper::text( 'remote_url', array( 'label' => 'Remote Url', 'default' => $url ) );
+						/*echo JCI_FormHelper::select( 'remote_frequency', array(
+								'label'   => 'Frequency',
+								'options' => array(
+									'None',
+									'Hourly',
+									'Daily',
+									'Weekly',
+									'Monthly'
+								)
+							) );*/
+						?>
+					</div>
+				</div>
+			<?php endif; ?>
 
 			<?php
+			/**
+			 * Output Importer Settings Sections
+			 */
+			do_action( 'jci/importer_setting_section' ); ?>
 
-			do_action( 'jci/before_import_settings' );
-
-			echo JCI_FormHelper::text( 'start-line', array( 'label' => 'Start Row', 'default' => $start_line ) );
-			echo JCI_FormHelper::text( 'row-count', array( 'label' => 'Max Rows', 'default' => $row_count ) );
-			echo JCI_FormHelper::text( 'record-import-count', array( 'label' => 'Records per Import', 'default' => $record_import_count ) );
-			echo JCI_FormHelper::select( 'template_type', array(
-					'label'   => 'Template Type',
-					'options' => array( 'csv' => 'CSV', 'xml' => 'XML' ),
-					'default' => $template_type
-				) );
-
-			// core fields
-			do_action( "jci/output_{$template_type}_general_settings", $id );
-
-			do_action( 'jci/after_import_settings' );
-			?>
-		</div>
-
-		<?php if ( $jcimporter->importer->get_import_type() == 'remote' ): ?>
-			<div class="jci-group-remote jci-group-section" data-section-id="Remote">
-				<div class="remote">
+			<div class="jci-group-permissions jci-group-section" data-section-id="permissions">
+				<div class="permissions">
+					<h4>Permissions</h4>
 					<?php
-					$remote_settings = ImporterModel::getImportSettings( $id, 'remote' );
-					$url             = $remote_settings['remote_url'];
-					echo JCI_FormHelper::text( 'remote_url', array( 'label' => 'Remote Url', 'default' => $url ) );
-					/*echo JCI_FormHelper::select( 'remote_frequency', array(
-							'label'   => 'Frequency',
-							'options' => array(
-								'None',
-								'Hourly',
-								'Daily',
-								'Weekly',
-								'Monthly'
-							)
-						) );*/
+					$perm_create = isset( $permissions_general['create'] ) && $permissions_general['create'] == 1 ? 1 : 0;
+					$perm_update = isset( $permissions_general['update'] ) && $permissions_general['update'] == 1 ? 1 : 0;
+					$perm_delete = isset( $permissions_general['delete'] ) && $permissions_general['delete'] == 1 ? 1 : 0;
+
+					echo JCI_FormHelper::checkbox( 'permissions[create]', array(
+							'label'   => 'Create',
+							'default' => 1,
+							'checked' => $perm_create
+						) );
+					echo JCI_FormHelper::checkbox( 'permissions[update]', array(
+							'label'   => 'Update',
+							'default' => 1,
+							'checked' => $perm_update
+						) );
+					echo JCI_FormHelper::checkbox( 'permissions[delete]', array(
+							'label'   => 'Delete',
+							'default' => 1,
+							'checked' => $perm_delete
+						) );
 					?>
 				</div>
 			</div>
-		<?php endif; ?>
 
-		<?php
-		/**
-		 * Output Importer Settings Sections
-		 */
-		do_action( 'jci/importer_setting_section' ); ?>
-
-		<div class="jci-group-permissions jci-group-section" data-section-id="permissions">
-			<div class="permissions">
-				<h4>Permissions</h4>
-				<?php
-				$perm_create = isset( $permissions_general['create'] ) && $permissions_general['create'] == 1 ? 1 : 0;
-				$perm_update = isset( $permissions_general['update'] ) && $permissions_general['update'] == 1 ? 1 : 0;
-				$perm_delete = isset( $permissions_general['delete'] ) && $permissions_general['delete'] == 1 ? 1 : 0;
-
-				echo JCI_FormHelper::checkbox( 'permissions[create]', array(
-						'label'   => 'Create',
-						'default' => 1,
-						'checked' => $perm_create
-					) );
-				echo JCI_FormHelper::checkbox( 'permissions[update]', array(
-						'label'   => 'Update',
-						'default' => 1,
-						'checked' => $perm_update
-					) );
-				echo JCI_FormHelper::checkbox( 'permissions[delete]', array(
-						'label'   => 'Delete',
-						'default' => 1,
-						'checked' => $perm_delete
-					) );
-				?>
-			</div>
-		</div>
-
-		<div class="jci-group-files jci-group-section" data-section-id="files">
-			<div class="file_hostory">
-				<h4>Files:</h4>
-				<?php
-				
-				$current_import_file = basename( $jcimporter->importer->get_file() );
-
-				echo '<ul>';
-
-				// list of previously uploaded files
-				$importer_attachments = new WP_Query( array(
-					'post_type'   => 'jc-import-files',
-					'post_parent' => $id,
-					'post_status' => 'any'
-				) );
-				
-				if ( $importer_attachments->have_posts() ) {
+			<div class="jci-group-files jci-group-section" data-section-id="files">
+				<div class="file_hostory">
+					<h4>Files:</h4>
+					<?php
 					
-					while ( $importer_attachments->have_posts() ) {
+					$current_import_file = basename( $jcimporter->importer->get_file() );
 
-						$importer_attachments->the_post();
-						$import_file = get_post_meta( get_the_ID(), '_wp_attached_file', true );
-						if ( $current_import_file == basename( $import_file ) ) {
-							echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
-										'value'   => get_the_ID(),
-										'label'   => $import_file . ' (' . get_the_date() . ' at ' . get_the_time() . ')',
-										'checked' => true
-									) ) . '</li>';
-						} else {
-							echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
-										'value' => get_the_ID(),
-										'label' => $import_file . ' (' . get_the_date() . ' at ' . get_the_time() . ')'
-									) ) . '</li>';
-						}
-					}
-					
-					wp_reset_postdata();
-				}
+					echo '<ul>';
 
-				// ===================================================================
-				// backwards compat: Switching attachments for custom post type
-				// ===================================================================
-
-				// list of previously uploaded files
-				$importer_attachments = new WP_Query( array(
-						'post_type'   => 'attachment',
+					// list of previously uploaded files
+					$importer_attachments = new WP_Query( array(
+						'post_type'   => 'jc-import-files',
 						'post_parent' => $id,
 						'post_status' => 'any'
 					) );
-				// print_r($attachments);
-				if ( $importer_attachments->have_posts() ) {
-					while ( $importer_attachments->have_posts() ) {
+					
+					if ( $importer_attachments->have_posts() ) {
+						
+						while ( $importer_attachments->have_posts() ) {
 
-						$importer_attachments->the_post();
-						$import_file = get_post_meta( get_the_ID(), '_wp_attached_file', true );
-						if ( $current_import_file == basename( $import_file ) ) {
-							echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
-										'value'   => get_the_ID(),
-										'label'   => $import_file . ' (' . get_the_date() . ' at ' . get_the_time() . ')',
-										'checked' => true
-									) ) . '</li>';
-						} else {
-							echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
-										'value' => get_the_ID(),
-										'label' => $import_file . ' (' . get_the_date() . ' at ' . get_the_time() . ')'
-									) ) . '</li>';
+							$importer_attachments->the_post();
+							$import_file = get_post_meta( get_the_ID(), '_wp_attached_file', true );
+							if ( $current_import_file == basename( $import_file ) ) {
+								echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
+											'value'   => get_the_ID(),
+											'label'   => $import_file . ' (' . get_the_date() . ' at ' . get_the_time() . ')',
+											'checked' => true
+										) ) . '</li>';
+							} else {
+								echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
+											'value' => get_the_ID(),
+											'label' => $import_file . ' (' . get_the_date() . ' at ' . get_the_time() . ')'
+										) ) . '</li>';
+							}
 						}
+						
+						wp_reset_postdata();
 					}
-					wp_reset_postdata();
-				}
 
-				// ===================================================================
-				// End backwards compat:
-				// ===================================================================
+					// ===================================================================
+					// backwards compat: Switching attachments for custom post type
+					// ===================================================================
 
-				echo '</ul>';
+					// list of previously uploaded files
+					$importer_attachments = new WP_Query( array(
+							'post_type'   => 'attachment',
+							'post_parent' => $id,
+							'post_status' => 'any'
+						) );
+					// print_r($attachments);
+					if ( $importer_attachments->have_posts() ) {
+						while ( $importer_attachments->have_posts() ) {
 
-				// file upload
-				echo JCI_FormHelper::file( 'import_file', array( 'label' => 'Import File' ) );
-				echo JCI_FormHelper::Submit( 'upload_file', array( 'class' => 'button', 'value' => 'Upload File' ) );
-				?>
+							$importer_attachments->the_post();
+							$import_file = get_post_meta( get_the_ID(), '_wp_attached_file', true );
+							if ( $current_import_file == basename( $import_file ) ) {
+								echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
+											'value'   => get_the_ID(),
+											'label'   => $import_file . ' (' . get_the_date() . ' at ' . get_the_time() . ')',
+											'checked' => true
+										) ) . '</li>';
+							} else {
+								echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
+											'value' => get_the_ID(),
+											'label' => $import_file . ' (' . get_the_date() . ' at ' . get_the_time() . ')'
+										) ) . '</li>';
+							}
+						}
+						wp_reset_postdata();
+					}
+
+					// ===================================================================
+					// End backwards compat:
+					// ===================================================================
+
+					echo '</ul>';
+
+					// file upload
+					echo JCI_FormHelper::file( 'import_file', array( 'label' => 'Import File' ) );
+					echo JCI_FormHelper::Submit( 'upload_file', array( 'class' => 'button', 'value' => 'Upload File' ) );
+					?>
+				</div>
+				<!-- /.file_history -->
 			</div>
-			<!-- /.file_history -->
+
 		</div>
 
-	</div>
+		<div class="form-actions">
 
-	<div class="form-actions">
+			<?php
+			echo JCI_FormHelper::Submit( 'btn-save', array( 'class' => 'button-primary button', 'value' => 'Save All' ) );
+			echo JCI_FormHelper::Submit( 'btn-continue', array(
+					'class' => 'button-secondary button',
+					'value' => 'Save & Run'
+				) );
+			?>
+		</div>
 
-		<?php
-		echo JCI_FormHelper::Submit( 'btn-save', array( 'class' => 'button-primary button', 'value' => 'Save All' ) );
-		echo JCI_FormHelper::Submit( 'btn-continue', array(
-				'class' => 'button-secondary button',
-				'value' => 'Save & Run'
-			) );
-		?>
 	</div>
 
 </div>
 
 
+<!-- /postbox-container-1 -->
+
+
+
+<!-- end of top section -->
+
+
 <div style="clear:both;"></div>
+
+<div id="jci-preview-block" class="postbox-container jci-sidebar">
+
+	<?php
+	if($total_rows > 0){
+		include $this->config->plugin_dir . '/app/view/elements/preview_block.php';
+	}
+	?>
+
+</div><!-- /#jci-preview-block -->
+
+<div class="postbox-container">
 
 
 <?php if ( $id > 0 ): ?>
@@ -623,18 +650,6 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
 </div>
 
-<div id="postbox-container-1" class="postbox-container">
-
-	<?php include $this->config->plugin_dir . '/app/view/elements/about_block.php'; ?>
-
-	<?php
-	if($total_rows > 0){
-		include $this->config->plugin_dir . '/app/view/elements/preview_block.php';
-	}
-	?>
-
-</div>
-<!-- /postbox-container-1 -->
 </div>
 </div>
 <?php

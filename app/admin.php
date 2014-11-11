@@ -399,6 +399,8 @@ class JC_Importer_Admin {
 		$last_record = 0;
 		$max_records = $jcimporter->importer->get_row_count();
 
+		$total_records = $jcimporter->importer->get_total_rows();
+
 		for($i = 0; $i < $records; $i++){
 
 			$row = $current_row + $i;
@@ -409,6 +411,11 @@ class JC_Importer_Admin {
 				if($row >= $last_record){
 					break;
 				}
+			}
+
+			// stop bulk import passing limit
+			if($row > $total_records){
+				break;
 			}
 
 			$data = $jcimporter->importer->run_import( $row, true );
