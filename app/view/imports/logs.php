@@ -241,9 +241,15 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
 						if(del_count > curr_del_record){
 							curr_del_record += records_per_row;
+
+							var curr_del_record_output = curr_del_record;
+							if(curr_del_record_output > del_count){
+								curr_del_record_output = del_count;
+							}
+
 							deleteNextRecord();
-							document.title = 'Deleting Items '+curr_del_record+'/'+del_count;
-							$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Deleting Items ('+curr_del_record+'/'+del_count+')</p></div>');
+							document.title = 'Deleting Items '+curr_del_record_output+'/'+del_count;
+							$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Deleting Items ('+curr_del_record_output+'/'+del_count+')</p></div>');
 						}else{
 
 							if(del_count > 0){

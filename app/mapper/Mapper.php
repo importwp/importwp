@@ -612,6 +612,10 @@ class JC_BaseMapper {
 				continue;
 			}
 
+			if(count($jci_taxonomies[$group_id]) === 1 && empty($taxonomies)){
+				continue;
+			}
+
 			$post_id = $row[ $group_id ]['ID'];
 
 			foreach ( $taxonomies as $tax => $term_arr ) {
@@ -699,6 +703,11 @@ class JC_BaseMapper {
 		foreach ( $jci_attachments as $group_id => $attachments ) {
 
 			if ( isset( $this->_template->_field_groups[ $group_id ]['attachments'] ) && $this->_template->_field_groups[ $group_id ]['attachments'] <> 1 ) {
+				continue;
+			}
+
+			// escape if not attachment location has been entered
+			if(empty($attachments['location']) || (count($attachments['location']) === 1 && empty($attachments['location'][0]))){
 				continue;
 			}
 

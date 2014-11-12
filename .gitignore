@@ -1,2 +1,4 @@
 phpunit.xml
 .idea/
+node_modules/
+build/
