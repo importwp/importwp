@@ -8,6 +8,7 @@
     "grunt-contrib-cssmin": "^0.10.0",
     "grunt-contrib-jshint": "~0.10.0",
     "grunt-contrib-nodeunit": "~0.4.1",
-    "grunt-contrib-uglify": "^0.6.0"
+    "grunt-contrib-uglify": "^0.6.0",
+    "grunt-phpunit": "~0.3.6"
   }
 }

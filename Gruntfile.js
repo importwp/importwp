@@ -17,13 +17,23 @@ module.exports = function(grunt) {
             build: ["build/*", "!build/.svn/*"],
             tmp: ["build/app/tmp/*"]
         },
+        phpunit: {
+            classes: {
+                dir: 'tests/'
+            },
+            options: {
+                configuration: 'phpunit.xml',
+                colors: true
+            }
+        }
     });
 
     // grunt modules
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-phpunit');
 
     // Default task(s).
-    grunt.registerTask('default', ['clean:build', 'copy', "clean:tmp"]);
+    grunt.registerTask('default', ['phpunit', 'clean:build', 'copy', "clean:tmp"]);
 
 };
