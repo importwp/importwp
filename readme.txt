@@ -9,11 +9,23 @@ JC Importer allows you to easily import users, posts, custom post types and taxo
 
 == Description ==
 
-JC Importer allows you to easily import content into your wordpress website.
+JC Importer is an Advanced Wordpress CSV/XML Importer, allowing you to easily drag and drop data into import templates. JC Importer has been built with developers in mind allowing import templates to be easily created and mapped to post_types, taxonomies, users, or tables.
+
+= Features =
 
 * Import from XML and CSV files.
 * Create importer templates to map data to users, taxonomies, and post / custom post types.
 * Built in User, Taxonomy, Post and Page templates.
+
+JC Importer is a base for importing files into wordpress which can be extended upon to create custom templates and parsers specific to your needs, for more details [view the documentation](http://jamescollings.co.uk/docs/v1/jc-importer/).
+
+= Upcoming Features =
+
+* Fetch csv/xml via ftp to be imported
+* Recieve csv/xml via POST
+* Template custom fields
+* Allow recurring importing FTP, POST, and Remote datasources
+* Visual Template Editor, allow non developers to easily create templates without writing code
 
 == Installation ==
 
@@ -48,6 +60,12 @@ A guide to running and pausing an import can be viewed [here](http://jamescollin
 == Screenshots ==
 
 == Changelog ==
+
+= 0.1.6 =
+
+* set default options to field dropdown list
+* skip empty attachments, and taxonomies
+* move preview record box next to fields
 
 = 0.1.5 =
 

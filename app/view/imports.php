@@ -15,10 +15,8 @@ $importers = ImporterModel::getImporters();
 
 				<thead class="template_heading">
 				<th class="manage-column column-cb check-column">
-					<label class="screen-reader-text" for="cb-select-all-1">Select All</label>
-					<input id="cb-select-all-1" type="checkbox">
 				</th>
-				<th>Title</th>
+				<th>Importer</th>
 				<th width="50px">Groups</th>
 				<th width="50px">Fields</th>
 				<th width="100px">Modified</th>
@@ -30,11 +28,7 @@ $importers = ImporterModel::getImporters();
 					<?php while ( $importers->have_posts() ): $importers->the_post(); ?>
 						<tr>
 							<th scope="row" class="check-column">
-								<label class="screen-reader-text"
-								       for="cb-select-<?php the_ID(); ?>">Select <?php the_title(); ?></label>
-								<input id="cb-select-<?php the_ID(); ?>" type="checkbox" name="post[]" value="1">
 
-								<div class="locked-indicator"></div>
 							</th>
 							<td class="post-title column-title">
 								<a href="<?php echo admin_url('admin.php?page=jci-importers&import=' . get_the_ID() . '&action=edit' ); ?>"

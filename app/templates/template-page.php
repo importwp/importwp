@@ -41,7 +41,8 @@ class JC_Page_Template extends JC_Importer_Template {
 				array(
 					'title' => 'Status',
 					'field' => 'post_status',
-					'options' => array('draft' => 'Draft', 'publish' => 'Published', 'pending' => 'Pending', 'future' => 'Future', 'private' => 'Private', 'trash' => 'Trash')
+					'options' => array('draft' => 'Draft', 'publish' => 'Published', 'pending' => 'Pending', 'future' => 'Future', 'private' => 'Private', 'trash' => 'Trash'),
+					'options_default' => 'publish'
 				),
 				array(
 					'title' => 'Author',
@@ -66,12 +67,14 @@ class JC_Page_Template extends JC_Importer_Template {
 				array(
 					'title'  => 'Allow Comments',
 					'field'  => 'comment_status',
-					'options' => array( 0 => 'Disabled', 1 => 'Enabled' )
+					'options' => array( 0 => 'Disabled', 1 => 'Enabled' ),
+					'options_default' => 0
 				),
 				array(
 					'title'  => 'Allow Pingbacks',
 					'field'  => 'ping_status',
-					'options' => array( 'closed' => 'Closed', 'open' => 'Open' )
+					'options' => array( 'closed' => 'Closed', 'open' => 'Open' ),
+					'options_default' => 'closed'
 				),
 				array(
 					'title' => 'Page Template',
@@ -112,6 +115,7 @@ class JC_Page_Template extends JC_Importer_Template {
 				$templates = array('default' => 'Default Template');
 				$templates = array_merge($templates, wp_get_theme()->get_page_templates() );
 				$field['options'] = $templates;
+				$field['options_default'] = 'default';
 			}
 		}
 	}

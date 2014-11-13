@@ -657,6 +657,7 @@ echo JCI_FormHelper::end();
 ?>
 <div class="field-option" style="display:none;">
 <?php
+// Output template field options
 foreach ( $template_groups as $group_id => $group ){
 	
 	$group_type = $group['import_type'];
@@ -668,10 +669,12 @@ foreach ( $template_groups as $group_id => $group ){
 
 		$title = $group['titles'][ $key ];
 
+		$default = isset($group[$key]['field_options_default']) ? $group[$key]['field_options_default'] : '';
+
 		echo JCI_FormHelper::select( 'field[' . $group_id . '][' . $key . ']', array(
 			'label'   => false,
 			'id' => "{$group_id}-{$key}-options",
-			// 'default' => $value,
+			'default' => $group['field_options_default'][$key],
 			'options' => $value,
 			'class'   => 'xml-drop jci-group jci-default-dropdown'
 		) );

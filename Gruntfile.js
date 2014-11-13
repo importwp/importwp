@@ -13,7 +13,10 @@ module.exports = function(grunt) {
                 ]
             }
         },
-        clean: ["build/*", "!build/.svn/*"],
+        clean: {
+            build: ["build/*", "!build/.svn/*"],
+            tmp: ["build/app/tmp/*"]
+        },
     });
 
     // grunt modules
@@ -21,6 +24,6 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
 
     // Default task(s).
-    grunt.registerTask('default', ['clean', 'copy']);
+    grunt.registerTask('default', ['clean:build', 'copy', "clean:tmp"]);
 
 };

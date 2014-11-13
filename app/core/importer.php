@@ -100,6 +100,7 @@ class JC_Importer_Core {
 				$data['group'] = $group;
 				$output_fields = array();
 				$field_options = array();
+				$options_default = array();
 				$titles        = array();
 				foreach ( $data['map'] as $id => $field_data ) {
 					$output_fields[ $field_data['field'] ] = isset( $fields[ $data['group'] ][ $field_data['field'] ] ) ? $fields[ $data['group'] ][ $field_data['field'] ] : ''; // null; //$fields[$field_data['type']][$field_data['field']];
@@ -107,6 +108,11 @@ class JC_Importer_Core {
 
 					if(isset($field_data['options'])){
 						$field_options[$field_data['field']] = $field_data['options'];	
+						if(isset($field_data['options_default'])){
+							$options_default[$field_data['field']] = $field_data['options_default'];
+						}else{
+							$options_default[$field_data['field']] = null;
+						}
 					}
 				}
 
@@ -114,6 +120,7 @@ class JC_Importer_Core {
 					'type'             => $data['field_type'],
 					'fields'           => $output_fields,
 					'field_options'    => $field_options,
+					'field_options_default' => $options_default, 
 					'import_type'      => $data['import_type'],
 					'titles'           => $titles,
 					'import_type_name' => $data['import_type_name'],
