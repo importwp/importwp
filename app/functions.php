@@ -43,10 +43,9 @@ function get_import_template( $template ) {
 
 	if( isset( $jcimporter->templates[ $template ] ) ){
 		$temp = $jcimporter->templates[ $template ];
-		if( class_exists( $temp ) ){
-			$jcimporter->templates[ $template ] = new $temp;	
-			return $jcimporter->templates[ $template ];
-		}
+		$jcimporter->templates[ $template ] = new $temp;
+
+		return $jcimporter->templates[ $template ];
 	}
 
 	return false;
