@@ -59,6 +59,11 @@ A guide to running and pausing an import can be viewed [here](http://jamescollin
 
 == Screenshots ==
 
+1. JC Importer, New importer screen
+2. JC Importer, Post template setup screen
+3. JC Importer, Run import page
+4. JC Importer, Import history page
+
 == Changelog ==
 
 = 0.1.6 =
