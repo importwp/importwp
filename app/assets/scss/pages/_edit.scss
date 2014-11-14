@@ -1,0 +1,29 @@
+// =======================================
+// Template Page styles
+// =======================================
+
+.preview-text{
+    clear: left;
+    display: block;
+    margin-left: 131px;
+    color: #999;
+}
+
+.input.select .jci-import-edit, .input.select .preview-text{
+    display: none;
+}
+
+#poststuff.jci-edit-screen .jci-sidebar{
+    float: right;
+    margin-right: -300px;
+    width: 280px;
+}
+
+@media only screen and (max-width: 850px){
+    
+    #poststuff.jci-edit-screen .jci-sidebar{
+        width: 100%;
+        float: none;
+        margin: 0;
+    }
+}
