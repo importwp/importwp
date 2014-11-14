@@ -211,7 +211,7 @@ class JC_XML_Parser extends JC_Parser {
 
 		// set groups with addon settings
 		$fields = $jcimporter->importer->addon_settings['group_base']; //[$group_id]['base'];
-		$groups = $jcimporter->importer->groups;
+		$groups = $jcimporter->importer->get_template_groups();
 		foreach ( $groups as $key => $group ) {
 			$groups[ $key ]['base_node'] = isset( $fields[ $key ] ) ? $fields[ $key ] : '';
 		}

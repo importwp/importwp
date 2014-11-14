@@ -39,6 +39,6 @@ class JC_Importer_Template {
 	}
 
 	public function get_groups() {
-		return $this->_field_groups;
+		return apply_filters( 'jci/template/get_groups', $this->_field_groups );
 	}
 }

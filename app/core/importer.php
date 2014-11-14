@@ -211,6 +211,8 @@ class JC_Importer_Core {
 			$parser->clear_session();
 		}
 
+		do_action('jci/before_import');
+
 		$mapper = new JC_BaseMapper();
 		if( $parser->loadFile( $jci_file ) ){
 
@@ -285,7 +287,8 @@ class JC_Importer_Core {
 	}
 
 	public function get_template_groups() {
-		return $this->groups;
+
+		return apply_filters( 'jci/importer/get_groups', $this->groups );
 	}
 
 	public function get_template() {

@@ -326,7 +326,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 			/**
 			 * Display template settings
 			 */
-			do_action( 'jci/after_template_fields', $id ); ?>
+			do_action( 'jci/after_template_fields', $id, $group_id, $group); ?>
 
 			<?php
 			/**

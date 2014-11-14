@@ -146,7 +146,7 @@ class JC_CSV_Parser extends JC_Parser {
 	public function parse( $selected_row = null ) {
 
 		global $jcimporter;
-		$groups = $jcimporter->importer->groups;
+		$groups = $jcimporter->importer->get_template_groups();
 
 		$fh      = fopen( $this->file, 'r' );
 		$records = array();
