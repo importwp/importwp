@@ -2,7 +2,7 @@
 Contributors: jcollings
 Tags: wordpress importer, xml importer, csv importer, import users, import posts, import taxonomies, import custom post types
 Requires at least: 4.0
-Tested up to: 4.0
+Tested up to: 4.1
 Stable tag: trunk
 
 JC Importer allows you to easily import users, posts, custom post types and taxonomies from XML and CSV files. 

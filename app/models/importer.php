@@ -251,12 +251,21 @@ class ImporterModel {
 		if ( ! self::$meta ) {
 			$importer_meta = get_metadata( 'post', $post_id, '', true );
 
-			$settings       = isset( $importer_meta['_import_settings'] ) ? unserialize( $importer_meta['_import_settings'][0] ) : array();
-			$fields         = isset( $importer_meta['_mapped_fields'] ) ? unserialize( $importer_meta['_mapped_fields'][0] ) : array();
-			$attachments    = isset( $importer_meta['_attachments'] ) ? unserialize( $importer_meta['_attachments'][0] ) : array();
-			$taxonomies     = isset( $importer_meta['_taxonomies'] ) ? unserialize( $importer_meta['_taxonomies'][0] ) : array();
-			$addon_settings = isset( $importer_meta['_setting_addons'] ) ? unserialize( $importer_meta['_setting_addons'][0] ) : array();
-			$addon_fields   = isset( $importer_meta['_field_addons'] ) ? unserialize( $importer_meta['_field_addons'][0] ) : array();
+			// get settings
+			$settings       = isset( $importer_meta['_import_settings'] ) ? $importer_meta['_import_settings'][0] : array();
+			$fields         = isset( $importer_meta['_mapped_fields'] ) ? $importer_meta['_mapped_fields'][0] : array();
+			$attachments    = isset( $importer_meta['_attachments'] ) ? $importer_meta['_attachments'][0] : array();
+			$taxonomies     = isset( $importer_meta['_taxonomies'] ) ? $importer_meta['_taxonomies'][0] : array();
+			$addon_settings = isset( $importer_meta['_setting_addons'] ) ? $importer_meta['_setting_addons'][0] : array();
+			$addon_fields   = isset( $importer_meta['_field_addons'] ) ? $importer_meta['_field_addons'][0] : array();
+
+			// only unserialize if string
+			$settings = is_string($settings) ? unserialize($settings) : $settings;
+			$fields = is_string($fields) ? unserialize($fields) : $fields;
+			$attachments = is_string($attachments) ? unserialize($attachments) : $attachments;
+			$taxonomies = is_string($taxonomies) ? unserialize($taxonomies) : $taxonomies;
+			$addon_settings = is_string($addon_settings) ? unserialize($addon_settings) : $addon_settings;
+			$addon_fields = is_string($addon_fields) ? unserialize($addon_fields) : $addon_fields;
 
 			self::$meta = array(
 				'settings'       => $settings,
