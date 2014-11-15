@@ -6,6 +6,7 @@
 		<ul>
 			<li><a href="http://jamescollings.co.uk/jc-importer/resources/?ref=<?php echo site_url('/'); ?>" target="_blank">Documentation</a></li>
 			<li><a href="http://jamescollings.co.uk/support/forum/jc-importer/?ref=<?php echo site_url('/'); ?>" target="_blank">Support</a></li>
+			<li><a href="<?php echo admin_url('admin.php?page=jci-addons'); ?>">Addons</a></li>
 			<li><a href="http://jamescollings.co.uk/plugins/jc-importer/?ref=<?php echo site_url('/'); ?>" target="_blank">About</a></li>
 		</ul>
 	</div>

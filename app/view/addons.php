@@ -11,9 +11,9 @@
 				<p class="jci-title">JC Importer - Post Datasource Addon</p>
 				<p class="jci-version">version: 0.1</p>
 			</div><!-- /.jci-heading -->
-			<img src="http://localhost/icon-256x256.png">
+			<img src="//ps.w.org/jc-importer/assets/icon-256x256.png">
 			<div class="jci-footer">
-				<a class="jci-btn button" href="#">View Details</a> <?php if(!class_exists('JCI_Post_Datasource')): ?><a class="jci-btn button button-primary" href="#">Download Now</a><?php else: ?><a class="jci-btn button button-primary">Installed</a><?php endif; ?>
+				<a class="jci-btn button" href="https://github.com/jcollings/jci-post-datasource" target="_blank">View Details</a>
 			</div>
 		</li><!-- /.jci-item -->
 
@@ -22,9 +22,9 @@
 				<p class="jci-title">JC Importer - Custom Fields Addon</p>
 				<p class="jci-version">version: 0.1</p>
 			</div><!-- /.jci-heading -->
-			<img src="http://localhost/icon-256x256.png">
+			<img src="//ps.w.org/jc-importer/assets/icon-256x256.png">
 			<div class="jci-footer">
-				<a class="jci-btn button" href="#">View Details</a> <?php if(!class_exists('JCI_Custom_Fields_Template')): ?><a class="jci-btn button button-primary" href="#">Download Now</a><?php else: ?><a class="jci-btn button button-primary">Installed</a><?php endif; ?>
+				<a class="jci-btn button" href="https://github.com/jcollings/jci-custom-fields" target="_blank">View Details</a>
 			</div>
 		</li><!-- /.jci-item -->
 

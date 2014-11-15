@@ -8,9 +8,12 @@ JC Importer is a base for importing files into wordpress which can be extended u
 * Activate the plugin from within the wordpress administration area.
 * Click on the JC Importer menu item and start importing your data.
 
+##Available Addons
+* JCI Custom Fields - Add custom fields to post/page/custom_post templates - [view](https://github.com/jcollings/jci-custom-fields)
+* JCI Post Datasource - Recieve csv/xml files via POST request - [view](https://github.com/jcollings/jci-post-datasource)
+
 ##Upcoming Features
 * Fetch csv/xml via ftp to be imported
-* Recieve csv/xml via POST
 * Allow recurring importing FTP, POST, and Remote datasources
 * Visual Template Editor, allow non developers to easily create templates without writing code
 
@@ -46,6 +49,10 @@ A guide to importing data from an csv file can be viewed [here](http://jamescoll
 A guide to running and pausing an import can be viewed [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/running-an-import/)
 
 ##Changelog
+
+**0.1.7**
+
+* Update XML node selector modal window
 
 **0.1.6**
 

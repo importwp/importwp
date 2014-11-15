@@ -42,7 +42,7 @@ $jci_template_type = $jcimporter->importer->template_type;
 			});
 
 			// new record preview
-			$('.xml-drop input').on('change', function(){
+			$(document).on('change', '.xml-drop input', function(){
 
 				var val = $(this).val();
 				var obj = $(this).parent();
