@@ -144,6 +144,7 @@ class JC_Importer_Ajax {
 
 		$post_id   = $_GET['importer_id'];
 		$base_node = isset( $_GET['base'] ) ? $_GET['base'] : '';
+		$current_base_node = isset( $_GET['current'] ) ? $_GET['current'] : 'choose-one';
 		$nodes     = array(); // array of nodes
 
 		// 
@@ -174,33 +175,7 @@ class JC_Importer_Ajax {
 			$nodes = $temp;
 		}
 
-		/*
-		// get xml segment
-		$file = ImporterModel::getImportSettings( $post_id, 'import_file' );
-
-		$xml = simplexml_load_file( $file );
-
-		if ( $xml === false ) {
-			echo 'Error: unable to load ' . $file;
-			die();
-		}
-
-		$temp = array( 0 => array( $xml->getName() ) );
-		$this->nodeIterator( $xml );
-
-		if ( ! empty( $this->_results ) ) {
-			foreach ( $this->_results as $node ) {
-
-				if ( empty( $base_node ) || strpos( '/' . $node, $base_node ) === 0 ) {
-					if ( ! empty( $base_node ) ) {
-						$node = substr( $node, strlen( $base_node ) );
-					}
-
-					$nodes[] = $node;
-				}
-			}
-		}*/
-
+		$nodes = array_unique($nodes);
 		require_once $this->_config->plugin_dir . 'app/view/ajax/base_node_select.php';
 		die();
 	}

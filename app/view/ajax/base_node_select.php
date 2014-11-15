@@ -8,24 +8,35 @@
 ?>
 <div class="jci-node-select">
 
-<div>
-	<select id="jci-node-selector">
-		<option value="">Leave Empty</option>
-	<?php if ( ! empty( $nodes ) ): ?>
-	<?php foreach ( $nodes as $node ): ?>
-		<option value="<?php echo $node; ?>"><?php echo $node; ?></option>
-	<?php endforeach; ?>
-	<?php endif; ?>
-	</select>
-	<span class="spinner preview-loading" style="display: none;"></span>
+	<div class="jci-heading">
+		<div class="jci-left">
+			<h1>Choose Base Node</h1>
+			<p>Select the XML base node for this importer</p>
+		</div>
+		<div class="jci-right">
+			<select id="jci-node-selector">
+				<option value="choose-one">Please Choose One</option>
+				<option value="">Leave Empty</option>
+			<?php if ( ! empty( $nodes ) ): ?>
+			<?php foreach ( $nodes as $node ): ?>
+				<option value="<?php echo $node; ?>" <?php selected( $node, $current_base_node, true ); ?>><?php echo $node; ?></option>
+			<?php endforeach; ?>
+			<?php endif; ?>
+			</select>
+			<span class="spinner preview-loading" style="display: none;"></span>
+		</div>
 	</div>
 
-	<a class="button-primary jci-select-node">Submit</a>
+	<div id="jci-node-select-preview" class="jci-preview-block"></div>
 
-	<h1>Records <span id="jci-record-count"></span></h1>
-
-	
-	<div id="jci-node-select-preview"></div>
+	<div class="jci-footer">
+		<div class="jci-right">
+			<a class="button-primary jci-select-node">Submit</a>
+		</div>
+		<div class="jci-right">
+			<p>Total Records: <span id="jci-record-count"></span></p>
+		</div>
+	</div>
 
 	<script type="text/javascript">
 
@@ -36,6 +47,10 @@
 			var base_node_parent = '<?php echo $base_node; ?>';
 
 			$('#jci-node-selector').on('change', function(){
+
+				if($(this).val() == 'choose-one'){
+					return false;
+				}
 
 				base_node = $(this).val();
 				var output_base_node = base_node_parent + base_node;

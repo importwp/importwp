@@ -191,7 +191,7 @@ jQuery(function ($) {
 
         var data = {
             action: 'jc_base_node',
-            id: ajax_object.id,
+            id: ajax_object.id
         };
 
         $.post(ajax_object.ajax_url, data, function (xml) {
@@ -218,7 +218,7 @@ jQuery(document).ready(function ($) {
         }
 
         jci_element = $(this).parent().find('input');
-        var result = tb_show('Node Select', ajax_object.node_ajax_url + '&type=xml&base=' + base);
+        var result = tb_show('Node Select', ajax_object.node_ajax_url + '&type=xml&current='+jci_element.val()+'&base=' + base);
         event.preventDefault();
     });
 
@@ -230,14 +230,14 @@ jQuery(document).ready(function ($) {
 
             // setting main node
             jci_element = $(this).parent().find('input');
-            var result = tb_show('Node Select', ajax_object.base_node_ajax_url);
+            var result = tb_show('Node Select', ajax_object.base_node_ajax_url+'&current='+jci_element.val());
 
         } else {
 
             // setting group node
             var base = $('#jc-importer_parser_settings-import_base').val();
             jci_element = $(this).parent().find('input');
-            var result = tb_show('Node Select', ajax_object.base_node_ajax_url + '&base=' + base);
+            var result = tb_show('Node Select', ajax_object.base_node_ajax_url+'&current='+jci_element.val() + '&base=' + base);
         }
 
         event.preventDefault();
