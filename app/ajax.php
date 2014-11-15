@@ -18,6 +18,9 @@ class JC_Importer_Ajax {
 		add_action( 'wp_ajax_jc_node_select', array( $this, 'admin_ajax_node_select' ) );
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_ajax_import' ) );
+
+		// preview xml base node
+		add_action('wp_ajax_jc_preview_xml_base_bode', array($this, 'admin_ajax_preview_xml_node'));
 	}
 
 	public function enqueue_ajax_import() {
@@ -39,6 +42,27 @@ class JC_Importer_Ajax {
 				'record_preview_url' => admin_url( 'admin-ajax.php?action=jc_preview_record&importer_id=' . $post_id ),
 			) );
 		}
+	}	
+
+	/**
+	 * Ajax show xml generated from currently chosen nodes
+	 * @return void
+	 */
+	public function admin_ajax_preview_xml_node(){
+
+		$importer_id = intval( $_POST['id'] );
+		$base_node = $_POST['base'];
+
+		$file = ImporterModel::getImportSettings( $importer_id, 'import_file' );
+
+		if(!empty($base_node) && $base_node != '/'){
+			$base_node .= '[1]';
+		}
+
+		$xml = new JCI_XMLOutput($file, $base_node);
+
+		require_once $this->_config->plugin_dir . 'app/view/ajax/xml_node_preview.php';
+		die();
 	}
 
 	/**
