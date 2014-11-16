@@ -69,6 +69,10 @@ A guide to running and pausing an import can be viewed [here](http://jamescollin
 
 == Changelog ==
 
+= 0.1.8 =
+
+* Fix get_groups() issue in mapper
+
 = 0.1.7 =
 
 * Update XML node selector modal window

@@ -455,7 +455,8 @@ class JC_BaseMapper {
 		try {
 
 			// get import type: post | table | user
-			$import_type = $this->_template->get_groups()[ $group_id ]['import_type'];
+			$import_template_groups = $this->_template->get_groups();
+			$import_type = $import_template_groups[ $group_id ]['import_type'];
 
 			$mapper = $this->_mappers[ $import_type ];
 
@@ -608,7 +609,8 @@ class JC_BaseMapper {
 
 		foreach ( $jci_taxonomies as $group_id => $taxonomies ) {
 
-			if ( isset( $this->_template->get_groups()[ $group_id ]['taxonomies'] ) && $this->_template->get_groups()[ $group_id ]['taxonomies'] <> 1 ) {
+			$import_template_groups = $this->_template->get_groups();
+			if ( isset( $import_template_groups[ $group_id ]['taxonomies'] ) && $import_template_groups[ $group_id ]['taxonomies'] <> 1 ) {
 				continue;
 			}
 
@@ -702,7 +704,8 @@ class JC_BaseMapper {
 
 		foreach ( $jci_attachments as $group_id => $attachments ) {
 
-			if ( isset( $this->_template->get_groups()[ $group_id ]['attachments'] ) && $this->_template->get_groups()[ $group_id ]['attachments'] <> 1 ) {
+			$import_template_groups = $this->_template->get_groups();
+			if ( isset( $import_template_groups[ $group_id ]['attachments'] ) && $import_template_groups[ $group_id ]['attachments'] <> 1 ) {
 				continue;
 			}
 

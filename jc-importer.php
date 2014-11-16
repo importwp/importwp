@@ -5,7 +5,7 @@ Plugin URI: http://jamescollings.co.uk/wordpress-plugins/jc-importer/
 Description: Wordpress CSV/XML Importer Plugin, Easily import users, posts, custom post types and taxonomies from XML or CSV files
 Author: James Collings <james@jclabs.co.uk>
 Author URI: http://www.jamescollings.co.uk
-Version: 0.1.7
+Version: 0.1.8
 */
 
 require_once 'app/core/exceptions.php';
@@ -46,7 +46,7 @@ require_once 'app/functions.php';
 
 class JC_Importer {
 
-	var $version = '0.1.7';
+	var $version = '0.1.8';
 	var $plugin_dir = false;
 	var $plugin_url = false;
 	var $templates = array();
