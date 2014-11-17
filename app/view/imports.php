@@ -2,7 +2,7 @@
 $importers = ImporterModel::getImporters();
 ?>
 <div id="icon-tools" class="icon32"><br></div>
-<h2>JC Importer <a href="<?php echo admin_url('admin.php?page=jci-importers&action=add' ); ?>"
+<h2>Importers <a href="<?php echo admin_url('admin.php?page=jci-importers&action=add' ); ?>"
                 class="add-new-h2">Add New</a></h2>
 
 <?php jci_display_messages(); ?>
@@ -17,8 +17,8 @@ $importers = ImporterModel::getImporters();
 				<th class="manage-column column-cb check-column">
 				</th>
 				<th>Importer</th>
-				<th width="50px">Groups</th>
-				<th width="50px">Fields</th>
+				<th width="100px">Template</th>
+				<!-- <th width="50px">Fields</th> -->
 				<th width="100px">Modified</th>
 				</thead>
 
@@ -48,11 +48,10 @@ $importers = ImporterModel::getImporters();
 									                       href="<?php echo admin_url('admin.php?page=jci-importers&import=' . get_the_ID() . '&action=trash' ); ?>">Trash</a></span>
 								</div>
 							</td>
-							<td><?php
-								$fields = get_post_meta( get_the_ID(), '_mapped_fields', true );
-								echo count( $fields );
-								?></td>
-							<td><?php
+							<td>
+								<?php echo ImporterModel::getImportSettings( get_the_ID(), 'template' ); ?>
+							</td>
+							<!-- <td><?php
 								$field_count = 0;
 								if ( ! empty( $fields ) ) {
 									foreach ( $fields as $field ) {
@@ -60,14 +59,15 @@ $importers = ImporterModel::getImporters();
 									}
 								}
 								echo $field_count;
-								?></td>
+								?></td> -->
 							<td><?php echo get_the_date(); ?></td>
 						</tr>
+						<?php ImporterModel::clearImportSettings(); ?>
 					<?php endwhile; ?>
 					<?php wp_reset_postdata(); ?>
 				<?php else: ?>
 					<tr>
-						<td colspan="5"><p>To start an import <a
+						<td colspan="4"><p>To start an import <a
 									href="<?php echo admin_url('admin.php?page=jci-importers&action=add' ); ?>">click
 									here</a> , click on add new at the top of the page.</p></td>
 					</tr>

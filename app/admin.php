@@ -286,9 +286,9 @@ class JC_Importer_Admin {
 				$result = $attach->attach_upload( $id, $_FILES['jc-importer_import_file'], array('importer-file' => true) );
 				ImporterModel::setImportFile( $id, $result );
 
-				// increase verion number
-				// $verion = get_post_meta( $id, '_import_version', true );
-				// ImporterModel::setImportVersion($id, $verion + 1);
+				// increase version number
+				// $version = get_post_meta( $id, '_import_version', true );
+				// ImporterModel::setImportVersion($id, $version + 1);
 
 				wp_redirect( '/wp-admin/admin.php?page=jci-importers&import=' . $id . '&action=edit' );
 				exit();
@@ -342,10 +342,10 @@ class JC_Importer_Admin {
 			if ( /*$attachment_check->post_count == 1*/ $selected_import_id > 0 ) {
 
 				// increase version number
-				$verion = get_post_meta( $id, '_import_version', true );
+				$version = get_post_meta( $id, '_import_version', true );
 				$last_row = get_post_meta( $id, '_jci_last_row_'.$version, true );
 				if($last_row > 0){
-					ImporterModel::setImportVersion($id, $verion + 1);
+					ImporterModel::setImportVersion($id, $version + 1);
 				}	
 
 				$settings['import_file'] = $selected_import_id;

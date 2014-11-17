@@ -50,6 +50,11 @@ A guide to running and pausing an import can be viewed [here](http://jamescollin
 
 ##Changelog
 
+**0.1.9**
+
+* Improve create importer screen. 
+* fix misspelled version variable causing warnings
+
 **0.1.8**
 
 * Fix get_groups() issue in mapper
