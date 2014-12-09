@@ -50,6 +50,11 @@ A guide to running and pausing an import can be viewed [here](http://jamescollin
 
 ##Changelog
 
+**0.2**
+
+* fix wrong user version importer tag when adding
+* allow addition of user meta values (add/edit)
+
 **0.1.9**
 
 * Improve create importer screen. 

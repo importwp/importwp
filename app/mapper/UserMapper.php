@@ -67,6 +67,13 @@ class JC_UserMapper{
 			throw new JCI_Exception( $result->get_error_message(), JCI_ERR );
 		}
 
+		// add user meta
+		foreach($fields as $meta_key => $meta_value){
+			if(!in_array($meta_key, $this->_user_fields)){
+				add_user_meta( $result, $meta_key, $meta_value, true );
+			}
+		}
+
 		$this->add_version_tag( $result );
 
 		do_action( 'jci/after_user_insert', $result, $fields );
@@ -88,6 +95,19 @@ class JC_UserMapper{
 		$result       = wp_update_user( $fields );
 		if ( is_wp_error( $result ) ) {
 			throw new JCI_Exception( $result->get_error_message(), JCI_ERR );
+		}
+
+		// update user meta
+		foreach($fields as $meta_key => $meta_value){
+			if(!in_array($meta_key, $this->_user_fields)){
+
+				$old_meta_version = get_user_meta( $user_id, $meta_key, true );
+				if ( $old_meta_version ) {
+					update_user_meta( $user_id, $meta_key, $meta_value, $old_meta_version );
+				} else {
+					add_user_meta( $user_id, $meta_key, $meta_value );
+				}
+			}
 		}
 
 		$this->update_version_tag( $user_id );
@@ -163,7 +183,7 @@ class JC_UserMapper{
 		$importer_id = $jcimporter->importer->get_ID();
 		$version     = $jcimporter->importer->get_version();
 
-		add_post_meta( $user_id, '_jci_version_' . $importer_id, $version );
+		add_user_meta( $user_id, '_jci_version_' . $importer_id, $version );
 	}
 
 	/**

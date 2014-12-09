@@ -12,6 +12,7 @@ class UserMapperTest extends WP_UnitTestCase {
 	/**
 	 * @group core
 	 * @group mapper
+	 * @group user_mapper
 	 */
 	public function test_insert() {
 
@@ -35,6 +36,7 @@ class UserMapperTest extends WP_UnitTestCase {
 	 * @expectedException JCI_Exception
 	 * @group core
 	 * @group mapper
+	 * @group user_mapper
 	 */
 	public function test_insert_no_login() {
 
@@ -43,5 +45,49 @@ class UserMapperTest extends WP_UnitTestCase {
 			'user_email' => 'james@test.com'
 		) );
 
+	}
+
+	/**
+	 * @group core
+	 * @group mapper
+	 * @group user_mapper
+	 */
+	public function test_add_meta_data(){
+		$mapper = new JC_UserMapper();
+		$result = $mapper->insert( 'user', array(
+			'user_email' => 'james2@test.com',
+			'user_login' => 'jcadmin2',
+			'user_pass'  => 'pass2',
+			'_test_user_meta' => 'yes'
+		) );
+
+		$this->assertEquals('yes', get_user_meta( $result, '_test_user_meta', true ));
+	}
+
+	/**
+	 * @group core
+	 * @group mapper
+	 * @group user_mapper
+	 */
+	public function test_edit_meta_data(){
+		$mapper = new JC_UserMapper();
+		$result = $mapper->insert( 'user', array(
+			'user_email' => 'james3@test.com',
+			'user_login' => 'jcadmin3',
+			'user_pass'  => 'pass3',
+			'_test_user_meta' => 'one'
+		) );
+
+		$this->assertEquals('one', get_user_meta( $result, '_test_user_meta', true ));
+
+		$mapper = new JC_UserMapper();
+		$result = $mapper->update($result, 'user', array(
+			'user_email' => 'james3@test.com',
+			'user_login' => 'jcadmin3',
+			'user_pass'  => 'pass3',
+			'_test_user_meta' => 'two'
+		) );
+
+		$this->assertEquals('two', get_user_meta( $result, '_test_user_meta', true ));
 	}
 }
