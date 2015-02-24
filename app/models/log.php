@@ -26,6 +26,7 @@ class ImportLog {
 
 	/**
 	 * Insert Record into log table
+	 * @todo : extract version settings to stop duplicate content being stored
 	 *
 	 * @param  int $import_id
 	 * @param  int $row
@@ -47,14 +48,42 @@ class ImportLog {
 		$importer = ImporterModel::getImporter( $import_id );
 		$version = $jcimporter->importer->get_version();
 
+		// copy version settings (previously stored in post meta)
+		$import_settings = get_post_meta( $import_id, '_import_settings', true );
+		$mapped_fields = get_post_meta( $import_id, '_mapped_fields', true );
+		$attachments = get_post_meta( $import_id, '_attachments', true );
+		$taxonomies = get_post_meta( $import_id, '_taxonomies', true );
+		$parser_settings = get_post_meta( $import_id, '_parser_settings', true );
+		$template_settings = get_post_meta( $import_id, '_template_settings', true );
+
 		// $wpdb->query( "
 		// 	INSERT INTO `" . $wpdb->prefix . "importer_log` (importer_name, object_id, template,type,file, version, row, src, value, created)
 		// 	VALUES('" . $importer->post->post_name . "', '" . $import_id . "', '" . $template['template'] . "', '" . $template['template_type'] . "', '" . $template['import_file'] . "', '" . $version . "', '" . $row . "', '', '" . mysql_real_escape_string( serialize( $record ) ) . "', NOW());" );
 
 		$wpdb->query( $wpdb->prepare("
-			INSERT INTO `" . $wpdb->prefix . "importer_log` (importer_name, object_id, template,type,file, version, row, src, value, created)
-			VALUES(%s, %d, %s, %s, %s, %d, %d, '', %s, NOW());" ,
-		$importer->post->post_name, $import_id, $template['template'], $template['template_type'], $template['import_file'], $version, $row, serialize( $record )));
+			INSERT INTO `" . $wpdb->prefix . "importer_log` (importer_name, object_id, template,type,file, version, row, src, value, created, import_settings, mapped_fields, attachments, taxonomies, parser_settings, template_settings)
+			VALUES(%s, %d, %s, %s, %s, %d, %d, '', %s, NOW(), %s, %s, %s, %s, %s, %s);" ,
+		$importer->post->post_name, $import_id, $template['template'], $template['template_type'], $template['import_file'], $version, $row, serialize( $record ), serialize( $import_settings ), serialize( $mapped_fields), serialize( $attachments ), serialize( $taxonomies ), serialize( $parser_settings ), serialize( $template_settings ) ) );
+	}
+
+	/**
+	 * Get Latest Import Log Version
+	 *
+	 * @param  int $import_id
+	 * @param  int $version
+	 *
+	 * @return int
+	 */
+	static function get_last_row( $import_id, $version ) {
+		global $wpdb;
+		$import_id = intval( $import_id );
+		$row       = $wpdb->get_row( $wpdb->prepare("SELECT row FROM `" . $wpdb->prefix . "importer_log` WHERE object_id=%d AND version=%d GROUP BY row ORDER BY row DESC", $import_id, $version ));
+
+		if ( ! $row ) {
+			return 0;
+		}
+
+		return intval($row->row);
 	}
 
 	/**
@@ -73,7 +102,7 @@ class ImportLog {
 			return 0;
 		}
 
-		return $row->version;
+		return intval($row->version);
 	}
 
 	/**

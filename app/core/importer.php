@@ -138,7 +138,7 @@ class JC_Importer_Core {
 			}
 
 			// get last imported record for latest version
-			$last_row = get_post_meta( $this->ID, '_jci_last_row_'.$this->version, true );
+			$last_row = ImportLog::get_last_row( $this->ID, $this->version );
 			if ( intval( $last_row ) > 0 ) {
 				$this->last_import_row = intval( $last_row );
 			} else {

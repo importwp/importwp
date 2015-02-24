@@ -201,33 +201,12 @@ class JC_BaseMapper {
 			$this->set_import_version();
 			$this->processRow( $data_row );
 			ImportLog::insert( $importer_id, $this->_current_row, $this->_insert[ $this->_current_row ] );
-
-			// add/update last import record row
-			$this->track_import( $importer_id, $this->_current_row , $jcimporter->importer->get_version() );
 		}
 
 		// check to see if last row
 		$this->complete_check( $this->_current_row, $is_ajax);
 
 		return $this->_insert;
-	}
-
-	/**
-	 * Keep track of the last imported from on importer
-	 * 
-	 * @param  int $importer_id 
-	 * @param  int $row         
-	 * @param  int $version     
-	 * @return void
-	 */
-	function track_import($importer_id, $row, $version){
-
-		$last_record = get_post_meta( $importer_id, '_jci_last_row_' . $version, true );
-		if ( $last_record ) {
-			update_post_meta( $importer_id, '_jci_last_row_' . $version, $row, $last_record );
-		} else {
-			add_post_meta( $importer_id, '_jci_last_row_' . $version, $row, true );
-		}
 	}
 
 	/**
@@ -277,14 +256,6 @@ class JC_BaseMapper {
 
 			// increate import version
 			$version ++;
-
-			// copy version settings
-			add_post_meta( $import_id, '_import_settings_' . $version, get_post_meta( $import_id, '_import_settings', true ) );
-			add_post_meta( $import_id, '_mapped_fields_' . $version, get_post_meta( $import_id, '_mapped_fields', true ) );
-			add_post_meta( $import_id, '_attachments_' . $version, get_post_meta( $import_id, '_attachments', true ) );
-			add_post_meta( $import_id, '_taxonomies_' . $version, get_post_meta( $import_id, '_taxonomies', true ) );
-			add_post_meta( $import_id, '_parser_settings_' . $version, get_post_meta( $import_id, '_parser_settings', true ) );
-			add_post_meta( $import_id, '_template_settings_' . $version, get_post_meta( $import_id, '_template_settings', true ) );
 
 			// update import version in db
 			$old_version = get_post_meta( $import_id, '_import_version', true );

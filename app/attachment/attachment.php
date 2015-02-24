@@ -113,7 +113,7 @@ class JC_Attachment {
 
 			// new importer file, increase verion number
 			$version = get_post_meta( $post_id, '_import_version', true );
-			$last_row = get_post_meta( $post_id, '_jci_last_row_'.$version, true );
+			$last_row = ImportLog::get_last_row( $post_id, $version );
 			if($last_row > 0){
 				ImporterModel::setImportVersion($post_id, $version + 1);
 			}			
