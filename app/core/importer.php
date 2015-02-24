@@ -229,7 +229,8 @@ class JC_Importer_Core {
 					$mapper->complete_check( intval( $row ) );
 
 					// track row as import is skipped
-					$mapper->track_import( $importer_id, $row, $jcimporter->importer->get_version() );
+					ImportLog::insert( $importer_id, $row, array() );
+					// $mapper->track_import( $importer_id, $row, $jcimporter->importer->get_version() );
 
 					return false;
 				}
