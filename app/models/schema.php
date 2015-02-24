@@ -48,6 +48,17 @@ class JCI_DB_Schema{
 			  PRIMARY KEY (`id`)
 			) $charset_collate; ";
 
+		$sql .= "CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "importer_files`(  
+			  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			  `importer_id` INT(11),
+			  `author_id` INT(11),
+			  `mime_type` VARCHAR(255),
+			  `name` VARCHAR(255),
+			  `src` VARCHAR(255),
+			  `created` DATETIME,
+			  PRIMARY KEY (`id`)
+			) $charset_collate;";
+
 		dbDelta( $sql );
 	}
 
@@ -59,18 +70,31 @@ class JCI_DB_Schema{
 
 		global $wpdb;
 
+		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+
 		switch($old_version){
 			case 0:
 			case 1:
 				// db version 2
 				$sql = "ALTER TABLE `" . $wpdb->prefix . "importer_log`   
-  ADD COLUMN `import_settings` TEXT NULL,
-  ADD COLUMN `mapped_fields` TEXT NULL,
-  ADD COLUMN `attachments` TEXT NULL,
-  ADD COLUMN `taxonomies` TEXT NULL,
-  ADD COLUMN `parser_settings` TEXT NULL,
-  ADD COLUMN `template_settings` TEXT NULL;";
-				$wpdb->query($sql);
+					  ADD COLUMN `import_settings` TEXT NULL,
+					  ADD COLUMN `mapped_fields` TEXT NULL,
+					  ADD COLUMN `attachments` TEXT NULL,
+					  ADD COLUMN `taxonomies` TEXT NULL,
+					  ADD COLUMN `parser_settings` TEXT NULL,
+					  ADD COLUMN `template_settings` TEXT NULL;";
+
+  				$sql .= "CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "importer_files`(  
+					  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+					  `importer_id` INT(11),
+					  `author_id` INT(11),
+					  `mime_type` VARCHAR(255),
+					  `name` VARCHAR(255),
+					  `src` VARCHAR(255),
+					  `created` DATETIME,
+					  PRIMARY KEY (`id`)
+					) $charset_collate;";
+				dbDelta( $sql );
 			break;
 		}
 	}

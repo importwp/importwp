@@ -490,6 +490,38 @@ class ImporterModel {
 
 		return $post_id;
 	}
+
+	/**
+	 * Add importer file into directory
+	 *
+	 * @todo : Re-structure this function
+	 * @since 0.2
+	 * @param  int $importer_id 
+	 * @param  string $file        
+	 * @return int
+	 */
+	static function insertImporterFile($importer_id, $file){
+
+		$wp_filetype   = wp_check_filetype( $file, null );
+		$wp_upload_dir = wp_upload_dir();	
+
+		$mime = $wp_filetype['type'];
+		$name = preg_replace( '/\.[^.]+$/', '', basename( $file ) );
+		$attachment_src = $wp_upload_dir['subdir'] . '/' . basename( $file );
+		$author_id = get_current_user_id();
+
+		global $wpdb;
+
+		$wpdb->query( $wpdb->prepare( "INSERT INTO `" . $wpdb->prefix . "importer_files`(importer_id, author_id, mime_type, name, src, created) VALUES(%d, %d, %s, %s, %s, NOW())", $importer_id, $author_id, $mime, $name, $attachment_src ) );
+		return $wpdb->insert_id;
+	}
+
+	static function getImporterFile($importer_id){
+
+		global $wpdb;
+
+
+	}
 }
 
 ?>

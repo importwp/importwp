@@ -95,45 +95,38 @@ class JC_Attachment {
 		$resize  = isset( $args['resize'] ) && is_bool( $args['resize'] ) ? $args['resize'] : true;
 
 		$wp_filetype   = wp_check_filetype( $file, null );
-		$wp_upload_dir = wp_upload_dir();
-
-		$attachment = array(
-			'guid'           => $wp_upload_dir['url'] . '/' . basename( $file ),
-			'post_mime_type' => $wp_filetype['type'],
-			'post_title'     => preg_replace( '/\.[^.]+$/', '', basename( $file ) ),
-			'post_content'   => '',
-			'post_status'    => 'inherit',
-			'post_author'    => get_current_user_id(),
-			'post_parent'    => $post_id
-		);
+		$wp_upload_dir = wp_upload_dir();		
 
 		// $args['importer-file'] = true;
 
 		if(isset($args['importer-file']) && $args['importer-file'] === true){
 
-			// new importer file, increase verion number
-			$version = get_post_meta( $post_id, '_import_version', true );
-			$last_row = ImportLog::get_last_row( $post_id, $version );
-			if($last_row > 0){
-				ImporterModel::setImportVersion($post_id, $version + 1);
-			}			
+			$file_id = ImporterModel::insertImporterFile($post_id, $file);
+			if( intval( $file_id ) > 0 ){
 
-			// set post_type
-			$attachment['post_type'] = 'jc-import-files';
+				// if file uploaded, increase verion number
+				$version = get_post_meta( $post_id, '_import_version', true );
+				$last_row = ImportLog::get_last_row( $post_id, $version );
+				if($last_row > 0){
+					ImporterModel::setImportVersion($post_id, $version + 1);
+				}	
 
-			$attach_id = wp_insert_post( $attachment);
-			if($attach_id){
-
-				// get attachment path
-				$attachment_src = $wp_upload_dir['subdir'] . '/' . basename( $file );
-				if(strpos($attachment_src, '/') === 0){
-					$attachment_src = substr($attachment_src, 1);
-				}
-				// save path to post file
-				add_post_meta( $attach_id, '_wp_attached_file', $attachment_src, true );
+				return $file_id;
 			}
+			return false;
 
 		}else{
+
+			$attachment = array(
+				'guid'           => $wp_upload_dir['url'] . '/' . basename( $file ),
+				'post_mime_type' => $wp_filetype['type'],
+				'post_title'     => preg_replace( '/\.[^.]+$/', '', basename( $file ) ),
+				'post_content'   => '',
+				'post_status'    => 'inherit',
+				'post_author'    => get_current_user_id(),
+				'post_parent'    => $post_id
+			);
+
 			$attach_id = wp_insert_attachment( $attachment, $file, $post_id );
 		}
 
