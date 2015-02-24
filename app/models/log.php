@@ -106,44 +106,6 @@ class ImportLog {
 	}
 
 	/**
-	 * Create Log Table
-	 * @return void
-	 */
-	static function scaffold() {
-
-		global $wpdb;
-
-		$wpdb->show_errors();
-		$charset_collate = "";
-
-		if ( ! empty( $wpdb->charset ) ) {
-			$charset_collate = "DEFAULT CHARACTER SET $wpdb->charset";
-		}
-		if ( ! empty( $wpdb->collate ) ) {
-			$charset_collate .= " COLLATE $wpdb->collate";
-		}
-
-		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-
-		$sql = "CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "importer_log` (
-			  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-			  `importer_name` varchar(255) DEFAULT NULL,
-			  `object_id` int(11) DEFAULT NULL,
-			  `template` varchar(255) DEFAULT NULL,
-			  `type` varchar(255) DEFAULT NULL,
-			  `file` varchar(255) DEFAULT NULL,
-			  `version` int(11) DEFAULT NULL,
-			  `row` int(11) DEFAULT NULL,
-			  `src` text,
-			  `value` text,
-			  `created` datetime DEFAULT NULL,
-			  PRIMARY KEY (`id`)
-			) $charset_collate; ";
-
-		dbDelta( $sql );
-	}
-
-	/**
 	 * Get Importer Logs
 	 *
 	 * @param int $importer_id

@@ -50,7 +50,7 @@ class JC_Importer {
 	var $plugin_dir = false;
 	var $plugin_url = false;
 	var $templates = array();
-	var $db_version = 1;
+	var $db_version = 2;
 	var $core_version = 1;
 	var $debug = false;
 
@@ -60,6 +60,7 @@ class JC_Importer {
 		$this->plugin_url = plugins_url( '/', __FILE__ );
 
 		add_action( 'init', array( $this, 'init' ) );
+		add_action( 'plugins_loaded', array( $this, 'db_update_check'));
 
 		$this->parsers = apply_filters( 'jci/register_parser', array() );
 
@@ -161,8 +162,25 @@ class JC_Importer {
 		if ( is_admin() && get_option( 'Activated_Plugin' ) == 'jcimporter' ) {
 
 			// scaffold log table
-			ImportLog::scaffold();
+			require_once 'app/models/schema.php';
+			$schema = new JCI_DB_Schema( $this );
+			$schema->install();
+			$this->db_update_check();
+			
 			delete_option( 'Activated_Plugin' );
+		}
+	}
+
+	public function db_update_check(){
+
+		$curr_db = intval( get_site_option( 'jci_db_version') );
+		if( is_admin() && $curr_db < $this->db_version ){
+
+			require_once 'app/models/schema.php';
+			$schema = new JCI_DB_Schema( $this );
+			$schema->upgrade($curr_db);
+
+			update_site_option( 'jci_db_version', $this->db_version );
 		}
 	}
 }
