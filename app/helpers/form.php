@@ -353,11 +353,11 @@ class JCI_FormHelper {
 			$output .= '<option>' . $empty_val . '</option>';
 		}
 
-		foreach ( $options as $id => $option ) {
-			if ( $id == $default ) {
-				$output .= '<option value="' . $id . '" selected="selected">' . $option . '</option>';
+		foreach ( $options as $option_id => $option ) {
+			if ( ($option_id == $default && empty($value)) || $option_id == $value ) {
+				$output .= '<option value="' . $option_id . '" selected="selected">' . $option . '</option>';
 			} else {
-				$output .= '<option value="' . $id . '">' . $option . '</option>';
+				$output .= '<option value="' . $option_id . '">' . $option . '</option>';
 			}
 		}
 
@@ -368,6 +368,7 @@ class JCI_FormHelper {
 		}
 
 		$output .= '</div>';
+
 
 		return $output;
 	}

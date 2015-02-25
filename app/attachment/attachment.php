@@ -176,7 +176,23 @@ class JC_Attachment {
 		// get template type
 		$mime = $this->get_file_mime( $file );
 
-		return $this->check_mime_header( $mime );
+		$result = $this->check_mime_header( $mime );
+
+		// fallback to check for filetype by extension
+		if(!$result){
+
+			if(strpos($file, '.xml') > 0){
+				$result = 'xml';
+			}elseif(strpos($file, '.csv') > 0){
+				$result = 'csv';
+			}
+		}
+
+		if(!$result){
+			$this->set_error('Could not determine filetype');
+		}
+
+		return $result;
 	}
 
 	/**

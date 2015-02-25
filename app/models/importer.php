@@ -209,22 +209,11 @@ class ImporterModel {
 			case 'import_file':
 				if ( intval( $settings['import_file'] ) > 0 ) {
 
-					if( get_post_type( $settings['import_file'] ) == 'jc-import-files'){
-
-						// fetch import file from custom post status
-						$settings = get_post_meta( intval( $settings['import_file'] ) , '_wp_attached_file', true );
-						if($settings){
-							// get full file path
-							$wp_upload_dir = wp_upload_dir();
-							$settings = $wp_upload_dir['basedir'] . DIRECTORY_SEPARATOR . $settings; 
-						}
-
-					}else{
-						
-						// get attachment file path
-						$settings = get_attached_file( intval( $settings['import_file'] ) );
+					$file = self::getImporterFile($settings['import_file']);
+					if($file){
+						$wp_upload_dir = wp_upload_dir();
+						$settings = $wp_upload_dir['basedir'] . $file->src; 
 					}
-
 					
 				} else {
 					$settings = isset( $settings['import_file'] ) ? $settings['import_file'] : '';
@@ -516,11 +505,26 @@ class ImporterModel {
 		return $wpdb->insert_id;
 	}
 
-	static function getImporterFile($importer_id){
+	static function getImporterFile($file_id){
 
 		global $wpdb;
 
+		$result = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `" . $wpdb->prefix . "importer_files` WHERE id=%d", $file_id  ) );
+		if($result){
+			return $result;	
+		}
+		return false;		
+	}
 
+	static function getImporterFiles($importer_id){
+
+		global $wpdb;
+
+		$result = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM `" . $wpdb->prefix . "importer_files` WHERE importer_id=%d", $importer_id  ) );
+		if($result){
+			return $result;	
+		}
+		return false;
 	}
 }
 

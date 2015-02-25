@@ -185,6 +185,7 @@ class JC_Importer_Admin {
 
 			// @todo: fix upload so no file is uploaded unless it is the correct type, currently file is uploaded then removed.
 
+			$file_error_field = 'import_file';
 			$import_type = $_POST['jc-importer_import_type'];
 			switch ( $import_type ) {
 
@@ -208,6 +209,7 @@ class JC_Importer_Admin {
 					$attach                = new JC_CURL_Attachments();
 					$result                = $attach->attach_remote_file( $post_id, $src, $dest, array('importer-file' => true) );
 					$general['remote_url'] = $src;
+					$file_error_field = 'remote_url';
 
 					// todo: replace the result
 					$result['attachment'] = $attach;
@@ -224,7 +226,7 @@ class JC_Importer_Admin {
 
 			// restrict file attached filetype
 			if ( ! in_array( $result['type'], array( 'xml', 'csv' ) ) ) {
-				@wp_delete_attachment( $result['id'], true );
+				// todo delete import file
 				$errors[] = 'Filetype not supported';
 			}
 
@@ -235,7 +237,7 @@ class JC_Importer_Admin {
 			}
 
 			if ( ! empty( $errors ) ) {
-				JCI_FormHelper::$errors['import_file'] = array_pop( $errors );
+				JCI_FormHelper::$errors[$file_error_field] = array_pop($errors);
 				wp_delete_post( $post_id, true );
 
 				return;

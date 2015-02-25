@@ -165,74 +165,21 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 					<?php
 					
 					$current_import_file = basename( $jcimporter->importer->get_file() );
+					$files = ImporterModel::getImporterFiles($id);
 
 					echo '<ul>';
 
-					// list of previously uploaded files
-					$importer_attachments = new WP_Query( array(
-						'post_type'   => 'jc-import-files',
-						'post_parent' => $id,
-						'post_status' => 'any'
-					) );
-					
-					if ( $importer_attachments->have_posts() ) {
-						
-						while ( $importer_attachments->have_posts() ) {
+					if($files){
 
-							$importer_attachments->the_post();
-							$import_file = get_post_meta( get_the_ID(), '_wp_attached_file', true );
-							if ( $current_import_file == basename( $import_file ) ) {
-								echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
-											'value'   => get_the_ID(),
-											'label'   => $import_file . ' (' . get_the_date() . ' at ' . get_the_time() . ')',
-											'checked' => true
-										) ) . '</li>';
-							} else {
-								echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
-											'value' => get_the_ID(),
-											'label' => $import_file . ' (' . get_the_date() . ' at ' . get_the_time() . ')'
-										) ) . '</li>';
-							}
+						foreach($files as $file){
+							$import_file = basename($file->src);
+							echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
+								'value'   => $file->id,
+								'label'   => $import_file . ' (' . date( get_site_option('date_format' ), strtotime($file->created)) . ' at ' . date( get_site_option('time_format' ), strtotime($file->created)) . ')',
+								'checked' => $import_file == $current_import_file ? true : false
+							) ) . '</li>';
 						}
-						
-						wp_reset_postdata();
 					}
-
-					// ===================================================================
-					// backwards compat: Switching attachments for custom post type
-					// ===================================================================
-
-					// list of previously uploaded files
-					$importer_attachments = new WP_Query( array(
-							'post_type'   => 'attachment',
-							'post_parent' => $id,
-							'post_status' => 'any'
-						) );
-					// print_r($attachments);
-					if ( $importer_attachments->have_posts() ) {
-						while ( $importer_attachments->have_posts() ) {
-
-							$importer_attachments->the_post();
-							$import_file = get_post_meta( get_the_ID(), '_wp_attached_file', true );
-							if ( $current_import_file == basename( $import_file ) ) {
-								echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
-											'value'   => get_the_ID(),
-											'label'   => $import_file . ' (' . get_the_date() . ' at ' . get_the_time() . ')',
-											'checked' => true
-										) ) . '</li>';
-							} else {
-								echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
-											'value' => get_the_ID(),
-											'label' => $import_file . ' (' . get_the_date() . ' at ' . get_the_time() . ')'
-										) ) . '</li>';
-							}
-						}
-						wp_reset_postdata();
-					}
-
-					// ===================================================================
-					// End backwards compat:
-					// ===================================================================
 
 					echo '</ul>';
 
