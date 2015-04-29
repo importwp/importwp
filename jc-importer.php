@@ -159,15 +159,18 @@ class JC_Importer {
 	 */
 	function load_plugin() {
 
-		if ( is_admin() && get_option( 'Activated_Plugin' ) == 'jcimporter' ) {
+		if ( is_admin() ){ 
 
-			// scaffold log table
-			require_once 'app/models/schema.php';
-			$schema = new JCI_DB_Schema( $this );
-			$schema->install();
-			$this->db_update_check();
-			
-			delete_option( 'Activated_Plugin' );
+			if( get_option( 'Activated_Plugin' ) == 'jcimporter' ) {
+
+				// scaffold log table
+				require_once 'app/models/schema.php';
+				$schema = new JCI_DB_Schema( $this );
+				$schema->install();
+				delete_option( 'Activated_Plugin' );
+			}
+
+			$this->db_update_check();			
 		}
 	}
 
