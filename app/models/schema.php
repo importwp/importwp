@@ -47,8 +47,10 @@ class JCI_DB_Schema{
 			  `template_settings` TEXT NULL,
 			  PRIMARY KEY (`id`)
 			) $charset_collate; ";
+		
+		dbDelta( $sql );
 
-		$sql .= "CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "importer_files`(  
+		$sql = "CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "importer_files`(  
 			  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 			  `importer_id` INT(11),
 			  `author_id` INT(11),
