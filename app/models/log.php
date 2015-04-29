@@ -139,4 +139,10 @@ class ImportLog {
 		return $wpdb->get_results( "SELECT * FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' AND version='{$log}' ORDER BY id $order", OBJECT );
 	}
 
+	static function clearLogs(){
+
+		global $wpdb;
+		return $wpdb->query($wpdb->prepare("DELETE FROM `" . $wpdb->prefix . "importer_log` WHERE created < %s", date('Y-m-d H:i:s', strtotime('- 1 DAY'))));
+	}
+
 }

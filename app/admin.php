@@ -37,6 +37,7 @@ class JC_Importer_Admin {
 			'admin_imports_view'
 		) );
 		add_submenu_page( 'jci-importers', 'Addons', 'Addons', 'manage_options', 'jci-addons', array($this, 'admin_addons_view') );
+		add_submenu_page( 'jci-importers', 'Tools', 'Tools', 'manage_options', 'jci-tools', array($this, 'admin_tools_view') );
 		add_submenu_page( 'jci-importers', 'Add New', 'Add New', 'manage_options', 'jci-importers&action=add', array(
 			$this,
 			'admin_imports_view'
@@ -48,6 +49,10 @@ class JC_Importer_Admin {
 
 	public function admin_imports_view() {
 		require 'view/home.php';
+	}
+
+	public function admin_tools_view(){
+		require 'view/tools.php';
 	}
 
 	public function admin_addons_view(){
@@ -161,6 +166,23 @@ class JC_Importer_Admin {
 			}
 
 			wp_redirect( admin_url('admin.php?page=jci-importers&message=2&trash=1' ));
+			exit();
+		}
+
+		
+		if($action == 'clear-logs' && !isset($_GET['result'])){
+
+			// clear importer logs older than one day	
+			ImportLog::clearLogs();
+			wp_redirect( add_query_arg( array( 'result' => 1) ) );
+			exit();
+		}elseif($action == 'update-db' && !isset($_GET['result'])){
+
+			require_once  $GLOBALS['jcimporter']->plugin_dir . '/app/models/schema.php';
+			$schema = new JCI_DB_Schema($GLOBALS['jcimporter'] );
+			$schema->db_migration();
+
+			wp_redirect( add_query_arg( array( 'result' => 1) ) );
 			exit();
 		}
 	}

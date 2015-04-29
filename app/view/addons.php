@@ -28,5 +28,16 @@
 			</div>
 		</li><!-- /.jci-item -->
 
+		<li class="jci-item">
+			<div class="jci-heading">
+				<p class="jci-title">JC Importer - Cron Import Addon</p>
+				<p class="jci-version">version: 0.1</p>
+			</div><!-- /.jci-heading -->
+			<img src="//ps.w.org/jc-importer/assets/icon-256x256.png">
+			<div class="jci-footer">
+				<a class="jci-btn button" href="https://github.com/jcollings/jci-cron" target="_blank">View Details</a>
+			</div>
+		</li><!-- /.jci-item -->
+
 	</ul><!-- /.jci-addon-list -->
 </div>
