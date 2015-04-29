@@ -500,7 +500,7 @@ class JCI_FormHelper {
 		return $output;
 	}
 
-	static function get_value( $field, $default = 'false' ) {
+	static function get_value( $field, $default = false ) {
 		return isset( $_POST[ self::$prefix . $field ] ) ? $_POST[ self::$prefix . $field ] : $default;
 	}
 
