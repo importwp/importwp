@@ -48,17 +48,22 @@ class ImportLog {
 		$importer = ImporterModel::getImporter( $import_id );
 		$version = $jcimporter->importer->get_version();
 
-		// copy version settings (previously stored in post meta)
-		$import_settings = get_post_meta( $import_id, '_import_settings', true );
-		$mapped_fields = get_post_meta( $import_id, '_mapped_fields', true );
-		$attachments = get_post_meta( $import_id, '_attachments', true );
-		$taxonomies = get_post_meta( $import_id, '_taxonomies', true );
-		$parser_settings = get_post_meta( $import_id, '_parser_settings', true );
-		$template_settings = get_post_meta( $import_id, '_template_settings', true );
-
-		// $wpdb->query( "
-		// 	INSERT INTO `" . $wpdb->prefix . "importer_log` (importer_name, object_id, template,type,file, version, row, src, value, created)
-		// 	VALUES('" . $importer->post->post_name . "', '" . $import_id . "', '" . $template['template'] . "', '" . $template['template_type'] . "', '" . $template['import_file'] . "', '" . $version . "', '" . $row . "', '', '" . mysql_real_escape_string( serialize( $record ) ) . "', NOW());" );
+		// copy version settings (previously stored in post meta) to first row only
+		if( $row == 1 || $row == $start_row ){
+			$import_settings = get_post_meta( $import_id, '_import_settings', true );
+			$mapped_fields = get_post_meta( $import_id, '_mapped_fields', true );
+			$attachments = get_post_meta( $import_id, '_attachments', true );
+			$taxonomies = get_post_meta( $import_id, '_taxonomies', true );
+			$parser_settings = get_post_meta( $import_id, '_parser_settings', true );
+			$template_settings = get_post_meta( $import_id, '_template_settings', true );
+		}else{
+			$import_settings = '';
+			$mapped_fields = '';
+			$attachments = '';
+			$taxonomies = '';
+			$parser_settings = '';
+			$template_settings = '';
+		}
 
 		$wpdb->query( $wpdb->prepare("
 			INSERT INTO `" . $wpdb->prefix . "importer_log` (importer_name, object_id, template,type,file, version, row, src, value, created, import_settings, mapped_fields, attachments, taxonomies, parser_settings, template_settings)

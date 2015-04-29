@@ -70,6 +70,16 @@ class JCI_DB_Schema{
 
 		global $wpdb;
 
+		$wpdb->show_errors();
+		$charset_collate = "";
+
+		if ( ! empty( $wpdb->charset ) ) {
+			$charset_collate = "DEFAULT CHARACTER SET $wpdb->charset";
+		}
+		if ( ! empty( $wpdb->collate ) ) {
+			$charset_collate .= " COLLATE $wpdb->collate";
+		}
+
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 
 		switch($old_version){
@@ -95,7 +105,73 @@ class JCI_DB_Schema{
 					  PRIMARY KEY (`id`)
 					) $charset_collate;";
 				dbDelta( $sql );
+
+				$this->migrate_ver_2_data();
 			break;
+		}
+	}
+
+	private function migrate_ver_2_data(){
+
+		set_time_limit(0);
+
+		global $wpdb;
+
+		$results = array();
+
+		$q1 = new WP_Query(array(
+			'post_type' => 'jc-imports',
+			'fields' => 'ids'
+		));
+		$importers = $q1->posts;
+
+		$q2 = new WP_Query(array(
+			'post_type'   => 'jc-import-files',
+            'post_status' => 'any',
+            'posts_per_page' => -1
+		));
+
+		if(!empty($importers)){
+			$importer_attachments = new WP_Query( array(
+	            'post_type'   => 'attachment',
+	            'post_parent__in' => $importers,
+	            'post_status' => 'any',
+	            'posts_per_page' => -1
+	        ) );
+	        $results = array_merge($results, $importer_attachments->posts);
+		}
+
+		if(!empty($q2->posts)){
+			$results = array_merge($results, $q2->posts);
+		}
+
+		if(!empty($results)){
+			// print_r($importer_attachments);
+			$upload_dir = wp_upload_dir();
+			$baseurl = $upload_dir['baseurl'];
+			$records = array();
+
+			foreach($results as $importer){
+
+				$src = $importer->guid;
+				if(strpos($src, $baseurl) === 0){
+					$src = substr($src, strlen($baseurl));
+				}
+				// $record = array(
+				$importer_id = $importer->post_parent;
+				$author_id = $importer->post_author;
+				$mime = $importer->post_mime_type;
+				$name = $importer->post_name;
+				$attachment_src = $src;
+				$created = $importer->post_date;
+				// );
+
+				$query_result = $wpdb->query( $wpdb->prepare( "INSERT INTO `" . $wpdb->prefix . "importer_files`(importer_id, author_id, mime_type, name, src, created) VALUES(%d, %d, %s, %s, %s, %s)", $importer_id, $author_id, $mime, $name, $attachment_src, $created ) );
+
+				if($query_result){
+					wp_delete_post( $importer->ID, true );
+				}
+			}
 		}
 	}
 }

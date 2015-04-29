@@ -68,5 +68,6 @@ module.exports = function(grunt) {
 
     // Default task(s).
     grunt.registerTask('default', ['phpunit', 'clean:sass', 'sass:deploy', 'clean:build', 'copy', "clean:tmp"]);
+    grunt.registerTask('build', ['clean:sass', 'sass:deploy', 'clean:build', 'copy', "clean:tmp"]);
 
 };
