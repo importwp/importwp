@@ -188,33 +188,28 @@ class JCI_DB_Schema{
 		// return list of importer file links
 		$importer_file_ids = $this->get_migrate_2_importer_file_ids();
 
-		$results = array();
+		// get ids of all importers and fetch all their import files
+		$importers = $wpdb->get_col("SELECT id FROM " . $wpdb->posts . " WHERE post_type = 'jc-imports'");
 
-		$q1 = new WP_Query(array(
-			'post_type' => 'jc-imports',
-			'fields' => 'ids'
-		));
-		$importers = $q1->posts;
-
-		$q2 = new WP_Query(array(
-			'post_type'   => 'jc-import-files',
-            'post_status' => 'any',
-            'posts_per_page' => -1
-		));
-
+		// 
+		$or_query = '';
 		if(!empty($importers)){
-			$importer_attachments = new WP_Query( array(
-	            'post_type'   => 'attachment',
-	            'post_parent__in' => $importers,
-	            'post_status' => 'any',
-	            'posts_per_page' => -1
-	        ) );
-	        $results = array_merge($results, $importer_attachments->posts);
+			$or_query = "
+				OR (
+					post_type = 'attachment'
+					AND post_parent IN ( " . implode(',', $importers) .")
+				)
+			";
 		}
 
-		if(!empty($q2->posts)){
-			$results = array_merge($results, $q2->posts);
-		}
+		$results = $wpdb->get_results("
+			SELECT ID, guid, post_parent, post_author, post_mime_type, post_name, post_date 
+			FROM " .$wpdb->posts . " 
+			WHERE 
+				(post_type = 'jc-import-files')
+				" . $or_query . "
+		");
+
 
 		if(!empty($results)){
 			

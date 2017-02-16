@@ -1,5 +1,13 @@
 <?php
 $importers = ImporterModel::getImporters();
+
+global $wpdb;
+$res = $wpdb->get_results("SELECT object_id as ID, created FROM `" . $wpdb->prefix . "importer_log` GROUP BY object_id ORDER BY created DESC");
+$last_ran = array();
+foreach($res as $obj){
+	$last_ran[$obj->ID] = $obj->created;
+}
+
 ?>
 <div id="icon-tools" class="icon32"><br></div>
 <h2>Importers <a href="<?php echo admin_url('admin.php?page=jci-importers&action=add' ); ?>"
@@ -18,6 +26,7 @@ $importers = ImporterModel::getImporters();
 				</th>
 				<th>Importer</th>
 				<th width="100px">Template</th>
+				<th width="100px">Last Ran</th>
 				<!-- <th width="50px">Fields</th> -->
 				<th width="100px">Modified</th>
 				</thead>
@@ -26,6 +35,7 @@ $importers = ImporterModel::getImporters();
 				<tbody class="fields">
 				<?php if ( $importers->have_posts() ): ?>
 					<?php while ( $importers->have_posts() ): $importers->the_post(); ?>
+
 						<tr>
 							<th scope="row" class="check-column">
 
@@ -51,6 +61,7 @@ $importers = ImporterModel::getImporters();
 							<td>
 								<?php echo ImporterModel::getImportSettings( get_the_ID(), 'template' ); ?>
 							</td>
+							<td><?php echo isset($last_ran[get_the_ID()]) ? date( 'H:i:s \<\b\r \/\> d/m/Y ', strtotime( $last_ran[get_the_ID()] ) ) : 'N/A'; ?></td>
 							<!-- <td><?php
 								$field_count = 0;
 								if ( ! empty( $fields ) ) {

@@ -187,7 +187,7 @@ class JC_Importer_Admin {
 		}elseif($action == 'clear-settings' && !isset($_GET['result'])){
 
 			global $wpdb;
-			$wpdb->query("DELETE FROM " . $wpdb->postmeta . " WHERE meta_key LIKE '_import_settings_%' OR meta_key LIKE '_mapped_fields_%' OR meta_key LIKE '_attachments_%' OR meta_key LIKE '_taxonomies_%' OR meta_key LIKE '_parser_settings_%' OR meta_key LIKE '_template_settings_%' ");
+			$wpdb->query("DELETE FROM " . $wpdb->postmeta . " WHERE meta_key LIKE '_import_settings_%' OR meta_key LIKE '_mapped_fields_%' OR meta_key LIKE '_attachments_%' OR meta_key LIKE '_taxonomies_%' OR meta_key LIKE '_parser_settings_%' OR meta_key LIKE '_template_settings_%' OR meta_key LIKE '_jci_last_row_%' ");
 			wp_redirect( add_query_arg( array( 'result' => 1) ) );
 			exit();
 		}
