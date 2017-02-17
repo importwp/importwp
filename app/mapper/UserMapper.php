@@ -269,8 +269,11 @@ class JC_UserMapper{
 		// delete list of objects
 		if ( ! empty( $user_query->results ) ) {
 			foreach ( $user_query->results as $user ) {
-				return wp_delete_user( $user->id);
+				if(is_wp_error(wp_delete_user( $user->id))){
+					return false;
+				}
 			}
+			return true;
 		}
 
 		return false;
