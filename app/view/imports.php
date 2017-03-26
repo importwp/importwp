@@ -22,13 +22,12 @@ foreach($res as $obj){
 			<table id="template_fields" class="wp-list-table widefat fixed">
 
 				<thead class="template_heading">
-				<th class="manage-column column-cb check-column">
-				</th>
 				<th>Importer</th>
-				<th width="100px">Template</th>
-				<th width="100px">Last Ran</th>
+				<th>Template</th>
+				<th>Type</th>
+				<th>Last Ran</th>
 				<!-- <th width="50px">Fields</th> -->
-				<th width="100px">Modified</th>
+				<th>Modified</th>
 				</thead>
 
 
@@ -37,9 +36,6 @@ foreach($res as $obj){
 					<?php while ( $importers->have_posts() ): $importers->the_post(); ?>
 
 						<tr>
-							<th scope="row" class="check-column">
-
-							</th>
 							<td class="post-title column-title">
 								<a href="<?php echo admin_url('admin.php?page=jci-importers&import=' . get_the_ID() . '&action=edit' ); ?>"
 								   class="row-title"><?php the_title(); ?></a>
@@ -60,6 +56,9 @@ foreach($res as $obj){
 							</td>
 							<td>
 								<?php echo ImporterModel::getImportSettings( get_the_ID(), 'template' ); ?>
+							</td>
+							<td>
+								<?php echo ImporterModel::getImportSettings(get_the_ID(), 'template_type'); ?>
 							</td>
 							<td><?php echo isset($last_ran[get_the_ID()]) ? date( 'H:i:s \<\b\r \/\> d/m/Y ', strtotime( $last_ran[get_the_ID()] ) ) : 'N/A'; ?></td>
 							<!-- <td><?php

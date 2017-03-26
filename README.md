@@ -1,54 +1,68 @@
-#JC-Importer
-JC Importer is an Advanced Wordpress CSV/XML Importer, allowing you to easily drag and drop data into import templates. JC Importer has been built with developers in mind allowing import templates to be easily created and mapped to post_types, taxonomies, users, or tables.
+# ImportWP
 
-JC Importer is a base for importing files into wordpress which can be extended upon to create custom templates and parsers specific to your needs, for more details [view the documentation](http://jamescollings.co.uk/docs/v1/jc-importer/).
+Author: James Collings  
+Version: 0.3  
+Homepage: https://www.importwp.com/  
+Documentation: https://www.importwp.com/documentation/  
+Created: 17/03/2014  
+Updated: 26/03/2017  
 
-##Installation
+ImportWP is an Advanced Wordpress CSV/XML Importer, allowing you to easily drag and drop data into import templates. ImportWP has been built with developers in mind allowing import templates to be easily created and mapped to post_types, taxonomies, users, or tables.
+
+ImportWP is a base for importing files into wordpress which can be extended upon to create custom templates and parsers specific to your needs, for more details [view the documentation](https://www.importwp.com/documentation/).
+
+## Installation
 1. Clone this repository into your wordpress plugins folder
-* Activate the plugin from within the wordpress administration area.
-* Click on the JC Importer menu item and start importing your data.
+1. Activate the plugin from within the wordpress administration area.
+1. Click on the ImportWP menu item and start importing your data.
 
-##Available Addons
+## Available Addons
 * JCI Custom Fields - Add custom fields to post/page/custom_post templates - [view](https://github.com/jcollings/jci-custom-fields)
 * JCI Post Datasource - Recieve csv/xml files via POST request - [view](https://github.com/jcollings/jci-post-datasource)
 
-##Upcoming Features
+## Upcoming Features
 * Fetch csv/xml via ftp to be imported
 * Allow recurring importing FTP, POST, and Remote datasources
 * Visual Template Editor, allow non developers to easily create templates without writing code
 
-##Documentation
-[View JC Importer documenation on jamescollings.co.uk](http://jamescollings.co.uk/docs/v1/jc-importer/)
+## Documentation
+[View ImportWP documenation](https://www.importwp.com/documentation/)
 
-##Templates
+## Templates
 * Post
 * Page
 * Taxonomies
 * User
 
-##FAQ
+## FAQ
 
 **How do i create an importer**
 
-Documentation on adding an importer can be viewed [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/adding-an-importer/)
+Documentation on adding an importer can be viewed [here](https://www.importwp.com/documentation/adding-an-importer/)
 
 **What settings does each importer have**
 
-Documentation on using the importer settings can be found [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/importer-settings/)
+Documentation on using the importer settings can be found [here](https://www.importwp.com/documentation/importer-settings/)
 
 **How to import from an XML file**
 
-A guide to importing data from an xml file can be viewed [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/importing-from-an-xml-file/)
+A guide to importing data from an xml file can be viewed [here](https://www.importwp.com/documentation/importing-from-xml-file/)
 
 **How to import from an CSV file**
 
-A guide to importing data from an csv file can be viewed [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/importing-from-a-csv-file/)
+A guide to importing data from an csv file can be viewed [here](https://www.importwp.com/documentation/importing-from-csv-file/)
 
 **How do i run an importer once it is setup**
 
-A guide to running and pausing an import can be viewed [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/running-an-import/)
+A guide to running and pausing an import can be viewed [here](https://www.importwp.com/documentation/running-an-import/)
 
-##Changelog
+## Changelog
+
+**0.3 - 26/03/2017**
+
+* Rename plugin to ImportWP
+* Fix Broken unit tests, make it work with WP 4.7.3
+* Simplify Creation Process
 
 **0.2**
 

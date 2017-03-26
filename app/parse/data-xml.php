@@ -1,7 +1,7 @@
 <?php
 
 /**
- * JC Importer XML Parser
+ * ImportWP XML Parser
  */
 class JC_XML_Parser extends JC_Parser {
 
@@ -196,7 +196,7 @@ class JC_XML_Parser extends JC_Parser {
 	}
 
 	/**
-	 * Parse XML from JC Importer Config
+	 * Parse XML from ImportWP Config
 	 *
 	 * @param  integer $row
 	 *

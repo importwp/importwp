@@ -1,7 +1,7 @@
 <?php
 
 /**
- * JC Importer CSV Parser
+ * ImportWP CSV Parser
  */
 class JC_CSV_Parser extends JC_Parser {
 
@@ -285,6 +285,11 @@ class JC_CSV_Parser extends JC_Parser {
 		while ( ! feof( $fh ) ) {
 			$line = fgets( $fh );
 			$linecount ++;
+		}
+
+		// remove empty lines from end of file
+		if(empty($line) && $linecount > 0){
+			$linecount--;
 		}
 
 		fclose( $fh );

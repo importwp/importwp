@@ -48,7 +48,6 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 								</th>
 								<th>Type</th>
 								<th>Rows</th>
-								<th>Method</th>
 								<th>Date</th>
 								<th>_</th>
 							</tr>
@@ -60,7 +59,6 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 										<td><?php echo $row->version; ?></td>
 										<td><?php echo $row->type; ?></td>
 										<td><?php echo $row->row_total; ?></td>
-										<td>N/A</td>
 										<td><?php echo date( 'd/m/y', strtotime( $row->created ) ); ?></td>
 										<td>
 											<a href="admin.php?page=jci-importers&import=<?php echo $importer_id; ?>&log=<?php echo $row->version; ?>&action=history">View</a>
@@ -69,7 +67,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 								<?php endforeach; ?>
 							<?php else: ?>
 								<tr>
-									<td colspan="6">No Records have been imported</td>
+									<td colspan="5">No Records have been imported</td>
 								</tr>
 							<?php endif; ?>
 							</tbody>

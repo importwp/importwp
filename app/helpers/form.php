@@ -328,7 +328,7 @@ class JCI_FormHelper {
 		}
 
 		if ( $required == true ) {
-			if ( empty( $value ) && self::$hasPosted == true ) {
+			if ( empty( $value ) && self::$has_posted == true ) {
 				$classes[] = 'form-error';
 			}
 
@@ -349,12 +349,12 @@ class JCI_FormHelper {
 		$output .= '<select name="' . self::$prefix . $name . '" id="' . self::get_id(self::$prefix . $name) . '">';
 
 		if ( $empty ) {
-			$empty_val = $empty == true ? '' : $empty;
-			$output .= '<option>' . $empty_val . '</option>';
+			$empty_val = $empty === true ? '' : $empty;
+			$output .= '<option value="">' . $empty_val . '</option>';
 		}
 
 		foreach ( $options as $option_id => $option ) {
-			if ( ($option_id == $default && empty($value)) || $option_id == $value ) {
+			if ( ($option_id === $default && empty($value)) || $option_id === $value ) {
 				$output .= '<option value="' . $option_id . '" selected="selected">' . $option . '</option>';
 			} else {
 				$output .= '<option value="' . $option_id . '">' . $option . '</option>';
@@ -427,7 +427,7 @@ class JCI_FormHelper {
 		}
 
 		if ( $required == true ) {
-			if ( empty( $value ) && self::$hasPosted == true ) {
+			if ( empty( $value ) && self::$has_posted == true ) {
 				$classes[] = 'form-error';
 			}
 			$classes[] = 'form-required';

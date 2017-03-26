@@ -55,7 +55,7 @@ class ImportWP_Unit_Tests_Bootstrap {
 		// load the WP testing environment
 		require_once( $this->wp_tests_dir . '/includes/bootstrap.php' );
 
-		require_once 'unit-tests/includes/factory.php';
+		require_once $this->tests_dir . '/includes/factory.php';
 	}
 
 	/**

@@ -1,7 +1,7 @@
 <?php
 /*
-Plugin Name: JC Importer
-Plugin URI: http://jamescollings.co.uk/wordpress-plugins/jc-importer/
+Plugin Name: ImportWP
+Plugin URI: https://www.importwp.com
 Description: Wordpress CSV/XML Importer Plugin, Easily import users, posts, custom post types and taxonomies from XML or CSV files
 Author: James Collings <james@jclabs.co.uk>
 Author URI: http://www.jamescollings.co.uk

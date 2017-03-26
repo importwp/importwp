@@ -3,7 +3,7 @@
 /**
  * Log Imports
  *
- * Log data imported using JC Importer
+ * Log data imported using ImportWP
  */
 class ImportLog {
 

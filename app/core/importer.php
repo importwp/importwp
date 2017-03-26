@@ -354,6 +354,22 @@ class JC_Importer_Core {
 	public function get_object_delete(){
 		return $this->object_delete;
 	}
+
+	/**
+	 * Get Add-on Setting
+	 *
+	 * @param string $key Setting Key
+	 * @param string $default Default
+	 *
+	 * @return string
+	 */
+	public function get_addon_setting($key, $default = ''){
+		if(isset($this->addon_settings[$key])){
+			return $this->addon_settings[$key];
+		}
+
+		return $default;
+	}
 }
 
 ?>

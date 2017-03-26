@@ -513,7 +513,7 @@ class JC_Page_Template extends JC_Importer_Template {
 				echo $data['page']['ID'];
 				break;
 			case 'name':
-				echo $data['page']['post_title'];
+				echo edit_post_link($data['page']['post_title'] . ' ' .$data['page']['ID'], '', '', $data['page']['ID']);
 				break;
 			case 'slug':
 				echo $data['page']['post_name'];

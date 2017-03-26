@@ -447,11 +447,11 @@ class UserImporterTest extends WP_UnitTestCase {
 		$test                     	= $this->importer->importer->run_import( 1 );
 		$test 						= array_shift($test);
 
-		$body = "New user registration on your site Test Blog:\n\n";
-		$body .= "Username: {$test['user']['user_login']}\n\n";
-		$body .= "E-mail: {$test['user']['user_email']}\n";
+		$body = "New user registration on your site Test Blog:\r\n\r\n";
+		$body .= "Username: {$test['user']['user_login']}\r\n\r\n";
+		$body .= "Email: {$test['user']['user_email']}\r\n";
 		
-		$this->assertEquals($body, $GLOBALS['phpmailer']->mock_sent[0]['body']);
+		$this->assertDiscardWhitespace(trim($body), trim($GLOBALS['phpmailer']->mock_sent[0]['body']));
 	}
 
 }

@@ -1,14 +1,14 @@
 <div class="wrap jci-addons-page">
 	<div id="icon-tools" class="icon32"><br></div>
-	<h2>JC Importer Addons </h2>
+	<h2>ImportWP Addons </h2>
 
-	<p>Addons maybe be included into the JC Importer core in the future.</p>
+	<p>Addons maybe be included into ImportWP core in future.</p>
 
 	<ul class="jci-addon-list">
 		
 		<li class="jci-item">
 			<div class="jci-heading">
-				<p class="jci-title">JC Importer - Post Datasource Addon</p>
+				<p class="jci-title">ImportWP - Post Datasource Addon</p>
 				<p class="jci-version">version: 0.1</p>
 			</div><!-- /.jci-heading -->
 			<img src="//ps.w.org/jc-importer/assets/icon-256x256.png">
@@ -19,7 +19,7 @@
 
 		<li class="jci-item">
 			<div class="jci-heading">
-				<p class="jci-title">JC Importer - Custom Fields Addon</p>
+				<p class="jci-title">ImportWP - Custom Fields Addon</p>
 				<p class="jci-version">version: 0.1</p>
 			</div><!-- /.jci-heading -->
 			<img src="//ps.w.org/jc-importer/assets/icon-256x256.png">
@@ -30,7 +30,7 @@
 
 		<li class="jci-item">
 			<div class="jci-heading">
-				<p class="jci-title">JC Importer - Cron Import Addon</p>
+				<p class="jci-title">ImportWP - Cron Import Addon</p>
 				<p class="jci-version">version: 0.1</p>
 			</div><!-- /.jci-heading -->
 			<img src="//ps.w.org/jc-importer/assets/icon-256x256.png">

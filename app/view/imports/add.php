@@ -1,5 +1,5 @@
 <div id="icon-tools" class="icon32"><br></div>
-<h2>JC Importer</h2>
+<h2>ImportWP</h2>
 
 <?php
 echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
@@ -18,24 +18,27 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 
 					<div class="inside">
 						<?php
-						do_action( 'jci/before_import_settings' );
-
-						echo '<h2 class="title">1. General Settings</h2>';
-						echo '<p>Set a name to identify the importer, and choose which type of template you would like to import into.</p>';
+						do_action( 'jci/before_import_settings' ); ?>
+						<div class="jci-add-section">
+						<?php
+						echo '<h4 class="title">1. What are you importing?</h4>';
 
 						// core fields
-						echo JCI_FormHelper::text( 'name', array( 'label' => 'Name', 'default' => '' ) );
 						echo JCI_FormHelper::select( 'template', array(
 								'options' => get_template_list(false),
-								'label'   => 'Template'
+								'label'   => 'Import Template',
+								'empty' => 'Choose a template',
 							) );
 
-						echo '<h2 class="title">2. Choose Datasource</h2>';
-						echo '<p>Select where you wish to import data from.</p>';
+						?>
+						</div>
+						<div class="jci-add-section">
+						<?php
+						echo '<h4 class="title">2. Where is the data being imported from?</h4>';
 
 						// upload file
 						echo JCI_FormHelper::radio( 'import_type', array(
-								'label' => '<strong>Upload File</strong> - upload a file from your computer',
+								'label' => '<strong>Uploaded File</strong> - upload a file from your computer',
 								'value' => 'upload',
 								'class' => 'toggle-fields',
 								'checked' => true
@@ -52,7 +55,12 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 
 						do_action( 'jci/output_datasource_option' );
 
-						echo '<h2 class="title">3. Setup Datasource</h2>';
+						?>
+						</div>
+						<div class="jci-add-section">
+						<?php
+
+						echo '<h4 class="title">3. Setup Datasource</h4>';
 
 						echo '<div class="hidden show-upload toggle-field">';
 						echo '<p>Choose the file below that you would like to import</p>';
@@ -66,7 +74,11 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 
 						do_action( 'jci/output_datasource_section' );
 
-						echo '<h2 class="title">4. Setup Permissions</h2>';
+						?>
+						</div>
+						<?php
+
+						/*echo '<h4 class="title">4. Setup Permissions</h4>';
 						echo '<p>Choose from the list below what access you would like the importer to be granted.</p>';
 						echo JCI_FormHelper::checkbox( 'permissions[create]', array(
 							'label'   => '<strong>Create</strong> - Ability to insert new records',
@@ -82,7 +94,7 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 							'label'   => '<strong>Delete</strong> - Ability to only delete imported records that no longer exist.',
 							'default' => 1,
 							'checked' => false
-						) );
+						) );*/
 
 						do_action( 'jci/after_import_settings' );
 

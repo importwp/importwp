@@ -474,7 +474,7 @@ class JC_Post_Template extends JC_Importer_Template {
 
 		switch ( $column ) {
 			case 'post':
-				echo $data['post']['post_title'];
+				echo edit_post_link($data['post']['post_title'] . ' #' .$data['post']['ID'], '', '', $data['post']['ID']);
 				break;
 			case 'method':
 

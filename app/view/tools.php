@@ -1,7 +1,7 @@
 <div class="wrap jci-addons-page">
 	<div id="icon-tools" class="icon32"><br></div>
-	<h2>JC Importer Tools </h2>
-	<p>A colleciton on helpful tools to maintain JC Importer.</p>
+	<h2>ImportWP Tools </h2>
+	<p>A colleciton on helpful tools to maintain ImportWP.</p>
 	
 	<hr>
 

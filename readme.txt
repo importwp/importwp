@@ -1,15 +1,15 @@
-=== JC Importer ===
-Contributors: jcollings
-Tags: wordpress importer, xml importer, csv importer, import users, import posts, import taxonomies, import custom post types
-Requires at least: 4.0
-Tested up to: 4.1
-Stable tag: trunk
+=== ImportWP ===  
+Contributors: jcollings  
+Tags: wordpress importer, xml importer, csv importer, import users, import posts, import categories, import tags, import custom post types, jc importer  
+Requires at least: 4.0  
+Tested up to: 4.7.3  
+Stable tag: trunk  
 
-JC Importer allows you to easily import users, posts, custom post types and taxonomies from XML and CSV files. 
+ImportWP allows you to easily import users, posts, custom post types and taxonomies from XML and CSV files. 
 
 == Description ==
 
-JC Importer is an Advanced Wordpress CSV/XML Importer, allowing you to easily drag and drop data into import templates. JC Importer has been built with developers in mind allowing import templates to be easily created and mapped to post_types, taxonomies, users, or tables.
+ImportWP is an Advanced Wordpress CSV/XML Importer, allowing you to easily drag and drop data into import templates. ImportWP has been built with developers in mind allowing import templates to be easily created and mapped to post_types, taxonomies, users, or tables.
 
 = Features =
 
@@ -17,7 +17,7 @@ JC Importer is an Advanced Wordpress CSV/XML Importer, allowing you to easily dr
 * Create importer templates to map data to users, taxonomies, and post / custom post types.
 * Built in User, Taxonomy, Post and Page templates.
 
-JC Importer is a base for importing files into wordpress which can be extended upon to create custom templates and parsers specific to your needs, for more details [view the documentation](http://jamescollings.co.uk/docs/v1/jc-importer/).
+ImportWP is a base for importing files into wordpress which can be extended upon to create custom templates and parsers specific to your needs, for more details [view the documentation](https://www.importwp.com/documentation/).
 
 = Available Addons =
 
@@ -34,40 +34,46 @@ JC Importer is a base for importing files into wordpress which can be extended u
 
 1. Upload 'jc-importer' to the '/wp-content/plugins/' directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Click on the new menu item "JC Importer" and start importing.
+3. Click on the new menu item "ImportWP" and start importing.
 
-For further documentation on installing and using JC Importer features can be found [here](http://jamescollings.co.uk/plugins/jc-importer/).
+For further documentation on installing and using ImportWP features can be found [here](https://www.importwp.com/documentation/).
 
 == Frequently Asked Questions ==
 
 = How do i create an importer =
 
-Documentation on adding an importer can be viewed [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/adding-an-importer/)
+Documentation on adding an importer can be viewed [here](https://www.importwp.com/documentation/adding-an-importer/)
 
 = What settings does each importer have =
 
-Documentation on using the importer settings can be found [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/importer-settings/)
+Documentation on using the importer settings can be found [here](https://www.importwp.com/documentation/importer-settings/)
 
 = How to import from an XML file =
 
-A guide to importing data from an xml file can be viewed [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/importing-from-an-xml-file/)
+A guide to importing data from an xml file can be viewed [here](https://www.importwp.com/documentation/importing-from-xml-file/)
 
 = How to import from an CSV file =
 
-A guide to importing data from an csv file can be viewed [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/importing-from-a-csv-file/)
+A guide to importing data from an csv file can be viewed [here](https://www.importwp.com/documentation/importing-from-csv-file/)
 
 = How do i run an importer once it is setup =
 
-A guide to running and pausing an import can be viewed [here](http://jamescollings.co.uk/docs/v1/jc-importer/getting-started/running-an-import/)
+A guide to running and pausing an import can be viewed [here](https://www.importwp.com/documentation/running-an-import/)
 
 == Screenshots ==
 
-1. JC Importer, New importer screen
-2. JC Importer, Post template setup screen
-3. JC Importer, Run import page
-4. JC Importer, Import history page
+1. ImportWP, New importer screen
+2. ImportWP, Post template setup screen
+3. ImportWP, Run import page
+4. ImportWP, Import history page
 
 == Changelog ==
+
+= 0.3 - 26/03/2017 =
+
+* Rename plugin to ImportWP
+* Fix Broken unit tests, make it work with WP 4.7.3
+* Simplify Creation Process
 
 = 0.2 =
 
@@ -123,6 +129,6 @@ A guide to running and pausing an import can be viewed [here](http://jamescollin
 
 = 0.1 =
 
-* JC Importer
+* ImportWP
 
 == Upgrade Notice ==

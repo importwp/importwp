@@ -64,6 +64,7 @@ class PostMapperTest extends WP_UnitTestCase {
 
 		$slug    = 'test-insert-123';
 		$post_id = wp_insert_post( array( 'post_title'  => 'test insert 123',
+		                                  'post_name' => $slug,
 		                                  'post_type'   => 'post',
 		                                  'post_status' => 'publish'
 		) );

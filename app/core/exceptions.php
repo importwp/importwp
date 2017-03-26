@@ -6,7 +6,7 @@ define( 'JCI_WARN', 0 );
 define( 'JCI_ERR', 1 );
 
 /**
- * JC Importer Exception Class
+ * ImportWP Exception Class
  */
 class JCI_Exception extends Exception {
 

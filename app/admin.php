@@ -28,7 +28,7 @@ class JC_Importer_Admin {
 
 	public function settings_menu() {
 
-		add_menu_page( 'jc-importer', 'JC Importer', 'manage_options', 'jci-importers', array(
+		add_menu_page( 'jc-importer', 'ImportWP', 'manage_options', 'jci-importers', array(
 			$this,
 			'admin_imports_view'
 		) );
@@ -69,9 +69,13 @@ class JC_Importer_Admin {
 		$this->config->forms = array(
 			'CreateImporter' => array(
 				'validation' => array(
-					'name' => array(
-						'rule'    => array( 'required' ),
-						'message' => 'This Field is required'
+//					'name' => array(
+//						'rule'    => array( 'required' ),
+//						'message' => 'This Field is required'
+//					),
+					'template' => array(
+						'rule' => array('required'),
+						'message' => 'Please make sure you have selected a template'
 					)
 				)
 			),
@@ -89,7 +93,7 @@ class JC_Importer_Admin {
 
 					$this->config->forms['CreateImporter']['validation']['import_file'] = array(
 						'rule'    => array( 'required' ),
-						'message' => 'This Field is required',
+						'message' => 'Please select the file you want to import from',
 						'type'    => 'file'
 					);
 					break;
@@ -99,7 +103,7 @@ class JC_Importer_Admin {
 
 					$this->config->forms['CreateImporter']['validation']['remote_url'] = array(
 						'rule'    => array( 'required' ),
-						'message' => 'This Field is required'
+						'message' => 'Please enter the url of the file you want to import from'
 					);
 					break;
 
@@ -205,7 +209,7 @@ class JC_Importer_Admin {
 		if ( JCI_FormHelper::is_complete() ) {
 
 			// general importer fields
-			$name     = $_POST['jc-importer_name'];
+//			$name     = $_POST['jc-importer_name'];
 			$template = $_POST['jc-importer_template'];
 
 			$post_id = ImporterModel::insertImporter( 0, array( 'name' => $name ) );
@@ -275,17 +279,20 @@ class JC_Importer_Admin {
 			if ( $result && is_array( $result ) ) {
 
 				// catch and setup permissions
-				$permissions = array();
-				if ( isset( $_POST['jc-importer_permissions'] ) ) {
-					$permissions = $_POST['jc-importer_permissions'];
-				}
+				$permissions = array(
+					'create' => 1,
+					'update' => 1,
+					'delete' => 1
+				);
+
+				$template_type = $result['type'];
 
 				$post_id = ImporterModel::insertImporter( $post_id, array(
-					'name'     => $name,
+					'name'     => sprintf("Import %s from %s on %s ", $template, $template_type, date(get_site_option('date_format'))),
 					'settings' => array(
 						'import_type'   => $import_type,
 						'template'      => $template,
-						'template_type' => $result['type'],
+						'template_type' => $template_type,
 						'import_file'   => $result['id'],
 						'general'       => $general,
 						'permissions' => $permissions
@@ -441,7 +448,7 @@ class JC_Importer_Admin {
 
 			$row = $current_row + $i;
 
-			// escape if max record has beem met
+			// escape if max record has been met
 			if($max_records > 0){
 				$last_record = $start_record + $max_records;
 				if($row >= $last_record){

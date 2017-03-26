@@ -9,11 +9,11 @@
          processIsolation="false"
          stopOnFailure="false"
          syntaxCheck="false"
-         bootstrap="tests/includes/bootstrap.php"
+         bootstrap="tests/bootstrap.php"
         >
     <testsuites>
-        <testsuite name="JC Importer Tests">
-            <directory>./tests/</directory>
+        <testsuite name="ImportWP Tests">
+            <directory suffix=".php">./tests/unit-tests/</directory>
         </testsuite>
     </testsuites>
 </phpunit>
