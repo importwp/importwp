@@ -5,7 +5,10 @@
  */
 class JC_Importer_Admin {
 
-	private $config = null;
+	/**
+	 * @var JC_Importer
+	 */
+	private $config;
 
 	public function __construct( &$config ) {
 		$this->config = $config;
@@ -23,7 +26,7 @@ class JC_Importer_Admin {
 	}
 
 	public function admin_enqueue_styles() {
-		wp_enqueue_style( 'jc-importer-style', $this->config->plugin_url . '/app/assets/css/style.css' );
+		wp_enqueue_style( 'jc-importer-style', $this->config->get_plugin_url() . '/app/assets/css/style.css' );
 	}
 
 	public function settings_menu() {
@@ -134,6 +137,9 @@ class JC_Importer_Admin {
 		$importer = isset( $_GET['import'] ) && intval( $_GET['import'] ) > 0 ? intval( $_GET['import'] ) : false;
 		$template = isset( $_GET['template'] ) && intval( $_GET['template'] ) > 0 ? intval( $_GET['template'] ) : false;
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
 		// if remote and fetch do that, else continue
@@ -182,8 +188,8 @@ class JC_Importer_Admin {
 			exit();
 		}elseif($action == 'update-db' && !isset($_GET['result'])){
 
-			require_once  $GLOBALS['jcimporter']->plugin_dir . '/app/models/schema.php';
-			$schema = new JCI_DB_Schema($GLOBALS['jcimporter'] );
+			require_once  $jcimporter->get_plugin_dir() . '/app/models/schema.php';
+			$schema = new JCI_DB_Schema($jcimporter );
 			$schema->db_migration();
 
 			wp_redirect( add_query_arg( array( 'result' => 1) ) );
@@ -399,6 +405,9 @@ class JC_Importer_Admin {
 
 			if ( isset( $_POST['jc-importer_btn-continue'] ) ) {
 
+				/**
+				 * @global JC_Importer $jcimporter
+				 */
 				global $jcimporter;
 				if($jcimporter->importer->get_import_type() == 'remote'){
 
@@ -422,6 +431,9 @@ class JC_Importer_Admin {
 	 */
 	public function admin_ajax_import_row() {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
 		set_time_limit(0);
@@ -463,7 +475,7 @@ class JC_Importer_Admin {
 
 			$data = $jcimporter->importer->run_import( $row, true );
 			ob_start();
-			require $jcimporter->plugin_dir . 'app/view/imports/log/log_table_record.php';	
+			require $jcimporter->get_plugin_dir() . 'app/view/imports/log/log_table_record.php';
 			$output[] = ob_get_clean();
 		}
 
@@ -481,6 +493,9 @@ class JC_Importer_Admin {
 	 */
 	public function admin_ajax_process_delete(){
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$importer_id = intval( $_POST['id'] );
 		$delete = isset($_POST['delete']) && $_POST['delete'] == 1 ? true : false;

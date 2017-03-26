@@ -8,6 +8,9 @@
  */
 function get_template_list($class_name = true) {
 
+	/**
+	 * @global JC_Importer $jcimporter
+	 */
 	global $jcimporter;
 
 	$templates = array();
@@ -39,6 +42,9 @@ function get_template_list($class_name = true) {
  */
 function get_import_template( $template ) {
 
+	/**
+	 * @global JC_Importer $jcimporter
+	 */
 	global $jcimporter;
 
 	if( isset( $jcimporter->templates[ $template ] ) ){
@@ -52,6 +58,10 @@ function get_import_template( $template ) {
 }
 
 function load_import_parser( $import_id ) {
+
+	/**
+	 * @global JC_Importer $jcimporter
+	 */
 	global $jcimporter;
 
 	$template_type = ImporterModel::getImportSettings( $import_id, 'template_type' );
@@ -188,9 +198,12 @@ function log_content( $column, $data ) {
 
 function jci_error_message($e){
 
+	/**
+	 * @global JC_Importer $jcimporter
+	 */
 	global $jcimporter;
 
-	if($jcimporter->debug){
+	if($jcimporter->is_debug()){
 		return $e->getMessage() . ' in file ' . $e->getFile() . ' on line ' . $e->getLine();
 	}else{
 		return $e->getMessage();

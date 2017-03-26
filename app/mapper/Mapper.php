@@ -36,6 +36,9 @@ class JC_BaseMapper {
 		if($is_ajax)
 			return false;
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$permissions = $jcimporter->importer->get_permissions();
 
@@ -65,6 +68,9 @@ class JC_BaseMapper {
 
 	function get_objects_for_removal( $objects = array() , $importer_id ){
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$permissions = $jcimporter->importer->get_permissions();
 
@@ -110,6 +116,9 @@ class JC_BaseMapper {
 
 	function remove_single_object( $importer_id ){
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$permissions = $jcimporter->importer->get_permissions();
 
@@ -193,6 +202,9 @@ class JC_BaseMapper {
 			$this->_current_row = ( $row - 1 );
 		}
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$importer_id = $jcimporter->importer->get_ID();
 
@@ -217,6 +229,9 @@ class JC_BaseMapper {
 	 */
 	function complete_check( $row = 0 , $is_ajax = true ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$importer_id = $jcimporter->importer->get_ID();
 		$start_row   = $jcimporter->importer->get_start_line(); // row to start from
@@ -242,6 +257,9 @@ class JC_BaseMapper {
 	 */
 	function set_import_version() {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
 		$import_id = $jcimporter->importer->get_ID();
@@ -416,6 +434,9 @@ class JC_BaseMapper {
 	 */
 	final function processGroup( $group_id, $data ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$permissions = $jcimporter->importer->permissions;
 
@@ -563,6 +584,9 @@ class JC_BaseMapper {
 
 	final function processTaxonomies( $data ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$jci_taxonomies             = $jcimporter->importer->taxonomies;
 		$jci_taxonomies_permissions = $jcimporter->importer->taxonomies_permissions;
@@ -659,6 +683,9 @@ class JC_BaseMapper {
 
 	final function processAttachments( $data ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$jci_attachments   = $jcimporter->importer->attachments;
 		$jci_template_type = $jcimporter->importer->template_type;
@@ -785,6 +812,9 @@ class JC_BaseMapper {
 			return true;
 		}
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$jci_attachments = $jcimporter->importer->attachments;
 

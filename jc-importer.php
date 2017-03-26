@@ -1,27 +1,27 @@
 <?php
-/*
-Plugin Name: ImportWP
-Plugin URI: https://www.importwp.com
-Description: Wordpress CSV/XML Importer Plugin, Easily import users, posts, custom post types and taxonomies from XML or CSV files
-Author: James Collings <james@jclabs.co.uk>
-Author URI: http://www.jamescollings.co.uk
-Version: 0.2
-*/
+/**
+ * Plugin Name: ImportWP
+ * Plugin URI: https://www.importwp.com
+ * Description: Wordpress CSV/XML Importer Plugin, Easily import users, posts, custom post types and taxonomies from XML or CSV files
+ * Author: James Collings <james@jclabs.co.uk>
+ * Author URI: http://www.jamescollings.co.uk
+ * Version: 0.2
+ */
 
 require_once 'app/core/exceptions.php';
 require_once 'app/parse/parser.php';
 
-// libs
+// libs.
 require_once 'app/libs/xmloutput.php';
 
-// attachments
+// attachments.
 require_once 'app/attachment/attachment.php';
 require_once 'app/attachment/attachment-ftp.php';
 require_once 'app/attachment/attachment-curl.php';
 require_once 'app/attachment/attachment-upload.php';
 require_once 'app/attachment/attachment-string.php';
 
-// mappers
+// mappers.
 require_once 'app/mapper/Mapper.php';
 require_once 'app/mapper/PostMapper.php';
 require_once 'app/mapper/TableMapper.php';
@@ -29,11 +29,11 @@ require_once 'app/mapper/UserMapper.php';
 require_once 'app/mapper/VirtualMapper.php';
 require_once 'app/mapper/TaxMapper.php';
 
-// parsers
+// parsers.
 require_once 'app/parse/data-csv.php';
 require_once 'app/parse/data-xml.php';
 
-// templates
+// templates.
 require_once 'app/templates/template.php';
 require_once 'app/templates/template-user.php';
 require_once 'app/templates/template-post.php';
@@ -44,33 +44,83 @@ require_once 'app/templates/template-tax.php';
 require_once 'app/helpers/form.php';
 require_once 'app/functions.php';
 
+/**
+ * Class JC_Importer
+ *
+ * Core plugin class
+ */
 class JC_Importer {
 
-	var $version = '0.2';
-	var $plugin_dir = false;
-	var $plugin_url = false;
-	var $templates = array();
-	var $db_version = 2;
-	var $core_version = 1;
-	var $debug = false;
+	/**
+	 * Current Plugin Version
+	 *
+	 * @var string
+	 */
+	protected $version = '0.2';
 
+	/**
+	 * Plugin base directory
+	 *
+	 * @var string
+	 */
+	protected $plugin_dir;
+
+	/**
+	 * Plugin base url
+	 *
+	 * @var string
+	 */
+	protected $plugin_url;
+
+	/**
+	 * List of available template strings
+	 *
+	 * @var array[string]
+	 */
+	public $templates = array();
+
+	/**
+	 * Current plugin database schema version
+	 *
+	 * @var int
+	 */
+	protected $db_version = 2;
+
+	/**
+	 * Debug flag
+	 *
+	 * @var bool
+	 */
+	protected $debug = false;
+
+	/**
+	 * Loaded Importer Class
+	 *
+	 * @var JC_Importer_Core
+	 */
+	public $importer;
+
+	/**
+	 * JC_Importer constructor.
+	 */
 	public function __construct() {
 
 		$this->plugin_dir = plugin_dir_path( __FILE__ );
 		$this->plugin_url = plugins_url( '/', __FILE__ );
 
 		add_action( 'init', array( $this, 'init' ) );
-		add_action( 'plugins_loaded', array( $this, 'db_update_check'));
+		add_action( 'plugins_loaded', array( $this, 'db_update_check' ) );
 
 		$this->parsers = apply_filters( 'jci/register_parser', array() );
 
-		// activation
+		// activation.
 		register_activation_hook( __FILE__, array( $this, 'activation' ) );
 		add_action( 'admin_init', array( $this, 'load_plugin' ) );
 	}
 
 	/**
 	 * Setup plugin, loading all classes
+	 *
 	 * @return void
 	 */
 	public function init() {
@@ -79,21 +129,19 @@ class JC_Importer {
 
 		$this->register_post_types();
 
-		// core files
-
-		// register templates
+		// register templates.
 		$this->templates = apply_filters( 'jci/register_template', $this->templates );
 
-		// load importer
+		// load importer.
 		require_once 'app/core/importer.php';
 
-		// core models
+		// core models.
 		require_once 'app/models/importer.php';
 		require_once 'app/models/log.php';
 
 		if ( is_admin() ) {
 
-			// load importer
+			// load importer.
 			$importer_id = isset( $_GET['import'] ) && ! empty( $_GET['import'] ) ? intval( $_GET['import'] ) : 0;
 			if ( $importer_id > 0 ) {
 				$this->importer = new JC_Importer_Core( $importer_id );
@@ -110,43 +158,45 @@ class JC_Importer {
 		ImportLog::init( $this );
 		JCI_FormHelper::init( $this );
 
-		// loaded
+		// plugin loaded.
 		do_action( 'jci/init' );
 	}
 
 	/**
 	 * Register jc-imports custom post types
+	 *
 	 * @return void
 	 */
 	function register_post_types() {
 
-		// importers
+		// importers.
 		register_post_type( 'jc-imports', array(
 			'public'            => false,
 			'has_archive'       => false,
 			'show_in_nav_menus' => false,
-			'label'             => 'Importer'
+			'label'             => 'Importer',
 		) );
 
-		// importer csv/xml files
+		// importer csv/xml files.
 		register_post_type( 'jc-import-files', array(
 			'public'            => false,
 			'has_archive'       => false,
 			'show_in_nav_menus' => false,
-			'label'             => 'Importer Files'
+			'label'             => 'Importer Files',
 		) );
 
-		// importer tempaltes
+		// importer tempaltes.
 		register_post_type( 'jc-import-template', array(
 			'public'            => false,
 			'has_archive'       => false,
 			'show_in_nav_menus' => false,
-			'label'             => 'Template'
+			'label'             => 'Template',
 		) );
 	}
 
 	/**
 	 * Set Plugin Activation
+	 *
 	 * @return void
 	 */
 	function activation() {
@@ -155,38 +205,68 @@ class JC_Importer {
 
 	/**
 	 * Run Activation Functions
+	 *
 	 * @return void
 	 */
 	function load_plugin() {
 
-		if ( is_admin() ){ 
+		if ( is_admin() ) {
 
-			if( get_option( 'Activated_Plugin' ) == 'jcimporter' ) {
+			if ( get_option( 'Activated_Plugin' ) === 'jcimporter' ) {
 
-				// scaffold log table
+				// scaffold log table.
 				require_once 'app/models/schema.php';
 				$schema = new JCI_DB_Schema( $this );
 				$schema->install();
 				delete_option( 'Activated_Plugin' );
 			}
 
-			$this->db_update_check();			
+			$this->db_update_check();
 		}
 	}
 
-	public function db_update_check(){
+	/**
+	 * Check if database requires an upgrade
+	 */
+	public function db_update_check() {
 
-		$curr_db = intval( get_site_option( 'jci_db_version') );
-		if( is_admin() && $curr_db < $this->db_version ){
+		$curr_db = intval( get_site_option( 'jci_db_version' ) );
+		if ( is_admin() && $curr_db < $this->db_version ) {
 
 			require_once 'app/models/schema.php';
 			$schema = new JCI_DB_Schema( $this );
-			$schema->upgrade($curr_db);
+			$schema->upgrade( $curr_db );
 
 			update_site_option( 'jci_db_version', $this->db_version );
 		}
 	}
+
+	/**
+	 * Get plugin directory
+	 *
+	 * @return string
+	 */
+	public function get_plugin_dir() {
+		return $this->plugin_dir;
+	}
+
+	/**
+	 * Get plugin url
+	 *
+	 * @return string
+	 */
+	public function get_plugin_url() {
+		return $this->plugin_url;
+	}
+
+	/**
+	 * Is debug enabled?
+	 *
+	 * @return bool
+	 */
+	public function is_debug(){
+		return $this->debug;
+	}
 }
 
 $GLOBALS['jcimporter'] = new JC_Importer();
-?>

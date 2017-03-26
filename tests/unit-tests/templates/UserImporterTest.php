@@ -2,7 +2,12 @@
 
 class UserImporterTest extends WP_UnitTestCase {
 
-	var $importer;
+	/**
+	 * Plugin Instance
+	 *
+	 * @var JC_Importer
+	 */
+	protected $importer;
 
 	public function setUp() {
 		parent::setUp();
@@ -20,7 +25,7 @@ class UserImporterTest extends WP_UnitTestCase {
 	 */
 	public function testCSVUserImporter() {
 
-		$post_id = create_csv_importer( null, 'user', $this->importer->plugin_dir . '/tests/data/data-users.csv', array(
+		$post_id = create_csv_importer( null, 'user', $this->importer->get_plugin_dir() . '/tests/data/data-users.csv', array(
 			'user' => array(
 				'first_name' => '{0}',
 				'last_name'  => '{1}',
@@ -81,7 +86,7 @@ class UserImporterTest extends WP_UnitTestCase {
 			$this->assertEquals( 'S', $response['_jci_status'] );
 		}
 
-		$post_id = create_csv_importer( $post_id, 'user', $this->importer->plugin_dir . '/tests/data/data-users.csv', array(
+		$post_id = create_csv_importer( $post_id, 'user', $this->importer->get_plugin_dir() . '/tests/data/data-users.csv', array(
 			'user' => array(
 				'first_name' => '{0}',
 				'last_name'  => '{1}',
@@ -110,7 +115,7 @@ class UserImporterTest extends WP_UnitTestCase {
 			$this->assertEquals( 'E', $response['_jci_status'] );
 		}
 
-		$post_id = create_csv_importer( $post_id, 'user', $this->importer->plugin_dir . '/tests/data/data-users.csv', array(
+		$post_id = create_csv_importer( $post_id, 'user', $this->importer->get_plugin_dir() . '/tests/data/data-users.csv', array(
 			'user' => array(
 				'first_name' => '{0}',
 				'last_name'  => '{1}',
@@ -146,7 +151,7 @@ class UserImporterTest extends WP_UnitTestCase {
 	 */
 	public function testXMLUserImporter() {
 
-		$post_id = create_xml_importer( null, 'user', $this->importer->plugin_dir . '/tests/data/data-users.xml', array(
+		$post_id = create_xml_importer( null, 'user', $this->importer->get_plugin_dir() . '/tests/data/data-users.xml', array(
 			'user' => array(
 				'first_name' => '{/first_name}',
 				'last_name'  => '{/last_name}',
@@ -215,7 +220,7 @@ class UserImporterTest extends WP_UnitTestCase {
 			$this->assertEquals( 'S', $response['_jci_status'] );
 		}
 
-		$post_id = create_xml_importer( $post_id, 'user', $this->importer->plugin_dir . '/tests/data/data-users.xml', array(
+		$post_id = create_xml_importer( $post_id, 'user', $this->importer->get_plugin_dir() . '/tests/data/data-users.xml', array(
 			'user' => array(
 				'first_name' => '{/first_name}',
 				'last_name'  => '{/last_name}',
@@ -249,7 +254,7 @@ class UserImporterTest extends WP_UnitTestCase {
 			$this->assertEquals( 'E', $response['_jci_status'] );
 		}
 
-		$post_id = create_xml_importer( $post_id, 'user', $this->importer->plugin_dir . '/tests/data/data-users.xml', array(
+		$post_id = create_xml_importer( $post_id, 'user', $this->importer->get_plugin_dir() . '/tests/data/data-users.xml', array(
 			'user' => array(
 				'first_name' => '{/first_name}',
 				'last_name'  => '{/last_name}',
@@ -291,7 +296,7 @@ class UserImporterTest extends WP_UnitTestCase {
 	 */
 	public function testUserTemplateRequirePass(){
 
-		$post_id = create_csv_importer( null, 'user', $this->importer->plugin_dir . '/tests/data/data-users.csv', array(
+		$post_id = create_csv_importer( null, 'user', $this->importer->get_plugin_dir() . '/tests/data/data-users.csv', array(
 			'user' => array(
 				'first_name' => '{0}',
 				'last_name'  => '{1}',
@@ -314,7 +319,7 @@ class UserImporterTest extends WP_UnitTestCase {
 	 */
 	public function testUserTemplateGeneratePass(){
 
-		$post_id = create_csv_importer( null, 'user', $this->importer->plugin_dir . '/tests/data/data-users.csv', array(
+		$post_id = create_csv_importer( null, 'user', $this->importer->get_plugin_dir() . '/tests/data/data-users.csv', array(
 			'user' => array(
 				'first_name' => '{0}',
 				'last_name'  => '{1}',
@@ -347,7 +352,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		$description 	= 'description';
 		$user_pass 		= 'user_pass';
 
-		$post_id = create_csv_importer( null, 'user', $this->importer->plugin_dir . '/tests/data/data-users.csv', array(
+		$post_id = create_csv_importer( null, 'user', $this->importer->get_plugin_dir() . '/tests/data/data-users.csv', array(
 			'user' => array(
 				'first_name' => '{0}',
 				'last_name'  => '{1}',
@@ -387,7 +392,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		$description 	= 'description';
 		$user_pass 		= 'user_pass';
 
-		$post_id = create_csv_importer( null, 'user', $this->importer->plugin_dir . '/tests/data/data-users.csv', array(
+		$post_id = create_csv_importer( null, 'user', $this->importer->get_plugin_dir() . '/tests/data/data-users.csv', array(
 			'user' => array(
 				'first_name' => '{0}',
 				'last_name'  => '{1}',
@@ -429,7 +434,7 @@ class UserImporterTest extends WP_UnitTestCase {
 	 */
 	public function testUserEmailNotification(){
 
-		$post_id = create_csv_importer( null, 'user', $this->importer->plugin_dir . '/tests/data/data-users.csv', array(
+		$post_id = create_csv_importer( null, 'user', $this->importer->get_plugin_dir() . '/tests/data/data-users.csv', array(
 			'user' => array(
 				'first_name' => '{0}',
 				'last_name'  => '{1}',

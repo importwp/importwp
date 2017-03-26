@@ -13,13 +13,6 @@ class ImportLog {
 	 */
 	static $config;
 
-	/**
-	 * Create an instance of config
-	 *
-	 * @param  class $config
-	 *
-	 * @return void
-	 */
 	static function init( &$config ) {
 		self::$config = $config;
 	}
@@ -36,6 +29,9 @@ class ImportLog {
 	 */
 	static function insert( $import_id, $row, $record ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $wpdb, $jcimporter;
 
 		// todo: replace this fix with a $_GET key to know the real start of the import

@@ -106,6 +106,9 @@ class JC_User_Template extends JC_Importer_Template {
 
 		if ( $group_id == 'user' ) {
 
+			/**
+			 * @global JC_Importer $jcimporter
+			 */
 			global $jcimporter;
 			$importer_id = $jcimporter->importer->ID;
 
@@ -356,6 +359,9 @@ class JC_User_Template extends JC_Importer_Template {
 
 	public function after_user_insert( $user_id, $fields ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$importer_id = $jcimporter->importer->ID;
 

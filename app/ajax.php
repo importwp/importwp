@@ -61,7 +61,7 @@ class JC_Importer_Ajax {
 
 		$xml = new JCI_XMLOutput($file, $base_node);
 
-		require_once $this->_config->plugin_dir . 'app/view/ajax/xml_node_preview.php';
+		require_once $this->_config->get_plugin_dir() . 'app/view/ajax/xml_node_preview.php';
 		die();
 	}
 
@@ -88,7 +88,7 @@ class JC_Importer_Ajax {
 
 				$xml = new JCI_XMLOutput($file, $base_node);
 				
-				require_once $this->_config->plugin_dir . 'app/view/ajax/xml_node_select.php';
+				require_once $this->_config->get_plugin_dir() . 'app/view/ajax/xml_node_select.php';
 				break;
 			case 'csv':
 				$settings = ImporterModel::getImportSettings( $post_id );
@@ -126,7 +126,7 @@ class JC_Importer_Ajax {
 					$counter ++;
 				}
 				fclose( $fh );
-				require_once $this->_config->plugin_dir . 'app/view/ajax/csv_node_select.php';
+				require_once $this->_config->get_plugin_dir() . 'app/view/ajax/csv_node_select.php';
 				break;
 		}
 		die();
@@ -176,7 +176,7 @@ class JC_Importer_Ajax {
 		}
 
 		$nodes = array_unique($nodes);
-		require_once $this->_config->plugin_dir . 'app/view/ajax/base_node_select.php';
+		require_once $this->_config->get_plugin_dir() . 'app/view/ajax/base_node_select.php';
 		die();
 	}
 
@@ -238,6 +238,9 @@ class JC_Importer_Ajax {
 		$row = isset($_POST['row']) && intval($_POST['row']) > 0 ? intval($_POST['row']) : 1;
 
 		// setup importer
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$jcimporter->importer = new JC_Importer_Core($importer_id);
 		$jci_file          = $jcimporter->importer->file;
@@ -276,6 +279,9 @@ class JC_Importer_Ajax {
 		$importer_id = $_POST['id'];
 
 		// setup importer
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$jcimporter->importer = new JC_Importer_Core($importer_id);
 		$jci_file          = $jcimporter->importer->file;

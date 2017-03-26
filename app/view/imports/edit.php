@@ -1,4 +1,7 @@
 <?php
+/**
+ * @global JC_Importer $jcimporter
+ */
 global $jcimporter;
 $name                 = $jcimporter->importer->get_name();
 $template_type        = $jcimporter->importer->get_template_type();
@@ -66,7 +69,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
 <div id="jci-about-block" class="postbox-container jci-sidebar">
 
-	<?php include $this->config->plugin_dir . '/app/view/elements/about_block.php'; ?>
+	<?php include $this->config->get_plugin_dir() . '/app/view/elements/about_block.php'; ?>
 
 </div><!-- /#jci-about-block -->
 
@@ -222,7 +225,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
 	<?php
 	if($total_rows > 0){
-		include $this->config->plugin_dir . '/app/view/elements/preview_block.php';
+		include $this->config->get_plugin_dir() . '/app/view/elements/preview_block.php';
 	}
 	?>
 

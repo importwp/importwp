@@ -303,6 +303,9 @@ class JC_Post_Template extends JC_Importer_Template {
 
 	public function before_template_save( $data, $current_row ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$id = $jcimporter->importer->ID;
 
@@ -346,6 +349,9 @@ class JC_Post_Template extends JC_Importer_Template {
 
 	public function before_group_save( $data, $group_id ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$id = $jcimporter->importer->ID;
 

@@ -41,6 +41,8 @@ class JC_Importer_Core {
 	protected $version = 0;
 	protected $object_delete = -1;
 
+	public $addon_settings = array();
+
 	public function __construct( $id = 0 ) {
 
 		if ( intval( $id ) > 0 ) {
@@ -194,6 +196,9 @@ class JC_Importer_Core {
 	 */
 	public function run_import( $row = null, $session = false ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$importer_id = $jcimporter->importer->get_ID();
 		$jci_file          = $jcimporter->importer->file;
@@ -266,6 +271,10 @@ class JC_Importer_Core {
 	}
 
 	public function get_parser() {
+
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
 		return $jcimporter->parsers[ $this->template_type ];

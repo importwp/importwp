@@ -117,6 +117,9 @@ class JC_XML_Parser extends JC_Parser {
 	 */
 	public function process_map_field( $group_id, $row ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
 		// setup current group node
@@ -155,6 +158,9 @@ class JC_XML_Parser extends JC_Parser {
 	 */
 	public function get_total_rows( $importer_id = 0 ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
 		if ( $importer_id > 0 ) {
@@ -204,6 +210,9 @@ class JC_XML_Parser extends JC_Parser {
 	 */
 	public function parse( $row = null ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
 		// setup template base node
@@ -328,6 +337,9 @@ class JC_XML_Parser extends JC_Parser {
 
 	public function preview_field($map = '', $selected_row = null, $general_base = null, $group_base = null ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
 		$xml = simplexml_load_file( $this->file );

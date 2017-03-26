@@ -175,6 +175,9 @@ class JC_UserMapper{
 	 */
 	function add_version_tag( $user_id = 0 ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
 		if(!isset($jcimporter->importer))
@@ -193,6 +196,9 @@ class JC_UserMapper{
 	 */
 	function update_version_tag( $user_id = 0 ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
 		if(!isset($jcimporter->importer))
@@ -250,6 +256,9 @@ class JC_UserMapper{
 	 */
 	function remove_single_object( $importer_id, $version, $post_type ){
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$record_import_count  = $jcimporter->importer->get_record_import_count();
 

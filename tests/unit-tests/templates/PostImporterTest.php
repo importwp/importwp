@@ -2,7 +2,12 @@
 
 class PostImporterTest extends WP_UnitTestCase {
 
-	var $importer;
+	/**
+	 * Plugin Instance
+	 *
+	 * @var JC_Importer
+	 */
+	protected $importer;
 
 	public function setUp() {
 		parent::setUp();
@@ -15,7 +20,7 @@ class PostImporterTest extends WP_UnitTestCase {
 	 */
 	public function testCSVPostImporter() {
 
-		$post_id = create_csv_importer( null, 'post', $this->importer->plugin_dir . '/tests/data/data-posts.csv', array(
+		$post_id = create_csv_importer( null, 'post', $this->importer->get_plugin_dir() . '/tests/data/data-posts.csv', array(
 			'post' => array(
 				'post_title'   => '{0}',
 				'post_name'    => '{1}',
@@ -64,7 +69,7 @@ class PostImporterTest extends WP_UnitTestCase {
 	 */
 	public function testXMLPostImporter() {
 
-		$post_id = create_xml_importer( null, 'post', $this->importer->plugin_dir . '/tests/data/data-posts.xml', array(
+		$post_id = create_xml_importer( null, 'post', $this->importer->get_plugin_dir() . '/tests/data/data-posts.xml', array(
 			'post' => array(
 				'post_title'   => '{/title}',
 				'post_name'    => '{/slug}',
@@ -132,7 +137,7 @@ class PostImporterTest extends WP_UnitTestCase {
 		$comment_status = 'comment_status';
 		$ping_status 	= 'ping_status';
 
-		$post_id = create_csv_importer( null, 'post', $this->importer->plugin_dir . '/tests/data/data-posts.csv', array(
+		$post_id = create_csv_importer( null, 'post', $this->importer->get_plugin_dir() . '/tests/data/data-posts.csv', array(
 			'post' => array(
 				'ID' 				=> $ID,
 				'post_title' 		=> $post_title,
@@ -186,7 +191,7 @@ class PostImporterTest extends WP_UnitTestCase {
 		$comment_status = 'comment_status';
 		$ping_status 	= 'ping_status';
 
-		$post_id = create_csv_importer( null, 'post', $this->importer->plugin_dir . '/tests/data/data-posts.csv', array(
+		$post_id = create_csv_importer( null, 'post', $this->importer->get_plugin_dir() . '/tests/data/data-posts.csv', array(
 			'post' => array(
 				'post_title' 		=> $post_title,
 				'post_content' 		=> $post_content,
@@ -243,7 +248,7 @@ class PostImporterTest extends WP_UnitTestCase {
 			'post_status' => 'publish'
 		));
 
-		$post_id = create_csv_importer( null, 'post', $this->importer->plugin_dir . '/tests/data/data-posts.csv', array(
+		$post_id = create_csv_importer( null, 'post', $this->importer->get_plugin_dir() . '/tests/data/data-posts.csv', array(
 			'post' => array(
 				'post_title' 		=> 'Child 01',
 				'post_content'  	=> 'child 01',
@@ -278,7 +283,7 @@ class PostImporterTest extends WP_UnitTestCase {
 			'post_status' => 'publish'
 		));
 
-		$post_id = create_csv_importer( null, 'post', $this->importer->plugin_dir . '/tests/data/data-posts.csv', array(
+		$post_id = create_csv_importer( null, 'post', $this->importer->get_plugin_dir() . '/tests/data/data-posts.csv', array(
 			'post' => array(
 				'post_title' 		=> 'Child 01',
 				'post_content'  	=> 'child 01',
@@ -324,7 +329,7 @@ class PostImporterTest extends WP_UnitTestCase {
 			'post_status' => 'publish'
 		));
 
-		$post_id = create_csv_importer( null, 'post', $this->importer->plugin_dir . '/tests/data/data-posts.csv', array(
+		$post_id = create_csv_importer( null, 'post', $this->importer->get_plugin_dir() . '/tests/data/data-posts.csv', array(
 			'post' => array(
 				'post_title' 		=> 'Child 01',
 				'post_content'  	=> 'child 01',

@@ -327,6 +327,9 @@ class JC_PostMapper {
 	 */
 	function add_version_tag( $post_id = 0 ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
 		if(!isset($jcimporter->importer))
@@ -345,6 +348,9 @@ class JC_PostMapper {
 	 */
 	function update_version_tag( $post_id = 0 ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
 		if(!isset($jcimporter->importer))
@@ -404,6 +410,9 @@ class JC_PostMapper {
 	 */
 	function remove_single_object( $importer_id, $version, $post_type ){
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$record_import_count  = $jcimporter->importer->get_record_import_count();
 

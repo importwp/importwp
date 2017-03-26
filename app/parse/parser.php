@@ -163,7 +163,10 @@ class JC_Parser {
 
 		if(!$this->session)
 			return;
-		
+
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
 		$data = array(
@@ -172,7 +175,7 @@ class JC_Parser {
 		);
 		$data = serialize($data);
 
-		file_put_contents($jcimporter->plugin_dir . '/app/tmp/session-' . $jcimporter->importer->ID.'-'.$jcimporter->importer->get_version(), $data);
+		file_put_contents($jcimporter->get_plugin_dir() . '/app/tmp/session-' . $jcimporter->importer->ID.'-'.$jcimporter->importer->get_version(), $data);
 	}
 
 	/**
@@ -184,9 +187,12 @@ class JC_Parser {
 		if(!$this->session)
 			return;
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
-		$tmp_session_file = $jcimporter->plugin_dir . '/app/tmp/session-' . $jcimporter->importer->ID.'-'.$jcimporter->importer->get_version();
+		$tmp_session_file = $jcimporter->get_plugin_dir() . '/app/tmp/session-' . $jcimporter->importer->ID.'-'.$jcimporter->importer->get_version();
 
 		if(file_exists($tmp_session_file)){
 			$tmp_seek = unserialize(file_get_contents($tmp_session_file));
@@ -204,9 +210,12 @@ class JC_Parser {
 		if(!$this->session)
 			return;
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
-		$files = glob($jcimporter->plugin_dir . '/app/tmp/session-'.$jcimporter->importer->ID.'-*'); // get all file names
+		$files = glob($jcimporter->get_plugin_dir() . '/app/tmp/session-'.$jcimporter->importer->ID.'-*'); // get all file names
 		foreach($files as $file){ // iterate files
 		  if(is_file($file))
 		    unlink($file); // delete file

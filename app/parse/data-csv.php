@@ -145,6 +145,9 @@ class JC_CSV_Parser extends JC_Parser {
 	 */
 	public function parse( $selected_row = null ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$groups = $jcimporter->importer->get_template_groups();
 
@@ -221,6 +224,9 @@ class JC_CSV_Parser extends JC_Parser {
 
 	public function preview_field($map = '', $selected_row = null ) {
 
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
 		$fh      = fopen( $this->file, 'r' );
@@ -263,6 +269,10 @@ class JC_CSV_Parser extends JC_Parser {
 	 * @return integer
 	 */
 	public function get_total_rows( $importer_id = 0 ) {
+
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 
 		if ( $importer_id > 0 ) {

@@ -422,6 +422,9 @@ class ImporterModel {
 
 
 		// validate row start/count
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
 		global $jcimporter;
 		$template_type = ImporterModel::getImportSettings( $post_id, 'template_type' );
 

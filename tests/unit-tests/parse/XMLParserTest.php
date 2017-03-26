@@ -5,6 +5,13 @@
  */
 class XMLParserTest extends WP_UnitTestCase {
 
+	/**
+	 * Plugin Instance
+	 *
+	 * @var JC_Importer
+	 */
+	protected $importer;
+
 	public function setUp() {
 		parent::setUp();
 		$this->importer = $GLOBALS['jcimporter'];
@@ -67,7 +74,7 @@ class XMLParserTest extends WP_UnitTestCase {
 	 * @group parser
 	 */
 	public function test_parse_repeater_xml() {
-		$xml    = simplexml_load_file( $this->importer->plugin_dir . '/tests/data/data-order.xml' );
+		$xml    = simplexml_load_file( $this->importer->get_plugin_dir() . '/tests/data/data-order.xml' );
 		$parser = new JC_XML_Parser();
 
 		$result = $parser->parse_xml( $xml, 0, '/orders/order', array(
