@@ -82,7 +82,7 @@ function create_importer( $post_id = null, $args = array() ) {
 
 	// attach file
 	if ( isset( $file ) && ! empty( $file ) ) {
-		$attachment = new JC_Attachment();
+		$attachment = new JCI_Attachment();
 		$file       = $attachment->attach_local_file( $file );
 		$attach_id  = $attachment->wp_insert_attachment( $post_id, $file, array( 'importer-file' => true ) );
 

@@ -27,7 +27,7 @@ foreach($res as $obj){
 				<th>Type</th>
 				<th>Last Ran</th>
 				<!-- <th width="50px">Fields</th> -->
-				<th>Modified</th>
+				<th>Created</th>
 				</thead>
 
 

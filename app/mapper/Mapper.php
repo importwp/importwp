@@ -822,7 +822,7 @@ class JC_BaseMapper {
 			case 'url':
 
 				// setup curl
-				$this->attachment_class = new JC_CURL_Attachments();
+				$this->attachment_class = new JCI_CURL_Attachments();
 
 				return true;
 				break;
@@ -838,7 +838,7 @@ class JC_BaseMapper {
 					return false;
 				}
 
-				$this->attachment_class = new JC_FTP_Attachments( $server, $user, $pass );
+				$this->attachment_class = new JCI_FTP_Attachments( $server, $user, $pass );
 				if ( $this->attachment_class->is_connected() ) {
 					return true;
 				}

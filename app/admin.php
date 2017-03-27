@@ -39,7 +39,7 @@ class JC_Importer_Admin {
 			$this,
 			'admin_imports_view'
 		) );
-		add_submenu_page( 'jci-importers', 'Addons', 'Addons', 'manage_options', 'jci-addons', array($this, 'admin_addons_view') );
+//		add_submenu_page( 'jci-importers', 'Addons', 'Addons', 'manage_options', 'jci-addons', array($this, 'admin_addons_view') );
 		add_submenu_page( 'jci-importers', 'Tools', 'Tools', 'manage_options', 'jci-tools', array($this, 'admin_tools_view') );
 		add_submenu_page( 'jci-importers', 'Add New', 'Add New', 'manage_options', 'jci-importers&action=add', array(
 			$this,
@@ -149,7 +149,7 @@ class JC_Importer_Admin {
 			$remote_settings = ImporterModel::getImportSettings( $importer, 'remote' );
 			$url             = $remote_settings['remote_url'];
 			$dest            = basename( $url );
-			$attach          = new JC_CURL_Attachments();
+			$attach          = new JCI_CURL_Attachments();
 			$result          = $attach->attach_remote_file( $importer, $url, $dest, array('importer-file' => true) );
 
 			// todo: save import frequency, setup cron
@@ -231,7 +231,7 @@ class JC_Importer_Admin {
 				case 'upload':
 
 					// upload
-					$attach = new JC_Upload_Attachments();
+					$attach = new JCI_Upload_Attachments();
 					$result = $attach->attach_upload( $post_id, $_FILES['jc-importer_import_file'], array('importer-file' => true) );
 
 					// todo: replace the result
@@ -244,7 +244,7 @@ class JC_Importer_Admin {
 					// download
 					$src                   = $_POST['jc-importer_remote_url'];
 					$dest                  = basename( $src );
-					$attach                = new JC_CURL_Attachments();
+					$attach                = new JCI_CURL_Attachments();
 					$result                = $attach->attach_remote_file( $post_id, $src, $dest, array('importer-file' => true) );
 					$general['remote_url'] = $src;
 					$file_error_field = 'remote_url';
@@ -325,7 +325,7 @@ class JC_Importer_Admin {
 			// uploading a new file
 			if ( isset( $_POST['jc-importer_upload_file'] ) && ! empty( $_POST['jc-importer_upload_file'] ) ) {
 
-				$attach = new JC_Upload_Attachments();
+				$attach = new JCI_Upload_Attachments();
 				$result = $attach->attach_upload( $id, $_FILES['jc-importer_import_file'], array('importer-file' => true) );
 				ImporterModel::setImportFile( $id, $result );
 

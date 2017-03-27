@@ -5,8 +5,15 @@
  * Description: Wordpress CSV/XML Importer Plugin, Easily import users, posts, custom post types and taxonomies from XML or CSV files
  * Author: James Collings <james@jclabs.co.uk>
  * Author URI: http://www.jamescollings.co.uk
- * Version: 0.2
+ * Version: 0.3
+ *
+ * @package ImportWP
+ * @author James Collings <james@jclabs.co.uk>
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
 
 require_once 'app/core/exceptions.php';
 require_once 'app/parse/parser.php';
@@ -15,11 +22,11 @@ require_once 'app/parse/parser.php';
 require_once 'app/libs/xmloutput.php';
 
 // attachments.
-require_once 'app/attachment/attachment.php';
-require_once 'app/attachment/attachment-ftp.php';
-require_once 'app/attachment/attachment-curl.php';
-require_once 'app/attachment/attachment-upload.php';
-require_once 'app/attachment/attachment-string.php';
+require_once 'app/attachment/class-jci-attachment.php';
+require_once 'app/attachment/class-jci-ftp-attachments.php';
+require_once 'app/attachment/class-jci-curl-attachments.php';
+require_once 'app/attachment/class-jci-upload-attachments.php';
+require_once 'app/attachment/class-jci-string-attachments.php';
 
 // mappers.
 require_once 'app/mapper/Mapper.php';
@@ -56,7 +63,7 @@ class JC_Importer {
 	 *
 	 * @var string
 	 */
-	protected $version = '0.2';
+	protected $version = '0.3';
 
 	/**
 	 * Plugin base directory
@@ -77,7 +84,7 @@ class JC_Importer {
 	 *
 	 * @var array[string]
 	 */
-	public $templates = array();
+	protected $templates = array();
 
 	/**
 	 * Current plugin database schema version
@@ -99,6 +106,26 @@ class JC_Importer {
 	 * @var JC_Importer_Core
 	 */
 	public $importer;
+
+	/**
+	 * Single instance of class
+	 *
+	 * @var null
+	 */
+	protected static $_instance = null;
+
+	/**
+	 * Return current instance of class
+	 *
+	 * @return JC_Importer
+	 */
+	public static function instance() {
+		if ( is_null( self::$_instance ) ) {
+			self::$_instance = new self();
+		}
+
+		return self::$_instance;
+	}
 
 	/**
 	 * JC_Importer constructor.
@@ -264,9 +291,46 @@ class JC_Importer {
 	 *
 	 * @return bool
 	 */
-	public function is_debug(){
+	public function is_debug() {
 		return $this->debug;
+	}
+
+	/**
+	 * Get importer template
+	 *
+	 * @param string $template Template name.
+	 *
+	 * @return mixed|string
+	 */
+	public function get_template( $template ) {
+
+		if ( isset( $this->templates[ $template ] ) ) {
+			$temp                         = $this->templates[ $template ];
+			$this->templates[ $template ] = new $temp;
+
+			return $this->templates[ $template ];
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get importer templates
+	 *
+	 * @return array
+	 */
+	public function get_templates() {
+		return $this->templates;
 	}
 }
 
-$GLOBALS['jcimporter'] = new JC_Importer();
+/**
+ * Globally access JC_Importer instance.
+ *
+ * @return JC_Importer
+ */
+function JCI() {
+	return JC_Importer::instance();
+}
+
+$GLOBALS['jcimporter'] = JCI();

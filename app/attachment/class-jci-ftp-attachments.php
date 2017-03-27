@@ -1,5 +1,4 @@
 <?php
-
 /**
  * FTP_Attachments
  *
@@ -7,16 +6,33 @@
  *
  * @author James Collings <james@jclabs.co.uk>
  * @version 0.1
+ * @package ImportWP
  */
-class JC_FTP_Attachments extends JC_Attachment {
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+/**
+ * Class JCI_FTP_Attachments
+ */
+class JCI_FTP_Attachments extends JCI_Attachment {
 
 	/**
 	 * FTP Connection
-	 * @var FTP Stream
+	 *
+	 * @var resource $_conn FTP Stream
 	 */
 	private $_conn = null;
 
-	public function __construct( $server = false, $username = false, $password = false ) {
+	/**
+	 * JCI_FTP_Attachments constructor.
+	 *
+	 * @param string $server Server host.
+	 * @param string $username Server username.
+	 * @param string $password Server password.
+	 */
+	public function __construct( $server = '', $username = '', $password = '' ) {
 		parent::__construct();
 
 		if ( $server && $username && $password && ! $this->_conn ) {
@@ -33,6 +49,7 @@ class JC_FTP_Attachments extends JC_Attachment {
 
 	/**
 	 * Check to see if an ftp connection exists
+	 *
 	 * @return boolean
 	 */
 	public function is_connected() {
@@ -48,9 +65,9 @@ class JC_FTP_Attachments extends JC_Attachment {
 	 *
 	 * Connect to FTP Server with server and auth credentials
 	 *
-	 * @param  string $server
-	 * @param  string $username
-	 * @param  string $password
+	 * @param string $server Server host.
+	 * @param string $username Server username.
+	 * @param string $password Server password.
 	 *
 	 * @return void
 	 */
@@ -61,12 +78,13 @@ class JC_FTP_Attachments extends JC_Attachment {
 		}
 
 		if ( $this->_conn ) {
-			$login_result = ftp_login( $this->_conn, $username, $password );
+			ftp_login( $this->_conn, $username, $password );
 		}
 	}
 
 	/**
 	 * Disconnect from FTP
+	 *
 	 * @return void
 	 */
 	private function _disconnect() {
@@ -81,8 +99,8 @@ class JC_FTP_Attachments extends JC_Attachment {
 	 *
 	 * If image exists on server, download via ftp to specified destination
 	 *
-	 * @param  string $src remote destination
-	 * @param  string $dest local destination
+	 * @param  string $src remote destination.
+	 * @param  string $dest local destination.
 	 *
 	 * @return string filename
 	 */
@@ -104,4 +122,4 @@ class JC_FTP_Attachments extends JC_Attachment {
 	}
 }
 
-require_once 'attachment.php';
+require_once 'class-jci-attachment.php';

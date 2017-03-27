@@ -1,5 +1,4 @@
 <?php
-
 /**
  * CURL_Attachments
  *
@@ -7,16 +6,25 @@
  *
  * @author James Collings <james@jclabs.co.uk>
  * @version 0.1
+ * @package ImportWP
  */
-class JC_CURL_Attachments extends JC_Attachment {
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+/**
+ * Class JCI_CURL_Attachments
+ */
+class JCI_CURL_Attachments extends JCI_Attachment {
 
 	/**
 	 * Fetch Image from url
 	 *
 	 * If image exists on url, download via curl to specified destination
 	 *
-	 * @param  string $src remote destination
-	 * @param  string $dest local destination
+	 * @param  string $src remote destination.
+	 * @param  string $dest local destination.
 	 *
 	 * @return string filename
 	 */
@@ -34,8 +42,8 @@ class JC_CURL_Attachments extends JC_Attachment {
 	/**
 	 * Fetch file without curl
 	 *
-	 * @param  string $src
-	 * @param  string $dest
+	 * @param  string $src Attachment source.
+	 * @param  string $dest Attachment destination.
 	 *
 	 * @return bool
 	 */
@@ -47,8 +55,8 @@ class JC_CURL_Attachments extends JC_Attachment {
 	/**
 	 * Fetch file with curl
 	 *
-	 * @param  string $src
-	 * @param  string $dest
+	 * @param  string $src Attachment source.
+	 * @param  string $dest Attachment destination.
 	 *
 	 * @return bool
 	 */
@@ -67,4 +75,4 @@ class JC_CURL_Attachments extends JC_Attachment {
 	}
 }
 
-require_once 'attachment.php';
+require_once 'class-jci-attachment.php';

@@ -8,13 +8,8 @@
  */
 function get_template_list($class_name = true) {
 
-	/**
-	 * @global JC_Importer $jcimporter
-	 */
-	global $jcimporter;
-
 	$templates = array();
-	foreach ( $jcimporter->templates as $key => $template ) {
+	foreach ( JCI()->get_templates() as $key => $template ) {
 
 		if($class_name){
 
@@ -42,32 +37,13 @@ function get_template_list($class_name = true) {
  */
 function get_import_template( $template ) {
 
-	/**
-	 * @global JC_Importer $jcimporter
-	 */
-	global $jcimporter;
-
-	if( isset( $jcimporter->templates[ $template ] ) ){
-		$temp = $jcimporter->templates[ $template ];
-		$jcimporter->templates[ $template ] = new $temp;
-
-		return $jcimporter->templates[ $template ];
-	}
-
-	return false;
+	return JCI()->get_template($template);
 }
 
 function load_import_parser( $import_id ) {
 
-	/**
-	 * @global JC_Importer $jcimporter
-	 */
-	global $jcimporter;
-
 	$template_type = ImporterModel::getImportSettings( $import_id, 'template_type' );
-
-	return $jcimporter->parsers[ $template_type ];
-	// return new $parser();
+	return JCI()->parsers[ $template_type ];
 }
 
 if ( ! function_exists( 'mime_content_type' ) ) {

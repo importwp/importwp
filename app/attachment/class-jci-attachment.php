@@ -1,30 +1,42 @@
 <?php
+/**
+ * Importer Attachments
+ *
+ * @todo: improve error reporting, show if max upload size has been met...
+ * @package ImportWP
+ * @author James Collings <james@jclabs.co.uk>
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
 
 /**
- * Wordpress Attachments
+ * Class JC_Attachment
  *
- * Handle wordpress attachments
- *
- * @author James Collings <james@jclabs.co.uk>
- * @todo: improve error reporting, show if max upload size has been met...
- * @version 0.1
+ * Handle WordPress attachments
  */
-class JC_Attachment {
+class JCI_Attachment {
 
 	/**
 	 * Class Errors
+	 *
 	 * @var array
 	 */
 	protected $_errors = array();
 
+	/**
+	 * JC_Attachment constructor.
+	 */
 	public function __construct() {
 
-		// load required libraries
+		// load required libraries.
 		require_once( ABSPATH . 'wp-admin/includes/image.php' );
 	}
 
 	/**
 	 * Check if an error has occured
+	 *
 	 * @return boolean
 	 */
 	public function has_error() {
@@ -38,7 +50,7 @@ class JC_Attachment {
 	/**
 	 * Add Error Message
 	 *
-	 * @param string $msg
+	 * @param string $msg Error message.
 	 */
 	public function set_error( $msg ) {
 		$this->_errors[] = $msg;
@@ -46,6 +58,7 @@ class JC_Attachment {
 
 	/**
 	 * Get Latest Error Message
+	 *
 	 * @return string
 	 */
 	public function get_error() {
@@ -55,8 +68,8 @@ class JC_Attachment {
 	/**
 	 * Set Post Featured Image
 	 *
-	 * @param  int $post_id
-	 * @param  int $attach_id
+	 * @param  int $post_id Post Id.
+	 * @param  int $attach_id Attachment Id.
 	 *
 	 * @return bool
 	 */
@@ -67,11 +80,11 @@ class JC_Attachment {
 
 		$old_value = get_post_meta( $post_id, $key, true );
 
-		if ( $value && '' == $old_value ) {
+		if ( $value && '' === $old_value ) {
 			return add_post_meta( $post_id, $key, $value );
-		} elseif ( $value && $value != $old_value ) {
+		} elseif ( $value && $value !== $old_value ) {
 			return update_post_meta( $post_id, $key, $value );
-		} elseif ( '' == $value && $old_value ) {
+		} elseif ( '' === $value && $old_value ) {
 			return delete_post_meta( $post_id, $key, $value );
 		}
 
@@ -82,9 +95,9 @@ class JC_Attachment {
 	 *
 	 * Add attachment and resize
 	 *
-	 * @param  int $post_id
-	 * @param  string $file
-	 * @param  array $args
+	 * @param  int    $post_id Post Id.
+	 * @param  string $file File name or path.
+	 * @param  array  $args Arguments.
 	 *
 	 * @return boolean
 	 */
@@ -95,27 +108,26 @@ class JC_Attachment {
 		$resize  = isset( $args['resize'] ) && is_bool( $args['resize'] ) ? $args['resize'] : true;
 
 		$wp_filetype   = wp_check_filetype( $file, null );
-		$wp_upload_dir = wp_upload_dir();		
+		$wp_upload_dir = wp_upload_dir();
 
-		// $args['importer-file'] = true;
+		if ( isset( $args['importer-file'] ) && true === $args['importer-file'] ) {
 
-		if(isset($args['importer-file']) && $args['importer-file'] === true){
+			$file_id = ImporterModel::insertImporterFile( $post_id, $file );
+			if ( intval( $file_id ) > 0 ) {
 
-			$file_id = ImporterModel::insertImporterFile($post_id, $file);
-			if( intval( $file_id ) > 0 ){
-
-				// if file uploaded, increase verion number
-				$version = get_post_meta( $post_id, '_import_version', true );
+				// if file uploaded, increase version number.
+				$version  = get_post_meta( $post_id, '_import_version', true );
 				$last_row = ImportLog::get_last_row( $post_id, $version );
-				if($last_row > 0){
-					ImporterModel::setImportVersion($post_id, $version + 1);
-				}	
+				if ( $last_row > 0 ) {
+					ImporterModel::setImportVersion( $post_id, $version + 1 );
+				}
 
 				return $file_id;
 			}
+
 			return false;
 
-		}else{
+		} else {
 
 			$attachment = array(
 				'guid'           => $wp_upload_dir['url'] . '/' . basename( $file ),
@@ -124,21 +136,20 @@ class JC_Attachment {
 				'post_content'   => '',
 				'post_status'    => 'inherit',
 				'post_author'    => get_current_user_id(),
-				'post_parent'    => $post_id
+				'post_parent'    => $post_id,
 			);
 
 			$attach_id = wp_insert_attachment( $attachment, $file, $post_id );
 		}
 
-		
 
-		// generate wp sizes
+		// generate wp sizes.
 		if ( $resize ) {
 			$attach_data = wp_generate_attachment_metadata( $attach_id, $file );
 			wp_update_attachment_metadata( $attach_id, $attach_data );
 		}
 
-		// set featured image
+		// set featured image.
 		if ( $feature ) {
 			$this->wp_attach_featured_image( $post_id, $attach_id );
 		}
@@ -153,7 +164,7 @@ class JC_Attachment {
 	/**
 	 * Get mime type
 	 *
-	 * @param  string $file
+	 * @param  string $file File name or path.
 	 *
 	 * @return string
 	 */
@@ -167,29 +178,29 @@ class JC_Attachment {
 	/**
 	 * Get files mime type
 	 *
-	 * @param  string $file
+	 * @param  string $file File name or path.
 	 *
 	 * @return string/bool
 	 */
 	public function get_template_type( $file ) {
 
-		// get template type
+		// get template type.
 		$mime = $this->get_file_mime( $file );
 
 		$result = $this->check_mime_header( $mime );
 
-		// fallback to check for filetype by extension
-		if(!$result){
+		// fallback to check for filetype by extension.
+		if ( ! $result ) {
 
-			if(strpos($file, '.xml') > 0){
+			if ( strpos( $file, '.xml' ) > 0 ) {
 				$result = 'xml';
-			}elseif(strpos($file, '.csv') > 0){
+			} elseif ( strpos( $file, '.csv' ) > 0 ) {
 				$result = 'csv';
 			}
 		}
 
-		if(!$result){
-			$this->set_error('Could not determine filetype');
+		if ( ! $result ) {
+			$this->set_error( 'Could not determine filetype' );
 		}
 
 		return $result;
@@ -198,7 +209,7 @@ class JC_Attachment {
 	/**
 	 * Get mime type
 	 *
-	 * @param  string $mime
+	 * @param  string $mime Mimetype.
 	 *
 	 * @return string/bool
 	 */
@@ -212,12 +223,10 @@ class JC_Attachment {
 			case 'application/vnd.msexcel':
 			case 'text/anytext':
 				return 'csv';
-				break;
 			case 'text/xml':
 			case 'application/xml':
 			case 'application/x-xml':
 				return 'xml';
-				break;
 		}
 
 		return false;
@@ -226,10 +235,12 @@ class JC_Attachment {
 	/**
 	 * Attach remote image to post
 	 *
-	 * @param  int $post_id
-	 * @param  string $src
-	 * @param  string $dest
-	 * @param  array $args
+	 * @param  int    $post_id Post id.
+	 * @param  string $src Remote image url.
+	 * @param  string $dest Local attachment destination.
+	 * @param  array  $args Arguments.
+	 *
+	 * @return bool
 	 */
 	public function attach_remote_image( $post_id, $src, $dest, $args = array() ) {
 
@@ -261,10 +272,10 @@ class JC_Attachment {
 	}
 
 	/**
-	 * Scaffikd for child classes to fetch an image
+	 * Scaffold for child classes to fetch an image
 	 *
-	 * @param  string $src
-	 * @param  string $dest
+	 * @param  string $src Attachment Source.
+	 * @param  string $dest Local attachment destination.
 	 *
 	 * @return bool
 	 */
@@ -275,7 +286,7 @@ class JC_Attachment {
 	/**
 	 * Attach local file to post
 	 *
-	 * @param  string $src
+	 * @param  string $src Attachment Source.
 	 *
 	 * @return string/bool
 	 */
@@ -294,10 +305,12 @@ class JC_Attachment {
 	/**
 	 * Attach remote file to post
 	 *
-	 * @param  int $post_id
-	 * @param  string $src
-	 * @param  string $dest
-	 * @param  array $args
+	 * @param  int    $post_id Post Id.
+	 * @param  string $src Remote image url.
+	 * @param  string $dest Local attachment destination.
+	 * @param  array  $args Arguments.
+	 *
+	 * @return array|bool
 	 */
 	public function attach_remote_file( $post_id, $src, $dest, $args = array() ) {
 
@@ -323,7 +336,7 @@ class JC_Attachment {
 		return array(
 			'dest' => $wp_dest,
 			'type' => $template_type,
-			'id'   => $this->wp_insert_attachment( $post_id, $wp_dest, $args )
+			'id'   => $this->wp_insert_attachment( $post_id, $wp_dest, $args ),
 		);
 	}
 }
