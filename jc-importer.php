@@ -322,6 +322,15 @@ class JC_Importer {
 	public function get_templates() {
 		return $this->templates;
 	}
+
+	/**
+	 * Get plugin version
+	 *
+	 * @return string
+	 */
+	public function get_version() {
+		return $this->version;
+	}
 }
 
 /**

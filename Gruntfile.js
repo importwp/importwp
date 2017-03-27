@@ -56,7 +56,40 @@ module.exports = function(grunt) {
                 files: 'app/assets/scss/**/*.scss',
                 tasks: ['sass:dev']
             }
+        },
+        'string-replace': {
+            dist:{
+                files:[{
+                    expand: true,
+                    cwd: './',
+                    src: ['<%= pkg.name %>.php', 'readme.txt']
+                }],
+                options:{
+                    replacements: [
+                        {
+                            pattern: /Version: ([0-9a-zA-Z\-\.]+)/m,
+                            replacement: 'Version: <%= pkg.version %>'
+                        },
+                        {
+                            pattern: /Stable tag: ([0-9a-zA-Z\-\.]+)/m,
+                            replacement: 'Stable tag: <%= pkg.version %>'
+                        },
+                        {
+                            pattern: /\$version = '([0-9a-zA-Z\-\.]+)';/m,
+                            replacement: '$version = \'<%= pkg.version %>\';'
+                        }
+                    ]
+                }
+            }
+        },
+        wp_readme_to_markdown: {
+            your_target: {
+                files: {
+                    'README.md': 'readme.txt'
+                }
+            }
         }
+
     });
 
     // grunt modules
@@ -64,10 +97,12 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-phpunit');
     grunt.loadNpmTasks('grunt-sass');
-    grunt.loadNpmTasks('grunt-contrib-watch'); 
+    grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-string-replace');
+    grunt.loadNpmTasks('grunt-wp-readme-to-markdown');
 
     // Default task(s).
-    grunt.registerTask('default', ['phpunit', 'clean:sass', 'sass:deploy', 'clean:build', 'copy', "clean:tmp"]);
-    grunt.registerTask('build', ['clean:sass', 'sass:deploy', 'clean:build', 'copy', "clean:tmp"]);
+    grunt.registerTask('default', ['watch']);
+    grunt.registerTask('build', ['string-replace', 'wp_readme_to_markdown', 'clean:sass', 'sass:deploy', 'clean:build', 'copy', "clean:tmp"]);
 
 };
