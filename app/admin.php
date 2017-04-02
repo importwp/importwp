@@ -40,14 +40,11 @@ class JC_Importer_Admin {
 			'admin_imports_view'
 		) );
 //		add_submenu_page( 'jci-importers', 'Addons', 'Addons', 'manage_options', 'jci-addons', array($this, 'admin_addons_view') );
-		add_submenu_page( 'jci-importers', 'Tools', 'Tools', 'manage_options', 'jci-tools', array($this, 'admin_tools_view') );
-		add_submenu_page( 'jci-importers', 'Add New', 'Add New', 'manage_options', 'jci-importers&action=add', array(
+		add_submenu_page( 'jci-importers', 'Add Importer', 'Add Importer', 'manage_options', 'jci-importers&action=add', array(
 			$this,
 			'admin_imports_view'
 		) );
-
-		// add_submenu_page( 'jci-importers', 'Settings', 'Settings', 'manage_options', 'jci-settings', array($this, 'admin_settings_view') );
-		
+		add_submenu_page( 'jci-importers', 'Settings', 'Settings', 'manage_options', 'jci-settings', array($this, 'admin_settings_view') );
 	}
 
 	public function admin_imports_view() {

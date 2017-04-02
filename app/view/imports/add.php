@@ -28,8 +28,10 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 								'options' => get_template_list(false),
 								'label'   => 'Import Template',
 								'empty' => 'Choose a template',
+								'class' => 'jci-template-selector'
 							) );
 
+						do_action( 'jci/output_template_option' );
 						?>
 						</div>
 						<div class="jci-add-section">
@@ -126,6 +128,16 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 				var _selected = $('.toggle-fields > input:checked');
 				$('.toggle-field').hide();
 				$('.toggle-field.show-' + _selected.val()).show();
+
+			}).trigger('change');
+
+			// on template field select
+			$('.jci-template-selector > select').on('change', function(){
+
+			    var _this = $(this);
+			    var _selected = _this.val();
+			    $('.jci-template-toggle-field').hide();
+			    $('.jci-template-toggle-field.show-' + _selected).show();
 
 			}).trigger('change');
 		});
