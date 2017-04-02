@@ -34,7 +34,7 @@ class JC_Importer_Admin {
 		add_menu_page( 'jc-importer', 'ImportWP', 'manage_options', 'jci-importers', array(
 			$this,
 			'admin_imports_view'
-		) );
+		), 'dashicons-upload' );
 		add_submenu_page( 'jci-importers', 'Importers', 'Importers', 'manage_options', 'jci-importers', array(
 			$this,
 			'admin_imports_view'
