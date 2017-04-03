@@ -19,7 +19,7 @@ if(!in_array($tab, $tabs)){
 }
 
 ?>
-<div class="wrap">
+<div class="wrap jci-page-wrapper">
 
 	<h2>Settings</h2>
 

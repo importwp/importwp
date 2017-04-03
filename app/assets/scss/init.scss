@@ -2,7 +2,12 @@
 @import 'pages/addons';
 @import 'pages/edit';
 @import 'pages/base_node_select';
+@import "pages/csv_column_select";
 @import "pages/settings";
+
+.jci-page-wrapper{
+    max-width: 1024px;
+}
 
 .input.text {
     overflow: hidden;

@@ -1,0 +1,29 @@
+table#jci-csv-select{
+    overflow: hidden;
+
+    //tr:hover {
+    //    background-color: red;
+    //}
+
+    td, th {
+        position: relative;
+    }
+    td:hover::after,
+    th:hover::after {
+        content: "";
+        position: absolute;
+        background-color: #608b60;
+        left: 0;
+        top: -5000px;
+        height: 10000px;
+        width: 100%;
+        z-index: 1;
+        opacity: 0.4;
+    }
+}
+
+.jci-csv-selector{
+    .jci-preview-block{
+        padding: 3%;
+    }
+}
