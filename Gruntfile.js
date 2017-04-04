@@ -102,7 +102,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-wp-readme-to-markdown');
 
     // Default task(s).
-    grunt.registerTask('default', ['watch']);
+    grunt.registerTask('default', ['sass:dev','watch']);
     grunt.registerTask('build', ['string-replace', 'wp_readme_to_markdown', 'clean:sass', 'sass:deploy', 'clean:build', 'copy', "clean:tmp"]);
 
 };
