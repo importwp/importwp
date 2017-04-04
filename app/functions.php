@@ -25,6 +25,10 @@ function get_template_list($class_name = true) {
 		}
 	}
 
+	if(!class_exists('ImportWP_CustomPostTypes')){
+		$templates[''] = 'Custom Post Type (Premium Feature)';
+	}
+
 	return $templates;
 }
 
