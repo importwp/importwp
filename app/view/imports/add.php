@@ -3,6 +3,18 @@
 
 <?php
 echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
+
+if(!class_exists('JCI_Cron')) {
+	add_action( 'jci/output_datasource_section', 'jci_premium_cron_display' );
+	function jci_premium_cron_display() {
+		?>
+		<div class="hidden show-remote toggle-field">
+			<h4 class="title">4. Setup Import Schedule</h4>
+			<div class="input support-checkbox"><input type="checkbox" name="jc-importer_enable_cron" value="1" disabled="disabled" id="jc-importer_enable_cron"><label><strong>Enable Cron</strong> - Set a schedule to run the current import. (Premium Feature)</label></div>
+		</div>
+		<?php
+	}
+}
 ?>
 
 <div id="poststuff">
@@ -28,8 +40,10 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 								'options' => get_template_list(false),
 								'label'   => 'Import Template',
 								'empty' => 'Choose a template',
+								'class' => 'jci-template-selector'
 							) );
 
+						do_action( 'jci/output_template_option' );
 						?>
 						</div>
 						<div class="jci-add-section">
@@ -52,6 +66,11 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 								'class' => 'toggle-fields'
 							) );
 
+						if(!class_exists('JCI_Post_Datasource')){
+							?>
+							<div class="input radio toggle-fields"><input type="radio" name="jc-importer_import_type" value="" disabled><label><strong>Push Request</strong> - Receive file sent from remote source (Premium Feature)</label></div>
+							<?php
+						}
 
 						do_action( 'jci/output_datasource_option' );
 
@@ -126,6 +145,16 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 				var _selected = $('.toggle-fields > input:checked');
 				$('.toggle-field').hide();
 				$('.toggle-field.show-' + _selected.val()).show();
+
+			}).trigger('change');
+
+			// on template field select
+			$('.jci-template-selector > select').on('change', function(){
+
+			    var _this = $(this);
+			    var _selected = _this.val();
+			    $('.jci-template-toggle-field').hide();
+			    $('.jci-template-toggle-field.show-' + _selected).show();
 
 			}).trigger('change');
 		});

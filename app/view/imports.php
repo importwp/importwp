@@ -23,11 +23,11 @@ foreach($res as $obj){
 
 				<thead class="template_heading">
 				<th>Importer</th>
-				<th>Template</th>
-				<th>Type</th>
-				<th>Last Ran</th>
+				<th style="width: 80px;">Template</th>
+				<th style="width: 50px;">Type</th>
+				<th style="width: 80px;">Last Ran</th>
 				<!-- <th width="50px">Fields</th> -->
-				<th>Created</th>
+				<th style="width: 80px;">Created</th>
 				</thead>
 
 

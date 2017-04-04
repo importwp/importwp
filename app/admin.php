@@ -34,20 +34,21 @@ class JC_Importer_Admin {
 		add_menu_page( 'jc-importer', 'ImportWP', 'manage_options', 'jci-importers', array(
 			$this,
 			'admin_imports_view'
-		) );
+		), 'dashicons-upload' );
 		add_submenu_page( 'jci-importers', 'Importers', 'Importers', 'manage_options', 'jci-importers', array(
 			$this,
 			'admin_imports_view'
 		) );
 //		add_submenu_page( 'jci-importers', 'Addons', 'Addons', 'manage_options', 'jci-addons', array($this, 'admin_addons_view') );
-		add_submenu_page( 'jci-importers', 'Tools', 'Tools', 'manage_options', 'jci-tools', array($this, 'admin_tools_view') );
-		add_submenu_page( 'jci-importers', 'Add New', 'Add New', 'manage_options', 'jci-importers&action=add', array(
+		add_submenu_page( 'jci-importers', 'Add Importer', 'Add Importer', 'manage_options', 'jci-importers&action=add', array(
 			$this,
 			'admin_imports_view'
 		) );
+		add_submenu_page( 'jci-importers', 'Settings', 'Settings', 'manage_options', 'jci-settings', array($this, 'admin_settings_view') );
 
-		// add_submenu_page( 'jci-importers', 'Settings', 'Settings', 'manage_options', 'jci-settings', array($this, 'admin_settings_view') );
-		
+		if(!class_exists('ImportWP_Pro')){
+			add_submenu_page( 'jci-importers', 'Go Premium', 'Go Premium', 'manage_options', 'jci-settings&tab=premium', array($this, 'admin_premium_view') );
+		}
 	}
 
 	public function admin_imports_view() {
@@ -64,6 +65,10 @@ class JC_Importer_Admin {
 
 	public function admin_settings_view() {
 		require 'view/settings.php';
+	}
+
+	public function admin_premium_view(){
+		require 'view/premium.php';
 	}
 
 	public function setup_forms() {

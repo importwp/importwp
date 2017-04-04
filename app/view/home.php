@@ -6,7 +6,7 @@ global $jcimporter;
 $tab    = isset( $_GET['tab'] ) && ! empty( $_GET['tab'] ) ? $_GET['tab'] : 'home';
 $action = isset( $_GET['action'] ) && ! empty( $_GET['action'] ) ? $_GET['action'] : 'index';
 ?>
-<div class="wrap">
+<div class="wrap jci-page-wrapper">
 	<?php
 	switch ( $tab ) {
 		case 'settings':

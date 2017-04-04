@@ -75,6 +75,8 @@ class JC_Importer_Core {
 				return false;
 			}
 
+			do_action('jci/importer_template_loaded', $this);
+
 			// load taxonomies
 			$taxonomies = ImporterModel::getImporterMeta( $id, 'taxonomies' );
 			foreach ( $taxonomies as $group_id => $tax_arr ) {

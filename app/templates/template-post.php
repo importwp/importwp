@@ -85,8 +85,8 @@ class JC_Post_Template extends JC_Importer_Template {
 		add_action( 'jci/after_template_fields', array( $this, 'field_settings' ) );
 		add_action( 'jci/save_template', array( $this, 'save_template' ) );
 
-		add_filter( 'jci/log_post_columns', array( $this, 'log_post_columns' ) );
-		add_action( 'jci/log_post_content', array( $this, 'log_post_content' ), 10, 2 );
+		add_filter( sprintf('jci/log_%s_columns', $this->_name), array( $this, 'log_post_columns' ) );
+		add_action( sprintf('jci/log_%s_content', $this->_name), array( $this, 'log_post_content' ), 10, 2 );
 
 		
 		foreach( $this->_field_groups['post']['map'] as &$field){
