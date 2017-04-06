@@ -18,3 +18,23 @@
 .iwp-about hr{
     margin-top: 0;
 }
+
+.iwp-error{
+    background: #fff;
+    border-left: 4px solid #fff;
+    -webkit-box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+    box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+    margin: 5px 15px 2px;
+    padding: 1px 12px;
+}
+
+.iwp-error{
+    border-left-color: #dc3232;
+}
+
+.jci-custom-fields{
+    .iwp-error{
+        margin-top:20px;
+        margin-bottom:20px;
+    }
+}

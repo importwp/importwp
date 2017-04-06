@@ -20,6 +20,7 @@ require_once 'app/parse/parser.php';
 
 // libs.
 require_once 'app/libs/xmloutput.php';
+require_once 'app/libs/class-importwp-premium.php';
 
 // attachments.
 require_once 'app/attachment/class-jci-attachment.php';
@@ -46,7 +47,6 @@ require_once 'app/templates/template-user.php';
 require_once 'app/templates/template-post.php';
 require_once 'app/templates/template-page.php';
 require_once 'app/templates/template-tax.php';
-
 
 require_once 'app/helpers/form.php';
 require_once 'app/functions.php';
