@@ -49,7 +49,7 @@ class ImportWP_Premium {
 	function __construct() {
 		add_action( 'admin_init', array( $this, 'init' ) );
 
-
+		// add form validation for extra settings, stop form being submitted
 		add_filter( 'jci/setup_forms', array( $this, 'add_form_cpt_validation' ), 999, 2 );
 		add_filter( 'jci/setup_forms', array( $this, 'add_form_pd_validation' ), 999, 2 );
 	}
@@ -70,6 +70,7 @@ class ImportWP_Premium {
 
 		if ( ! class_exists( $this->_cron_class ) ) {
 			add_action( 'jci/output_datasource_section', array( $this, 'display_cron_display' ) );
+			add_action( 'jci/importer_setting_section', array( $this, 'output_cron_edit_settings' ) );
 		}
 
 		if ( ! class_exists( $this->_pd_class ) ) {
@@ -96,7 +97,8 @@ class ImportWP_Premium {
 			<div class="iwp-upgrade__block">
 				<p>Upgrade to ImportWP Pro to import custom fields and many other
 					features, <a target="_blank"
-					             href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>">Find out
+					             href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>">Click here
+						to find out
 						more</a>.</p>
 			</div>
 		</div>
@@ -109,7 +111,8 @@ class ImportWP_Premium {
 			<div class="iwp-upgrade__block">
 				<p>Upgrade to ImportWP Pro to import custom fields and many other
 					features, <a target="_blank"
-					             href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>">Find out
+					             href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>">Click here
+						to find out
 						more</a>.</p>
 			</div>
 		</div>
@@ -133,16 +136,40 @@ class ImportWP_Premium {
 	function display_cron_display() {
 		?>
 		<div class="hidden show-remote toggle-field">
-			<h4 class="title">4. Setup Import Schedule</h4>
+			<h4 class="title">4. Setup Import Schedule (Optional)</h4>
 
 			<div class="iwp-upgrade__block">
 				<p>Upgrade to ImportWP Pro to schedule imports to run and many other
 					features, <a target="_blank"
-					             href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>">Find out
+					             href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>">Click here
+						to find out
 						more</a>.</p>
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Output fields to setup cron
+	 */
+	public function output_cron_edit_settings() {
+		if ( ! in_array( JCI()->importer->get_import_type(), array( 'remote' ), true ) ) {
+			return;
+		}
+		?>
+		<div class="jci-group-cron jci-group-section" data-section-id="Schedule Import">
+			<div class="cron">
+				<div class="iwp-upgrade__block">
+					<p>Upgrade to ImportWP Pro to schedule imports to run and many other
+						features, <a target="_blank"
+						             href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>">Click
+							here to find out
+							more</a>.</p>
+				</div>
+			</div>
+		</div>
+		<?php
+
 	}
 
 	function display_post_datasource_option() {
@@ -159,7 +186,8 @@ class ImportWP_Premium {
 			<div class="iwp-upgrade__block">
 				<p>Upgrade to ImportWP Pro to import using files submitted via POST requests and many other
 					features, <a target="_blank"
-					             href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>">Find out
+					             href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>">Click here
+						to find out
 						more</a>.</p>
 			</div>
 		</div>

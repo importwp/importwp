@@ -7,5 +7,5 @@
 		<li><strong>Schedule Imports</strong> - Schedule remote imports to run every x amount of time.</li>
 		<li><strong>Premium Support</strong> - Gain access to our Premium Support System</li>
 	</ul>
-	<a href="https://www.importwp.com/pricing/" class="import-wp-btn">Buy ImportWP Pro</a>
+	<a href="https://www.importwp.com/pricing/?utm_source=plugin&utm_medium=upgrade" class="import-wp-btn">Buy ImportWP Pro</a>
 </div>
