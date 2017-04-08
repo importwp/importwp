@@ -662,6 +662,14 @@ class FormValidator {
 		return false;
 	}
 
+	static function notEqual($string, $value){
+		if ( $string !== $value ) {
+			return true;
+		}
+
+		return false;
+	}
+
 	static function email( $string = '' ) {
 		if ( is_email( $string ) ) {
 			return true;

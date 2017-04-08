@@ -3,18 +3,6 @@
 
 <?php
 echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
-
-if(!class_exists('JCI_Cron')) {
-	add_action( 'jci/output_datasource_section', 'jci_premium_cron_display' );
-	function jci_premium_cron_display() {
-		?>
-		<div class="hidden show-remote toggle-field">
-			<h4 class="title">4. Setup Import Schedule</h4>
-			<div class="input support-checkbox"><input type="checkbox" name="jc-importer_enable_cron" value="1" disabled="disabled" id="jc-importer_enable_cron"><label><strong>Enable Cron</strong> - Set a schedule to run the current import. (Premium Feature)</label></div>
-		</div>
-		<?php
-	}
-}
 ?>
 
 <div id="poststuff">
@@ -65,12 +53,6 @@ if(!class_exists('JCI_Cron')) {
 								'value' => 'remote',
 								'class' => 'toggle-fields'
 							) );
-
-						if(!class_exists('JCI_Post_Datasource')){
-							?>
-							<div class="input radio toggle-fields"><input type="radio" name="jc-importer_import_type" value="" disabled><label><strong>Push Request</strong> - Receive file sent from remote source (Premium Feature)</label></div>
-							<?php
-						}
 
 						do_action( 'jci/output_datasource_option' );
 

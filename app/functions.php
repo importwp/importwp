@@ -25,8 +25,9 @@ function get_template_list($class_name = true) {
 		}
 	}
 
+	// todo: move this to class-importwp-premium
 	if(!class_exists('ImportWP_CustomPostTypes')){
-		$templates[''] = 'Custom Post Type (Premium Feature)';
+		$templates['custom-post-type'] = 'Custom Post Type';
 	}
 
 	return $templates;
