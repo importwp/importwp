@@ -221,6 +221,7 @@ class JC_Importer_Admin {
 
 			// general importer fields
 //			$name     = $_POST['jc-importer_name'];
+			$name = '';
 			$template = $_POST['jc-importer_template'];
 
 			$post_id = ImporterModel::insertImporter( 0, array( 'name' => $name ) );

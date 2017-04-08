@@ -49,13 +49,9 @@ class ImportWP_Premium {
 	function __construct() {
 		add_action( 'admin_init', array( $this, 'init' ) );
 
-		if ( ! class_exists( $this->_cpt_class ) ) {
-			add_filter( 'jci/setup_forms', array( $this, 'add_form_cpt_validation' ), 999, 2 );
-		}
 
-		if ( ! class_exists( $this->_pd_class ) ) {
-			add_filter( 'jci/setup_forms', array( $this, 'add_form_pd_validation' ), 999, 2 );
-		}
+		add_filter( 'jci/setup_forms', array( $this, 'add_form_cpt_validation' ), 999, 2 );
+		add_filter( 'jci/setup_forms', array( $this, 'add_form_pd_validation' ), 999, 2 );
 	}
 
 	/**
@@ -122,6 +118,10 @@ class ImportWP_Premium {
 
 	function add_form_cpt_validation( $form, $import_type ) {
 
+		if ( class_exists( $this->_cpt_class ) ) {
+			return $form;
+		}
+
 		$cpt_rule = array(
 			'rule'    => array( 'notEqual', 'custom-post-type' ),
 			'message' => 'Upgrade to ImportWP Pro to import to custom post types'
@@ -167,6 +167,10 @@ class ImportWP_Premium {
 	}
 
 	function add_form_pd_validation( $form, $import_type ) {
+
+		if ( class_exists( $this->_pd_class ) ) {
+			return $form;
+		}
 
 		$cpt_rule = array(
 			'rule'    => array( 'notEqual', 'post' ),
