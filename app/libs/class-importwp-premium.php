@@ -54,10 +54,12 @@ class ImportWP_Premium {
 		}
 		?>
 		<div class="jci-custom-fields jci-group-section" data-section-id="Custom Fields">
-			<div id="upgrade" class="iwp-error"><p>Upgrade to ImportWP Pro to import custom fields and many other
+			<div class="iwp-upgrade__block">
+				<p>Upgrade to ImportWP Pro to import custom fields and many other
 					features, <a target="_blank"
 					             href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>">Find out
-						more</a>.</p></div>
+						more</a>.</p>
+			</div>
 		</div>
 		<?php
 	}

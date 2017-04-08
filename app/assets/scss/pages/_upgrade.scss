@@ -1,0 +1,22 @@
+.iwp-premium{
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    background: url(../img/star.png) no-repeat;
+    text-indent: -9999px;
+    white-space: nowrap;
+}
+
+.iwp-about__upgrade{
+    margin-top:20px;
+    background: #F7F7F7;
+    border: 1px solid #e8e8e8;
+    padding: 5px;
+}
+
+.iwp-upgrade__block{
+    background: url(../img/star.png) center left 0.75em no-repeat #F7F7F7;
+    border: 1px solid #e8e8e8;
+    padding: 0 1em 0 3em;
+    margin: 1em 0;
+}

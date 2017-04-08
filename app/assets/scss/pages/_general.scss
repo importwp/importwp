@@ -8,6 +8,16 @@
     margin: 0;
 }
 
+.iwp-about__desc{
+    a {
+        color: #333;
+        text-decoration: none;
+        &:hover{
+            text-decoration: underline;
+        }
+    }
+}
+
 .iwp-about__version{
     margin:0;
     padding:10px;
