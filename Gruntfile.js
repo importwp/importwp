@@ -41,13 +41,13 @@ module.exports = function(grunt) {
                     'app/assets/css/style.css': 'app/assets/scss/init.scss'
                 }
             },
-            deploy: {
+            min: {
                 options: {
                     sourceMap: false,
                     outputStyle: 'compressed'
                 },
                 files: {
-                    'app/assets/css/style.css': 'app/assets/scss/init.scss'
+                    'app/assets/css/style.min.css': 'app/assets/scss/init.scss'
                 }
             }
         },
@@ -102,7 +102,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-wp-readme-to-markdown');
 
     // Default task(s).
-    grunt.registerTask('default', ['sass:dev','watch']);
-    grunt.registerTask('build', ['string-replace', 'wp_readme_to_markdown', 'clean:sass', 'sass:deploy', 'clean:build', 'copy', "clean:tmp"]);
+    grunt.registerTask('default', ['sass','watch']);
+    grunt.registerTask('build', ['string-replace', 'wp_readme_to_markdown', 'clean:sass', 'sass', 'clean:build', 'copy', "clean:tmp"]);
 
 };

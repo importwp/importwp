@@ -26,7 +26,15 @@ class JC_Importer_Admin {
 	}
 
 	public function admin_enqueue_styles() {
-		wp_enqueue_style( 'jc-importer-style', $this->config->get_plugin_url() . '/app/assets/css/style.css' );
+
+		$ext = '.min';
+		$version = JCI()->get_version();
+		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
+			$version = time();
+			$ext = '';
+		}
+
+		wp_enqueue_style( 'jc-importer-style', trailingslashit($this->config->get_plugin_url()) . 'app/assets/css/style'.$ext.'.css', array(), $version );
 	}
 
 	public function settings_menu() {

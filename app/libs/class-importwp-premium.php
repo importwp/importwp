@@ -95,7 +95,7 @@ class ImportWP_Premium {
 		?>
 		<div class="jci-custom-fields jci-group-section" data-section-id="Custom Fields">
 			<div class="iwp-upgrade__block">
-				<p>Upgrade to ImportWP Pro to import custom fields and many other
+				<p>Upgrade to import custom fields and many other
 					features, <a target="_blank"
 					             href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>">Click here
 						to find out
@@ -109,7 +109,7 @@ class ImportWP_Premium {
 		?>
 		<div class="hidden show-custom-post-type jci-template-toggle-field">
 			<div class="iwp-upgrade__block">
-				<p>Upgrade to ImportWP Pro to import custom fields and many other
+				<p>Upgrade to import custom post types and many other
 					features, <a target="_blank"
 					             href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>">Click here
 						to find out
@@ -139,7 +139,7 @@ class ImportWP_Premium {
 			<h4 class="title">4. Setup Import Schedule (Optional)</h4>
 
 			<div class="iwp-upgrade__block">
-				<p>Upgrade to ImportWP Pro to schedule imports to run and many other
+				<p>Upgrade to schedule imports to run and many other
 					features, <a target="_blank"
 					             href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>">Click here
 						to find out
@@ -160,7 +160,7 @@ class ImportWP_Premium {
 		<div class="jci-group-cron jci-group-section" data-section-id="Schedule Import">
 			<div class="cron">
 				<div class="iwp-upgrade__block">
-					<p>Upgrade to ImportWP Pro to schedule imports to run and many other
+					<p>Upgrade to schedule imports to run and many other
 						features, <a target="_blank"
 						             href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>">Click
 							here to find out
@@ -184,7 +184,7 @@ class ImportWP_Premium {
 		?>
 		<div class="hidden show-post toggle-field">
 			<div class="iwp-upgrade__block">
-				<p>Upgrade to ImportWP Pro to import using files submitted via POST requests and many other
+				<p>Upgrade to import using files submitted via POST requests and many other
 					features, <a target="_blank"
 					             href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>">Click here
 						to find out

@@ -30,10 +30,17 @@ class JC_Importer_Ajax {
 		wp_enqueue_style( 'thickbox' );
 		wp_enqueue_script( 'thickbox' );
 
+		$ext = '.min';
+		$version = JCI()->get_version();
+		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
+			$version = time();
+			$ext = '';
+		}
+
 		if ( isset( $_GET['page'] ) && $_GET['page'] == 'jci-importers' && isset( $_GET['import'] ) && intval( $_GET['import'] ) > 0 ) {
 
 			$post_id = intval( $_GET['import'] );
-			wp_enqueue_script( 'ajax-importer', plugins_url( '/assets/js/importer.js', __FILE__ ), array( 'jquery' ), 0.2, false );
+			wp_enqueue_script( 'ajax-importer', trailingslashit(JCI()->get_plugin_url()) .'app/assets/js/importer'.$ext.'.js', array( 'jquery' ), $version, false );
 			wp_localize_script( 'ajax-importer', 'ajax_object', array(
 				'ajax_url'           => admin_url( 'admin-ajax.php' ),
 				'id'                 => $post_id,
