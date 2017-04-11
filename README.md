@@ -17,21 +17,16 @@ ImportWP is an Advanced Wordpress CSV/XML Importer, allowing you to easily drag 
 ### Features ###
 
 * Import from XML and CSV files.
-* Create importer templates to map data to users, taxonomies, and post / custom post types.
-* Built in User, Taxonomy, Post and Page templates.
+* Import WordPress Users.
+* Import WordPress Posts.
+* Import WordPress Pages.
+* Import WordPress Taxonomies.
+* Import WordPress Attachments.
+* Import Custom Fields **(Requires Pro)**
+* Import to Custom Post Types  **(Requires Pro)**
+* Schedule Imports  **(Requires Pro)**
 
 ImportWP is a base for importing files into wordpress which can be extended upon to create custom templates and parsers specific to your needs, for more details [view the documentation](https://www.importwp.com/documentation/).
-
-### Available Addons ###
-
-* JCI Custom Fields - Add custom fields to post/page/custom_post templates - [view](https://github.com/jcollings/jci-custom-fields)
-* JCI Post Datasource - Recieve csv/xml files via POST request - [view](https://github.com/jcollings/jci-post-datasource)
-
-### Upcoming Features ###
-
-* Fetch csv/xml via ftp to be imported
-* Allow recurring importing FTP, POST, and Remote datasources
-* Visual Template Editor, allow non developers to easily create templates without writing code
 
 ## Installation ##
 
@@ -71,6 +66,11 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 ## Changelog ##
+
+### 0.3.1 - 11/04/2017 ###
+
+* Change Interfaces
+* Change upgrade notices
 
 ### 0.3 - 26/03/2017 ###
 
