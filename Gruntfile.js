@@ -55,6 +55,10 @@ module.exports = function(grunt) {
             sass: {
                 files: 'app/assets/scss/**/*.scss',
                 tasks: ['sass:dev']
+            },
+            js: {
+                files: 'app/assets/js/**/*.js',
+                tasks: ['uglify']
             }
         },
         'string-replace': {
@@ -88,6 +92,14 @@ module.exports = function(grunt) {
                     'README.md': 'readme.txt'
                 }
             }
+        },
+        uglify: {
+            my_target: {
+                files: {
+                    'app/assets/js/importer.min.js': ['app/assets/js/importer.js'],
+                    'app/assets/js/main.min.js': ['app/assets/js/main.js']
+                }
+            }
         }
 
     });
@@ -100,9 +112,10 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-string-replace');
     grunt.loadNpmTasks('grunt-wp-readme-to-markdown');
+    grunt.loadNpmTasks('grunt-contrib-uglify');
 
     // Default task(s).
-    grunt.registerTask('default', ['sass','watch']);
-    grunt.registerTask('build', ['string-replace', 'wp_readme_to_markdown', 'clean:sass', 'sass', 'clean:build', 'copy', "clean:tmp"]);
+    grunt.registerTask('default', ['sass', 'uglify','watch']);
+    grunt.registerTask('build', ['string-replace', 'wp_readme_to_markdown', 'clean:sass', 'sass', 'uglify', 'clean:build', 'copy', "clean:tmp"]);
 
 };
