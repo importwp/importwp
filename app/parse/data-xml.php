@@ -16,10 +16,10 @@ class JC_XML_Parser extends JC_Parser {
 	public function __construct() {
 		parent::__construct();
 
-		add_filter( 'jci/parse_xml_field', array( $this, 'parse_field' ), 10, 3 );
+		add_filter( 'jci/parse_xml_field', array( $this, 'parse_field' ), 10, 4 );
 		add_filter( 'jci/process_xml_map_field', array( $this, 'process_map_field' ), 10, 2 );
 		add_filter( 'jci/load_xml_settings', array( $this, 'load_settings' ), 10, 2 );
-		add_filter( 'jci/ajax_xml/preview_record', array ( $this, 'ajax_preview_record'), 10, 3);
+		add_filter( 'jci/ajax_xml/preview_record', array ( $this, 'ajax_preview_record'), 10, 4);
 		add_filter( 'jci/ajax_xml/record_count', array ( $this, 'ajax_record_count'), 10, 1);
 
 		add_action( 'jci/save_template', array( $this, 'save_template' ), 10, 2 );
@@ -138,11 +138,11 @@ class JC_XML_Parser extends JC_Parser {
 	 *
 	 * @param  string $field
 	 * @param  string $base_node
-	 * @param  SimpleXML $xml
+	 * @param  SimpleXMLElement $xml
 	 *
 	 * @return string
 	 */
-	public function parse_field( $field, $base_node, $xml ) {
+	public function parse_field( $field, $map, $base_node, $xml ) {
 
 		$field_parser = new JCI_XML_ParseField( $xml );
 
@@ -295,10 +295,11 @@ class JC_XML_Parser extends JC_Parser {
 
 		$output_group_record = array();
 
-		foreach ( $fields as $field_id => $field ) {
+		foreach ( $fields as $field_id => $map ) {
 
 			$output_base_node                 = $base_node . '[' . ( $record_id + 1 ) . ']' . $group_node . '/';
-			$terms                            = apply_filters( 'jci/parse_xml_field', $field, $output_base_node, $xml );
+			$terms                            = apply_filters( 'jci/parse_xml_field', $map, $map, $output_base_node, $xml );
+			$terms                            = apply_filters( 'jci/parse_xml_field/'.$field_id, $terms, $map, $output_base_node, $xml );
 			$output_group_record[ $field_id ] = (string) $terms;
 		}
 
@@ -323,10 +324,11 @@ class JC_XML_Parser extends JC_Parser {
 
 		foreach ( $elems as $elem_id => $elem_data ) {
 			$test_row = array();
-			foreach ( $fields as $field_id => $field ) {
+			foreach ( $fields as $field_id => $map ) {
 
 				$output_base_node      = $base_node . '[' . ( $record_id + 1 ) . ']' . $group_node . '[' . ( $elem_id + 1 ) . ']/';
-				$value                 = apply_filters( 'jci/parse_xml_field', $field, $output_base_node, $xml );
+				$value                 = apply_filters( 'jci/parse_xml_field', $map, $map, $output_base_node, $xml );
+				$value                 = apply_filters( 'jci/parse_xml_field/' . $field_id, $value, $map, $output_base_node, $xml );
 				$test_row[ $field_id ] = (string) $value;
 			}
 			$output_group_record[] = $test_row;
@@ -335,7 +337,7 @@ class JC_XML_Parser extends JC_Parser {
 		return $output_group_record;
 	}
 
-	public function preview_field($map = '', $selected_row = null, $general_base = null, $group_base = null ) {
+	public function preview_field($map = '', $selected_row = null, $field, $general_base = null, $group_base = null ) {
 
 		/**
 		 * @global JC_Importer $jcimporter
@@ -349,15 +351,18 @@ class JC_XML_Parser extends JC_Parser {
 
 		$output_base_node = $base_node . "[$selected_row]" . $group_base;
 
-		return apply_filters( 'jci/parse_xml_field', $map, $output_base_node, $xml );
+		$result = apply_filters( 'jci/parse_xml_field', $map, $map, $output_base_node, $xml );
+		$result = apply_filters( 'jci/parse_xml_field/' . $field, $result, $map, $output_base_node, $xml );
+
+		return $result;
 	}
 
-	public function ajax_preview_record($result = '', $row, $map ){
+	public function ajax_preview_record($result = '', $row, $map, $field ){
 
 		$general_base = isset($_POST['general_base']) ? $_POST['general_base'] : null;
 		$group_base = isset($_POST['group_base']) ? $_POST['group_base'] : null;
 		
-		return $this->preview_field($map, $row, $general_base, $group_base);
+		return $this->preview_field($map, $row, $field, $general_base, $group_base);
 	}
 
 	public function ajax_record_count($result = 0){

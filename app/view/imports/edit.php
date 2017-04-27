@@ -265,7 +265,10 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 							'label'   => $title,
 							'default' => $value,
 							'class'   => 'xml-drop jci-group',
-							'after'   => ' <a href="#" class="jci-import-edit">[edit]</a><span class="preview-text"></span>'
+							'after'   => ' <a href="#" class="jci-import-edit">[edit]</a><span class="preview-text"></span>',
+							'data' => array(
+								'jci-field' => $key,
+							)
 						) );
 				}
 

@@ -19,10 +19,10 @@ class JC_CSV_Parser extends JC_Parser {
 	public function __construct() {
 		parent::__construct();
 
-		add_filter( 'jci/parse_csv_field', array( $this, 'parse_field' ), 10, 2 );
+		add_filter( 'jci/parse_csv_field', array( $this, 'parse_field' ), 10, 3 );
 		add_filter( 'jci/process_csv_map_field', array( $this, 'process_map_field' ), 10, 2 );
 		add_filter( 'jci/load_xml_settings', array( $this, 'load_settings' ), 10, 2 );
-		add_filter( 'jci/ajax_csv/preview_record', array ( $this, 'ajax_preview_record'), 10, 3);
+		add_filter( 'jci/ajax_csv/preview_record', array ( $this, 'ajax_preview_record'), 10, 4);
 		add_filter( 'jci/ajax_csv/record_count', array ( $this, 'ajax_record_count'), 10, 1);
 
 		add_action( 'jci/save_template', array( $this, 'save_template' ), 10, 2 );
@@ -117,7 +117,7 @@ class JC_CSV_Parser extends JC_Parser {
 	 *
 	 * @return string
 	 */
-	public function parse_field( $field, $row ) {
+	public function parse_field( $field, $map, $row ) {
 
 		$field_parser = new JCI_CSV_ParseField( $row );
 
@@ -222,7 +222,7 @@ class JC_CSV_Parser extends JC_Parser {
 		return $records;
 	}
 
-	public function preview_field($map = '', $selected_row = null ) {
+	public function preview_field($map = '', $selected_row = null, $field ) {
 
 		/**
 		 * @global JC_Importer $jcimporter
@@ -245,7 +245,8 @@ class JC_CSV_Parser extends JC_Parser {
 				continue;
 			}
 
-			$result = apply_filters( 'jci/parse_csv_field', $map, $line );
+			$result = apply_filters( 'jci/parse_csv_field', $map, $map, $line );
+			$result = apply_filters( 'jci/parse_csv_field/' . $field, $result, $map, $line );
 			break;
 		}
 
@@ -253,8 +254,8 @@ class JC_CSV_Parser extends JC_Parser {
 		return $result;
 	}
 
-	public function ajax_preview_record($result = '', $row, $map ){
-		return $this->preview_field($map, $row);
+	public function ajax_preview_record($result = '', $row, $map, $field ){
+		return $this->preview_field($map, $row, $field);
 	}
 
 	public function ajax_record_count($result = 0){

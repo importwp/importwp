@@ -46,12 +46,19 @@ $jci_template_type = $jcimporter->importer->template_type;
 
 				var val = $(this).val();
 				var obj = $(this).parent();
+				var field = $(this).data('jci-field');
+
+                if(field === undefined){
+                    field = '';
+                }
+
 				if(val != ''){
 					$.ajax({
 						url: ajax_object.ajax_url,
 						data: {
 							action: 'jc_preview_record',
 							id: ajax_object.id,
+							field: field,
 							<?php if($jci_template_type == 'xml'): ?>map: val,
 							row: $('#preview-record').val(),
 							general_base: $('#jc-importer_parser_settings-import_base').val(),
@@ -88,10 +95,15 @@ $jci_template_type = $jcimporter->importer->template_type;
 			// change all inputs
 			function refreshPreview(){
 				var nodes = [];
+				var mappings = [];
 
 				$('.xml-drop input').each(function(){
 
 					input_val = $(this).val();
+					mappings.push({
+						map: input_val,
+						field: $(this).data('jci-field')
+					});
 					if(input_val != '' && $.inArray(input_val, nodes) == -1){
 						// add to array if unique and not empty
 						nodes.push(input_val);
@@ -103,11 +115,11 @@ $jci_template_type = $jcimporter->importer->template_type;
 					data: {
 						action: 'jc_preview_record',
 						id: ajax_object.id,
-						<?php if($jci_template_type == 'xml'): ?>map: nodes,
+						<?php if($jci_template_type == 'xml'): ?>map: mappings,
 						row: $('#preview-record').val(),
 						general_base: $('#jc-importer_parser_settings-import_base').val(),
 						group_base: $('input[id^="jc-importer_parser_settings-group-"]').val()
-						<?php else: ?>map: nodes,
+						<?php else: ?>map: mappings,
 						row: $('#preview-record').val()
 						<?php endif; ?>
 					},

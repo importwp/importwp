@@ -91,7 +91,15 @@ class JCI_FormHelper {
 		$type     = 'text';
 		$default  = '';
 		$after    = null;
+		$data = array();
 		extract( $args );
+
+		$data_str = '';
+		if(is_array($data) && !empty($data)){
+			foreach($data as $dk => $dv){
+				$data_str .= ' data-' . $dk .'="'.$dv.'"';
+			}
+		}
 
 		if ( $type != 'password' ) {
 			$type = 'text';
@@ -127,7 +135,7 @@ class JCI_FormHelper {
 
 		$id = self::get_id( self::$prefix . $name );
 
-		$output .= '<input type="' . $type . '" name="' . self::$prefix . $name . '" id="' . $id . '" value="' . $value . '" />';
+		$output .= '<input type="' . $type . '" name="' . self::$prefix . $name . '" id="' . $id . '" value="' . $value . '" '.$data_str.' />';
 
 		if ( $after ) {
 			$output .= $after;

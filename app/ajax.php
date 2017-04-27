@@ -248,11 +248,11 @@ class JC_Importer_Ajax {
 		/**
 		 * @global JC_Importer $jcimporter
 		 */
-		global $jcimporter;
-		$jcimporter->importer = new JC_Importer_Core($importer_id);
-		$jci_file          = $jcimporter->importer->file;
-		$jci_template_type = $jcimporter->importer->template_type;
-		$parser            = $jcimporter->parsers[$jci_template_type ];
+
+		JCI()->importer = new JC_Importer_Core($importer_id);
+		$jci_file          = JCI()->importer->get_file();
+		$jci_template_type = JCI()->importer->get_template_type();
+		$parser            = JCI()->parsers[$jci_template_type ];
 		$result 		   = array();
 
 		// load file into importer
@@ -261,17 +261,21 @@ class JC_Importer_Ajax {
 		if(is_array($map)){
 
 			// process list of data maps
-			foreach($map as $val){
+			foreach($map as $map_row){
+
+				$map_val = $map_row['map'];
+				$map_field = $map_row['field'];
 				
-				if($val == "")
+				if($map_val == "")
 					continue;
 
-				$result[] = array($val, apply_filters( 'jci/ajax_'. $jci_template_type .'/preview_record', '', $row, $val ));
+				$result[] = array($map_val, apply_filters( 'jci/ajax_'. $jci_template_type .'/preview_record', '', $row, $map_val, $map_field ));
 			}
 		}else{
 
-			// process single data mao
-			$result[] = array($map, apply_filters( 'jci/ajax_'. $jci_template_type .'/preview_record', '', $row, $map ));
+			// process single data map
+			$field = isset($_POST['field']) ? $_POST['field'] : '';
+			$result[] = array($map, apply_filters( 'jci/ajax_'. $jci_template_type .'/preview_record', '', $row, $map, $field ));
 		}
 
 		echo json_encode($result);
