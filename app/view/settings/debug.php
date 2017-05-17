@@ -1,4 +1,12 @@
 <?php
+
+$remote_fetch = "No Module available";
+if ( function_exists( 'curl_init' ) ) {
+	$remote_fetch = "Curl Request";
+} elseif ( ini_get( 'allow_url_fopen' ) ) {
+	$remote_fetch = "Non Curl Request";
+}
+
 $debug_info = array(
 	'General' => array(
 		'WordPress version' => get_bloginfo( 'version' ),
@@ -10,6 +18,8 @@ $debug_info = array(
 	'File Upload' => array(
 		'Post max size' => ini_get( 'post_max_size' ),
 		'Upload max filesize' => ini_get( 'upload_max_filesize' ),
+		'Remote Fetch' => $remote_fetch
+
 		//				'Upload directory' => wpdf_get_uploads_dir(),
 		//				'Upload directory writable' => true === is_writable( wpdf_get_uploads_dir() ) ? 'yes' : 'no',
 	),
