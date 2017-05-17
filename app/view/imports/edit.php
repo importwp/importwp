@@ -631,5 +631,8 @@ foreach ( $template_groups as $group_id => $group ){
 	}
 
 }
-?>	
+?>
+<?php
+// allow plugins to output default field selects
+do_action('jci/edit/custom_field_options', $id); ?>
 </div>
