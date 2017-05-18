@@ -113,9 +113,11 @@ class JC_CSV_Parser extends JC_Parser {
 	 * Parse CSV Field
 	 *
 	 * @param  string $field
-	 * @param  string $base_node
+	 * @param $map
+	 * @param $row
 	 *
 	 * @return string
+	 *
 	 */
 	public function parse_field( $field, $map, $row ) {
 
@@ -193,8 +195,9 @@ class JC_CSV_Parser extends JC_Parser {
 
 			foreach ( $groups as $group_id => $group ) {
 				foreach ( $group['fields'] as $key => $val ) {
-					$val                      = apply_filters( 'jci/parse_csv_field', $val, $line );
-					$row[ $group_id ][ $key ] = $val;
+					$result = apply_filters( 'jci/parse_csv_field', $val, $val, $line );
+					$result = apply_filters( 'jci/parse_csv_field/' . $key, $result, $val, $line );
+					$row[ $group_id ][ $key ] = $result;
 				}
 			}
 
