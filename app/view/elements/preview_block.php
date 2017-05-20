@@ -13,7 +13,7 @@ $jci_template_type = $jcimporter->importer->template_type;
 	<div class="inside">
 		<p>Choose the record you wish to preview</p>
 		<input type="text" id="preview-record" value="1" />
-		<a href="#" id="prev-record">[&laquo;]</a><a href="#" id="next-record">[&raquo;]</a>
+		<a href="#" id="prev-record" class="button button-iwp" title="View Previous Record">&laquo;</a> <a href="#" id="next-record" class="button button-iwp" title="View Next Record">&raquo;</a>
 		<script type="text/javascript">
 		jQuery(function($){
 			

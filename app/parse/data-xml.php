@@ -43,7 +43,7 @@ class JC_XML_Parser extends JC_Parser {
 		echo JCI_FormHelper::text( 'parser_settings[import_base]', array(
 				'label'   => 'Base',
 				'default' => $import_base,
-				'after'   => ' <a href="#" class="base-node-select base">[select]</a>',
+				'after'   => ' <a href="#" class="base-node-select base button button-small button-iwp">Select</a>',
 				'class'   => 'jc-importer_general-base'
 			) );
 	}
@@ -58,7 +58,7 @@ class JC_XML_Parser extends JC_Parser {
 		echo JCI_FormHelper::text( "parser_settings[group][{$group}][base]", array(
 				'label'   => 'Base',
 				'default' => $import_base,
-				'after'   => ' <a href="#" class="base-node-select group">[select]</a>',
+				'after'   => ' <a href="#" class="base-node-select group button button-small button-iwp">Select</a>',
 				'class'   => 'jc-importer_general-group'
 			) );
 	}

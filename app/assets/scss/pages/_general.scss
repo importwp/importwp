@@ -1,4 +1,43 @@
 // =================================
+// Layout
+// =================================
+
+.button.jci-import-edit, .button.button-iwp {
+    background: #608b60;
+    border-color: #6A996A #4E794E #4E794E;
+    -webkit-box-shadow: 0 1px 0 #4E794E;
+    box-shadow: 0 1px 0 #4E794E;
+    color: #fff;
+    text-decoration: none;
+    text-shadow: 0 -1px 1px #4E794E, 1px 0 1px #4E794E, 0 1px 1px #4E794E, -1px 0 1px #4E794E;
+
+    &:hover {
+        background: #739e73;
+        border-color: #4E794E;
+        color: #fff;
+    }
+}
+
+.iwp-table{
+    border: 1px solid #e2e2e2;
+    margin-top:10px;
+    width: 100%;
+}
+
+.iwp-table th, .iwp-table td{
+    padding: 10px;
+    text-align: left;
+}
+
+.iwp-table__header th{
+    border-bottom: 1px solid #e2e2e2;
+}
+
+.iwp-table__body tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+// =================================
 // About Block
 // =================================
 .iwp-about__heading{

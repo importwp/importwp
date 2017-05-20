@@ -265,7 +265,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 							'label'   => $title,
 							'default' => $value,
 							'class'   => 'xml-drop jci-group',
-							'after'   => ' <a href="#" class="jci-import-edit">[edit]</a><span class="preview-text"></span>',
+							'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
 							'data' => array(
 								'jci-field' => $key,
 							)
@@ -303,28 +303,71 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 						?>
 
 						<div id="<?php echo $group_id; ?>-taxonomies" class="taxonomies multi-rows">
-							<?php if ( isset( $taxonomies[ $group_id ] ) && ! empty( $taxonomies[ $group_id ] ) ): ?>
 
-								<?php foreach ( $taxonomies[ $group_id ] as $tax => $term_arr ): $term = isset( $term_arr[0] ) ? $term_arr[0] : ''; ?>
+							<table class="iwp-table" cellspacing="0" cellpadding="0">
+								<thead class="iwp-table__header">
+								<tr>
+									<th>Taxonomies</th>
+									<th>_</th>
+								</tr>
+								</thead>
+								<tbody class="iwp-table__body">
+								<?php if ( isset( $taxonomies[ $group_id ] ) && ! empty( $taxonomies[ $group_id ] ) ): ?>
 
-									<?php //foreach($taxonomies[$group_id]['tax'] as $key => $taxonomy): ?>
-									<div class="taxonomy multi-row">
-										<?php echo JCI_FormHelper::select( 'taxonomies[' . $group_id . '][tax][]', array(
+									<?php foreach ( $taxonomies[ $group_id ] as $tax => $term_arr ): $term = isset( $term_arr[0] ) ? $term_arr[0] : ''; ?>
+
+										<tr class="taxonomy multi-row">
+											<td>
+											<?php echo JCI_FormHelper::select( 'taxonomies[' . $group_id . '][tax][]', array(
 												'label'   => 'Tax',
 												'default' => $tax,
 												'options' => $post_taxonomies
 											) ); ?>
-										<?php echo JCI_FormHelper::text( 'taxonomies[' . $group_id . '][term][]', array(
+											<?php echo JCI_FormHelper::text( 'taxonomies[' . $group_id . '][term][]', array(
 												'label'   => 'Term',
 												'default' => $term,
 												'class'   => 'xml-drop jci-group',
-												'after'   => ' <a href="#" class="jci-import-edit">[edit]</a><span class="preview-text"></span>'
+												'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>'
 											) ); ?>
+											<?php
+											// $permissions = isset($taxonomies[$group_id]['permissions'][$key]) && !empty($taxonomies[$group_id]['permissions'][$key]) ? $taxonomies[$group_id]['permissions'][$key] : 'overwrite';
+											echo JCI_FormHelper::select( 'taxonomies[' . $group_id . '][permissions][]', array(
+												'label'   => 'Permissions',
+												'default' => $taxonomy_permissions[ $group_id ][ $tax ],
+												'options' => array(
+													'create'    => 'Add if no existing terms',
+													'overwrite' => 'Overwrite Existing terms',
+													'append'    => 'Append New terms'
+												)
+											) );
+											?>
+											</td>
+											<td>
+												<a href="#" class="add-row button" title="Add New Taxonomy">+</a>
+												<a href="#" class="del-row button" title="Delete Taxonomy">-</a>
+											</td>
+										</tr>
+									<?php endforeach; ?>
+
+								<?php else: ?>
+
+									<tr class="taxonomy multi-row">
+										<td>
+										<?php echo JCI_FormHelper::select( 'taxonomies[' . $group_id . '][tax][]', array(
+											'label'   => 'Tax',
+											'default' => '',
+											'options' => $post_taxonomies
+										) ); ?>
+										<?php echo JCI_FormHelper::text( 'taxonomies[' . $group_id . '][term][]', array(
+											'label'   => 'Term',
+											'default' => '',
+											'class'   => 'xml-drop jci-group',
+											'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>'
+										) ); ?>
 										<?php
-										// $permissions = isset($taxonomies[$group_id]['permissions'][$key]) && !empty($taxonomies[$group_id]['permissions'][$key]) ? $taxonomies[$group_id]['permissions'][$key] : 'overwrite'; 
 										echo JCI_FormHelper::select( 'taxonomies[' . $group_id . '][permissions][]', array(
 											'label'   => 'Permissions',
-											'default' => $taxonomy_permissions[ $group_id ][ $tax ],
+											'default' => '',
 											'options' => array(
 												'create'    => 'Add if no existing terms',
 												'overwrite' => 'Overwrite Existing terms',
@@ -332,41 +375,16 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 											)
 										) );
 										?>
-										<a href="#" class="add-row">[+]</a>
-										<a href="#" class="del-row">[-]</a>
-									</div>
-								<?php endforeach; ?>
+										</td>
+										<td>
+											<a href="#" class="add-row button" title="Add New Taxonomy">+</a>
+											<a href="#" class="del-row button" title="Delete Taxonomy">-</a>
+										</td>
+									</tr>
 
-							<?php else: ?>
-
-								<div class="taxonomy multi-row">
-									<?php echo JCI_FormHelper::select( 'taxonomies[' . $group_id . '][tax][]', array(
-											'label'   => 'Tax',
-											'default' => '',
-											'options' => $post_taxonomies
-										) ); ?>
-									<?php echo JCI_FormHelper::text( 'taxonomies[' . $group_id . '][term][]', array(
-											'label'   => 'Term',
-											'default' => '',
-											'class'   => 'xml-drop jci-group',
-											'after'   => ' <a href="#" class="jci-import-edit">[edit]</a><span class="preview-text"></span>'
-										) ); ?>
-									<?php
-									echo JCI_FormHelper::select( 'taxonomies[' . $group_id . '][permissions][]', array(
-										'label'   => 'Permissions',
-										'default' => '',
-										'options' => array(
-											'create'    => 'Add if no existing terms',
-											'overwrite' => 'Overwrite Existing terms',
-											'append'    => 'Append New terms'
-										)
-									) );
-									?>
-									<a href="#" class="add-row">[+]</a>
-									<a href="#" class="del-row">[-]</a>
-								</div>
-
-							<?php endif; ?>
+								<?php endif; ?>
+								</tbody>
+							</table>
 						</div>
 
 
@@ -381,15 +399,26 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 					<div class="jci-group-attachment jci-group-section" data-section-id="attachment">
 
 						<div id="attachments" class="attachments multi-rows">
+
+							<table class="iwp-table" cellspacing="0" cellpadding="0">
+								<thead class="iwp-table__header">
+								<tr>
+									<th>Attachments</th>
+									<th>_</th>
+								</tr>
+								</thead>
+								<tbody class="iwp-table__body">
+
 							<?php if ( isset( $attachments[ $group_id ]['location'] ) && ! empty( $attachments[ $group_id ]['location'] ) ): ?>
 
 								<?php foreach ( $attachments[ $group_id ]['location'] as $key => $val ): ?>
-									<div class="attachment multi-row">
+									<tr class="attachment multi-row">
+										<td>
 										<?php echo JCI_FormHelper::text( 'attachment[' . $group_id . '][location][]', array(
 												'label'   => 'Location',
 												'default' => $val,
 												'class'   => 'xml-drop jci-group',
-												'after'   => ' <a href="#" class="jci-import-edit">[edit]</a><span class="preview-text"></span>'
+												'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>'
 											) ); ?>
 										<?php
 										$permissions = isset( $attachments[ $group_id ]['permissions'][ $key ] ) && ! empty( $attachments[ $group_id ]['permissions'][ $key ] ) ? $attachments[ $group_id ]['permissions'][ $key ] : 'overwrite';
@@ -409,18 +438,22 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 												'checked' => $featured_image
 											) );
 										?>
-										<a href="#" class="add-row">[+]</a>
-										<a href="#" class="del-row">[-]</a>
-									</div>
+										</td>
+										<td>
+										<a href="#" class="add-row button" title="Add New Attachment">+</a>
+										<a href="#" class="del-row button" title="Delete Attachment">-</a>
+										</td>
+									</tr>
 								<?php endforeach; ?>
 
 							<?php else: ?>
-								<div class="attachment multi-row">
+								<tr class="attachment multi-row">
+									<td>
 									<?php echo JCI_FormHelper::text( 'attachment[' . $group_id . '][location][]', array(
 											'label'   => 'Location',
 											'default' => '',
 											'class'   => 'xml-drop jci-group',
-											'after'   => ' <a href="#" class="jci-import-edit">[edit]</a><span class="preview-text"></span>'
+											'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>'
 										) ); ?>
 									<?php
 									echo JCI_FormHelper::select( 'attachment[' . $group_id . '][permissions][]', array(
@@ -437,11 +470,26 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 											'checked' => 0
 										) );
 									?>
-									<a href="#" class="add-row">[+]</a>
-									<a href="#" class="del-row">[-]</a>
-								</div>
+									</td>
+									<td>
+									<a href="#" class="add-row button" title="Add New Attachment">+</a>
+									<a href="#" class="del-row button" title="Delete Attachment">-</a>
+									</td>
+								</tr>
 							<?php endif; ?>
+								</tbody>
+							</table>
 						</div>
+
+						<table class="iwp-table" cellspacing="0" cellpadding="0">
+							<thead class="iwp-table__header">
+							<tr>
+								<th>Connection Details</th>
+							</tr>
+							</thead>
+							<tbody class="iwp-table__body">
+							<tr>
+								<td>
 						<?php
 						$attachment_type = isset( $attachments[ $group_id ]['type'] ) && ! empty( $attachments[ $group_id ]['type'] ) ? $attachments[ $group_id ]['type'] : '';
 						echo JCI_FormHelper::select( 'attachment[' . $group_id . '][type]', array(
@@ -479,6 +527,10 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 								'class'   => 'ftp-field input-toggle'
 							) );
 						?>
+								</td>
+							</tr>
+							</tbody>
+						</table>
 					</div>
 				<?php endif; ?>
 

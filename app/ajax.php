@@ -48,6 +48,8 @@ class JC_Importer_Ajax {
 				'base_node_ajax_url' => admin_url( 'admin-ajax.php?action=jc_base_node&importer_id=' . $post_id ),
 				'record_preview_url' => admin_url( 'admin-ajax.php?action=jc_preview_record&importer_id=' . $post_id ),
 			) );
+
+			do_action('jci/admin_scripts');
 		}
 	}	
 
