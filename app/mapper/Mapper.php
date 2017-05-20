@@ -642,10 +642,10 @@ class JC_BaseMapper {
 						$field_map = apply_filters( 'jci/process_' . $jci_template_type . '_map_field', $group_id, $this->_current_row );
 
 						$xml   = simplexml_load_file( $jci_file );
-						$terms = apply_filters( 'jci/parse_' . $jci_template_type . '_field', $term_value, $field_map, $xml );
+						$terms = apply_filters( 'jci/parse_' . $jci_template_type . '_field', $term_value, $term_value, $field_map, $xml );
 					} else {
 						$field_map = apply_filters( 'jci/process_' . $jci_template_type . '_map_field', $group_id, $this->_current_row );
-						$terms     = apply_filters( 'jci/parse_' . $jci_template_type . '_field', $term_value, $field_map, '' );
+						$terms     = apply_filters( 'jci/parse_' . $jci_template_type . '_field', $term_value, $term_value, $field_map, '' );
 					}
 
 					$terms = explode( ',', $terms );
@@ -757,10 +757,10 @@ class JC_BaseMapper {
 						$field_map = apply_filters( 'jci/process_' . $jci_template_type . '_map_field', $group_id, $this->_current_row );
 
 						$xml = simplexml_load_file( $jci_file );
-						$src = apply_filters( 'jci/parse_' . $jci_template_type . '_field', $src, $field_map, $xml );
+						$src = apply_filters( 'jci/parse_' . $jci_template_type . '_field', $src, $src, $field_map, $xml );
 					} else {
 						$field_map = apply_filters( 'jci/process_' . $jci_template_type . '_map_field', $group_id, $this->_current_row );
-						$src       = apply_filters( 'jci/parse_' . $jci_template_type . '_field', $src, $field_map );
+						$src       = apply_filters( 'jci/parse_' . $jci_template_type . '_field', $src, $src, $field_map );
 					}
 
 					$dest = basename( $src );
