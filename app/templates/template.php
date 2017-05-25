@@ -41,4 +41,62 @@ class JC_Importer_Template {
 	public function get_groups() {
 		return apply_filters( 'jci/template/get_groups', $this->_field_groups );
 	}
+
+	/**
+	 * Add in identifier fields to be parsed with data, allowing to be referenced from other fields
+	 *
+	 * @param array $groups Field Groups
+	 *
+	 * @return array
+	 */
+	public function add_reference_fields($groups = array()){
+
+		foreach($this->_field_groups as $k => $group){
+			if(isset($groups[$k])){
+				if(isset($group['identifiers']) && !empty($group['identifiers'])){
+					foreach($group['identifiers'] as $field => $map){
+						$groups[$k]['fields']['_jci_ref_'.$field] = $map;
+					}
+				}
+			}
+		}
+
+		return $groups;
+	}
+
+	/**
+	 * Find existing post/page/custom by reference field
+	 *
+	 * @param string $field Reference Field Name
+	 * @param string $value Value to check against reference
+	 * @param string $group_id Template group Id
+	 *
+	 * @return bool
+	 */
+	protected function get_post_by_cf($field, $value, $group_id){
+
+		if(!isset($this->_field_groups[$group_id])){
+			return false;
+		}
+
+		$post_type = $this->_field_groups[$group_id]['import_type_name'];
+
+		$query = new WP_Query(array(
+			'post_type' => $post_type,
+			'posts_per_page' => 1,
+			'fields' => 'ids',
+			'meta_query' => array(
+				array(
+					'key' => '_jci_ref_' . $field,
+					'value' => $value
+				)
+			)
+		));
+
+		if($query->have_posts()){
+			return $query->posts[0];
+		}
+
+		return false;
+	}
 }

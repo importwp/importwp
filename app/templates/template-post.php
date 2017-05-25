@@ -15,6 +15,7 @@ class JC_Post_Template extends JC_Importer_Template {
 			'unique'           => array( 'post_name' ),
 			'key'              => array( 'ID', 'post_name' ),
 			'relationship'     => array(),
+			'identifiers'      => array(),
 			'attachments'      => 1,
 			'taxonomies'       => 1,
 			'map'              => array(
@@ -88,6 +89,8 @@ class JC_Post_Template extends JC_Importer_Template {
 		add_filter( sprintf('jci/log_%s_columns', $this->_name), array( $this, 'log_post_columns' ) );
 		add_action( sprintf('jci/log_%s_content', $this->_name), array( $this, 'log_post_content' ), 10, 2 );
 
+		add_action( 'jci/before_import', array( $this, 'before_import' ) );
+
 		
 		foreach( $this->_field_groups['post']['map'] as &$field){
 
@@ -107,8 +110,25 @@ class JC_Post_Template extends JC_Importer_Template {
 				$field['options'] = jci_get_post_list('post');
 			}
 		}
+	}
 
-		
+	/**
+	 * Attach template_group filters on import only
+	 *
+	 * @return void
+	 */
+	public function before_import() {
+
+		$_jci_ref_post_parent  = ImporterModel::getImporterMetaArr( JCI()->importer->get_ID(), array(
+			'_template_settings',
+			'_jci_ref_post_parent'
+		) );
+
+		if(!empty($_jci_ref_post_parent)) {
+			$this->_field_groups['post']['identifiers'] = array( 'post_parent' => $_jci_ref_post_parent );
+		}
+
+		add_filter('jci/importer/get_groups', array($this, 'add_reference_fields'), 999 );
 	}
 
 	public function field_settings( $id ) {
@@ -152,6 +172,10 @@ class JC_Post_Template extends JC_Importer_Template {
 					'_template_settings',
 					'enable_ping_status'
 				) );
+			$_jci_ref_post_parent  = ImporterModel::getImporterMetaArr( $id, array(
+				'_template_settings',
+				'_jci_ref_post_parent'
+			) );
 
 			/**
 			 * Field Type: Template Settings
@@ -185,8 +209,18 @@ class JC_Post_Template extends JC_Importer_Template {
 					echo JCI_FormHelper::checkbox( 'template_settings[enable_post_parent]', array(
 							'label'   => 'Enable Parent Field',
 							'checked' => $enable_post_parent,
-							'after' => JCI_FormHelper::select('parent_field_type', array('label' => ', Using the Value', 'default' => $parent_field_type, 'options' => array('id' => 'ID', 'slug' => 'Slug', 'name' => 'Name')))
+							'after' => JCI_FormHelper::select('parent_field_type', array('label' => ', Using the Value', 'default' => $parent_field_type, 'options' => array('id' => 'ID', 'slug' => 'Slug', 'name' => 'Name', 'column' => 'Reference Column')))
 						) );
+
+					echo '<div class="reference-column__post-parent" style="display: none;">';
+					echo JCI_FormHelper::text( 'template_settings[_jci_ref_post_parent]', array(
+						'label'   => 'Parent Reference Column',
+						'default' => $_jci_ref_post_parent,
+						'class'   => 'xml-drop jci-group',
+						'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a>'
+					) );
+					echo '</div>';
+
 					echo JCI_FormHelper::checkbox( 'template_settings[enable_menu_order]', array(
 							'label'   => 'Enable Order Field',
 							'checked' => $enable_menu_order
@@ -229,6 +263,16 @@ class JC_Post_Template extends JC_Importer_Template {
 					$.fn.jci_enableSelectField('enable_post_author', 'post-post_author');
 					$.fn.jci_enableSelectField('enable_comment_status', 'post-comment_status');
 					$.fn.jci_enableSelectField('enable_ping_status', 'post-ping_status');
+
+                    $('body').on('change', '#jc-importer_parent_field_type', function () {
+                        if($(this).val() === 'column'){
+                            $('.reference-column__post-parent').show();
+                        }else{
+                            $('.reference-column__post-parent').hide();
+                        }
+                    } )
+
+                    $('#jc-importer_parent_field_type').trigger('change');
 				});
 			</script>
 		<?php
@@ -250,6 +294,10 @@ class JC_Post_Template extends JC_Importer_Template {
 			$enable_post_date      = isset( $_POST['jc-importer_template_settings']['enable_post_date'] ) ? $_POST['jc-importer_template_settings']['enable_post_date'] : 0;
 			$enable_comment_status = isset( $_POST['jc-importer_template_settings']['enable_comment_status'] ) ? $_POST['jc-importer_template_settings']['enable_comment_status'] : 0;
 			$enable_ping_status    = isset( $_POST['jc-importer_template_settings']['enable_ping_status'] ) ? $_POST['jc-importer_template_settings']['enable_ping_status'] : 0;
+
+			$_jci_ref_post_parent  = isset( $_POST['jc-importer_template_settings']['_jci_ref_post_parent'] ) ? $_POST['jc-importer_template_settings']['_jci_ref_post_parent'] : '';
+
+			ImporterModel::setImporterMeta( $id, array( '_template_settings', '_jci_ref_post_parent' ), $_jci_ref_post_parent );
 
 			// update template settings
 			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'enable_id' ), $enable_id );
@@ -303,11 +351,7 @@ class JC_Post_Template extends JC_Importer_Template {
 
 	public function before_template_save( $data, $current_row ) {
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$id = $jcimporter->importer->ID;
+		$id = JCI()->importer->get_ID();
 
 		$this->enable_id             = ImporterModel::getImporterMetaArr( $id, array(
 				'_template_settings',
@@ -349,11 +393,7 @@ class JC_Post_Template extends JC_Importer_Template {
 
 	public function before_group_save( $data, $group_id ) {
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$id = $jcimporter->importer->ID;
+		$id = JCI()->importer->get_ID();
 
 		/**
 		 * Clear unenabled fields
@@ -396,6 +436,13 @@ class JC_Post_Template extends JC_Importer_Template {
 
 				// ID
 				$page_id = intval($data['post_parent']);
+			}elseif($post_parent_type == 'column'){
+
+				// Reference Column
+				$parent_id = $this->get_post_by_cf('post_parent', $data['post_parent'], $group_id);
+				if(intval($parent_id > 0)){
+					$page_id = intval($parent_id);
+				}
 			}
 
 			// set post parent to int or clear
