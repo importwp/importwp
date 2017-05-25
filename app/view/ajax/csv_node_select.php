@@ -71,7 +71,7 @@
 
         // when a column is selected, insert that column into the input field
         $('#jci-csv-select tr').each(function () {
-            $(this).find('td').each(function (index) {
+            $(this).find('td, th').each(function (index) {
                 $(this).click(function (e) {
                     var _val = _preview_input.val();
                     _preview_input.val(_val + '{'+index+'}');

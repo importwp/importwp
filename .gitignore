@@ -4,3 +4,4 @@ node_modules/
 build/
 /tmp
 /app/assets/js/*.min.js
+/yarn.lock
