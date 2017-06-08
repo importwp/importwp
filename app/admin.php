@@ -347,7 +347,7 @@ class JC_Importer_Admin {
 				// $version = get_post_meta( $id, '_import_version', true );
 				// ImporterModel::setImportVersion($id, $version + 1);
 
-				wp_redirect( '/wp-admin/admin.php?page=jci-importers&import=' . $id . '&action=edit' );
+				wp_redirect(admin_url('admin.php?page=jci-importers&import=' . $id . '&action=edit'));
 				exit();
 			}
 
