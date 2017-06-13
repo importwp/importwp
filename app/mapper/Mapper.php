@@ -819,6 +819,9 @@ class JC_BaseMapper {
 		$jci_attachments = $jcimporter->importer->attachments;
 
 		switch ( $jci_attachments[ $group_id ]['type'] ) {
+			case 'local':
+				$this->attachment_class = new JCI_Local_Attachments();
+				break;
 			case 'url':
 
 				// setup curl
