@@ -290,6 +290,11 @@ class JC_Importer_Core {
 		return $this->template_name;
 	}
 
+	/**
+	 * Get Template Parser Type (XML/CSV)
+	 *
+	 * @return string
+	 */
 	public function get_template_type() {
 		return $this->template_type;
 	}

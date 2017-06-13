@@ -67,7 +67,12 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 
 == Changelog ==
 
-= 0.4 - 20/05/2017
+= 0.4.1 - 08/06/2017 =
+
+* Fix admin redirect when uploading new file on edit screen
+* Add filter to change template name when importer is created: jci/importer/template_name
+
+= 0.4 - 20/05/2017 =
 
 * Add filter to alter field data: jci/parse_csv_field and jci/parse_xml_field
 * Add filter to alter specific field data: jci/parse_csv_field/{{field_name}} and jci/parse_xml_field/{{field_name}}

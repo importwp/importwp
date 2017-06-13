@@ -307,8 +307,9 @@ class JC_Importer_Admin {
 
 				$template_type = $result['type'];
 
+
 				$post_id = ImporterModel::insertImporter( $post_id, array(
-					'name'     => sprintf("Import %s from %s on %s ", $template, $template_type, date(get_site_option('date_format'))),
+					'name'     => sprintf("Import %s from %s on %s ", apply_filters('jci/importer/template_name',$template), $template_type, date(get_site_option('date_format'))),
 					'settings' => array(
 						'import_type'   => $import_type,
 						'template'      => $template,
