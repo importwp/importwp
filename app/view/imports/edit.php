@@ -496,7 +496,8 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 								'label'   => 'Download',
 								'options' => array(
 									'ftp' => 'Ftp',
-									'url' => 'Url'
+									'url' => 'Remote Url',
+									'local' => 'Local Filesystem'
 								),
 								'class'   => 'download-toggle',
 								'default' => $attachment_type
@@ -526,6 +527,14 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 								'default' => $ftp_pass,
 								'class'   => 'ftp-field input-toggle'
 							) );
+						?>
+						<?php
+						$local_base_path = isset( $attachments[ $group_id ]['local']['base_path'] ) && ! empty( $attachments[ $group_id ]['local']['base_path'] ) ? $attachments[ $group_id ]['local']['base_path'] : '';
+						echo JCI_FormHelper::text( 'attachment[' . $group_id . '][local][base_path]', array(
+							'label'   => 'Local Base Path',
+							'default' => $local_base_path,
+							'class'   => 'local-field input-toggle'
+						) );
 						?>
 								</td>
 							</tr>
