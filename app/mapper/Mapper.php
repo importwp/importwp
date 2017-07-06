@@ -821,6 +821,12 @@ class JC_BaseMapper {
 		switch ( $jci_attachments[ $group_id ]['type'] ) {
 			case 'local':
 				$this->attachment_class = new JCI_Local_Attachments();
+				$base_path = $jci_attachments[$group_id]['local']['base_path'];
+
+				if(!$this->attachment_class->set_local_dir($base_path)){
+					return false;
+				}
+				return true;
 				break;
 			case 'url':
 
