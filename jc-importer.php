@@ -28,6 +28,7 @@ require_once 'app/attachment/class-jci-ftp-attachments.php';
 require_once 'app/attachment/class-jci-curl-attachments.php';
 require_once 'app/attachment/class-jci-upload-attachments.php';
 require_once 'app/attachment/class-jci-string-attachments.php';
+require_once 'app/attachment/class-jci-local-attachments.php';
 
 // mappers.
 require_once 'app/mapper/Mapper.php';
