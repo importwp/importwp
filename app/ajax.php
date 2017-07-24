@@ -40,7 +40,8 @@ class JC_Importer_Ajax {
 		if ( isset( $_GET['page'] ) && $_GET['page'] == 'jci-importers' && isset( $_GET['import'] ) && intval( $_GET['import'] ) > 0 ) {
 
 			$post_id = intval( $_GET['import'] );
-			wp_enqueue_script( 'ajax-importer', trailingslashit(JCI()->get_plugin_url()) .'app/assets/js/importer'.$ext.'.js', array( 'jquery' ), $version, false );
+			wp_enqueue_script( 'tiptip', trailingslashit(JCI()->get_plugin_url()) . 'app/assets/js/jquery-tipTip' . $ext . '.js', array(), '1.3' );
+			wp_enqueue_script( 'ajax-importer', trailingslashit(JCI()->get_plugin_url()) .'app/assets/js/importer'.$ext.'.js', array( 'jquery', 'tiptip' ), $version, false );
 			wp_localize_script( 'ajax-importer', 'ajax_object', array(
 				'ajax_url'           => admin_url( 'admin-ajax.php' ),
 				'id'                 => $post_id,

@@ -109,6 +109,13 @@ class JC_Importer {
 	public $importer;
 
 	/**
+	 * Plugin Text Strings
+	 *
+	 * @var IWP_Text
+	 */
+	private $text;
+
+	/**
 	 * Single instance of class
 	 *
 	 * @var null
@@ -135,6 +142,9 @@ class JC_Importer {
 
 		$this->plugin_dir = plugin_dir_path( __FILE__ );
 		$this->plugin_url = plugins_url( '/', __FILE__ );
+
+		require_once 'app/libs/class-iwp-text.php';
+		$this->text = new IWP_Text();
 
 		add_action( 'init', array( $this, 'init' ) );
 		add_action( 'plugins_loaded', array( $this, 'db_update_check' ) );
@@ -331,6 +341,15 @@ class JC_Importer {
 	 */
 	public function get_version() {
 		return $this->version;
+	}
+
+	/**
+	 * Get text class
+	 *
+	 * @return IWP_Text
+	 */
+	public function text(){
+		return $this->text;
 	}
 }
 

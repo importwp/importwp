@@ -92,6 +92,7 @@ class JCI_FormHelper {
 		$default  = '';
 		$after    = null;
 		$data = array();
+		$tooltip = '';
 		extract( $args );
 
 		$data_str = '';
@@ -130,7 +131,7 @@ class JCI_FormHelper {
 		$output = '<div class="' . implode( ' ', $classes ) . '" />';
 
 		if ( $label !== false ) {
-			$output .= self::get_label( $label );
+			$output .= self::get_label( $label, $tooltip );
 		}
 
 		$id = self::get_id( self::$prefix . $name );
@@ -318,6 +319,7 @@ class JCI_FormHelper {
 		$label    = $name;
 		$options  = array();
 		$empty    = false;
+		$tooltip  = '';
 		$id = false;
 		extract( $args );
 
@@ -351,7 +353,7 @@ class JCI_FormHelper {
 		$output = '<div class="' . implode( ' ', $classes ) . '" '.$id_string.' />';
 
 		if ( $label !== false ) {
-			$output .= self::get_label( $label );
+			$output .= self::get_label( $label, $tooltip );
 		}
 
 		$output .= '<select name="' . self::$prefix . $name . '" id="' . self::get_id(self::$prefix . $name) . '">';
@@ -502,8 +504,15 @@ class JCI_FormHelper {
 		return $output;
 	}
 
-	static function get_label( $name ) {
-		$output = '<label>' . $name . '</label>';
+	static function get_label( $name, $tooltip = '' ) {
+		$tooltip_str = '';
+		$label_classes = array('iwp-field__label');
+		if(!empty($tooltip))
+		{
+			$label_classes[] = 'iwp-field__label--has_tooltip';
+			$tooltip_str = '<span class="iwp-field__tooltip iwp-field__tooltip--inline" title="' . esc_attr( $tooltip ) . '">?</span>';
+		}
+		$output = '<label class="'.implode(' ', $label_classes).'">' . $name . $tooltip_str . '</label>';
 
 		return $output;
 	}

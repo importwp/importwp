@@ -344,3 +344,25 @@ jQuery(function ($) {
 
     }
 })(jQuery);
+
+/**
+ * Help Tooltips
+ */
+(function($) {
+
+    $(document).ready(function(){
+
+        $('.iwp-field__tooltip').each(function(){
+
+            if($(this).attr('title').length > 0) {
+                $(this).tipTip({
+                    defaultPosition: "right"
+                });
+            }else{
+                $(this).hide();
+            }
+        });
+
+    });
+
+})(jQuery);

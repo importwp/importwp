@@ -91,13 +91,26 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
 				do_action( 'jci/before_import_settings' );
 
-				echo JCI_FormHelper::text( 'start-line', array( 'label' => 'Start Row', 'default' => $start_line ) );
-				echo JCI_FormHelper::text( 'row-count', array( 'label' => 'Max Rows', 'default' => $row_count ) );
-				echo JCI_FormHelper::text( 'record-import-count', array( 'label' => 'Records per Import', 'default' => $record_import_count ) );
+				echo JCI_FormHelper::text( 'start-line', array(
+					'label' => 'Start Row',
+					'default' => $start_line,
+					'tooltip' => JCI()->text()->get('import.settings.start_line')
+				) );
+				echo JCI_FormHelper::text( 'row-count', array(
+					'label' => 'Max Rows',
+					'default' => $row_count,
+					'tooltip' => JCI()->text()->get('import.settings.row_count')
+				) );
+				echo JCI_FormHelper::text( 'record-import-count', array(
+						'label' => 'Records per Import',
+						'default' => $record_import_count,
+						'tooltip' => JCI()->text()->get('import.settings.record_import_count')
+				) );
 				echo JCI_FormHelper::select( 'template_type', array(
 						'label'   => 'Template Type',
 						'options' => array( 'csv' => 'CSV', 'xml' => 'XML' ),
-						'default' => $template_type
+						'default' => $template_type,
+						'tooltip' => JCI()->text()->get('import.settings.template_type')
 					) );
 
 				// core fields
@@ -113,7 +126,11 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 						<?php
 						$remote_settings = ImporterModel::getImportSettings( $id, 'remote' );
 						$url             = $remote_settings['remote_url'];
-						echo JCI_FormHelper::text( 'remote_url', array( 'label' => 'Remote Url', 'default' => $url ) );
+						echo JCI_FormHelper::text( 'remote_url', array(
+								'label' => 'Remote Url',
+								'default' => $url,
+								'tooltip' => JCI()->text()->get('import.remote.remote_url')
+						) );
 						/*echo JCI_FormHelper::select( 'remote_frequency', array(
 								'label'   => 'Frequency',
 								'options' => array(
@@ -261,8 +278,10 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
 				foreach ( $group['fields'] as $key => $value ) {
 					$title = $group['titles'][ $key ];
+					$tooltip = $group['tooltips'][ $key];
 					echo JCI_FormHelper::text( 'field[' . $group_id . '][' . $key . ']', array(
 							'label'   => $title,
+							'tooltip' => $tooltip,
 							'default' => $value,
 							'class'   => 'xml-drop jci-group',
 							'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',

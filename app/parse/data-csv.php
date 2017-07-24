@@ -53,12 +53,14 @@ class JC_CSV_Parser extends JC_Parser {
 		echo JCI_FormHelper::text( 'parser_settings[csv_delimiter]', array(
 				'label'   => 'Delimiter',
 				'default' => $csv_delimiter,
-				'class'   => 'jc-importer_csv-delimiter'
+				'class'   => 'jc-importer_csv-delimiter',
+				'tooltip' => JCI()->text()->get('import.settings.csv_delimiter')
 			) );
 		echo JCI_FormHelper::text( 'parser_settings[csv_enclosure]', array(
 				'label'   => 'Enclosure',
 				'default' => $csv_enclosure,
-				'class'   => 'jc-importer_csv-enclosure'
+				'class'   => 'jc-importer_csv-enclosure',
+				'tooltip' => JCI()->text()->get('import.settings.csv_enclosure')
 			) );
 	}
 

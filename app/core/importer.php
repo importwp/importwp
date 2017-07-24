@@ -106,9 +106,11 @@ class JC_Importer_Core {
 				$field_options = array();
 				$options_default = array();
 				$titles        = array();
+				$tooltips = array();
 				foreach ( $data['map'] as $id => $field_data ) {
 					$output_fields[ $field_data['field'] ] = isset( $fields[ $data['group'] ][ $field_data['field'] ] ) ? $fields[ $data['group'] ][ $field_data['field'] ] : ''; // null; //$fields[$field_data['type']][$field_data['field']];
 					$titles[ $field_data['field'] ]        = isset( $field_data['title'] ) ? $field_data['title'] : $field_data['field'];
+					$tooltips[ $field_data['field'] ]        = isset( $field_data['tooltip'] ) ? $field_data['tooltip'] : '';
 
 					if(isset($field_data['options'])){
 						$field_options[$field_data['field']] = $field_data['options'];	
@@ -127,6 +129,7 @@ class JC_Importer_Core {
 					'field_options_default' => $options_default, 
 					'import_type'      => $data['import_type'],
 					'titles'           => $titles,
+					'tooltips'         => $tooltips,
 					'import_type_name' => $data['import_type_name'],
 					'taxonomies'       => isset( $data['taxonomies'] ) ? $data['taxonomies'] : 0,
 					'attachments'      => isset( $data['attachments'] ) ? $data['attachments'] : 0
