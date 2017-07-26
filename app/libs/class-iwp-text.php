@@ -29,15 +29,21 @@ class IWP_Text{
 	public function __construct() {
 
 		$this->_default = array(
+			// Import General Settings
 			'import.settings.start_line' => __('Set the row you wish to start your import from.', 'iwp'),
 			'import.settings.row_count' => __('Maximum number of rows to import, leave "0" to ignore.', 'iwp'),
 			'import.settings.record_import_count' => __('Number of items to import at a time, increasing this number may speed up the import, or if your import is timing out decrease it.', 'iwp'),
 			'import.settings.template_type' => __('Set the type of import you are running, once changed hit save all for the page to be changed.', 'iwp'),
+			// Import CSV Settings
 			'import.settings.csv_delimiter' => __('The character which separates the CSV record elements.', 'iwp'),
 			'import.settings.csv_enclosure' => __('The character which is wrapper around the CSV record elements.', 'iwp'),
+			// Import XML Settings
+			// Default post template fields
 			'template.default.post_title' => __('Name of the %s.', 'iwp'),
-			'template.default.post_name' => __('The slug is the user friendly and URL valid name of a %s.', 'iwp'),
-			'template.default.post_date' => __('The date the %s was created, enter in the format "YYYY-MM-DD HH:ii:ss"', 'iwp')
+			'template.default.post_name' => __('The slug is the user friendly and URL valid name of the %s.', 'iwp'),
+			'template.default.post_content' => __('Main WYSIWYG editor content of the %s.', 'iwp'),
+			'template.default.post_excerpt' => __('A custom short extract for the %s.', 'iwp'),
+			'template.default.post_date' => __('The date of the %s , enter in the format "YYYY-MM-DD HH:ii:ss"', 'iwp')
 		);
 	}
 

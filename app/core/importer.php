@@ -110,7 +110,7 @@ class JC_Importer_Core {
 				foreach ( $data['map'] as $id => $field_data ) {
 					$output_fields[ $field_data['field'] ] = isset( $fields[ $data['group'] ][ $field_data['field'] ] ) ? $fields[ $data['group'] ][ $field_data['field'] ] : ''; // null; //$fields[$field_data['type']][$field_data['field']];
 					$titles[ $field_data['field'] ]        = isset( $field_data['title'] ) ? $field_data['title'] : $field_data['field'];
-					$tooltips[ $field_data['field'] ]        = isset( $field_data['tooltip'] ) ? $field_data['tooltip'] : '';
+					$tooltips[ $field_data['field'] ]        = isset( $field_data['tooltip'] ) ? $field_data['tooltip'] : sprintf(JCI()->text()->get(sprintf('template.default.%s', $field_data['field'])), $data['import_type_name']);
 
 					if(isset($field_data['options'])){
 						$field_options[$field_data['field']] = $field_data['options'];	
