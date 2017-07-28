@@ -43,7 +43,30 @@ class IWP_Text{
 			'template.default.post_name' => __('The slug is the user friendly and URL valid name of the %s.', 'iwp'),
 			'template.default.post_content' => __('Main WYSIWYG editor content of the %s.', 'iwp'),
 			'template.default.post_excerpt' => __('A custom short extract for the %s.', 'iwp'),
-			'template.default.post_date' => __('The date of the %s , enter in the format "YYYY-MM-DD HH:ii:ss"', 'iwp')
+			'template.default.post_date' => __('The date of the %s , enter in the format "YYYY-MM-DD HH:ii:ss"', 'iwp'),
+			// Default user template fields
+			'template.default.user_login' => __('', 'iwp'),
+			'template.default.user_email' => __('', 'iwp'),
+			'template.default.first_name' => __('', 'iwp'),
+			'template.default.last_name' => __('', 'iwp'),
+			'template.default.user_url' => __('', 'iwp'),
+			'template.default.role' => __('', 'iwp'),
+			'template.default.user_nicename' => __('', 'iwp'),
+			'template.default.display_name' => __('', 'iwp'),
+			'template.default.nickname' => __('', 'iwp'),
+			'template.default.description' => __('', 'iwp'),
+			// Default Taxonomy Template
+			'template.default.taxonomy_tax' => __('', 'iwp'),
+			'template.default.taxonomy_term' => __('', 'iwp'),
+			'template.default.taxonomy_permission' => __('', 'iwp'),
+			// Default Attachment Template
+			'template.default.attachment_location' => __('', 'iwp'),
+			'template.default.attachment_permissions' => __('', 'iwp'),
+			'template.default.attachment_download' => __('', 'iwp'),
+			'template.default.attachment_local_path' => __('', 'iwp'),
+			'template.default.attachment_ftp_server' => __('', 'iwp'),
+			'template.default.attachment_ftp_username' => __('', 'iwp'),
+			'template.default.attachment_ftp_password' => __('', 'iwp'),
 		);
 	}
 

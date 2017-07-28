@@ -340,13 +340,15 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 											<?php echo JCI_FormHelper::select( 'taxonomies[' . $group_id . '][tax][]', array(
 												'label'   => 'Tax',
 												'default' => $tax,
-												'options' => $post_taxonomies
+												'options' => $post_taxonomies,
+												'tooltip' => JCI()->text()->get('template.default.taxonomy_tax')
 											) ); ?>
 											<?php echo JCI_FormHelper::text( 'taxonomies[' . $group_id . '][term][]', array(
 												'label'   => 'Term',
 												'default' => $term,
 												'class'   => 'xml-drop jci-group',
-												'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>'
+												'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
+												'tooltip' => JCI()->text()->get('template.default.taxonomy_term')
 											) ); ?>
 											<?php
 											// $permissions = isset($taxonomies[$group_id]['permissions'][$key]) && !empty($taxonomies[$group_id]['permissions'][$key]) ? $taxonomies[$group_id]['permissions'][$key] : 'overwrite';
@@ -357,7 +359,8 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 													'create'    => 'Add if no existing terms',
 													'overwrite' => 'Overwrite Existing terms',
 													'append'    => 'Append New terms'
-												)
+												),
+												'tooltip' => JCI()->text()->get('template.default.taxonomy_permission')
 											) );
 											?>
 											</td>
@@ -375,13 +378,15 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 										<?php echo JCI_FormHelper::select( 'taxonomies[' . $group_id . '][tax][]', array(
 											'label'   => 'Tax',
 											'default' => '',
-											'options' => $post_taxonomies
+											'options' => $post_taxonomies,
+											'tooltip' => JCI()->text()->get('template.default.taxonomy_tax')
 										) ); ?>
 										<?php echo JCI_FormHelper::text( 'taxonomies[' . $group_id . '][term][]', array(
 											'label'   => 'Term',
 											'default' => '',
 											'class'   => 'xml-drop jci-group',
-											'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>'
+											'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
+											'tooltip' => JCI()->text()->get('template.default.taxonomy_term')
 										) ); ?>
 										<?php
 										echo JCI_FormHelper::select( 'taxonomies[' . $group_id . '][permissions][]', array(
@@ -391,7 +396,8 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 												'create'    => 'Add if no existing terms',
 												'overwrite' => 'Overwrite Existing terms',
 												'append'    => 'Append New terms'
-											)
+											),
+											'tooltip' => JCI()->text()->get('template.default.taxonomy_permission')
 										) );
 										?>
 										</td>
@@ -437,7 +443,8 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 												'label'   => 'Location',
 												'default' => $val,
 												'class'   => 'xml-drop jci-group',
-												'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>'
+												'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
+												'tooltip' => JCI()->text()->get('template.default.attachment_location'),
 											) ); ?>
 										<?php
 										$permissions = isset( $attachments[ $group_id ]['permissions'][ $key ] ) && ! empty( $attachments[ $group_id ]['permissions'][ $key ] ) ? $attachments[ $group_id ]['permissions'][ $key ] : 'overwrite';
@@ -448,7 +455,8 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 												'create' => 'Add if no existing attachments',
 												// 'overwrite' => 'Overwrite Existing Attachments',
 												'append' => 'Append New Attachments'
-											)
+											),
+											'tooltip' => JCI()->text()->get('template.default.attachment_permissions'),
 										) );
 
 										$featured_image = isset( $attachments[ $group_id ]['featured_image'][ $key ] ) && ! empty( $attachments[ $group_id ]['featured_image'][ $key ] ) ? $attachments[ $group_id ]['featured_image'][ $key ] : 0;
@@ -472,7 +480,8 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 											'label'   => 'Location',
 											'default' => '',
 											'class'   => 'xml-drop jci-group',
-											'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>'
+											'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
+											'tooltip' => JCI()->text()->get('template.default.attachment_location'),
 										) ); ?>
 									<?php
 									echo JCI_FormHelper::select( 'attachment[' . $group_id . '][permissions][]', array(
@@ -482,7 +491,8 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 											'create' => 'Add if no existing attachments',
 											// 'overwrite' => 'Overwrite Existing Attachments',
 											'append' => 'Append New Attachments'
-										)
+										),
+										'tooltip' => JCI()->text()->get('template.default.attachment_permissions'),
 									) );
 									echo JCI_FormHelper::checkbox( "attachment[$group_id][featured_image][]", array(
 											'label'   => 'Set as Featured Image',
@@ -519,7 +529,8 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 									'local' => 'Local Filesystem'
 								),
 								'class'   => 'download-toggle',
-								'default' => $attachment_type
+								'default' => $attachment_type,
+								'tooltip' => JCI()->text()->get('template.default.attachment_download'),
 							) );
 						?>
 
@@ -528,7 +539,8 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 						echo JCI_FormHelper::text( 'attachment[' . $group_id . '][ftp][server]', array(
 								'label'   => 'FTP Server',
 								'default' => $ftp_server,
-								'class'   => 'ftp-field input-toggle'
+								'class'   => 'ftp-field input-toggle',
+								'tooltip' => JCI()->text()->get('template.default.attachment_ftp_server'),
 							) );
 						?>
 						<?php
@@ -536,7 +548,8 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 						echo JCI_FormHelper::text( 'attachment[' . $group_id . '][ftp][user]', array(
 								'label'   => 'Username',
 								'default' => $ftp_user,
-								'class'   => 'ftp-field input-toggle'
+								'class'   => 'ftp-field input-toggle',
+								'tooltip' => JCI()->text()->get('template.default.attachment_ftp_username'),
 							) );
 						?>
 						<?php
@@ -544,7 +557,8 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 						echo JCI_FormHelper::password( 'attachment[' . $group_id . '][ftp][pass]', array(
 								'label'   => 'Password',
 								'default' => $ftp_pass,
-								'class'   => 'ftp-field input-toggle'
+								'class'   => 'ftp-field input-toggle',
+								'tooltip' => JCI()->text()->get('template.default.attachment_ftp_password'),
 							) );
 						?>
 						<?php
@@ -552,7 +566,8 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 						echo JCI_FormHelper::text( 'attachment[' . $group_id . '][local][base_path]', array(
 							'label'   => 'Local Base Path',
 							'default' => $local_base_path,
-							'class'   => 'local-field input-toggle'
+							'class'   => 'local-field input-toggle',
+							'tooltip' => JCI()->text()->get('template.default.attachment_local_path'),
 						) );
 						?>
 								</td>
@@ -664,6 +679,16 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 					var clone = repeating.clone();
 					$('input[type=text]', clone).val('');
 					clone.insertAfter(repeating);
+
+					// Re initialize tooltips
+					clone.find('.iwp-field__tooltip').each(function(){
+					    var title = $(this).data('title');
+					    if(title.length > 0){
+					        $(this).attr('title', title);
+                            $(this).removeClass('iwp-field__tooltip--initialized');
+					    }
+					});
+					$(document).trigger('iwp_importer_updated');
 					return false;
 				});
 

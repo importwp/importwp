@@ -2,8 +2,8 @@
 **Contributors:** [jcollings](https://profiles.wordpress.org/jcollings)  
 **Tags:** wordpress importer, xml importer, csv importer, import users, import posts, import categories, import tags, import custom post types, jc importer, importwp    
 **Requires at least:** 4.0    
-**Tested up to:** 4.7.3    
-**Stable tag:** 0.4.1     
+**Tested up to:** 4.8  
+**Stable tag:** 0.5  
 **License:** GPLv3    
 **License URI:** http://www.gnu.org/licenses/gpl.html    
 **Donate link:** https://www.importwp.com/  
@@ -66,6 +66,12 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 ## Changelog ##
+
+### 0.5 ###
+
+* Add tooltips to title, slug, content and excerpt fields.
+* Add the ability to import attachments from a local folder.
+* Fix - Issue with php7.1.1 and saving of template data throwing warning for type missmatch string to array.
 
 ### 0.4.1 - 08/06/2017 ###
 

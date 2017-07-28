@@ -350,11 +350,11 @@ jQuery(function ($) {
  */
 (function($) {
 
-    $(document).ready(function(){
+    var init_tooltips = function(){
+        $('.iwp-field__tooltip:not(.iwp-field__tooltip--initialized)').each(function(){
 
-        $('.iwp-field__tooltip').each(function(){
-
-            if($(this).attr('title').length > 0) {
+            if($(this).attr('title')) {
+                $(this).addClass('iwp-field__tooltip--initialized');
                 $(this).tipTip({
                     defaultPosition: "right"
                 });
@@ -362,7 +362,14 @@ jQuery(function ($) {
                 $(this).hide();
             }
         });
+    };
 
+    $(document).ready(function(){
+        init_tooltips();
+    });
+
+    $(document).on('iwp_importer_updated', function(){
+        init_tooltips();
     });
 
 })(jQuery);

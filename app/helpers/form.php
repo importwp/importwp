@@ -510,7 +510,7 @@ class JCI_FormHelper {
 		if(!empty($tooltip))
 		{
 			$label_classes[] = 'iwp-field__label--has_tooltip';
-			$tooltip_str = '<span class="iwp-field__tooltip iwp-field__tooltip--inline" title="' . esc_attr( $tooltip ) . '">?</span>';
+			$tooltip_str = '<span class="iwp-field__tooltip iwp-field__tooltip--inline" data-title="' . esc_attr( $tooltip ) . '" title="' . esc_attr( $tooltip ) . '">?</span>';
 		}
 		$output = '<label class="'.implode(' ', $label_classes).'">' . $name . $tooltip_str . '</label>';
 

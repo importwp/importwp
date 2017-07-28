@@ -364,7 +364,7 @@ class ImporterModel {
 			$key       = array_shift( $keys );
 			$old_value = get_post_meta( $post_id, $key, true );
 
-			$temp  = $old_value;
+			$temp  = (array)$old_value;
 			$value = self::get_key( $temp, $keys, $value );
 
 		} elseif ( is_string( $keys ) ) {
