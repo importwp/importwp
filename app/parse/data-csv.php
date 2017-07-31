@@ -21,7 +21,7 @@ class JC_CSV_Parser extends JC_Parser {
 
 		add_filter( 'jci/parse_csv_field', array( $this, 'parse_field' ), 10, 3 );
 		add_filter( 'jci/process_csv_map_field', array( $this, 'process_map_field' ), 10, 2 );
-		add_filter( 'jci/load_xml_settings', array( $this, 'load_settings' ), 10, 2 );
+		add_filter( 'jci/load_csv_settings', array( $this, 'load_settings' ), 10, 2 );
 		add_filter( 'jci/ajax_csv/preview_record', array ( $this, 'ajax_preview_record'), 10, 4);
 		add_filter( 'jci/ajax_csv/record_count', array ( $this, 'ajax_record_count'), 10, 1);
 
@@ -229,18 +229,13 @@ class JC_CSV_Parser extends JC_Parser {
 
 	public function preview_field($map = '', $selected_row = null, $field ) {
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-
 		$fh      = fopen( $this->file, 'r' );
 		$counter = 1;
 		$result = '';
 
 		// set enclosure and delimiter
-		$delimiter = isset( $jcimporter->importer->addon_settings->csv_delimiter ) ? $jcimporter->importer->addon_settings->csv_delimiter : ',';
-		$enclosure = isset( $jcimporter->importer->addon_settings->csv_enclosure ) ? $jcimporter->importer->addon_settings->csv_enclosure : '"';
+		$delimiter = isset( JCI()->importer->addon_settings['csv_delimiter'] ) ? JCI()->importer->addon_settings['csv_delimiter'] : ',';
+		$enclosure = isset( JCI()->importer->addon_settings['csv_enclosure'] ) ? JCI()->importer->addon_settings['csv_enclosure'] : '"';
 
 		while ( $line = fgetcsv( $fh, null, $delimiter, $enclosure ) ) {
 
