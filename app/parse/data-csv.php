@@ -149,11 +149,7 @@ class JC_CSV_Parser extends JC_Parser {
 	 */
 	public function parse( $selected_row = null ) {
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$groups = $jcimporter->importer->get_template_groups();
+		$groups = JCI()->importer->get_template_groups();
 
 		$fh      = fopen( $this->file, 'r' );
 		$records = array();
@@ -174,8 +170,8 @@ class JC_CSV_Parser extends JC_Parser {
 		}
 
 		// set enclosure and delimiter
-		$delimiter = isset( $jcimporter->importer->addon_settings->csv_delimiter ) ? $jcimporter->importer->addon_settings->csv_delimiter : ',';
-		$enclosure = isset( $jcimporter->importer->addon_settings->csv_enclosure ) ? $jcimporter->importer->addon_settings->csv_enclosure : '"';
+		$delimiter = isset( JCI()->importer->addon_settings['csv_delimiter'] ) ? JCI()->importer->addon_settings['csv_delimiter'] : ',';
+		$enclosure = isset( JCI()->importer->addon_settings['csv_enclosure'] ) ? JCI()->importer->addon_settings['csv_enclosure'] : '"';
 
 		while ( $line = fgetcsv( $fh, null, $delimiter, $enclosure ) ) {
 
