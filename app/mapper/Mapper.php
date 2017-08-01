@@ -648,7 +648,8 @@ class JC_BaseMapper {
 						$terms     = apply_filters( 'jci/parse_' . $jci_template_type . '_field', $term_value, $term_value, $field_map, '' );
 					}
 
-					$terms = explode( ',', $terms );
+					$term_seperator = apply_filters('jci/term_seperator', ',');
+					$terms = explode( $term_seperator, $terms );
 
 					foreach ( $terms as $t ) {
 
