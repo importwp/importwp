@@ -307,15 +307,8 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 			if ( $group_type == 'post' ): ?>
 
 				<?php
-				// if taxonomies are allowed
-				$temp_taxonomies = get_taxonomies( array(
-						'object_type' => array( $group['import_type_name'] ),
-				), 'objects' );
-
-				$temp_taxonomies = array_merge($temp_taxonomies, get_taxonomies( array(
-					'_builtin' => true,
-					'show_ui' => true
-				), 'objects' ));
+				// if taxonomies are allowed , get_taxonomies doesnt work 100%
+				$temp_taxonomies = get_object_taxonomies($group['import_type_name'], 'objects');
 
 				if ( isset( $group['taxonomies'] ) && $group['taxonomies'] == 1 && ! empty( $temp_taxonomies ) ): ?>
 					<div class="jci-group-taxonomy jci-group-section" data-section-id="taxonomy">
