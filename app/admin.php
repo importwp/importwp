@@ -156,14 +156,23 @@ class JC_Importer_Admin {
 		global $jcimporter;
 
 		// if remote and fetch do that, else continue
-		if ( $importer && $action == 'fetch' && $jcimporter->importer->get_import_type() == 'remote' ) {
+		if ( $importer && $action == 'fetch' && in_array($jcimporter->importer->get_import_type(), array('remote', 'local')) ) {
 
-			// fetch remote file
-			$remote_settings = ImporterModel::getImportSettings( $importer, 'remote' );
-			$url             = $remote_settings['remote_url'];
-			$dest            = basename( $url );
-			$attach          = new JCI_CURL_Attachments();
-			$result          = $attach->attach_remote_file( $importer, $url, $dest, array('importer-file' => true) );
+			if($jcimporter->importer->get_import_type() == 'remote'){
+				// fetch remote file
+				$remote_settings = ImporterModel::getImportSettings( $importer, 'remote' );
+				$url             = $remote_settings['remote_url'];
+				$dest            = basename( $url );
+				$attach          = new JCI_CURL_Attachments();
+				$result          = $attach->attach_remote_file( $importer, $url, $dest, array('importer-file' => true, 'unique' => true) );
+			}elseif($jcimporter->importer->get_import_type() == 'local'){
+				// fetch local file
+				$local_settings = ImporterModel::getImportSettings( $importer, 'local' );
+				$url             = $local_settings['local_url'];
+				$dest            = basename( $url );
+				$attach = new JCI_Local_Attachments();
+				$result = $attach->attach_remote_file($importer, $url, $dest, array('importer-file' => true, 'unique' => true));
+			}
 
 			// todo: save import frequency, setup cron
 
@@ -266,6 +275,17 @@ class JC_Importer_Admin {
 					// todo: replace the result
 					$result['attachment'] = $attach;
 					break;
+				case 'local':
+
+					$src = wp_normalize_path($_POST['jc-importer_local_url']);
+					$dest = basename( $src );
+					$attach = new JCI_Local_Attachments();
+					$result = $attach->attach_remote_file($post_id, $src, $dest, array('importer-file' => true));
+					$general['local_url'] = $src;
+					$file_error_field = 'local_url';
+					$result['attachment'] = $attach;
+
+					break;
 
 				// no attachment
 				default:
@@ -277,7 +297,7 @@ class JC_Importer_Admin {
 			$result  = apply_filters( 'jci/process_create_file', $result, $import_type, $post_id );
 
 			// restrict file attached filetype
-			if ( ! in_array( $result['type'], array( 'xml', 'csv' ) ) ) {
+			if ( !isset($result['type']) || ! in_array( $result['type'], array( 'xml', 'csv' ) ) ) {
 				// todo delete import file
 				$errors[] = 'Filetype not supported';
 			}
@@ -352,12 +372,23 @@ class JC_Importer_Admin {
 				exit();
 			}
 
+			// save remote file
 			if(isset($_POST['jc-importer_remote_url'])){
 
 				if(!empty($_POST['jc-importer_remote_url'])){
 
 					// save remote url
 					ImporterModel::setImporterMeta($id, array('_import_settings', 'general', 'remote_url'), $_POST['jc-importer_remote_url']);
+				}
+			}
+
+			// save local file
+			if(isset($_POST['jc-importer_local_url'])){
+
+				if(!empty($_POST['jc-importer_local_url'])){
+
+					// save local url
+					ImporterModel::setImporterMeta($id, array('_import_settings', 'general', 'local_url'), wp_normalize_path($_POST['jc-importer_local_url']));
 				}
 			}
 
@@ -424,7 +455,7 @@ class JC_Importer_Admin {
 				 * @global JC_Importer $jcimporter
 				 */
 				global $jcimporter;
-				if($jcimporter->importer->get_import_type() == 'remote'){
+				if(in_array($jcimporter->importer->get_import_type(), array('remote', 'local'))){
 
 					wp_redirect( admin_url('admin.php?page=jci-importers&import=' . $result . '&action=fetch' ));
 				}else{

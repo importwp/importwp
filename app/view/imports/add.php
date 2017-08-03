@@ -40,7 +40,7 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 
 						// upload file
 						echo JCI_FormHelper::radio( 'import_type', array(
-								'label' => '<strong>Uploaded File</strong> - upload a file from your computer',
+								'label' => '<strong>Uploaded File</strong> - Upload a file from your computer',
 								'value' => 'upload',
 								'class' => 'toggle-fields',
 								'checked' => true
@@ -53,6 +53,13 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 								'value' => 'remote',
 								'class' => 'toggle-fields'
 							) );
+
+						// local file
+						echo JCI_FormHelper::radio( 'import_type', array(
+							'label' => '<strong>Local File</strong> - Get file from within a local folder',
+							'value' => 'local',
+							'class' => 'toggle-fields'
+						) );
 
 						do_action( 'jci/output_datasource_option' );
 
@@ -71,6 +78,11 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 						echo '<div class="hidden show-remote toggle-field">';
 						echo '<p>Enter the url of the remote file you would like to import</p>';
 						echo JCI_FormHelper::text( 'remote_url', array( 'label' => 'URL' ) );
+						echo '</div>';
+
+						echo '<div class="hidden show-local toggle-field">';
+						echo '<p>Enter the local path the file you would like to import</p>';
+						echo JCI_FormHelper::text( 'local_url', array( 'label' => 'Local Path' ) );
 						echo '</div>';
 
 						do_action( 'jci/output_datasource_section' );

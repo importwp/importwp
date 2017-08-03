@@ -34,6 +34,12 @@ class IWP_Text{
 			'import.settings.row_count' => __('Maximum number of rows to import, leave "0" to ignore.', 'iwp'),
 			'import.settings.record_import_count' => __('Number of items to import at a time, increasing this number may speed up the import, or if your import is timing out decrease it.', 'iwp'),
 			'import.settings.template_type' => __('Set the type of import you are running, once changed hit save all for the page to be changed.', 'iwp'),
+			// Local Upload Settings
+			'import.local.local_url' => __('Enter the full local path to the file you want to import.', 'iwp'),
+			// Local Upload Settings
+			'import.remote.remote_url' => __('Enter the full Url to the remote file you want to import.', 'iwp'),
+			'import.cron.recurring_imports' => __('', 'iwp'),
+
 			// Import CSV Settings
 			'import.settings.csv_delimiter' => __('The character which separates the CSV record elements.', 'iwp'),
 			'import.settings.csv_enclosure' => __('The character which is wrapper around the CSV record elements.', 'iwp'),

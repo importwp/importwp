@@ -184,7 +184,14 @@ class ImporterModel {
 				);
 				break;
 
-			// indevidual settings
+			// get local settings
+			case 'local':
+				$settings = array(
+					'local_url' => isset( $settings['general']['local_url'] ) ? $settings['general']['local_url'] : '',
+				);
+				break;
+
+			// individual settings
 			case 'template':
 				$settings = $settings['template'];
 				$settings = (string) $settings;

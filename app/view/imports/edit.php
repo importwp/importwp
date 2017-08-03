@@ -146,6 +146,22 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 				</div>
 			<?php endif; ?>
 
+			<?php if ( $jcimporter->importer->get_import_type() == 'local' ): ?>
+				<div class="jci-group-local jci-group-section" data-section-id="Local Path">
+					<div class="local">
+						<?php
+						$remote_settings = ImporterModel::getImportSettings( $id, 'local' );
+						$url             = $remote_settings['local_url'];
+						echo JCI_FormHelper::text( 'local_url', array(
+							'label' => 'Local Path',
+							'default' => $url,
+							'tooltip' => JCI()->text()->get('import.local.local_url')
+						) );
+						?>
+					</div>
+				</div>
+			<?php endif; ?>
+
 			<?php
 			/**
 			 * Output Importer Settings Sections
