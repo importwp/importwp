@@ -149,7 +149,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 				$.ajax({
 					url: ajax_object.ajax_url,
 					data: {
-						action: 'jc_import_row',
+						action: 'jc_import_all',
 						id: ajax_object.id,
 						row: record,
 						records: records_per_row
@@ -162,6 +162,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 					},
 					success: function (response) {
 						$('#ajaxResponse').html('');
+						return;
 
 						$('#the-list').prepend(response);
 

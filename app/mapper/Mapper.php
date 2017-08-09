@@ -207,12 +207,20 @@ class JC_BaseMapper {
 		 */
 		global $jcimporter;
 		$importer_id = $jcimporter->importer->get_ID();
+		$this->_running = true;
+		foreach ( $data as $data_index => $data_row ) {
 
-		foreach ( $data as $data_row ) {
-
-			$this->set_import_version();
+			$this->set_import_version($data_index);
 			$this->processRow( $data_row );
 			ImportLog::insert( $importer_id, $this->_current_row, $this->_insert[ $this->_current_row ] );
+
+			// write to status file
+			$status_file = JCI()->get_plugin_dir() . '/app/tmp/status-' . JCI()->importer->get_ID().'-'.JCI()->importer->get_version();
+			file_put_contents($status_file, json_encode(array(
+				'status' => 'running',
+				'message' => '',
+				'last_record' => $data_index
+			)));
 		}
 
 		// check to see if last row
@@ -255,7 +263,7 @@ class JC_BaseMapper {
 	/**
 	 * Update import version if current row equals the starting row
 	 */
-	function set_import_version() {
+	function set_import_version($row_index = 0) {
 
 		/**
 		 * @global JC_Importer $jcimporter
@@ -270,7 +278,7 @@ class JC_BaseMapper {
 			$start_row = 1;
 		}
 
-		if ( $this->_current_row == ( $start_row - 1 ) ) {
+		if ( $row_index == ( $start_row - 1 ) ) {
 
 			// increate import version
 			$version ++;

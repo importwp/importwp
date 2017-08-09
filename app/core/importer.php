@@ -199,7 +199,7 @@ class JC_Importer_Core {
 	 *
 	 * @return array Response
 	 */
-	public function run_import( $row = null, $session = false ) {
+	public function run_import( $row = null, $session = false, $per_row = 1 ) {
 
 		/**
 		 * @global JC_Importer $jcimporter
@@ -210,6 +210,7 @@ class JC_Importer_Core {
 		$jci_template      = $jcimporter->importer->template;
 		$jci_template_type = $jcimporter->importer->template_type;
 		$parser            = $jcimporter->parsers[ $this->template_type ];
+		$start_line = $jcimporter->importer->get_start_line();
 
 		// use session if row > 0
 		if($session){
@@ -217,7 +218,7 @@ class JC_Importer_Core {
 		}
 
 		// clear session if first record is being imported
-		if($row == $jcimporter->importer->get_start_line()){
+		if($row == $start_line){
 			$parser->clear_session();
 		}
 
@@ -228,28 +229,17 @@ class JC_Importer_Core {
 
 			if ( $row ) {
 
-				// ajax importer one record at a time
-
-				$results = $parser->parse( intval( $row ) );
-
-				// escape if row doesn't exist
-				if ( ! $results ) {
-
-					// check to see if last row
-					$mapper->complete_check( intval( $row ) );
-
-					// track row as import is skipped
-					ImportLog::insert( $importer_id, $row, array() );
-					// $mapper->track_import( $importer_id, $row, $jcimporter->importer->get_version() );
-
+				$results = $parser->parse($row, $per_row);
+				if(empty($results)){
 					return false;
 				}
 
-				$result = $mapper->process( $jci_template, $results, $row );
+				$result  = $mapper->process( $jci_template, $results );
+
 			} else {
 
 				// import all at one, may take a while to complete
-				
+
 				$results = $parser->parse();
 				$result  = $mapper->process( $jci_template, $results );
 			}

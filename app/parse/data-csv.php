@@ -147,7 +147,58 @@ class JC_CSV_Parser extends JC_Parser {
 	 * Load CSV File and parse data into results array
 	 * @return array
 	 */
-	public function parse( $selected_row = null ) {
+	public function parse( $selected_row = null, $max_rows = 1 ) {
+
+		/*
+		// load seek value from session
+		$this->load_session();
+
+		// load file
+		$records = array();
+		$counter = 1;
+
+		// new way to read csv files, split them into separate files first.
+		//		if($selected_row != null) {
+		//			$file_reader = new IWP_CSV_Reader( $this->file );
+		//			$fh          = $file_reader->get_file_handle( $this->seek, $this->seek_record_count );
+		//		}else{
+		$fh      = fopen( $this->file, 'r' );
+		//		}
+
+		//		$file_reader = new IWP_CSV_Reader( $this->file );
+		//		$fh          = $file_reader->get_file_handle( $this->seek, $this->seek_record_count );
+*/
+
+		if($selected_row == null){
+			$this->start = JCI()->importer->get_start_line();
+			$row_count = JCI()->importer->get_row_count();
+			if($row_count > 0){
+				$this->end = $this->start + $row_count;
+			}else{
+				$this->end = $this->start + JCI()->importer->get_total_rows();
+			}
+		}else{
+			$this->start = $selected_row;
+			$this->end = $this->start + ($max_rows - 1);
+			if(JCI()->importer->get_row_count() > 0 && JCI()->importer->get_row_count() < $this->end){
+				$this->end = JCI()->importer->get_row_count();
+			}
+
+//			$this->start = $selected_row;
+//			$this->end = $this->start + ($max_rows - 1);
+//			$row_count = JCI()->importer->get_row_count();
+//			if($row_count > 0){
+//				if($row_count < $this->end){
+//					$this->end = $row_count;
+//				}else{
+//					$this->end = $this->start + $row_count;
+//				}
+//			}else{
+//				$this->end = $this->start + JCI()->importer->get_total_rows();
+//			}
+		}
+
+
 
 		$groups = JCI()->importer->get_template_groups();
 
@@ -170,19 +221,28 @@ class JC_CSV_Parser extends JC_Parser {
 		}
 
 		// set enclosure and delimiter
-		$delimiter = isset( JCI()->importer->addon_settings['csv_delimiter'] ) ? JCI()->importer->addon_settings['csv_delimiter'] : ',';
-		$enclosure = isset( JCI()->importer->addon_settings['csv_enclosure'] ) ? JCI()->importer->addon_settings['csv_enclosure'] : '"';
+		$delimiter = isset( JCI()->importer->addon_settings['csv_delimiter'] ) && !empty( JCI()->importer->addon_settings['csv_delimiter'] ) ? JCI()->importer->addon_settings['csv_delimiter'] : ',';
+		$enclosure = isset( JCI()->importer->addon_settings['csv_enclosure'] ) && !empty( JCI()->importer->addon_settings['csv_enclosure'] ) ? JCI()->importer->addon_settings['csv_enclosure'] : '"';
 
 		while ( $line = fgetcsv( $fh, null, $delimiter, $enclosure ) ) {
 
 			// skip if not selected row
-			if ( ! is_null( $selected_row ) && $counter != $selected_row ) {
+			if ( ! is_null( $selected_row ) && $counter < $selected_row ) {
+
+				if($selected_row < $counter && $this->end < $counter){
+					break;
+				}
+
 				$counter ++;
 				continue;
 			}
 
+			if( $this->end >= 0 && $counter > $this->end ){
+				break;
+			}
+
 			// skip if not withing limits
-			if ( ( $this->start >= 0 && $counter <= $this->start ) || ( $this->end >= 0 && $counter > $this->end ) ) {
+			if ( ( $this->start >= 0 && $counter < $this->start ) ) {
 				$counter ++;
 				continue;
 			}
@@ -203,8 +263,8 @@ class JC_CSV_Parser extends JC_Parser {
 			$counter ++;
 
 			// escape early if selected row
-			if ( ! is_null( $selected_row ) ) {
-						
+			if ( ! is_null( $selected_row ) && $this->end < $counter ) {
+
 				$this->seek = ftell($fh);
 				$this->seek_record_count = $counter;
 
@@ -216,9 +276,9 @@ class JC_CSV_Parser extends JC_Parser {
 
 		fclose( $fh );
 
-		if ( $selected_row && isset( $records[ $selected_row - 1 ] ) ) {
-			return array( $records[ $selected_row - 1 ] );
-		}
+//		if ( $selected_row && isset( $records[ $selected_row - 1 ] ) ) {
+//			return array( $records[ $selected_row - 1 ] );
+//		}
 
 		return $records;
 	}

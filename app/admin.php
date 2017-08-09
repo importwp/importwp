@@ -10,6 +10,11 @@ class JC_Importer_Admin {
 	 */
 	private $config;
 
+	/**
+	 * @var bool Is Importer Running
+	 */
+	private $_running = false;
+
 	public function __construct( &$config ) {
 		$this->config = $config;
 
@@ -21,6 +26,9 @@ class JC_Importer_Admin {
 		// ajax import
 		add_action( 'wp_ajax_jc_import_row', array( $this, 'admin_ajax_import_row' ) );
 		add_action( 'wp_ajax_jc_process_delete' , array( $this , 'admin_ajax_process_delete' ) );
+
+		// ajax import all at once with status file
+		add_action( 'wp_ajax_jc_import_all', array( $this, 'admin_ajax_import_all_rows' ) );
 
 		$this->setup_forms();
 	}
@@ -471,6 +479,51 @@ class JC_Importer_Admin {
 		}
 	}
 
+	public function admin_ajax_import_all_rows(){
+
+		set_time_limit(0);
+		register_shutdown_function(array($this, 'on_server_timeout'));
+
+		global $jcimporter;
+
+		// get and load importer
+		$importer_id = intval( $_POST['id'] );
+		$jcimporter->importer = new JC_Importer_Core( $importer_id);
+
+		$total_records = JCI()->importer->get_total_rows();
+		$per_row = JCI()->importer->get_record_import_count();
+		$rows = ceil($total_records / $per_row);
+
+		$this->_running = true;
+
+		for($i = 0; $i <= $rows; $i++){
+			JCI()->importer->run_import($i * $per_row + 1, true, $per_row);
+		}
+
+		$this->_running = false;
+
+		$status_file = JCI()->get_plugin_dir() . '/app/tmp/status-' . JCI()->importer->get_ID().'-'.JCI()->importer->get_version();
+		$status = json_decode(file_get_contents($status_file), true);
+		$status['status'] = 'complete';
+		file_put_contents($status_file, json_encode($status));
+	}
+
+	/**
+	 * Triggered when server timeout occurs and the importer is still running
+	 */
+	public function on_server_timeout(){
+
+		if(!$this->_running){
+			return;
+		}
+
+		$status_file = JCI()->get_plugin_dir() . '/app/tmp/status-' . JCI()->importer->get_ID().'-'.JCI()->importer->get_version();
+
+		$status = json_decode(file_get_contents($status_file), true);
+		$status['status'] = 'timeout';
+		file_put_contents($status_file, json_encode($status));
+	}
+
 	/**
 	 * Process Import Ajax
 	 * @return HTML
@@ -502,28 +555,40 @@ class JC_Importer_Admin {
 
 		$total_records = $jcimporter->importer->get_total_rows();
 
-		for($i = 0; $i < $records; $i++){
-
-			$row = $current_row + $i;
-
-			// escape if max record has been met
-			if($max_records > 0){
-				$last_record = $start_record + $max_records;
-				if($row >= $last_record){
-					break;
-				}
-			}
-
-			// stop bulk import passing limit
-			if($row > $total_records){
-				break;
-			}
-
-			$data = $jcimporter->importer->run_import( $row, true );
+		$res = $jcimporter->importer->run_import( $current_row, true, $records );
+		$counter = 0;
+		foreach($res as $data_arr){
+			$row = $current_row + $counter;
+			$data = array($data_arr);
 			ob_start();
 			require $jcimporter->get_plugin_dir() . 'app/view/imports/log/log_table_record.php';
 			$output[] = ob_get_clean();
+			$counter++;
 		}
+
+
+//		for($i = 0; $i < $records; $i++){
+//
+//			$row = $current_row + $i;
+//
+//			// escape if max record has been met
+//			if($max_records > 0){
+//				$last_record = $start_record + $max_records;
+//				if($row >= $last_record){
+//					break;
+//				}
+//			}
+//
+//			// stop bulk import passing limit
+//			if($row > $total_records){
+//				break;
+//			}
+//
+//			$data = $jcimporter->importer->run_import( $row, true, 1 );
+//			ob_start();
+//			require $jcimporter->get_plugin_dir() . 'app/view/imports/log/log_table_record.php';
+//			$output[] = ob_get_clean();
+//		}
 
 		// reverse array to follow existing import record order
 		$output = array_reverse($output);

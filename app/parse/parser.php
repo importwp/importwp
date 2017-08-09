@@ -175,7 +175,13 @@ class JC_Parser {
 		);
 		$data = serialize($data);
 
-		file_put_contents($jcimporter->get_plugin_dir() . '/app/tmp/session-' . $jcimporter->importer->ID.'-'.$jcimporter->importer->get_version(), $data);
+		// importer version get increased in Mapper->set_import_version when the first record is imported
+		$version = $jcimporter->importer->get_version();
+		if($this->start === JCI()->importer->get_start_line() ){
+			$version++;
+		}
+
+		file_put_contents($jcimporter->get_plugin_dir() . '/app/tmp/session-' . $jcimporter->importer->ID.'-'. $version, $data);
 	}
 
 	/**
