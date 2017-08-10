@@ -387,7 +387,8 @@ class JC_PostMapper {
 					'compare' => '!='
 				)
 			),
-			'fields'     => 'ids'
+			'fields'     => 'ids',
+			'posts_per_page' => -1
 		) );
 
 		// delete list of objects

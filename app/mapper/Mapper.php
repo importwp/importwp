@@ -202,6 +202,13 @@ class JC_BaseMapper {
 			$this->_current_row = ( $row - 1 );
 		}
 
+		$start_row = JCI()->importer->get_start_line();
+		if(JCI()->importer->get_row_count() === 0){
+			$end_row = JCI()->importer->get_total_rows() - $start_row;
+		}else{
+			$end_row = $start_row + JCI()->importer->get_row_count();
+		}
+
 		/**
 		 * @global JC_Importer $jcimporter
 		 */
@@ -219,8 +226,13 @@ class JC_BaseMapper {
 			file_put_contents($status_file, json_encode(array(
 				'status' => 'running',
 				'message' => '',
-				'last_record' => $data_index
+				'last_record' => $data_index,
+				'start' => $start_row,
+				'end' => $end_row
 			)));
+
+			file_put_contents(JCI()->get_plugin_dir() . '/app/tmp/status-' . JCI()->importer->get_ID().'-'.JCI()->importer->get_version().'.txt',
+				"$data_index\n", FILE_APPEND);
 		}
 
 		// check to see if last row
@@ -279,9 +291,6 @@ class JC_BaseMapper {
 		}
 
 		if ( $row_index == ( $start_row - 1 ) ) {
-
-			// increate import version
-			$version ++;
 
 			// update import version in db
 			$old_version = get_post_meta( $import_id, '_import_version', true );

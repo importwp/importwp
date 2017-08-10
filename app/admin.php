@@ -481,31 +481,91 @@ class JC_Importer_Admin {
 
 	public function admin_ajax_import_all_rows(){
 
-		set_time_limit(0);
+//		set_time_limit(30);
 		register_shutdown_function(array($this, 'on_server_timeout'));
-
-		global $jcimporter;
 
 		// get and load importer
 		$importer_id = intval( $_POST['id'] );
-		$jcimporter->importer = new JC_Importer_Core( $importer_id);
+		JCI()->importer = new JC_Importer_Core( $importer_id);
 
+		$start_row = JCI()->importer->get_start_line();
 		$total_records = JCI()->importer->get_total_rows();
+		$max_records = JCI()->importer->get_row_count();
+		if($max_records > 0){
+			$total_records = $max_records;
+		}
 		$per_row = JCI()->importer->get_record_import_count();
-		$rows = ceil($total_records / $per_row);
 
+		$status = $this->read_status_file();
+		if($status){
+
+			switch($status['status']){
+				case 'timeout':
+					// we are resuming a timeout
+					$start_row = intval($status['last_record']) + 2;
+
+					$status['status'] = 'running';
+					$this->write_status_file($status);
+					break;
+				default:
+					echo json_encode($status, true);
+					die();
+					break;
+			}
+		}else{
+			$this->write_status_file(array('status' => 'started'), JCI()->importer->get_version() + 1);
+		}
+
+		$rows = ceil(( $total_records - ($start_row-1) ) / $per_row);
 		$this->_running = true;
 
+		// Import Records
 		for($i = 0; $i <= $rows; $i++){
-			JCI()->importer->run_import($i * $per_row + 1, true, $per_row);
+			$start = $start_row + ($i * $per_row);
+			JCI()->importer->run_import($start, false, $per_row);
 		}
+
+		$status = $this->read_status_file();
+		$status['status'] = 'deleting';
+		$this->write_status_file($status);
+
+		// TODO: Delete Records
+		$mapper = new JC_BaseMapper();
+		$mapper->on_import_complete($importer_id, false);
+
 
 		$this->_running = false;
 
-		$status_file = JCI()->get_plugin_dir() . '/app/tmp/status-' . JCI()->importer->get_ID().'-'.JCI()->importer->get_version();
-		$status = json_decode(file_get_contents($status_file), true);
+//		$status = $this->read_status_file();
 		$status['status'] = 'complete';
-		file_put_contents($status_file, json_encode($status));
+		$this->write_status_file($status);
+		echo json_encode($status, true);
+		die();
+
+	}
+
+	function get_status_file_path($version = 0){
+
+		$v = JCI()->importer->get_version();
+		if($version !== 0){
+			$v = $version;
+		}
+
+		return JCI()->get_plugin_dir() . '/app/tmp/status-' . JCI()->importer->get_ID().'-'.$v;
+	}
+
+	function read_status_file(){
+		$status_file = $this->get_status_file_path();
+		if(!file_exists($status_file)){
+			return false;
+		}
+		$status = json_decode(file_get_contents($status_file), true);
+		return $status;
+	}
+
+	function write_status_file($data, $version = 0){
+		$status_file = $this->get_status_file_path($version);
+		file_put_contents($status_file, json_encode($data));
 	}
 
 	/**

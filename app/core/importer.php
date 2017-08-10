@@ -220,6 +220,7 @@ class JC_Importer_Core {
 		// clear session if first record is being imported
 		if($row == $start_line){
 			$parser->clear_session();
+			$this->version++;
 		}
 
 		do_action('jci/before_import');

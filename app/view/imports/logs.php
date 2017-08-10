@@ -118,7 +118,120 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 </div>
 
 <script type="text/javascript">
+
+    (function($){
+
+        /**
+         * Start time of import
+         *
+         * @type {Date}
+         */
+        var startDate;
+
+        /**
+         * Current import time
+         *
+         * @type {Date}
+         */
+        var currentDate;
+
+        /**
+         * Last ajax request sent
+         *
+         * @type {Date}
+         */
+        var lastAjaxRequestSent;
+
+        /**
+         * Keep track of how many ajax requests are currently running, limit to 2
+         *
+         * @type {number}
+         */
+        var requests = 0;
+
+        /**
+         * Minimum Time between ajax requests
+         */
+        var requestIntervalTimer = 1000;
+
+        /**
+         * Import completion state
+         *
+         * @type {boolean}
+         */
+        var complete = false;
+
+        /**
+         * On Start Import button pressed
+         */
+        $(document).on('click', '.jc-importer_update-run', function(){
+
+            var $btn = $(this);
+            startDate = currentDate = lastAjaxRequestSent = new Date();
+
+            var interval = setInterval(function(){
+
+                var cTimer = new Date();
+                var timer = cTimer.getTime() - lastAjaxRequestSent.getTime();
+
+                if(requests >= 2 || timer < requestIntervalTimer){
+                    return;
+                }
+
+                $.ajax({
+                    url: ajax_object.ajax_url,
+                    data: {
+                        action: 'jc_import_all',
+                        id: ajax_object.id
+                    },
+                    dataType: 'json',
+                    type: "POST",
+                    beforeSend: function(){
+                        requests++;
+                        lastAjaxRequestSent = new Date();
+                    },
+                    success: function (response) {
+
+                        lastAjaxRequestSent = new Date();
+
+                        var diff = 0;
+                        var time_in_seconds = 0;
+
+                        if(response.status === "complete"){
+
+                            diff = currentDate.getTime() - startDate.getTime();
+                            time_in_seconds = Math.floor(diff / 1000);
+
+                            clearInterval(interval);
+                            complete = true;
+                            $btn.text('Complete ' + time_in_seconds + 's');
+                        }else{
+
+                            currentDate = new Date();
+                            diff = currentDate.getTime() - startDate.getTime();
+                            time_in_seconds = Math.floor(diff / 1000);
+
+                            if(response.status === "deleting"){
+                                $btn.text('Deleting ' + time_in_seconds + 's');
+                            }else{
+                                $btn.text('Running ' + time_in_seconds + 's');
+                            }
+                        }
+
+                    },
+                    complete: function () {
+                        requests--;
+                    }
+                });
+
+            }, requestIntervalTimer/2 );
+        });
+
+    })(jQuery);
+
 	jQuery(document).ready(function ($) {
+
+	    return;
 
 		var running = <?php echo $import_status; ?>; // 0 = stopped , 1 = paused, 2 = running, 3 = complete
 		var record_total = <?php echo $record_count; ?>;
@@ -144,7 +257,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 			}
 
 			function getNextRecord() {
-				
+
 				var record_start = new Date();
 				$.ajax({
 					url: ajax_object.ajax_url,
@@ -174,10 +287,10 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 							if (running == 2) {
 
 								// =========================================
-								// Estimate how long on the current rate 
+								// Estimate how long on the current rate
 								// would it take to complete
 								// =========================================
-								
+
 								var currentDate = new Date();
 								var diff = currentDate.getTime() - startDate.getTime();
 								var time_in_seconds = Math.floor(diff / 1000);
@@ -239,7 +352,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 									document.title = 'Deleting Items 0/'+del_count;
 									$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Deleting Items (0/'+del_count+')</p></div>');
 								}
-								
+
 							}
 						}
 
@@ -262,10 +375,10 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 								running = 3;
 								$('.form-actions').hide();
 							}
-							
+
 						}
 
-						
+
 					}
 				});
 			}
@@ -286,7 +399,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 				<?php else: ?>
 				getNextRecord();
 				<?php endif; ?>
-				
+
 			} else {
 				running = 1;
 			}
