@@ -152,7 +152,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
         /**
          * Minimum Time between ajax requests
          */
-        var requestIntervalTimer = 1000;
+        var requestIntervalTimer = 5000;
 
         /**
          * Import completion state
@@ -161,68 +161,117 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
          */
         var complete = false;
 
+        var requestCounter = 0;
+
+        var run = true;
+
+        /**
+         * Interval id
+         */
+        var interval;
+
+        var on_button_pressed = function($btn){
+
+            var cTimer = new Date();
+            var timer = cTimer.getTime() - lastAjaxRequestSent.getTime();
+
+            if(requests >= 2 || timer < requestIntervalTimer){
+                return;
+            }
+
+            var data_arr = {
+                action: 'jc_import_all',
+                id: ajax_object.id
+            };
+
+            if(run === true){
+                data_arr.request = 'run';
+            }else{
+                data_arr.request = 'check';
+            }
+
+            // reset run to false
+            run = false;
+
+//            if((requestCounter % 2) === 0){
+//                data_arr.request = 'run';
+//            }else{
+//                data_arr.request = 'check';
+//            }
+
+            $.ajax({
+                url: ajax_object.ajax_url,
+                data: data_arr,
+                dataType: 'json',
+                type: "POST",
+                beforeSend: function(){
+                    requests++;
+                    lastAjaxRequestSent = new Date();
+                },
+                success: function (response) {
+
+                    lastAjaxRequestSent = new Date();
+                    requestIntervalTimer = requestIntervalTimer / 2;
+
+                    var diff = 0;
+                    var time_in_seconds = 0;
+
+                    var response_text = '';
+                    if(response !== null && typeof response === 'object' && response.hasOwnProperty('last_record') && response.hasOwnProperty('end')) {
+                        response_text = response.last_record + "/" + response.end;
+                    }
+
+                    if(response.status === "timeout"){
+                        // we have got a timeout response
+                        // so the next ajax request will issue a fetch
+                        run = true;
+                    }
+
+                    if(response.status === "complete"){
+
+                        diff = currentDate.getTime() - startDate.getTime();
+                        time_in_seconds = Math.floor(diff / 1000);
+
+                        clearInterval(interval);
+                        complete = true;
+                        $btn.text('Complete ' + time_in_seconds + 's');
+                    }else{
+
+                        currentDate = new Date();
+                        diff = currentDate.getTime() - startDate.getTime();
+                        time_in_seconds = Math.floor(diff / 1000);
+
+                        if(response.status === "deleting"){
+                            $btn.text('Deleting ' + time_in_seconds + 's');
+                        }else{
+                            $btn.text('Running ' + response_text + " " + time_in_seconds + 's');
+                        }
+                    }
+
+                },
+                complete: function () {
+                    requests--;
+                }
+            });
+
+            requestCounter++;
+
+        };
+
         /**
          * On Start Import button pressed
          */
         $(document).on('click', '.jc-importer_update-run', function(){
 
             var $btn = $(this);
+            $btn.text('Initialising');
             startDate = currentDate = lastAjaxRequestSent = new Date();
 
-            var interval = setInterval(function(){
+            on_button_pressed($btn);
 
-                var cTimer = new Date();
-                var timer = cTimer.getTime() - lastAjaxRequestSent.getTime();
+            interval = setInterval(function(){
 
-                if(requests >= 2 || timer < requestIntervalTimer){
-                    return;
-                }
-
-                $.ajax({
-                    url: ajax_object.ajax_url,
-                    data: {
-                        action: 'jc_import_all',
-                        id: ajax_object.id
-                    },
-                    dataType: 'json',
-                    type: "POST",
-                    beforeSend: function(){
-                        requests++;
-                        lastAjaxRequestSent = new Date();
-                    },
-                    success: function (response) {
-
-                        lastAjaxRequestSent = new Date();
-
-                        var diff = 0;
-                        var time_in_seconds = 0;
-
-                        if(response.status === "complete"){
-
-                            diff = currentDate.getTime() - startDate.getTime();
-                            time_in_seconds = Math.floor(diff / 1000);
-
-                            clearInterval(interval);
-                            complete = true;
-                            $btn.text('Complete ' + time_in_seconds + 's');
-                        }else{
-
-                            currentDate = new Date();
-                            diff = currentDate.getTime() - startDate.getTime();
-                            time_in_seconds = Math.floor(diff / 1000);
-
-                            if(response.status === "deleting"){
-                                $btn.text('Deleting ' + time_in_seconds + 's');
-                            }else{
-                                $btn.text('Running ' + time_in_seconds + 's');
-                            }
-                        }
-
-                    },
-                    complete: function () {
-                        requests--;
-                    }
-                });
+                on_button_pressed($btn);
 
             }, requestIntervalTimer/2 );
         });

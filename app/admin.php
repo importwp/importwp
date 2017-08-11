@@ -481,11 +481,13 @@ class JC_Importer_Admin {
 
 	public function admin_ajax_import_all_rows(){
 
-//		set_time_limit(30);
+		set_time_limit(30);
 		register_shutdown_function(array($this, 'on_server_timeout'));
 
 		// get and load importer
 		$importer_id = intval( $_POST['id'] );
+		$request_type = isset($_POST['request']) ? $_POST['request'] == 'run' : 'check';
+
 		JCI()->importer = new JC_Importer_Core( $importer_id);
 
 		$start_row = JCI()->importer->get_start_line();
@@ -495,6 +497,17 @@ class JC_Importer_Admin {
 			$total_records = $max_records;
 		}
 		$per_row = JCI()->importer->get_record_import_count();
+
+		// ---
+		// if we are no
+		if($request_type != 'run'){
+			$status = $this->read_status_file();
+			if($status) {
+				echo json_encode($status, true);
+			}
+			die();
+		}
+		// ---
 
 		$status = $this->read_status_file();
 		if($status){
