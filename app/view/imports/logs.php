@@ -152,7 +152,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
         /**
          * Minimum Time between ajax requests
          */
-        var requestIntervalTimer = 5000;
+        var requestIntervalTimer = 2000;
 
         /**
          * Import completion state
@@ -175,7 +175,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
             var cTimer = new Date();
             var timer = cTimer.getTime() - lastAjaxRequestSent.getTime();
 
-            if(requests >= 2 || timer < requestIntervalTimer){
+            if(requests >= 2 || (run !== true && timer < requestIntervalTimer ) ){
                 return;
             }
 
@@ -211,40 +211,42 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                 success: function (response) {
 
                     lastAjaxRequestSent = new Date();
-                    requestIntervalTimer = requestIntervalTimer / 2;
 
-                    var diff = 0;
-                    var time_in_seconds = 0;
+                    if(response !== null && typeof response === 'object') {
 
-                    var response_text = '';
-                    if(response !== null && typeof response === 'object' && response.hasOwnProperty('last_record') && response.hasOwnProperty('end')) {
-                        response_text = response.last_record + "/" + response.end;
-                    }
+                        var diff = 0;
+                        var time_in_seconds = 0;
 
-                    if(response.status === "timeout"){
-                        // we have got a timeout response
-                        // so the next ajax request will issue a fetch
-                        run = true;
-                    }
+                        var response_text = '';
+                        if (response !== null && typeof response === 'object' && response.hasOwnProperty('last_record') && response.hasOwnProperty('end')) {
+                            response_text = response.last_record + "/" + response.end;
+                        }
 
-                    if(response.status === "complete"){
+                        if (response.status === "timeout") {
+                            // we have got a timeout response
+                            // so the next ajax request will issue a fetch
+                            run = true;
+                        }
 
-                        diff = currentDate.getTime() - startDate.getTime();
-                        time_in_seconds = Math.floor(diff / 1000);
+                        if (response.status === "complete") {
 
-                        clearInterval(interval);
-                        complete = true;
-                        $btn.text('Complete ' + time_in_seconds + 's');
-                    }else{
+                            diff = currentDate.getTime() - startDate.getTime();
+                            time_in_seconds = Math.floor(diff / 1000);
 
-                        currentDate = new Date();
-                        diff = currentDate.getTime() - startDate.getTime();
-                        time_in_seconds = Math.floor(diff / 1000);
+                            clearInterval(interval);
+                            complete = true;
+                            $btn.text('Complete ' + time_in_seconds + 's');
+                        } else {
 
-                        if(response.status === "deleting"){
-                            $btn.text('Deleting ' + time_in_seconds + 's');
-                        }else{
-                            $btn.text('Running ' + response_text + " " + time_in_seconds + 's');
+                            currentDate = new Date();
+                            diff = currentDate.getTime() - startDate.getTime();
+                            time_in_seconds = Math.floor(diff / 1000);
+
+                            if (response.status === "deleting") {
+                                $btn.text('Deleting ' + time_in_seconds + 's');
+                            } else {
+                                $btn.text('Running ' + response_text + " " + time_in_seconds + 's');
+                            }
                         }
                     }
 

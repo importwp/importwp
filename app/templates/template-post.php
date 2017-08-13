@@ -91,6 +91,8 @@ class JC_Post_Template extends JC_Importer_Template {
 
 		add_action( 'jci/before_import', array( $this, 'before_import' ) );
 
+		return;
+
 		
 		foreach( $this->_field_groups['post']['map'] as &$field){
 

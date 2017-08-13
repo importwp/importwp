@@ -78,7 +78,7 @@ class ImportLog {
 	static function get_last_row( $import_id, $version ) {
 		global $wpdb;
 		$import_id = intval( $import_id );
-		$row       = $wpdb->get_row( $wpdb->prepare("SELECT row FROM `" . $wpdb->prefix . "importer_log` WHERE object_id=%d AND version=%d GROUP BY row ORDER BY row DESC", $import_id, $version ));
+		$row       = $wpdb->get_row( $wpdb->prepare("SELECT row FROM `" . $wpdb->prefix . "importer_log` WHERE object_id=%d AND version=%d GROUP BY row ORDER BY row DESC LIMIT 1", $import_id, $version ));
 
 		if ( ! $row ) {
 			return 0;

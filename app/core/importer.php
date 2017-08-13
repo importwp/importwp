@@ -35,7 +35,7 @@ class JC_Importer_Core {
 	protected $start_line = 0;
 	protected $row_count = 0;
 	protected $record_import_count = 10;
-	protected $total_rows = 0;
+	protected $total_rows = -1;
 	protected $last_import_row = 0;
 	protected $name = '';
 	protected $version = 0;
@@ -318,11 +318,27 @@ class JC_Importer_Core {
 		return $this->record_import_count;
 	}
 
+	/**
+	 * Get file record count
+	 * @return int
+	 */
 	public function get_total_rows() {
 
 		$parser = $this->get_parser();
+		$this->total_rows = $parser->get_total_rows();
 
-		return $parser->get_total_rows();
+//		if($this->total_rows === -1){
+//			$meta = get_post_meta($this->get_ID(), sprintf('_total_rows_%d', $this->get_version()), true);
+//			if($meta === false){
+//				$parser = $this->get_parser();
+//				$this->total_rows = $parser->get_total_rows();
+//				update_post_meta($this->get_ID(), sprintf('_total_rows_%d', $this->get_version()), $this->total_rows);
+//			}else{
+//				$this->total_rows = intval($meta);
+//			}
+//		}
+
+		return $this->total_rows;
 	}
 
 	public function get_file() {

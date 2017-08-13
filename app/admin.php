@@ -481,6 +481,11 @@ class JC_Importer_Admin {
 
 	public function admin_ajax_import_all_rows(){
 
+		// Allow for other requests to run at the same time
+		if(session_status() == PHP_SESSION_ACTIVE){
+			session_write_close();
+		}
+
 		set_time_limit(30);
 		register_shutdown_function(array($this, 'on_server_timeout'));
 
@@ -489,14 +494,6 @@ class JC_Importer_Admin {
 		$request_type = isset($_POST['request']) ? $_POST['request'] == 'run' : 'check';
 
 		JCI()->importer = new JC_Importer_Core( $importer_id);
-
-		$start_row = JCI()->importer->get_start_line();
-		$total_records = JCI()->importer->get_total_rows();
-		$max_records = JCI()->importer->get_row_count();
-		if($max_records > 0){
-			$total_records = $max_records;
-		}
-		$per_row = JCI()->importer->get_record_import_count();
 
 		// ---
 		// if we are no
@@ -515,10 +512,6 @@ class JC_Importer_Admin {
 			switch($status['status']){
 				case 'timeout':
 					// we are resuming a timeout
-					$start_row = intval($status['last_record']) + 2;
-
-					$status['status'] = 'running';
-					$this->write_status_file($status);
 					break;
 				default:
 					echo json_encode($status, true);
@@ -526,7 +519,26 @@ class JC_Importer_Admin {
 					break;
 			}
 		}else{
-			$this->write_status_file(array('status' => 'started'), JCI()->importer->get_version() + 1);
+			$status = array('status' => 'started');
+			$this->write_status_file($status, JCI()->importer->get_version() + 1);
+		}
+
+		$start_row = JCI()->importer->get_start_line();
+		$total_records = JCI()->importer->get_total_rows();
+
+		$max_records = JCI()->importer->get_row_count();
+		if($max_records > 0){
+			$total_records = $max_records;
+		}
+		$per_row = JCI()->importer->get_record_import_count();
+
+		if(isset($status['status']) && $status['status'] == 'timeout'){
+			$start_row = intval($status['last_record']) + 2;
+			$status['status'] = 'running';
+			$this->write_status_file($status);
+		}else{
+			// remove total row count cache
+//			delete_post_meta(JCI()->importer->get_ID(), sprintf('_total_rows_%d', JCI()->importer->get_version()));
 		}
 
 		$rows = ceil(( $total_records - ($start_row-1) ) / $per_row);
