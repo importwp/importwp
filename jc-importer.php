@@ -176,6 +176,7 @@ class JC_Importer {
 		// core models.
 		require_once 'app/models/importer.php';
 		require_once 'app/models/log.php';
+		require_once 'app/models/class-iwp-status.php';
 
 		if ( is_admin() ) {
 

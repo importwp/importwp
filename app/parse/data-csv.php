@@ -13,6 +13,8 @@ class JC_CSV_Parser extends JC_Parser {
 	private $default_csv_delimiter = ',';
 	private $default_csv_enclosure = '&quot;';
 
+	protected $_seekIndex = array();
+
 	/**
 	 * Setup Actions and filters
 	 */
@@ -149,75 +151,63 @@ class JC_CSV_Parser extends JC_Parser {
 	 */
 	public function parse( $selected_row = null, $max_rows = 1 ) {
 
-		/*
-		// load seek value from session
-		$this->load_session();
-
-		// load file
-		$records = array();
-		$counter = 1;
-
-		// new way to read csv files, split them into separate files first.
-		//		if($selected_row != null) {
-		//			$file_reader = new IWP_CSV_Reader( $this->file );
-		//			$fh          = $file_reader->get_file_handle( $this->seek, $this->seek_record_count );
-		//		}else{
-		$fh      = fopen( $this->file, 'r' );
-		//		}
-
-		//		$file_reader = new IWP_CSV_Reader( $this->file );
-		//		$fh          = $file_reader->get_file_handle( $this->seek, $this->seek_record_count );
-*/
-
-		if($selected_row == null){
-			$this->start = JCI()->importer->get_start_line();
-			$row_count = JCI()->importer->get_row_count();
-			if($row_count > 0){
-				$this->end = $this->start + $row_count;
-			}else{
-				$this->end = $this->start + JCI()->importer->get_total_rows();
-			}
-		}else{
-			$this->start = $selected_row;
-			$this->end = $this->start + ($max_rows - 1);
-			if(JCI()->importer->get_row_count() > 0 && JCI()->importer->get_row_count() < $this->end){
-				$this->end = JCI()->importer->get_row_count();
-			}
-
-//			$this->start = $selected_row;
-//			$this->end = $this->start + ($max_rows - 1);
-//			$row_count = JCI()->importer->get_row_count();
-//			if($row_count > 0){
-//				if($row_count < $this->end){
-//					$this->end = $row_count;
-//				}else{
-//					$this->end = $this->start + $row_count;
-//				}
-//			}else{
-//				$this->end = $this->start + JCI()->importer->get_total_rows();
-//			}
+		$start_row= JCI()->importer->get_start_line();
+		if(!is_null($selected_row)){
+			$start_row = $selected_row;
 		}
 
+		$total_rows = JCI()->importer->get_total_rows();
+		$per_row = JCI()->importer->get_record_import_count();
 
+		// records per import
+		$max_rows = JCI()->importer->get_row_count();
+		if($max_rows > 0){
+			$total_rows = $start_row + $max_rows;
+		}
+
+		if($start_row + $per_row < $total_rows){
+			$total_rows = $start_row + $per_row;
+		}
+
+		if($total_rows > JCI()->importer->get_start_line() + $max_rows){
+			$total_rows = JCI()->importer->get_start_line() + $max_rows;
+		}
+
+		$this->start = $start_row;
+		$this->end = $total_rows;
+
+//		if($selected_row == null){
+//
+//		}else{
+//			$this->start = $selected_row;
+//			$this->end = $this->start + ($max_rows - 1);
+//			if(JCI()->importer->get_row_count() > 0 && JCI()->importer->get_row_count() < $this->end){
+//				$this->end = JCI()->importer->get_row_count();
+//			}
+//		}
 
 		$groups = JCI()->importer->get_template_groups();
 
 		$fh      = fopen( $this->file, 'r' );
+
 		$records = array();
 		$counter = 1;
 
-		// reset file position
-		$this->seek = 0;
-		$this->seek_record_count = 0;
+		// read from last seek
+		$status = IWP_Status::read_file();
+		if(isset($status['seek']) && intval($status['seek']) > 0){
+			fseek($fh, intval($status['seek']));
+			$counter = intval($status['last_record']) + 1;
+		}else{
 
-		// load seek value from session
-		$this->load_session();		
+			// generate seek index
+			$seek_index = array();
+			while ( ( $buffer = fgets( $fh, 4096 ) ) !== false ) {
+				$seek_index[] = ftell($fh);
+			}
 
-		// check to see if the file has already been read, if so load the new starting point
-		if( intval($this->seek) > 0 && intval($this->seek_record_count) > 0 ){
-
-			fseek($fh, $this->seek);
-			$counter = $this->seek_record_count;
+			fseek($fh, intval($seek_index[$start_row - 2]));
+			$counter = $start_row;
 		}
 
 		// set enclosure and delimiter
@@ -232,6 +222,12 @@ class JC_CSV_Parser extends JC_Parser {
 				if($selected_row < $counter && $this->end < $counter){
 					break;
 				}
+
+				// only output debug if we are seeking
+//				if(isset($status['seek']) && intval($status['seek']) > 0) {
+//					file_put_contents( JCI()->get_plugin_dir() . '/app/tmp/debug-' . JCI()->importer->get_ID() . '-' . JCI()->importer->get_version() . '.txt',
+//						"Wasted Row: $counter , Selected row: $selected_row , Start: {$this->start}, End: {$this->end}\n", FILE_APPEND );
+//				}
 
 				$counter ++;
 				continue;
@@ -260,16 +256,18 @@ class JC_CSV_Parser extends JC_Parser {
 			}
 
 			$records[ $counter - 1 ] = $row;
+			$this->_seekIndex[$counter - 1] = ftell($fh);
+
 			$counter ++;
 
 			// escape early if selected row
-			if ( ! is_null( $selected_row ) && $this->end < $counter ) {
+			if ( $this->end <= $counter ) {
 
-				$this->seek = ftell($fh);
-				$this->seek_record_count = $counter;
+//				$this->seek = ftell($fh);
+//				$this->seek_record_count = $counter;
 
 				// save file byte location for quick resume
-				$this->save_session();
+//				$this->save_session();
 				break;
 			}
 		}
@@ -362,6 +360,10 @@ class JC_CSV_Parser extends JC_Parser {
 		fclose( $fh );
 
 		return $linecount;
+	}
+
+	public function get_seek_index($row){
+		return isset($this->_seekIndex[$row]) ? $this->_seekIndex[$row] : null;
 	}
 }
 

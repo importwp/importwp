@@ -498,7 +498,7 @@ class JC_Importer_Admin {
 		// ---
 		// if we are no
 		if($request_type != 'run'){
-			$status = $this->read_status_file();
+			$status = IWP_Status::read_file();
 			if($status) {
 				echo json_encode($status, true);
 			}
@@ -506,7 +506,7 @@ class JC_Importer_Admin {
 		}
 		// ---
 
-		$status = $this->read_status_file();
+		$status = IWP_Status::read_file();
 		if($status){
 
 			switch($status['status']){
@@ -520,7 +520,7 @@ class JC_Importer_Admin {
 			}
 		}else{
 			$status = array('status' => 'started');
-			$this->write_status_file($status, JCI()->importer->get_version() + 1);
+			IWP_Status::write_file($status, null, JCI()->importer->get_version() + 1);
 		}
 
 		$start_row = JCI()->importer->get_start_line();
@@ -528,31 +528,28 @@ class JC_Importer_Admin {
 
 		$max_records = JCI()->importer->get_row_count();
 		if($max_records > 0){
-			$total_records = $max_records;
+			$total_records = $start_row + $max_records -1;
 		}
 		$per_row = JCI()->importer->get_record_import_count();
 
 		if(isset($status['status']) && $status['status'] == 'timeout'){
 			$start_row = intval($status['last_record']) + 2;
 			$status['status'] = 'running';
-			$this->write_status_file($status);
-		}else{
-			// remove total row count cache
-//			delete_post_meta(JCI()->importer->get_ID(), sprintf('_total_rows_%d', JCI()->importer->get_version()));
+			IWP_Status::write_file($status);
 		}
 
 		$rows = ceil(( $total_records - ($start_row-1) ) / $per_row);
 		$this->_running = true;
 
 		// Import Records
-		for($i = 0; $i <= $rows; $i++){
+		for($i = 0; $i < $rows; $i++){
 			$start = $start_row + ($i * $per_row);
 			JCI()->importer->run_import($start, false, $per_row);
 		}
 
-		$status = $this->read_status_file();
+		$status = IWP_Status::read_file();
 		$status['status'] = 'deleting';
-		$this->write_status_file($status);
+		IWP_Status::write_file($status);
 
 		// TODO: Delete Records
 		$mapper = new JC_BaseMapper();
@@ -561,36 +558,12 @@ class JC_Importer_Admin {
 
 		$this->_running = false;
 
-//		$status = $this->read_status_file();
+//		$status = IWP_Status::read_file();
 		$status['status'] = 'complete';
-		$this->write_status_file($status);
+		IWP_Status::write_file($status);
 		echo json_encode($status, true);
 		die();
 
-	}
-
-	function get_status_file_path($version = 0){
-
-		$v = JCI()->importer->get_version();
-		if($version !== 0){
-			$v = $version;
-		}
-
-		return JCI()->get_plugin_dir() . '/app/tmp/status-' . JCI()->importer->get_ID().'-'.$v;
-	}
-
-	function read_status_file(){
-		$status_file = $this->get_status_file_path();
-		if(!file_exists($status_file)){
-			return false;
-		}
-		$status = json_decode(file_get_contents($status_file), true);
-		return $status;
-	}
-
-	function write_status_file($data, $version = 0){
-		$status_file = $this->get_status_file_path($version);
-		file_put_contents($status_file, json_encode($data));
 	}
 
 	/**
@@ -602,11 +575,9 @@ class JC_Importer_Admin {
 			return;
 		}
 
-		$status_file = JCI()->get_plugin_dir() . '/app/tmp/status-' . JCI()->importer->get_ID().'-'.JCI()->importer->get_version();
-
-		$status = json_decode(file_get_contents($status_file), true);
+		$status = IWP_Status::read_file();
 		$status['status'] = 'timeout';
-		file_put_contents($status_file, json_encode($status));
+		IWP_Status::write_file($status);
 	}
 
 	/**

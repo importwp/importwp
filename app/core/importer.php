@@ -324,19 +324,16 @@ class JC_Importer_Core {
 	 */
 	public function get_total_rows() {
 
-		$parser = $this->get_parser();
-		$this->total_rows = $parser->get_total_rows();
-
-//		if($this->total_rows === -1){
-//			$meta = get_post_meta($this->get_ID(), sprintf('_total_rows_%d', $this->get_version()), true);
-//			if($meta === false){
-//				$parser = $this->get_parser();
-//				$this->total_rows = $parser->get_total_rows();
-//				update_post_meta($this->get_ID(), sprintf('_total_rows_%d', $this->get_version()), $this->total_rows);
-//			}else{
-//				$this->total_rows = intval($meta);
-//			}
-//		}
+		if($this->total_rows === -1){
+			$meta = get_post_meta($this->get_ID(), sprintf('_total_rows_%d', $this->get_version()), true);
+			if(empty($meta)){
+				$parser = $this->get_parser();
+				$this->total_rows = $parser->get_total_rows();
+				update_post_meta($this->get_ID(), sprintf('_total_rows_%d', $this->get_version()), $this->total_rows);
+			}else{
+				$this->total_rows = intval($meta);
+			}
+		}
 
 		return $this->total_rows;
 	}

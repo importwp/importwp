@@ -215,24 +215,33 @@ class JC_BaseMapper {
 		global $jcimporter;
 		$importer_id = $jcimporter->importer->get_ID();
 		$this->_running = true;
+
+		$parser = JCI()->importer->get_parser();
+
 		foreach ( $data as $data_index => $data_row ) {
 
 			$this->set_import_version($data_index);
 			$this->processRow( $data_row );
 			ImportLog::insert( $importer_id, $this->_current_row, $this->_insert[ $this->_current_row ] );
 
+			// get seek info
+			$seek = 0;
+			if(method_exists($parser, 'get_seek_index')){
+				$seek = $parser->get_seek_index($data_index);
+			}
+
 			// write to status file
-			$status_file = JCI()->get_plugin_dir() . '/app/tmp/status-' . JCI()->importer->get_ID().'-'.JCI()->importer->get_version();
-			file_put_contents($status_file, json_encode(array(
+			IWP_Status::write_file(array(
 				'status' => 'running',
 				'message' => '',
 				'last_record' => $data_index,
+				'seek' => $seek,
 				'start' => $start_row,
 				'end' => $end_row
-			)));
+			));
 
 			file_put_contents(JCI()->get_plugin_dir() . '/app/tmp/status-' . JCI()->importer->get_ID().'-'.JCI()->importer->get_version().'.txt',
-				"$data_index\n", FILE_APPEND);
+				"$data_index - $seek\n", FILE_APPEND);
 		}
 
 		// check to see if last row
