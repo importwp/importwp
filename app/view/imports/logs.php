@@ -93,6 +93,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
 				<?php if(file_exists($jcimporter->importer->file)): ?>
 
+                <p class="iwp__progress"></p>
+
 				<div class="form-actions">
 					<br/>
 					<?php if($import_status == 1): ?>
@@ -220,6 +222,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                         var response_text = '';
                         if (response !== null && typeof response === 'object' && response.hasOwnProperty('data') && response.data.hasOwnProperty('last_record') && response.data.hasOwnProperty('end')) {
                             response_text = response.data.last_record + "/" + response.data.end;
+                        }else{
+                            response_text = "initialising";
                         }
 
                         if (response.data.status === "timeout") {
@@ -235,7 +239,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
                             clearInterval(interval);
                             complete = true;
-                            $btn.text('Complete ' + time_in_seconds + 's');
+                            $('.iwp__progress').text('Complete, Imported '+response.data.counter+' Records, Elapsed time ' + time_in_seconds + 's').show();
+                            $btn.text('Complete');
                         } else {
 
                             currentDate = new Date();
@@ -243,9 +248,9 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                             time_in_seconds = Math.floor(diff / 1000);
 
                             if (response.data.status === "deleting") {
-                                $btn.text('Deleting ' + time_in_seconds + 's');
+                                $('.iwp__progress').text('Deleting, Elapsed time ' + time_in_seconds + 's').show();
                             } else {
-                                $btn.text('Running ' + response_text + " " + time_in_seconds + 's');
+                                $('.iwp__progress').text('Importing: ' + response_text + ", Elapsed time " + time_in_seconds + 's').show();
                             }
                         }
                     }
@@ -266,7 +271,13 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
         $(document).on('click', '.jc-importer_update-run', function(){
 
             var $btn = $(this);
-            $btn.text('Initialising');
+            if($btn.hasClass('button-disabled')){
+                return;
+            }
+
+            $('.iwp__progress').text('Initialising');
+            $btn.addClass('button-disabled');
+            $btn.text('Running');
             startDate = currentDate = lastAjaxRequestSent = new Date();
 
             on_button_pressed($btn);

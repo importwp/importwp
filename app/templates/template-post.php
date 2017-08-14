@@ -8,7 +8,7 @@ class JC_Post_Template extends JC_Importer_Template {
 
 		'post' => array(
 			'import_type'      => 'post', // which map to use
-			'import_type_name' => 'book', // post_type
+			'import_type_name' => 'post', // post_type
 			'field_type'       => 'single', // single|repeater
 			'post_status'      => 'publish', // default group publish
 			'group'            => 'post', // group name, for old time sake
