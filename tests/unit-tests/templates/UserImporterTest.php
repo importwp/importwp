@@ -78,6 +78,8 @@ class UserImporterTest extends WP_UnitTestCase {
 		 */
 		ImporterModel::clearImportSettings();
 		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$this->importer->importer->set_version($this->importer->importer->get_version() + 1);
+
 		$test                     = $this->importer->importer->run_import();
 		$this->assertEquals( 7, count( $test ) );
 		foreach ( $test as $response ) {

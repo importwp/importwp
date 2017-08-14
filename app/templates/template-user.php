@@ -179,6 +179,12 @@ class JC_User_Template extends JC_Importer_Template {
 		add_filter( 'jci/log_user_columns', array( $this, 'log_user_columns' ) );
 		add_action( 'jci/log_user_content', array( $this, 'log_user_content' ), 10, 2 );
 
+		// Quick Fix: Skip if we are in an ajax request
+		// TODO: Switch this to an ajax search / select instead so we dont have to list all.
+		if(true === wp_doing_ajax()){
+			return;
+		}
+
 		// output role select
 		global $wp_roles;
 		$test_roles = array();

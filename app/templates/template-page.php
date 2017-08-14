@@ -95,6 +95,12 @@ class JC_Page_Template extends JC_Importer_Template {
 
 		add_action( 'jci/before_import', array( $this, 'before_import' ) );
 
+		// Quick Fix: Skip if we are in an ajax request
+		// TODO: Switch this to an ajax search / select instead so we dont have to list all.
+		if(true === wp_doing_ajax()){
+			return;
+		}
+
 		foreach( $this->_field_groups['page']['map'] as &$field){
 			
 			

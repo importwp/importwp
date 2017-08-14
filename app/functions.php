@@ -220,17 +220,24 @@ function jci_get_post_list($post_type = ''){
 
 	$posts = new WP_Query(array(
 		'post_type' => $post_type,
-		'posts_per_page' => -1
+		'posts_per_page' => -1,
+		'fields' => 'ids'
 	));
 
 	$ordered_posts = array(null => 'None');
 
 	if($posts->have_posts()){
-		while($posts->have_posts()){
-			$posts->the_post();
-			$ordered_posts[get_the_ID()] = get_the_title();
+
+		if($posts->found_posts > 1000){
+			foreach($posts->posts as $id){
+				$ordered_posts[$id] = sprintf("Post: %d", $id);
+			}
+		}else{
+			foreach($posts->posts as $id){
+				$ordered_posts[$id] = get_the_title($id);
+			}
 		}
-		wp_reset_postdata();
+
 	}
 
 	return $ordered_posts;

@@ -143,7 +143,7 @@ class JC_CSV_Parser extends JC_Parser {
 		return $this->_records[ $row - 1 ];
 	}
 
-	public function get_import_info($selected_row = null, $max_rows_limit = 1){
+	public function get_import_info($selected_row = null, $max_rows_limit = 0){
 
 		// Calculate start row
 		$start = $start_row= JCI()->importer->get_start_line();
@@ -160,7 +160,7 @@ class JC_CSV_Parser extends JC_Parser {
 			$end = $start + $max_rows;
 		}
 
-		if($start + $max_rows_limit < $end){
+		if($max_rows_limit > 0 && $start + $max_rows_limit < $end){
 			$end = $start + $max_rows_limit;
 		}
 
@@ -178,7 +178,7 @@ class JC_CSV_Parser extends JC_Parser {
 	 * Load CSV File and parse data into results array
 	 * @return array
 	 */
-	public function parse( $selected_row = null, $max_rows = 1 ) {
+	public function parse( $selected_row = null, $max_rows = 0 ) {
 
 		$info = $this->get_import_info($selected_row, $max_rows);
 		$this->start = $info['start'];

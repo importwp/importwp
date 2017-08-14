@@ -8,7 +8,7 @@ class JC_Post_Template extends JC_Importer_Template {
 
 		'post' => array(
 			'import_type'      => 'post', // which map to use
-			'import_type_name' => 'post', // post_type
+			'import_type_name' => 'book', // post_type
 			'field_type'       => 'single', // single|repeater
 			'post_status'      => 'publish', // default group publish
 			'group'            => 'post', // group name, for old time sake
@@ -91,8 +91,11 @@ class JC_Post_Template extends JC_Importer_Template {
 
 		add_action( 'jci/before_import', array( $this, 'before_import' ) );
 
-		return;
-
+		// Quick Fix: Skip if we are in an ajax request
+        // TODO: Switch this to an ajax search / select instead so we dont have to list all.
+		if(true === wp_doing_ajax()){
+		    return;
+        }
 		
 		foreach( $this->_field_groups['post']['map'] as &$field){
 
@@ -109,7 +112,7 @@ class JC_Post_Template extends JC_Importer_Template {
 				/**
 				 * Populate parent posts pages
 				 */
-				$field['options'] = jci_get_post_list('post');
+				$field['options'] = jci_get_post_list($this->_field_groups['post']['import_type_name']);
 			}
 		}
 	}

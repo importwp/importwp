@@ -67,6 +67,15 @@ class ImportWP_Unit_Tests_Bootstrap {
 		tests_add_filter( 'setup_theme', array( $this, 'install_jci_db' ));
 
 		require_once( $this->plugin_dir . '/jc-importer.php' );
+
+		// clear status files
+		$tmp = JCI()->get_plugin_dir() . '/app/tmp/status-*';
+
+		$files = glob($tmp); // get all file names
+		foreach($files as $file){ // iterate files
+			if(is_file($file))
+				unlink($file); // delete file
+		}
 	}
 
 	function install_jci_db() {
