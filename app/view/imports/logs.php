@@ -218,17 +218,17 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                         var time_in_seconds = 0;
 
                         var response_text = '';
-                        if (response !== null && typeof response === 'object' && response.hasOwnProperty('last_record') && response.hasOwnProperty('end')) {
-                            response_text = response.last_record + "/" + response.end;
+                        if (response !== null && typeof response === 'object' && response.hasOwnProperty('data') && response.data.hasOwnProperty('last_record') && response.data.hasOwnProperty('end')) {
+                            response_text = response.data.last_record + "/" + response.data.end;
                         }
 
-                        if (response.status === "timeout") {
+                        if (response.data.status === "timeout") {
                             // we have got a timeout response
                             // so the next ajax request will issue a fetch
                             run = true;
                         }
 
-                        if (response.status === "complete") {
+                        if (response.data.status === "complete") {
 
                             diff = currentDate.getTime() - startDate.getTime();
                             time_in_seconds = Math.floor(diff / 1000);
@@ -242,7 +242,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                             diff = currentDate.getTime() - startDate.getTime();
                             time_in_seconds = Math.floor(diff / 1000);
 
-                            if (response.status === "deleting") {
+                            if (response.data.status === "deleting") {
                                 $btn.text('Deleting ' + time_in_seconds + 's');
                             } else {
                                 $btn.text('Running ' + response_text + " " + time_in_seconds + 's');

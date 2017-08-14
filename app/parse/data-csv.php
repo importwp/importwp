@@ -143,6 +143,35 @@ class JC_CSV_Parser extends JC_Parser {
 		return $this->_records[ $row - 1 ];
 	}
 
+	public function get_import_info($selected_row = null, $max_rows_limit = 1){
+
+		// Calculate start row
+		$start = $start_row= JCI()->importer->get_start_line();
+		if(!is_null($selected_row)){
+			$start = $selected_row;
+		}
+
+		$end = $total_rows = JCI()->importer->get_total_rows() + 1;
+		$per_row = JCI()->importer->get_record_import_count();
+
+		// records per import
+		$max_rows = JCI()->importer->get_row_count();
+		if($max_rows > 0){
+			$end = $start + $max_rows;
+		}
+
+		if($start + $max_rows_limit < $end){
+			$end = $start + $max_rows_limit;
+		}
+
+		$info = array(
+			'start' => $start,
+			'end' => $end
+		);
+
+		return $info;
+	}
+
 	/**
 	 * Parse CSV
 	 *
@@ -151,40 +180,9 @@ class JC_CSV_Parser extends JC_Parser {
 	 */
 	public function parse( $selected_row = null, $max_rows = 1 ) {
 
-		$start_row= JCI()->importer->get_start_line();
-		if(!is_null($selected_row)){
-			$start_row = $selected_row;
-		}
-
-		$total_rows = JCI()->importer->get_total_rows();
-		$per_row = JCI()->importer->get_record_import_count();
-
-		// records per import
-		$max_rows = JCI()->importer->get_row_count();
-		if($max_rows > 0){
-			$total_rows = $start_row + $max_rows;
-		}
-
-		if($start_row + $per_row < $total_rows){
-			$total_rows = $start_row + $per_row;
-		}
-
-		if($total_rows > JCI()->importer->get_start_line() + $max_rows){
-			$total_rows = JCI()->importer->get_start_line() + $max_rows;
-		}
-
-		$this->start = $start_row;
-		$this->end = $total_rows;
-
-//		if($selected_row == null){
-//
-//		}else{
-//			$this->start = $selected_row;
-//			$this->end = $this->start + ($max_rows - 1);
-//			if(JCI()->importer->get_row_count() > 0 && JCI()->importer->get_row_count() < $this->end){
-//				$this->end = JCI()->importer->get_row_count();
-//			}
-//		}
+		$info = $this->get_import_info($selected_row, $max_rows);
+		$this->start = $info['start'];
+		$this->end = $info['end'];
 
 		$groups = JCI()->importer->get_template_groups();
 
@@ -198,16 +196,17 @@ class JC_CSV_Parser extends JC_Parser {
 		if(isset($status['seek']) && intval($status['seek']) > 0){
 			fseek($fh, intval($status['seek']));
 			$counter = intval($status['last_record']) + 1;
+			$selected_row--;
 		}else{
 
 			// generate seek index
-			$seek_index = array();
+			$seek_index = array(0);
 			while ( ( $buffer = fgets( $fh, 4096 ) ) !== false ) {
 				$seek_index[] = ftell($fh);
 			}
 
-			fseek($fh, intval($seek_index[$start_row - 2]));
-			$counter = $start_row;
+			fseek($fh, intval($seek_index[$this->start - 1]));
+			$counter = $this->start;
 		}
 
 		// set enclosure and delimiter

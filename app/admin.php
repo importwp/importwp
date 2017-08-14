@@ -500,9 +500,9 @@ class JC_Importer_Admin {
 		if($request_type != 'run'){
 			$status = IWP_Status::read_file();
 			if($status) {
-				echo json_encode($status, true);
+				wp_send_json_success($status);
 			}
-			die();
+			wp_send_json_error(['message' => 'No Status file found.']);
 		}
 		// ---
 
@@ -514,8 +514,7 @@ class JC_Importer_Admin {
 					// we are resuming a timeout
 					break;
 				default:
-					echo json_encode($status, true);
-					die();
+					wp_send_json_success($status);
 					break;
 			}
 		}else{
@@ -558,12 +557,9 @@ class JC_Importer_Admin {
 
 		$this->_running = false;
 
-//		$status = IWP_Status::read_file();
 		$status['status'] = 'complete';
 		IWP_Status::write_file($status);
-		echo json_encode($status, true);
-		die();
-
+		wp_send_json_success($status);
 	}
 
 	/**

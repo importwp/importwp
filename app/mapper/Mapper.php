@@ -202,9 +202,10 @@ class JC_BaseMapper {
 			$this->_current_row = ( $row - 1 );
 		}
 
+		// TODO: Showing the wrong number for end row.
 		$start_row = JCI()->importer->get_start_line();
 		if(JCI()->importer->get_row_count() === 0){
-			$end_row = JCI()->importer->get_total_rows() - $start_row;
+			$end_row = JCI()->importer->get_total_rows();
 		}else{
 			$end_row = $start_row + JCI()->importer->get_row_count();
 		}
@@ -230,11 +231,16 @@ class JC_BaseMapper {
 				$seek = $parser->get_seek_index($data_index);
 			}
 
+			$status = IWP_Status::read_file();
+			$status_counter = isset($status['counter']) ? intval($status['counter']) : 0;
+			$status_counter++;
+
 			// write to status file
 			IWP_Status::write_file(array(
 				'status' => 'running',
 				'message' => '',
-				'last_record' => $data_index,
+				'last_record' => $data_index + 1,
+				'counter' => $status_counter,
 				'seek' => $seek,
 				'start' => $start_row,
 				'end' => $end_row
