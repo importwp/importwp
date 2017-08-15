@@ -238,7 +238,8 @@ class JC_PostMapper {
 		$meta_args  = array();
 		$query_args = array(
 			'post_type'   => $post_type,
-			'post_status' => $post_status
+			'post_status' => $post_status,
+			'fields' => 'ids'
 		);
 
 		foreach ( $unique_fields as $field ) {
@@ -266,7 +267,7 @@ class JC_PostMapper {
 		$query = new WP_Query( $query_args );
 
 		if ( $query->post_count == 1 ) {
-			return $query->post->ID;
+			return $query->posts[0];
 		}
 
 		return false;

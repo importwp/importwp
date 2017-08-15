@@ -221,6 +221,12 @@ class JC_BaseMapper {
 
 		foreach ( $data as $data_index => $data_row ) {
 
+			$status = IWP_Status::read_file();
+			if(IWP_Status::has_status('paused')){
+				// we are paused so lets not continue
+				break;
+			}
+
 			$this->set_import_version($data_index);
 			$this->processRow( $data_row );
 			ImportLog::insert( $importer_id, $this->_current_row, $this->_insert[ $this->_current_row ] );
@@ -231,7 +237,7 @@ class JC_BaseMapper {
 				$seek = $parser->get_seek_index($data_index);
 			}
 
-			$status = IWP_Status::read_file();
+
 			$status_counter = isset($status['counter']) ? intval($status['counter']) : 0;
 			$status_counter++;
 
