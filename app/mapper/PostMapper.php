@@ -154,9 +154,10 @@ class JC_PostMapper {
 			// check to see if fields need updating
 			$query = new WP_Query( array(
 				'post_type' => $post_type,
-				'p'         => $post_id
+				'p'         => $post_id,
+				'posts_per_page' => 1
 			) );
-			if ( $query->post_count == 1 ) {
+			if ( $query->found_posts == 1 ) {
 				$old_post = $query->post;
 
 				foreach ( $post as $k => $p ) {
@@ -175,6 +176,8 @@ class JC_PostMapper {
 				wp_update_post( $post );
 			}
 		}
+
+		// TODO: switch single get_post_meta to get_metadata
 
 		// update post meta
 		if ( ! empty( $meta ) ) {

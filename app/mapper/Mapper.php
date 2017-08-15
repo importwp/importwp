@@ -204,7 +204,8 @@ class JC_BaseMapper {
 
 		// TODO: Showing the wrong number for end row.
 		$start_row = JCI()->importer->get_start_line();
-		if(JCI()->importer->get_row_count() === 0){
+		$row_count = JCI()->importer->get_row_count();
+		if(intval($row_count) === 0){
 			$end_row = JCI()->importer->get_total_rows();
 		}else{
 			$end_row = $start_row + JCI()->importer->get_row_count();
