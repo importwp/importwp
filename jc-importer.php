@@ -163,6 +163,9 @@ class JC_Importer {
 	 */
 	public function init() {
 
+		require_once 'app/libs/class-iwp-debug.php';
+
+
 		do_action( 'jci/before_init' );
 
 		$this->register_post_types();

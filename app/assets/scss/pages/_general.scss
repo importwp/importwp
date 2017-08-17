@@ -90,8 +90,28 @@
 
 .iwp__progress{
     background: #FFF;
-    padding: 5px 10px;
+    padding: 10px 15px;
     border: 1px solid #c7c7c7;
     margin: 10px 0 0 0;
     display: none;
+    &.iwp__progress--visible {
+        display: block;
+    }
+    &.iwp__progress--running{
+        .iwp__progress-spinner{
+            visibility: visible;
+        }
+    }
 }
+
+.iwp__progress-spinner{
+    margin: 0;
+    float:none;
+}
+
+.iwp__progress-text{
+    margin: 0 0 0 10px;
+    line-height: 20px;
+    display: inline-block;
+}
+

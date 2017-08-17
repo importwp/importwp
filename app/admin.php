@@ -481,6 +481,8 @@ class JC_Importer_Admin {
 
 	public function admin_ajax_import_all_rows(){
 
+		IWP_Debug::timer("Start");
+
 		// Allow for other requests to run at the same time
 		if(session_status() == PHP_SESSION_ACTIVE){
 			session_write_close();
@@ -493,7 +495,11 @@ class JC_Importer_Admin {
 		$importer_id = intval( $_POST['id'] );
 		$request_type = isset($_POST['request']) ? $_POST['request'] == 'run' : 'check';
 
+		IWP_Debug::timer("Load::JC_Importer_Core");
+
 		JCI()->importer = new JC_Importer_Core( $importer_id);
+
+		IWP_Debug::timer("Loaded::JC_Importer_Core");
 
 		// ---
 		// if we are no
@@ -538,27 +544,40 @@ class JC_Importer_Admin {
 		}
 
 		$rows = ceil(( $total_records - ($start_row-1) ) / $per_row);
+
+		IWP_Debug::timer("Calculated Start / End Points");
 		$this->_running = true;
 
 		// Import Records
 		for($i = 0; $i < $rows; $i++){
+			IWP_Debug::timer("Importing Chunk");
 			$start = $start_row + ($i * $per_row);
 			JCI()->importer->run_import($start, false, $per_row);
+			IWP_Debug::timer("Imported Chunk");
+			$this->on_server_timeout();
 		}
 
 		$status = IWP_Status::read_file();
 		$status['status'] = 'deleting';
 		IWP_Status::write_file($status);
 
+		IWP_Debug::timer("Deleting Files");
+
 		// TODO: Delete Records
 		$mapper = new JC_BaseMapper();
 		$mapper->on_import_complete($importer_id, false);
+
+		IWP_Debug::timer("Deleted Files");
 
 
 		$this->_running = false;
 
 		$status['status'] = 'complete';
 		IWP_Status::write_file($status);
+		IWP_Debug::timer("Complete");
+
+		// display timer log
+		IWP_Debug::timer_log();
 		wp_send_json_success($status);
 	}
 
@@ -567,13 +586,17 @@ class JC_Importer_Admin {
 	 */
 	public function on_server_timeout(){
 
+		// output timer log to file
 		if(!$this->_running){
 			return;
 		}
 
+		IWP_Debug::timer_log();
+
 		$status = IWP_Status::read_file();
 		$status['status'] = 'timeout';
 		IWP_Status::write_file($status);
+		wp_send_json_success($status);
 	}
 
 	/**

@@ -93,7 +93,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
 				<?php if(file_exists($jcimporter->importer->file)): ?>
 
-                <p class="iwp__progress"></p>
+                <div class="iwp__progress"><div class="spinner iwp__progress-spinner"></div><p class="iwp__progress-text"></p></div>
 
 				<div class="form-actions">
 					<br/>
@@ -239,7 +239,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
                             clearInterval(interval);
                             complete = true;
-                            $('.iwp__progress').text('Complete, Imported '+response.data.counter+' Records, Elapsed time ' + time_in_seconds + 's').show();
+                            $progress.find('.iwp__progress-text').text('Complete, Imported '+response.data.counter+' Records, Elapsed time ' + time_in_seconds + 's').show();
+                            $progress.removeClass('iwp__progress--running');
                             $btn.text('Complete');
                         } else {
 
@@ -248,9 +249,9 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                             time_in_seconds = Math.floor(diff / 1000);
 
                             if (response.data.status === "deleting") {
-                                $('.iwp__progress').text('Deleting, Elapsed time ' + time_in_seconds + 's').show();
+                                $progress.find('.iwp__progress-text').text('Deleting, Elapsed time ' + time_in_seconds + 's').show();
                             } else {
-                                $('.iwp__progress').text('Importing: ' + response_text + ", Elapsed time " + time_in_seconds + 's').show();
+                                $progress.find('.iwp__progress-text').text('Importing: ' + response_text + ", Elapsed time " + time_in_seconds + 's').show();
                             }
                         }
                     }
@@ -265,6 +266,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
         };
 
+        var $progress = $('.iwp__progress');
+
         /**
          * On Start Import button pressed
          */
@@ -275,7 +278,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                 return;
             }
 
-            $('.iwp__progress').text('Initialising');
+            $progress.find('.iwp__progress-text').text('Initialising');
+            $progress.addClass('iwp__progress--running iwp__progress--visible');
             $btn.addClass('button-disabled');
             $btn.text('Running');
             startDate = currentDate = lastAjaxRequestSent = new Date();

@@ -190,6 +190,8 @@ class JC_BaseMapper {
 	}
 
 	final function process( $template = array(), $data = array(), $row = null ) {
+
+		IWP_Debug::timer("process::start");
 		
 		$this->setup($template);
 		$is_ajax = true;
@@ -218,9 +220,14 @@ class JC_BaseMapper {
 		$importer_id = $jcimporter->importer->get_ID();
 		$this->_running = true;
 
+		IWP_Debug::timer("process::initialized");
+
 		$parser = JCI()->importer->get_parser();
 
 		foreach ( $data as $data_index => $data_row ) {
+
+			IWP_Debug::timer("process::row_start");
+
 
 			$status = IWP_Status::read_file();
 			if(IWP_Status::has_status('paused')){
@@ -228,9 +235,18 @@ class JC_BaseMapper {
 				break;
 			}
 
+			$status_counter = isset($status['counter']) ? intval($status['counter']) : 0;
+			$this->_current_row = $start_row + $status_counter;
+
 			$this->set_import_version($data_index);
+
+			IWP_Debug::timer("process::increase import version");
+
 			$this->processRow( $data_row );
+
+			IWP_Debug::timer("process::process row");
 			ImportLog::insert( $importer_id, $this->_current_row, $this->_insert[ $this->_current_row ] );
+			IWP_Debug::timer("process::insert log");
 
 			// get seek info
 			$seek = 0;
@@ -238,8 +254,8 @@ class JC_BaseMapper {
 				$seek = $parser->get_seek_index($data_index);
 			}
 
+			IWP_Debug::timer("process::get seek value");
 
-			$status_counter = isset($status['counter']) ? intval($status['counter']) : 0;
 			$status_counter++;
 
 			// write to status file
@@ -253,12 +269,20 @@ class JC_BaseMapper {
 				'end' => $end_row
 			));
 
+			IWP_Debug::timer("process::write status file");
+
 			file_put_contents(JCI()->get_plugin_dir() . '/app/tmp/status-' . JCI()->importer->get_ID().'-'.JCI()->importer->get_version().'.txt',
 				"$data_index - $seek\n", FILE_APPEND);
+
+			IWP_Debug::timer("process::write log");
 		}
+
+		IWP_Debug::timer("process::complete check");
 
 		// check to see if last row
 		$this->complete_check( $this->_current_row, $is_ajax);
+
+		IWP_Debug::timer("process::complete check started");
 
 		return $this->_insert;
 	}
@@ -473,6 +497,8 @@ class JC_BaseMapper {
 	 */
 	final function processGroup( $group_id, $data ) {
 
+		IWP_Debug::timer("processGroup::start");
+
 		/**
 		 * @global JC_Importer $jcimporter
 		 */
@@ -499,15 +525,23 @@ class JC_BaseMapper {
 			$this->_current_group = $data;
 
 			foreach ( $data as $id => $field ) {
+				IWP_Debug::timer("processGroup::field_start");
 
 				// process field
 				$data[ $id ] = $this->processField( $field );
+				IWP_Debug::timer("processGroup::field_before_filter");
 				$data[ $id ] = apply_filters( 'jci/' . $this->_template->get_name() . '/process_field', $data[ $id ], $id);
+				IWP_Debug::timer("processGroup::field_end");
 			}
 
+			IWP_Debug::timer("processGroup::before_group_save");
 			$data = apply_filters( 'jci/before_' . $this->_template->get_name() . '_group_save', $data, $group_id );
+			IWP_Debug::timer("processGroup::after_group_save");
 
+			IWP_Debug::timer("processGroup::exist_check");
 			if ( ! $post_id = $mapper->exists( $group_id, $data ) ) {
+
+				IWP_Debug::timer("processGroup::exist_create_start");
 
 				// create if allowed
 				if ( isset( $permissions['create'] ) && $permissions['create'] == 1 ) {
@@ -523,7 +557,12 @@ class JC_BaseMapper {
 				} else {
 					throw new JCI_Exception( "No Enough Permissions to Insert Record", JCI_ERR );
 				}
+
+				IWP_Debug::timer("processGroup::exist_create_end");
+
 			} else {
+
+				IWP_Debug::timer("processGroup::exist_update_start");
 
 				// update if allowed
 				if ( isset( $permissions['update'] ) && $permissions['update'] == 1 ) {
@@ -534,6 +573,8 @@ class JC_BaseMapper {
 					$data['ID'] = $post_id;
 					throw new JCI_Exception( "No Enough Permissions to Update Record", JCI_ERR );
 				}
+
+				IWP_Debug::timer("processGroup::exist_update_end");
 			}
 
 			$data['_jci_updated_fields'] = $mapper->changed_fields;
@@ -563,6 +604,8 @@ class JC_BaseMapper {
 			throw $e;
 		}
 
+		IWP_Debug::timer("processGroup::end");
+
 		return $data;
 	}
 
@@ -571,6 +614,8 @@ class JC_BaseMapper {
 	 */
 	final function processRow( $data ) {
 
+		IWP_Debug::timer("processRow::start");
+
 		$this->_current_row ++;
 
 		try {
@@ -578,6 +623,8 @@ class JC_BaseMapper {
 			do_action( 'jci/before_' . $this->_template->get_name() . '_row_save', $data, $this->_current_row );
 
 			foreach ( $this->_group_process_order as $group_id ) {
+
+				IWP_Debug::timer("processRow::loop_start");
 
 				$group = $data[ $group_id ];
 
@@ -596,11 +643,16 @@ class JC_BaseMapper {
 						}
 						break;
 				}
+				IWP_Debug::timer("processRow::loop_end");
 			}
 
+			IWP_Debug::timer("processRow::attachment_start");
 			$this->processAttachments( $data );
+			IWP_Debug::timer("processRow::attachment_end");
 
+			IWP_Debug::timer("processRow::taxonomy_start");
 			$this->processTaxonomies( $data );
+			IWP_Debug::timer("processRow::taxonomy_end");
 
 			do_action( 'jci/after_' . $this->_template->get_name() . '_row_save', $data, $this->_current_row );
 
@@ -619,6 +671,8 @@ class JC_BaseMapper {
 			$this->_insert[ $this->_current_row ]['_jci_status'] = 'E';
 			$this->_insert[ $this->_current_row ]['_jci_msg']    = jci_error_message($e);
 		}
+
+		IWP_Debug::timer("processRow::end");
 	}
 
 	final function processTaxonomies( $data ) {
