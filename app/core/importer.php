@@ -230,17 +230,17 @@ class JC_Importer_Core {
 
 			if ( $row ) {
 
-				IWP_Debug::timer("Parser Start");
+				IWP_Debug::timer("Parser Start", "core");
 
 				$results = $parser->parse($row, $per_row);
 				if(empty($results)){
 					return false;
 				}
 
-				IWP_Debug::timer("Parser End, Start Processing");
+				IWP_Debug::timer("Parser End, Start Processing", "core");
 
 				$result  = $mapper->process( $jci_template, $results );
-				IWP_Debug::timer("Processing End");
+				IWP_Debug::timer("Processing End", "core");
 
 
 			} else {

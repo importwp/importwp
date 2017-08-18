@@ -76,6 +76,8 @@ class JC_PostMapper {
 	 */
 	function insert_data( $fields = array(), $post_status = '', $post_type = '' ) {
 
+    IWP_Debug::timer("PostMapper::insert_data -- start", "mapper");
+
 		$post = array();
 		$meta = array();
 
@@ -107,7 +109,11 @@ class JC_PostMapper {
 				}
 			}
 
+      IWP_Debug::timer("PostMapper::insert_data -- added", "mapper");
+
 			$this->add_version_tag( $post_id );
+
+      IWP_Debug::timer("PostMapper::insert_data -- versioned", "mapper");
 		}
 
 		return $post_id;
@@ -136,6 +142,8 @@ class JC_PostMapper {
 	 * @return integer
 	 */
 	function update_data( $post_id, $fields = array(), $post_type = '' ) {
+
+	  IWP_Debug::timer("PostMapper::update_data -- start", "mapper");
 
 		$post                      = array();
 		$meta                      = array();
@@ -204,7 +212,11 @@ class JC_PostMapper {
 			}
 		}
 
+    IWP_Debug::timer("PostMapper::update_data -- updated", "mapper");
+
 		$this->update_version_tag( $post_id );
+
+    IWP_Debug::timer("PostMapper::update_data -- versioned", "mapper");
 
 		return $post_id;
 	}
@@ -238,6 +250,8 @@ class JC_PostMapper {
 			return false;
 		}
 
+    IWP_Debug::timer("PostMapper::exists_data -- start", "mapper");
+
 		$meta_args  = array();
 		$query_args = array(
 			'post_type'   => $post_type,
@@ -268,6 +282,8 @@ class JC_PostMapper {
 		}
 
 		$query = new WP_Query( $query_args );
+
+    IWP_Debug::timer("PostMapper::exists_data -- end", "mapper");
 
 		if ( $query->post_count == 1 ) {
 			return $query->posts[0];

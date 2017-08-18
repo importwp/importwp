@@ -6,45 +6,86 @@
  * Time: 09:35
  */
 
-class IWP_Debug{
+class IWP_Debug {
 
-	static $_debug = false;
+  /**
+   * Toggle debug, true = show all timings, group_name = show that group only
+   *
+   * @var mixed
+   */
+  static $_debug = false;
 
-	/**
-	 * Add checkpoint for timer
-	 */
-	static function timer($str){
+  static $_timings = [];
 
-		if(self::$_debug !== true){
-			return;
-		}
+  /**
+   * Add checkpoint for timer
+   */
+  static function timer($str, $group = '') {
 
-		global $prof_timing, $prof_names;
-		$prof_timing[] = microtime(true);
-		$prof_names[] = $str;
-	}
+    if (self::$_debug === FALSE) {
+      return;
+    }
 
-	/**
-	 * Output list of all timed checkpoints
-	 */
-	static function timer_log(){
+    self::$_timings[] = [
+      'time'  => microtime(TRUE),
+      'name'  => $str,
+      'group' => $group,
+    ];
+  }
 
-		if(self::$_debug !== true){
-			return;
-		}
+  /**
+   * Output list of all timed checkpoints
+   */
+  static function timer_log($prefix = '') {
 
-		global $prof_timing, $prof_names;
-		$size = count($prof_timing);
-		ob_start();
-		for($i=0;$i<$size - 1; $i++)
-		{
-			echo "{$prof_names[$i]}\n";
-			echo sprintf(" %f\n", $prof_timing[$i+1]-$prof_timing[$i]);
-		}
-		echo "  {$prof_names[$size-1]}\n";
-		$contents = ob_get_clean();
+    if (self::$_debug === FALSE) {
+      return;
+    }
 
-		file_put_contents(JCI()->get_plugin_dir() . '/app/tmp/debug-'.time().'.txt', $contents, FILE_APPEND);
-	}
+    if(!empty($prefix)){
+      $prefix .= '-';
+    }
+
+    $total = '';
+    $timing_count = count(self::$_timings);
+    if($timing_count > 1){
+
+      $total = round(self::$_timings[$timing_count - 1]['time'] - self::$_timings[0]['time'], 2) . '-';
+    }
+
+    $contents = self::output_timings();
+    file_put_contents(JCI()->get_plugin_dir() . '/app/tmp/debug-' . $prefix . $total . time() . '.txt', $contents, FILE_APPEND);
+  }
+
+  private static function output_timings() {
+
+    ob_start();
+
+    if (!empty(self::$_timings)) {
+      $last_time = FALSE;
+      foreach (self::$_timings as $timing) {
+
+        if (
+          self::$_debug === TRUE
+          || self::$_debug === $timing['group']
+        ) {
+
+          if ($last_time !== FALSE) {
+            echo sprintf(" %f\n", $timing['time'] - $last_time);
+          }
+          $last_time = $timing['time'];
+
+          echo $timing['name'];
+          if (!empty($timing['group'])) {
+            echo " - " . $timing['group'];
+          }
+
+          echo "\n";
+        }
+      }
+    }
+
+    return ob_get_clean();
+  }
 
 }

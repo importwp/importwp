@@ -481,7 +481,7 @@ class JC_Importer_Admin {
 
 	public function admin_ajax_import_all_rows(){
 
-		IWP_Debug::timer("Start");
+		IWP_Debug::timer("Start", "core");
 
 		// Allow for other requests to run at the same time
 		if(session_status() == PHP_SESSION_ACTIVE){
@@ -495,11 +495,11 @@ class JC_Importer_Admin {
 		$importer_id = intval( $_POST['id'] );
 		$request_type = isset($_POST['request']) ? $_POST['request'] == 'run' : 'check';
 
-		IWP_Debug::timer("Load::JC_Importer_Core");
+		IWP_Debug::timer("Load::JC_Importer_Core", "core");
 
 		JCI()->importer = new JC_Importer_Core( $importer_id);
 
-		IWP_Debug::timer("Loaded::JC_Importer_Core");
+		IWP_Debug::timer("Loaded::JC_Importer_Core", "core");
 
 		// ---
 		// if we are no
@@ -545,15 +545,15 @@ class JC_Importer_Admin {
 
 		$rows = ceil(( $total_records - ($start_row-1) ) / $per_row);
 
-		IWP_Debug::timer("Calculated Start / End Points");
+		IWP_Debug::timer("Calculated Start / End Points", "core");
 		$this->_running = true;
 
 		// Import Records
 		for($i = 0; $i < $rows; $i++){
-			IWP_Debug::timer("Importing Chunk");
+			IWP_Debug::timer("Importing Chunk", "core");
 			$start = $start_row + ($i * $per_row);
 			JCI()->importer->run_import($start, false, $per_row);
-			IWP_Debug::timer("Imported Chunk");
+			IWP_Debug::timer("Imported Chunk", "core");
 
 			// we show timeout if more records need to be imported.
 			if($i < $rows - 1){
@@ -566,23 +566,23 @@ class JC_Importer_Admin {
 		$status['status'] = 'deleting';
 		IWP_Status::write_file($status);
 
-		IWP_Debug::timer("Deleting Files");
+		IWP_Debug::timer("Deleting Files", "core");
 
 		// TODO: Delete Records
 		$mapper = new JC_BaseMapper();
 		$mapper->on_import_complete($importer_id, false);
 
-		IWP_Debug::timer("Deleted Files");
+		IWP_Debug::timer("Deleted Files", "core");
 
 
 		$this->_running = false;
 
 		$status['status'] = 'complete';
 		IWP_Status::write_file($status);
-		IWP_Debug::timer("Complete");
+		IWP_Debug::timer("Complete", "core");
 
 		// display timer log
-		IWP_Debug::timer_log();
+		IWP_Debug::timer_log(JCI()->importer->get_version() . '-' . JCI()->importer->get_last_import_row());
 		wp_send_json_success($status);
 	}
 
@@ -596,7 +596,7 @@ class JC_Importer_Admin {
 			return;
 		}
 
-		IWP_Debug::timer_log();
+		IWP_Debug::timer_log(JCI()->importer->get_version() . '-' . JCI()->importer->get_last_import_row());
 
 		$status = IWP_Status::read_file();
 		$status['status'] = 'timeout';
