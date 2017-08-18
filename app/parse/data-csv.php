@@ -156,8 +156,8 @@ class JC_CSV_Parser extends JC_Parser {
 
 		// records per import
 		$max_rows = JCI()->importer->get_row_count();
-		if($max_rows > 0){
-			$end = $start + $max_rows;
+		if($max_rows > 0 && $end > $start_row + $max_rows){
+			$end = $start_row + $max_rows;
 		}
 
 		if($max_rows_limit > 0 && $start + $max_rows_limit < $end){

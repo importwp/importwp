@@ -538,7 +538,7 @@ class JC_Importer_Admin {
 		$per_row = JCI()->importer->get_record_import_count();
 
 		if(isset($status['status']) && $status['status'] == 'timeout'){
-			$start_row = intval($status['last_record']) + 2;
+			$start_row = intval($status['last_record']) + 1;
 			$status['status'] = 'running';
 			IWP_Status::write_file($status);
 		}
@@ -554,7 +554,12 @@ class JC_Importer_Admin {
 			$start = $start_row + ($i * $per_row);
 			JCI()->importer->run_import($start, false, $per_row);
 			IWP_Debug::timer("Imported Chunk");
-			$this->on_server_timeout();
+
+			// we show timeout if more records need to be imported.
+			if($i < $rows - 1){
+				$this->_running = false;
+				return $this->on_server_timeout(true);
+			}
 		}
 
 		$status = IWP_Status::read_file();
@@ -584,10 +589,10 @@ class JC_Importer_Admin {
 	/**
 	 * Triggered when server timeout occurs and the importer is still running
 	 */
-	public function on_server_timeout(){
+	public function on_server_timeout($force = false){
 
 		// output timer log to file
-		if(!$this->_running){
+		if(!$this->_running && false === $force){
 			return;
 		}
 
