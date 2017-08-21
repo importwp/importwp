@@ -1,18 +1,14 @@
 <?php
-/**
- * @global JC_Importer $jcimporter
- */
-global $jcimporter;
-
 // load settings from gloabl
-$importer_id   = $jcimporter->importer->get_ID();
-$parser        = $jcimporter->importer->get_parser();
-$template_name = $jcimporter->importer->get_template_name();
-$template      = $jcimporter->importer->get_template();
-$start_line    = $jcimporter->importer->get_start_line();
-$row_count     = $jcimporter->importer->get_row_count();
-$record_import_count  = $jcimporter->importer->get_record_import_count();
-$name          = $jcimporter->importer->get_name();
+$importer_id   = JCI()->importer->get_ID();
+$parser        = JCI()->importer->get_parser();
+$template_name = JCI()->importer->get_template_name();
+$template      = JCI()->importer->get_template();
+$start_line    = JCI()->importer->get_start_line();
+$row_count     = JCI()->importer->get_row_count();
+$record_import_count  = JCI()->importer->get_record_import_count();
+$name          = JCI()->importer->get_name();
+$template_type = JCI()->importer->get_template_type();
 $import_status = 0;
 
 if ( $row_count <= 0 ) {
@@ -24,7 +20,7 @@ if ( $row_count <= 0 ) {
 // check for continue
 if(isset($_GET['continue'])){
 
-	$last_import_row = $jcimporter->importer->get_last_import_row();
+	$last_import_row = JCI()->importer->get_last_import_row();
 	if($last_import_row >= $start_line){
 		$start_line = $last_import_row + 1;
 	}
@@ -46,8 +42,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
 <div id="ajaxResponse"></div>
 
-<?php if(!file_exists($jcimporter->importer->file)): ?>
-<div id="message" class="error_msg warn error below-h2"><p>File to import could not be found: <?php echo $jcimporter->importer->file; ?></p></div>
+<?php if(!file_exists(JCI()->importer->file)): ?>
+<div id="message" class="error_msg warn error below-h2"><p>File to import could not be found: <?php echo JCI()->importer->file; ?></p></div>
 <?php endif; ?>
 
 
@@ -76,7 +72,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 							<?php 
 							if(isset($_GET['continue'])){
 
-								$rows = ImportLog::get_importer_log( $importer_id, $jcimporter->importer->get_version() );
+								$rows = ImportLog::get_importer_log( $importer_id, JCI()->importer->get_version() );
 
 								if ( $rows ){
 									foreach ( $rows as $r ){
@@ -91,16 +87,16 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 					</table>
 				</div>
 
-				<?php if(file_exists($jcimporter->importer->file)): ?>
+				<?php if(file_exists(JCI()->importer->file)): ?>
 
                 <div class="iwp__progress"><div class="spinner iwp__progress-spinner"></div><p class="iwp__progress-text"></p></div>
 
 				<div class="form-actions">
 					<br/>
 					<?php if($import_status == 1): ?>
-						<a href="#" class="jc-importer_update-run button-primary">Continue Import</a>
+						<a href="#" class="jc-importer_update-run iwp-import-btn__<?php echo $template_type; ?> button-primary">Continue Import</a>
 					<?php else: ?>
-					<a href="#" class="jc-importer_update-run button-primary">Run Import</a>
+					<a href="#" class="jc-importer_update-run iwp-import-btn__<?php echo $template_type; ?> button-primary">Run Import</a>
 					<?php endif; ?>
 				</div>
 
@@ -218,6 +214,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
                         var diff = 0;
                         var time_in_seconds = 0;
+                        var status_text = '';
 
                         var response_text = '';
                         if (response !== null && typeof response === 'object' && response.hasOwnProperty('data') && response.data.hasOwnProperty('last_record') && response.data.hasOwnProperty('end')) {
@@ -239,9 +236,10 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
                             clearInterval(interval);
                             complete = true;
-                            $progress.find('.iwp__progress-text').text('Complete, Imported '+response.data.counter+' Records, Elapsed time ' + time_in_seconds + 's').show();
+                            status_text = 'Complete, Imported '+response.data.counter+' Records, Elapsed time ' + time_in_seconds + 's';
                             $progress.removeClass('iwp__progress--running');
                             $btn.text('Complete');
+                            document.title = "Complete";
                         } else {
 
                             currentDate = new Date();
@@ -249,11 +247,14 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                             time_in_seconds = Math.floor(diff / 1000);
 
                             if (response.data.status === "deleting") {
-                                $progress.find('.iwp__progress-text').text('Deleting, Elapsed time ' + time_in_seconds + 's').show();
+                                status_text = 'Deleting, Elapsed time ' + time_in_seconds + 's';
                             } else {
-                                $progress.find('.iwp__progress-text').text('Importing: ' + response_text + ", Elapsed time " + time_in_seconds + 's').show();
+                                status_text = 'Importing: ' + response_text + ", Elapsed time " + time_in_seconds + 's';
                             }
                         }
+
+                        $progress.find('.iwp__progress-text').text(status_text).show();
+                        document.title = status_text;
                     }
 
                 },
@@ -274,6 +275,11 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
         $(document).on('click', '.jc-importer_update-run', function(){
 
             var $btn = $(this);
+
+            if(!$btn.hasClass('iwp-import-btn__csv')){
+                return;
+            }
+
             if($btn.hasClass('button-disabled')){
                 return;
             }
@@ -297,8 +303,6 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
 	jQuery(document).ready(function ($) {
 
-	    return;
-
 		var running = <?php echo $import_status; ?>; // 0 = stopped , 1 = paused, 2 = running, 3 = complete
 		var record_total = <?php echo $record_count; ?>;
 		var record = <?php echo $start_line; ?>;
@@ -314,6 +318,11 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 		// ajax import
 		$('.jc-importer_update-run').click(function (event) {
 
+		    var $btn = $(this);
+		    if(!$btn.hasClass('iwp-import-btn__xml')){
+		        return;
+            }
+
 			if (running == 3) {
 				return;
 			}
@@ -328,7 +337,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 				$.ajax({
 					url: ajax_object.ajax_url,
 					data: {
-						action: 'jc_import_all',
+						action: 'jc_import_row',
 						id: ajax_object.id,
 						row: record,
 						records: records_per_row
@@ -341,7 +350,6 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 					},
 					success: function (response) {
 						$('#ajaxResponse').html('');
-						return;
 
 						$('#the-list').prepend(response);
 
@@ -459,7 +467,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 			if (running == 0 || running == 1) {
 
 				running = 2;
-				<?php if( $jcimporter->importer->get_object_delete() !== false && $jcimporter->importer->get_object_delete() == 0): ?>
+				<?php if( JCI()->importer->get_object_delete() !== false && JCI()->importer->get_object_delete() == 0): ?>
 				$('#ajaxResponse').html('<div id="message" class="updated below-h2"><p>Continue Deleting Items</p></div>');
 				deleteNextRecord();
 				<?php else: ?>

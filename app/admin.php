@@ -537,40 +537,40 @@ class JC_Importer_Admin {
 
 		$total_records = $jcimporter->importer->get_total_rows();
 
-		$res = $jcimporter->importer->run_import( $current_row, true, $records );
-		$counter = 0;
-		foreach($res as $data_arr){
-			$row = $current_row + $counter;
-			$data = array($data_arr);
-			ob_start();
-			require $jcimporter->get_plugin_dir() . 'app/view/imports/log/log_table_record.php';
-			$output[] = ob_get_clean();
-			$counter++;
-		}
-
-
-//		for($i = 0; $i < $records; $i++){
-//
-//			$row = $current_row + $i;
-//
-//			// escape if max record has been met
-//			if($max_records > 0){
-//				$last_record = $start_record + $max_records;
-//				if($row >= $last_record){
-//					break;
-//				}
-//			}
-//
-//			// stop bulk import passing limit
-//			if($row > $total_records){
-//				break;
-//			}
-//
-//			$data = $jcimporter->importer->run_import( $row, true, 1 );
+//		$res = $jcimporter->importer->run_import( $current_row, true, $records );
+//		$counter = 0;
+//		foreach($res as $data_arr){
+//			$row = $current_row + $counter;
+//			$data = array($data_arr);
 //			ob_start();
 //			require $jcimporter->get_plugin_dir() . 'app/view/imports/log/log_table_record.php';
 //			$output[] = ob_get_clean();
+//			$counter++;
 //		}
+
+
+		for($i = 0; $i < $records; $i++){
+
+			$row = $current_row + $i;
+
+			// escape if max record has been met
+			if($max_records > 0){
+				$last_record = $start_record + $max_records;
+				if($row >= $last_record){
+					break;
+				}
+			}
+
+			// stop bulk import passing limit
+			if($row > $total_records){
+				break;
+			}
+
+			$data = $jcimporter->importer->run_import( $row, true, 1 );
+			ob_start();
+			require $jcimporter->get_plugin_dir() . 'app/view/imports/log/log_table_record.php';
+			$output[] = ob_get_clean();
+		}
 
 		// reverse array to follow existing import record order
 		$output = array_reverse($output);
