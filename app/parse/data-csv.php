@@ -140,7 +140,7 @@ class JC_CSV_Parser extends JC_Parser {
 	 */
 	public function process_map_field( $group_id, $row ) {
 
-		return $this->_records[ $row - 1 ];
+		return isset($this->_records[ $row - 1 ]) ? $this->_records[$row-1] : false;
 	}
 
 	public function get_import_info($selected_row = null, $max_rows_limit = 0){

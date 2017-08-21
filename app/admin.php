@@ -90,6 +90,7 @@ class JC_Importer_Admin {
 	public function setup_forms() {
 
 		// static validation rules
+		// static validation rules
 		$this->config->forms = array(
 			'CreateImporter' => array(
 				'validation' => array(
@@ -191,6 +192,7 @@ class JC_Importer_Admin {
 			ImporterModel::clearImportSettings();
 
 			// redirect to importer run page
+			JCI()->importer->increase_version();
 			wp_redirect( 'admin.php?page=jci-importers&import=' . $importer . '&action=logs' );
 			exit();
 		}
@@ -467,7 +469,7 @@ class JC_Importer_Admin {
 
 					wp_redirect( admin_url('admin.php?page=jci-importers&import=' . $result . '&action=fetch' ));
 				}else{
-
+					JCI()->importer->increase_version();
 					wp_redirect( admin_url('admin.php?page=jci-importers&import=' . $result . '&action=logs' ));
 				}
 
@@ -480,6 +482,8 @@ class JC_Importer_Admin {
 	}
 
 	public function admin_ajax_import_all_rows(){
+
+		set_time_limit(300);
 
 		$importer_id = intval( $_POST['id'] );
 		$request_type = isset($_POST['request']) ? $_POST['request'] == 'run' : 'check';

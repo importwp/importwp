@@ -216,7 +216,7 @@ class JC_Importer_Core {
 		// clear session if first record is being imported
 		if($row == $start_line){
 			$parser->clear_session();
-			$this->version++;
+//			$this->version++;
 		}
 
 		do_action('jci/before_import');
@@ -227,7 +227,6 @@ class JC_Importer_Core {
 			if ( $row ) {
 
 				IWP_Debug::timer("Parser Start", "core");
-
 				$results = $parser->parse($row, $per_row);
 				if(empty($results)){
 					return false;
@@ -268,6 +267,10 @@ class JC_Importer_Core {
 	 * Run importer
 	 *
 	 * Main run importer function, Read and write status file while importing.
+	 *
+	 * TODO: on first run increase version number, at the moment not all status files line up with the correct version
+	 *
+	 * @param string $request_type
 	 */
 	public function run($request_type){
 
@@ -288,7 +291,11 @@ class JC_Importer_Core {
 		if($request_type != 'run'){
 			$status = IWP_Status::read_file($this->get_ID(), $this->get_version());
 			if($status) {
-				wp_send_json_success($status);
+				if('error' === $status['status']){
+					wp_send_json_error($status);
+				}else{
+					wp_send_json_success($status);
+				}
 			}
 			wp_send_json_error(['message' => 'No Status file found.']);
 		}
@@ -310,12 +317,17 @@ class JC_Importer_Core {
 						break;
 					}
 				default:
-					wp_send_json_success($status);
+					if('error' === $status['status']){
+						wp_send_json_error($status);
+					}else{
+						wp_send_json_success($status);
+					}
 					break;
 			}
 		}else{
 			$status = array('status' => 'started');
-			IWP_Status::write_file($status, null, $this->get_version() + 1);
+			//$this->increase_version();
+			IWP_Status::write_file($status);
 		}
 
 		$start_row = $this->get_start_line();
@@ -381,6 +393,13 @@ class JC_Importer_Core {
 	 */
 	public function on_server_timeout($force = false){
 
+		$error = error_get_last();
+		if($error){
+			$status_arr = array('status' => 'error', 'message' => $error['message']);
+			IWP_Status::write_file($status_arr);
+			wp_send_json_error($status_arr);
+		}
+
 		// output timer log to file
 		if(!$this->_running && false === $force){
 			return;
@@ -392,6 +411,11 @@ class JC_Importer_Core {
 		$status['status'] = 'timeout';
 		IWP_Status::write_file($status, $this->get_ID(), $this->get_version());
 		wp_send_json_success($status);
+	}
+
+	public function increase_version(){
+		$this->version++;
+		update_post_meta($this->get_ID(), '_import_version', $this->get_version());
 	}
 
 	public function get_ID() {

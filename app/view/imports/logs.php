@@ -159,6 +159,11 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
          */
         var complete = false;
 
+        /**
+         * @type {boolean}
+         */
+        var error = false;
+
         var requestCounter = 0;
 
         var run = true;
@@ -168,7 +173,33 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
          */
         var interval;
 
+        var $jqajax = [];
+
+        var on_error = function(response){
+
+            // cancel other ajax requests
+            while($jqajax.length > 0){
+                var element = $jqajax.pop();
+                element.abort();
+            }
+
+            if(false === error) {
+
+                error = true;
+
+                $progress.removeClass('iwp__progress--running');
+                $progress.addClass('iwp__progress--error');
+
+                $progress.find('.iwp__progress-text').text('Error: ' + response.data.message).show();
+            }
+        };
+
         var on_button_pressed = function($btn){
+
+            // Escape due to error
+            if(error === true){
+                return;
+            }
 
             var cTimer = new Date();
             var timer = cTimer.getTime() - lastAjaxRequestSent.getTime();
@@ -197,7 +228,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 //                data_arr.request = 'check';
 //            }
 
-            $.ajax({
+            $jqajax.push($.ajax({
                 url: ajax_object.ajax_url,
                 data: data_arr,
                 dataType: 'json',
@@ -211,6 +242,12 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                     lastAjaxRequestSent = new Date();
 
                     if(response !== null && typeof response === 'object') {
+
+                        if('error' === response.data.status){
+
+                            on_error(response);
+                            return;
+                        }
 
                         var diff = 0;
                         var time_in_seconds = 0;
@@ -258,10 +295,14 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                     }
 
                 },
+                error: function(res){
+
+                    on_error( $.parseJSON(res.responseText) );
+                },
                 complete: function () {
                     requests--;
                 }
-            });
+            }));
 
             requestCounter++;
 
