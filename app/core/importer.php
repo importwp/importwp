@@ -201,16 +201,12 @@ class JC_Importer_Core {
 	 */
 	public function run_import( $row = null, $session = false, $per_row = 1 ) {
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$importer_id = $jcimporter->importer->get_ID();
-		$jci_file          = $jcimporter->importer->file;
-		$jci_template      = $jcimporter->importer->template;
-		$jci_template_type = $jcimporter->importer->template_type;
-		$parser            = $jcimporter->parsers[ $this->template_type ];
-		$start_line = $jcimporter->importer->get_start_line();
+		$importer_id = $this->get_ID();
+		$jci_file          = $this->file;
+		$jci_template      = $this->template;
+		$jci_template_type = $this->template_type;
+		$parser            = JCI()->parsers[ $this->template_type ];
+		$start_line = $this->get_start_line();
 
 		// use session if row > 0
 		if($session){
@@ -266,6 +262,136 @@ class JC_Importer_Core {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Run importer
+	 *
+	 * Main run importer function, Read and write status file while importing.
+	 */
+	public function run($request_type){
+
+		// set current importer to this
+		JCI()->importer = $this;
+
+		IWP_Debug::timer("Start", "core");
+
+		// Allow for other requests to run at the same time
+		if(session_status() == PHP_SESSION_ACTIVE){
+			session_write_close();
+		}
+
+		register_shutdown_function(array($this, 'on_server_timeout'));
+
+		// ---
+		// if we are no
+		if($request_type != 'run'){
+			$status = IWP_Status::read_file($this->get_ID(), $this->get_version());
+			if($status) {
+				wp_send_json_success($status);
+			}
+			wp_send_json_error(['message' => 'No Status file found.']);
+		}
+		// ---
+
+		$status = IWP_Status::read_file($this->get_ID(), $this->get_version());
+		if($status){
+
+			switch($status['status']){
+				case 'timeout':
+					// we are resuming a timeout
+					break;
+				case 'running':
+
+					// we have timed out lets restart this
+					if($status['time'] < time() - (60 * 5)){
+						$status['status'] = 'timeout';
+						IWP_Status::write_file($status, $this->get_ID(), $this->get_version());
+						break;
+					}
+				default:
+					wp_send_json_success($status);
+					break;
+			}
+		}else{
+			$status = array('status' => 'started');
+			IWP_Status::write_file($status, null, $this->get_version() + 1);
+		}
+
+		$start_row = $this->get_start_line();
+		$total_records = $this->get_total_rows();
+
+		$max_records = $this->get_row_count();
+		if($max_records > 0){
+			$total_records = $start_row + $max_records -1;
+		}
+		$per_row = $this->get_record_import_count();
+
+		if(isset($status['status']) && $status['status'] == 'timeout'){
+			$start_row = intval($status['last_record']) + 1;
+			$status['status'] = 'running';
+			IWP_Status::write_file($status, $this->get_ID(), $this->get_version());
+		}
+
+		$rows = ceil(( $total_records - ($start_row-1) ) / $per_row);
+
+		IWP_Debug::timer("Calculated Start / End Points", "core");
+		$this->_running = true;
+
+		// Import Records
+		for($i = 0; $i < $rows; $i++){
+			IWP_Debug::timer("Importing Chunk", "core");
+			$start = $start_row + ($i * $per_row);
+			$this->run_import($start, false, $per_row);
+			IWP_Debug::timer("Imported Chunk", "core");
+
+			// we show timeout if more records need to be imported.
+			if($i < $rows - 1){
+				$this->_running = false;
+				return $this->on_server_timeout(true);
+			}
+		}
+
+		$status = IWP_Status::read_file($this->get_ID(), $this->get_version());
+		$status['status'] = 'deleting';
+		IWP_Status::write_file($status, $this->get_ID(), $this->get_version());
+
+		IWP_Debug::timer("Deleting Files", "core");
+
+		// TODO: Delete Records
+		$mapper = new JC_BaseMapper();
+		$mapper->on_import_complete($this->get_ID(), false);
+
+		IWP_Debug::timer("Deleted Files", "core");
+
+
+		$this->_running = false;
+
+		$status['status'] = 'complete';
+		IWP_Status::write_file($status, $this->get_ID(), $this->get_version());
+		IWP_Debug::timer("Complete", "core");
+
+		// display timer log
+		IWP_Debug::timer_log($this->get_version() . '-' . $this->get_last_import_row());
+		wp_send_json_success($status);
+	}
+
+	/**
+	 * Triggered when server timeout occurs and the importer is still running
+	 */
+	public function on_server_timeout($force = false){
+
+		// output timer log to file
+		if(!$this->_running && false === $force){
+			return;
+		}
+
+		IWP_Debug::timer_log($this->get_version() . '-' . $this->get_last_import_row());
+
+		$status = IWP_Status::read_file($this->get_ID(), $this->get_version());
+		$status['status'] = 'timeout';
+		IWP_Status::write_file($status, $this->get_ID(), $this->get_version());
+		wp_send_json_success($status);
 	}
 
 	public function get_ID() {

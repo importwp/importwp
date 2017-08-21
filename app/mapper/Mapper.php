@@ -266,7 +266,8 @@ class JC_BaseMapper {
 				'counter' => $status_counter,
 				'seek' => $seek,
 				'start' => $start_row,
-				'end' => $end_row
+				'end' => $end_row,
+				'time' => time()
 			));
 
 			IWP_Debug::timer("process::write status file");

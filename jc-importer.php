@@ -181,7 +181,7 @@ class JC_Importer {
 		require_once 'app/models/log.php';
 		require_once 'app/models/class-iwp-status.php';
 
-		if ( is_admin() ) {
+		if ( is_admin() || ( defined('DOING_AJAX') && DOING_AJAX ) ) {
 
 			// load importer.
 			$importer_id = isset( $_GET['import'] ) && ! empty( $_GET['import'] ) ? intval( $_GET['import'] ) : 0;

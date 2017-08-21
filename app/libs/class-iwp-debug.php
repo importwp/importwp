@@ -13,7 +13,7 @@ class IWP_Debug {
    *
    * @var mixed
    */
-  static $_debug = false;
+  static $_debug = 'core';
 
   static $_timings = [];
 

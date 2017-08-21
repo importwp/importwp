@@ -481,109 +481,11 @@ class JC_Importer_Admin {
 
 	public function admin_ajax_import_all_rows(){
 
-		IWP_Debug::timer("Start", "core");
-
-		// Allow for other requests to run at the same time
-		if(session_status() == PHP_SESSION_ACTIVE){
-			session_write_close();
-		}
-
-		set_time_limit(30);
-		register_shutdown_function(array($this, 'on_server_timeout'));
-
-		// get and load importer
 		$importer_id = intval( $_POST['id'] );
 		$request_type = isset($_POST['request']) ? $_POST['request'] == 'run' : 'check';
 
-		IWP_Debug::timer("Load::JC_Importer_Core", "core");
-
 		JCI()->importer = new JC_Importer_Core( $importer_id);
-
-		IWP_Debug::timer("Loaded::JC_Importer_Core", "core");
-
-		// ---
-		// if we are no
-		if($request_type != 'run'){
-			$status = IWP_Status::read_file();
-			if($status) {
-				wp_send_json_success($status);
-			}
-			wp_send_json_error(['message' => 'No Status file found.']);
-		}
-		// ---
-
-		$status = IWP_Status::read_file();
-		if($status){
-
-			switch($status['status']){
-				case 'timeout':
-					// we are resuming a timeout
-					break;
-				default:
-					wp_send_json_success($status);
-					break;
-			}
-		}else{
-			$status = array('status' => 'started');
-			IWP_Status::write_file($status, null, JCI()->importer->get_version() + 1);
-		}
-
-		$start_row = JCI()->importer->get_start_line();
-		$total_records = JCI()->importer->get_total_rows();
-
-		$max_records = JCI()->importer->get_row_count();
-		if($max_records > 0){
-			$total_records = $start_row + $max_records -1;
-		}
-		$per_row = JCI()->importer->get_record_import_count();
-
-		if(isset($status['status']) && $status['status'] == 'timeout'){
-			$start_row = intval($status['last_record']) + 1;
-			$status['status'] = 'running';
-			IWP_Status::write_file($status);
-		}
-
-		$rows = ceil(( $total_records - ($start_row-1) ) / $per_row);
-
-		IWP_Debug::timer("Calculated Start / End Points", "core");
-		$this->_running = true;
-
-		// Import Records
-		for($i = 0; $i < $rows; $i++){
-			IWP_Debug::timer("Importing Chunk", "core");
-			$start = $start_row + ($i * $per_row);
-			JCI()->importer->run_import($start, false, $per_row);
-			IWP_Debug::timer("Imported Chunk", "core");
-
-			// we show timeout if more records need to be imported.
-			if($i < $rows - 1){
-				$this->_running = false;
-				return $this->on_server_timeout(true);
-			}
-		}
-
-		$status = IWP_Status::read_file();
-		$status['status'] = 'deleting';
-		IWP_Status::write_file($status);
-
-		IWP_Debug::timer("Deleting Files", "core");
-
-		// TODO: Delete Records
-		$mapper = new JC_BaseMapper();
-		$mapper->on_import_complete($importer_id, false);
-
-		IWP_Debug::timer("Deleted Files", "core");
-
-
-		$this->_running = false;
-
-		$status['status'] = 'complete';
-		IWP_Status::write_file($status);
-		IWP_Debug::timer("Complete", "core");
-
-		// display timer log
-		IWP_Debug::timer_log(JCI()->importer->get_version() . '-' . JCI()->importer->get_last_import_row());
-		wp_send_json_success($status);
+		JCI()->importer->run($request_type);
 	}
 
 	/**
