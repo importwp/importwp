@@ -177,15 +177,15 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
         var on_error = function(response){
 
-            // cancel other ajax requests
-            while($jqajax.length > 0){
-                var element = $jqajax.pop();
-                element.abort();
-            }
-
             if(false === error) {
 
                 error = true;
+
+                // cancel other ajax requests
+                while($jqajax.length > 0){
+                    var element = $jqajax.pop();
+                    element.abort();
+                }
 
                 $progress.removeClass('iwp__progress--running');
                 $progress.addClass('iwp__progress--error');
