@@ -236,7 +236,7 @@ class JC_BaseMapper {
 			}
 
 			$status_counter = isset($status['counter']) ? intval($status['counter']) : 0;
-			$this->_current_row = $start_row + $status_counter;
+			$this->_current_row = $start_row + $status_counter -1;
 
 			$this->set_import_version($data_index);
 

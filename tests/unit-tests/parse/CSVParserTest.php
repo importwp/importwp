@@ -33,6 +33,16 @@ class CSVParserTest extends WP_UnitTestCase {
 		$this->assertEquals( 'steve[Ted]steve', $parser->parse_field( '[jci::strtolower({1})][{0}][jci::strtolower({1})]' ) );
 		$this->assertEquals( 'STEVE', $parser->parse_field( '[jci::strtoupper({1})]' ) );
 	}
+
+	public function testRandomCSVField(){
+
+		$row    = array( '0', '1', '2' );
+		$parser = new JCI_CSV_ParseField( $row );
+
+		$this->assertEquals( '0', $parser->parse_field( '{0}' ) );
+		$this->assertEquals( '1', $parser->parse_field( '{1}' ) );
+		$this->assertEquals( '2', $parser->parse_field( '{2}' ) );
+	}
 }
 
 ?>

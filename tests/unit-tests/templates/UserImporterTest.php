@@ -78,7 +78,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		 */
 		ImporterModel::clearImportSettings();
 		$this->importer->importer = new JC_Importer_Core( $post_id );
-		$this->importer->importer->set_version($this->importer->importer->get_version() + 1);
+		$this->importer->importer->increase_version();
 
 		$test                     = $this->importer->importer->run_import();
 		$this->assertEquals( 7, count( $test ) );
@@ -102,6 +102,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		 */
 		ImporterModel::clearImportSettings();
 		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$this->importer->importer->increase_version();
 		$test                     = $this->importer->importer->run_import( 1 );
 		$test                     = array_shift( $test );
 		$this->assertArrayHasKey( '_jci_status', $test );
