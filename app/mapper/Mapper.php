@@ -270,11 +270,6 @@ class JC_BaseMapper {
 				'time' => time()
 			));
 
-			IWP_Debug::timer("process::write status file");
-
-			file_put_contents(JCI()->get_plugin_dir() . '/app/tmp/status-' . JCI()->importer->get_ID().'-'.JCI()->importer->get_version().'.txt',
-				"$data_index - $seek\n", FILE_APPEND);
-
 			IWP_Debug::timer("process::write log");
 		}
 
