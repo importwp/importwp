@@ -493,24 +493,6 @@ class JC_Importer_Admin {
 	}
 
 	/**
-	 * Triggered when server timeout occurs and the importer is still running
-	 */
-	public function on_server_timeout($force = false){
-
-		// output timer log to file
-		if(!$this->_running && false === $force){
-			return;
-		}
-
-		IWP_Debug::timer_log(JCI()->importer->get_version() . '-' . JCI()->importer->get_last_import_row());
-
-		$status = IWP_Status::read_file();
-		$status['status'] = 'timeout';
-		IWP_Status::write_file($status);
-		wp_send_json_success($status);
-	}
-
-	/**
 	 * Process Import Ajax
 	 * @return HTML
 	 */

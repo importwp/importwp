@@ -394,7 +394,7 @@ class JC_Importer_Core {
 	public function on_server_timeout($force = false){
 
 		$error = error_get_last();
-		if($error){
+		if($error && $error['type'] === E_ERROR){
 			$status_arr = array('status' => 'error', 'message' => $error['message']);
 			IWP_Status::write_file($status_arr);
 			wp_send_json_error($status_arr);
