@@ -292,12 +292,12 @@ class JC_Importer_Core {
 			$status = IWP_Status::read_file($this->get_ID(), $this->get_version());
 			if($status) {
 				if('error' === $status['status']){
-					wp_send_json_error($status);
+					return $this->do_error($status);
 				}else{
-					wp_send_json_success($status);
+					return $this->do_success($status);
 				}
 			}
-			wp_send_json_error(['message' => 'No Status file found.']);
+			return $this->do_error(['message' => 'No Status file found.']);
 		}
 		// ---
 
@@ -318,9 +318,9 @@ class JC_Importer_Core {
 					}
 				default:
 					if('error' === $status['status']){
-						wp_send_json_error($status);
+						return $this->do_error($status);
 					}else{
-						wp_send_json_success($status);
+						return $this->do_success($status);
 					}
 					break;
 			}
@@ -385,7 +385,7 @@ class JC_Importer_Core {
 
 		// display timer log
 		IWP_Debug::timer_log($this->get_version() . '-' . $this->get_last_import_row());
-		wp_send_json_success($status);
+		return $this->do_success($status);
 	}
 
 	/**
@@ -397,7 +397,7 @@ class JC_Importer_Core {
 		if($error && $error['type'] === E_ERROR){
 			$status_arr = array('status' => 'error', 'message' => $error['message']);
 			IWP_Status::write_file($status_arr);
-			wp_send_json_error($status_arr);
+			return $this->do_error($status_arr);
 		}
 
 		// output timer log to file
@@ -410,7 +410,23 @@ class JC_Importer_Core {
 		$status = IWP_Status::read_file($this->get_ID(), $this->get_version());
 		$status['status'] = 'timeout';
 		IWP_Status::write_file($status, $this->get_ID(), $this->get_version());
-		wp_send_json_success($status);
+		return $this->do_success($status);
+	}
+
+	public function do_success($data){
+		if(wp_doing_ajax()){
+			wp_send_json_success($data);
+		}else{
+			return $data;
+		}
+	}
+
+	public function do_error($data){
+		if(wp_doing_ajax()){
+			wp_send_json_error($data);
+		}else{
+			return $data;
+		}
 	}
 
 	public function increase_version(){
