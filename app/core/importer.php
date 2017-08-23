@@ -52,6 +52,9 @@ class JC_Importer_Core {
 				return true;
 			}
 
+			// clear ImporterModel Cache
+			ImporterModel::clearImportSettings();
+
 			$importer = ImporterModel::getImporter( $id );
 			if ( ! $importer->have_posts() ) {
 				return false;
