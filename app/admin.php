@@ -483,7 +483,7 @@ class JC_Importer_Admin {
 
 	public function admin_ajax_import_all_rows(){
 
-		set_time_limit(300);
+		set_time_limit(0);
 
 		$importer_id = intval( $_POST['id'] );
 		$request_type = isset($_POST['request']) ? $_POST['request'] == 'run' : 'check';

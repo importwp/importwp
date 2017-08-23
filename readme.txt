@@ -3,7 +3,7 @@ Contributors: jcollings
 Tags: wordpress importer, xml importer, csv importer, import users, import posts, import categories, import tags, import custom post types, jc importer, importwp  
 Requires at least: 4.0  
 Tested up to: 4.8
-Stable tag: 0.5
+Stable tag: 0.6.0
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -66,6 +66,10 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 == Changelog ==
+
+= 0.6 - 22/08/2017 =
+
+* Optimise CSV Parser
 
 = 0.5 =
 

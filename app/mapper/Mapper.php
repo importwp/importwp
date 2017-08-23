@@ -53,6 +53,11 @@ class JC_BaseMapper {
 		// setup if not already
 		$this->setup($template);
 
+		// update status file to say deleting
+		$status = IWP_Status::read_file(JCI()->importer->get_ID(), JCI()->importer->get_version());
+		$status['status'] = 'deleting';
+		IWP_Status::write_file($status, JCI()->importer->get_ID(), JCI()->importer->get_version());
+
 		// loop through all groups
 		foreach($groups as $group => $args) {
 
