@@ -282,12 +282,18 @@ class JC_Importer_Core {
 
 		IWP_Debug::timer("Start", "core");
 
+		// Allow for other requests to run at the same time
+		if(session_status() == PHP_SESSION_ACTIVE){
+			session_write_close();
+		}
+
 		register_shutdown_function(array($this, 'on_server_timeout'));
 
-		// ---
-		// if we are no
-		if($request_type != 'run'){
-			$status = IWP_Status::read_file($this->get_ID(), $this->get_version());
+		$lock = IWP_Status::get_lock($this->get_ID(), $this->get_version());
+		$status = IWP_Status::read_file($this->get_ID(), $this->get_version());
+
+		if(!$lock){
+			// we have write lock so we must have to import
 			if($status) {
 				if('error' === $status['status']){
 					return $this->do_error($status);
@@ -297,23 +303,16 @@ class JC_Importer_Core {
 			}
 			return $this->do_error(['message' => 'No Status file found.']);
 		}
-		// ---
 
-		$status = IWP_Status::read_file($this->get_ID(), $this->get_version());
 		if($status){
 
 			switch($status['status']){
 				case 'timeout':
-					// we are resuming a timeout
-					break;
 				case 'running':
-
-					// we have timed out lets restart this
-					if($status['time'] < time() - (60 * 5)){
-						$status['status'] = 'timeout';
-						IWP_Status::write_file($status, $this->get_ID(), $this->get_version());
-						break;
-					}
+					$status['status'] = 'timeout';
+					break;
+				case 'started':
+					break;
 				default:
 					if('error' === $status['status']){
 						return $this->do_error($status);
@@ -322,15 +321,6 @@ class JC_Importer_Core {
 					}
 					break;
 			}
-		}else{
-			$status = array('status' => 'started');
-			//$this->increase_version();
-			IWP_Status::write_file($status);
-		}
-
-		// Allow for other requests to run at the same time
-		if(session_status() == PHP_SESSION_ACTIVE){
-			session_write_close();
 		}
 
 		$start_row = $this->get_start_line();

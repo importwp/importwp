@@ -284,6 +284,26 @@ class JC_Importer {
 	}
 
 	/**
+	 * Get and/or create the plugins tmp directory
+	 *
+	 * @return string
+	 */
+	public function get_tmp_dir(){
+
+		$path = WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'uploads';
+		if ( ! is_dir( $path ) ) {
+			mkdir($path);
+		}
+
+		$path .= DIRECTORY_SEPARATOR . 'importwp';
+		if(!is_dir($path)){
+			mkdir($path);
+		}
+
+		return $path;
+	}
+
+	/**
 	 * Get plugin directory
 	 *
 	 * @return string

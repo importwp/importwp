@@ -293,6 +293,9 @@ class JC_CSV_Parser extends JC_Parser {
 		$delimiter = isset( JCI()->importer->addon_settings['csv_delimiter'] ) ? JCI()->importer->addon_settings['csv_delimiter'] : ',';
 		$enclosure = isset( JCI()->importer->addon_settings['csv_enclosure'] ) ? JCI()->importer->addon_settings['csv_enclosure'] : '"';
 
+		$delimiter = stripslashes($delimiter);
+		$enclosure = stripslashes($enclosure);
+
 		while ( $line = fgetcsv( $fh, null, $delimiter, $enclosure ) ) {
 
 			// skip if not selected row
