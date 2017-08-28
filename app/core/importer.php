@@ -282,11 +282,6 @@ class JC_Importer_Core {
 
 		IWP_Debug::timer("Start", "core");
 
-		// Allow for other requests to run at the same time
-		if(session_status() == PHP_SESSION_ACTIVE){
-			session_write_close();
-		}
-
 		register_shutdown_function(array($this, 'on_server_timeout'));
 
 		// ---
@@ -331,6 +326,11 @@ class JC_Importer_Core {
 			$status = array('status' => 'started');
 			//$this->increase_version();
 			IWP_Status::write_file($status);
+		}
+
+		// Allow for other requests to run at the same time
+		if(session_status() == PHP_SESSION_ACTIVE){
+			session_write_close();
 		}
 
 		$start_row = $this->get_start_line();

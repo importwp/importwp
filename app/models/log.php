@@ -121,7 +121,7 @@ class ImportLog {
 		return $wpdb->get_results( "SELECT version, type, file,  created, COUNT(row) as row_total FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' GROUP BY version ORDER BY version DESC", OBJECT );
 	}
 
-	static function get_importer_log( $importer_id, $log, $order = 'DESC' ) {
+	static function get_importer_log( $importer_id, $log, $order = 'DESC', $limit = 10, $page = 1 ) {
 
 		global $wpdb;
 
@@ -132,7 +132,13 @@ class ImportLog {
 			$order = 'DESC';
 		}
 
-		return $wpdb->get_results( "SELECT * FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' AND version='{$log}' ORDER BY id $order", OBJECT );
+		$limit_str = '';
+		if($limit > 0){
+			$offset = (($page - 1) * $limit);
+			$limit_str = "LIMIT {$offset}, {$limit}";
+		}
+
+		return $wpdb->get_results( "SELECT * FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' AND version='{$log}' ORDER BY id {$order} {$limit_str}", OBJECT );
 	}
 
 	static function clearLogs(){
