@@ -2,7 +2,7 @@
 $importers = ImporterModel::getImporters();
 
 global $wpdb;
-$res = $wpdb->get_results("SELECT object_id as ID, created FROM `" . $wpdb->prefix . "importer_log` GROUP BY object_id ORDER BY created DESC");
+$res = $wpdb->get_results("SELECT object_id as ID, MAX(created) as created FROM `" . $wpdb->prefix . "importer_log` GROUP BY object_id ORDER BY created DESC");
 $last_ran = array();
 foreach($res as $obj){
 	$last_ran[$obj->ID] = $obj->created;
