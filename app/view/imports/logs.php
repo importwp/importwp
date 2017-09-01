@@ -72,6 +72,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 							<?php 
 							if(isset($_GET['continue'])){
 
+							    // TODO: add pagination to continue logs
 								$rows = ImportLog::get_importer_log( $importer_id, JCI()->importer->get_version() );
 
 								if ( $rows ){
@@ -84,6 +85,11 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 							}
 							?>
 						</tbody>
+                        <tfoot>
+                        <tr>
+                            <td colspan="<?php echo count($columns) + 1; ?>">&nbsp;</td>
+                        </tr>
+                        </tfoot>
 					</table>
 				</div>
 
@@ -296,8 +302,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
                 },
                 error: function(res){
-
-                    on_error( $.parseJSON(res.responseText) );
+                    // TODO: Display this error but keep the import going, as this could just be a timeout message from ther server.
+                    //on_error( $.parseJSON(res.responseText) );
                 },
                 complete: function () {
                     requests--;

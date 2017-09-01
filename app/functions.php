@@ -257,6 +257,53 @@ function jci_get_user_list(){
 	return $temp_list;
 }
 
+function iwp_output_pagination($current = 1, $max_results, $per_page, $max_show = 4){
+
+	$max = ceil($max_results / $per_page);
+
+	$start = $current - floor($max_show / 2);
+	$end = $current + floor($max_show / 2);
+
+	if($start < 1){
+		$start = 1;
+		$end = $start + $max_show;
+	}
+
+	if($end > $max){
+		$end = $max;
+	}
+
+	if($max >= 1): ?>
+		<div class="iwp-pagination__wrapper">
+			<p>Showing Page <?php echo $current; ?> of <?php echo $max; ?></p>
+
+			<ul class="iwp-pagination">
+
+				<?php if($max > $max_show && $current > 2): ?>
+					<li class="iwp-pagination__link"><a href="<?php echo remove_query_arg('iwp_page'); ?>">&laquo;</a></li>
+				<?php endif; ?>
+				<?php if($max > 1  && $current > 1): ?>
+					<li class="iwp-pagination__link"><a href="<?php echo add_query_arg('iwp_page', $current - 1); ?>">&larr;</a></li>
+				<?php endif; ?>
+				<?php for($i = $start; $i <= $end; $i++): ?>
+
+					<?php if($current == $i): ?>
+						<li class="iwp-pagination__link iwp-pagination__link--active"><span><?php echo $i; ?></span></li>
+					<?php else: ?>
+						<li class="iwp-pagination__link"><a href="<?php echo add_query_arg('iwp_page', $i); ?>"><?php echo $i; ?></a></li>
+					<?php endif; ?>
+				<?php endfor; ?>
+				<?php if($max > 1 && $current < $max): ?>
+					<li class="iwp-pagination__link"><a href="<?php echo add_query_arg('iwp_page', $current + 1); ?>">&rarr;</a></li>
+				<?php endif; ?>
+				<?php if($max > $max_show && $current < $max - 1): ?>
+					<li class="iwp-pagination__link"><a href="<?php echo add_query_arg('iwp_page', $max); ?>">&raquo;</a></li>
+				<?php endif; ?>
+			</ul>
+		</div>
+	<?php endif;
+}
+
 /**
  * Fallback for pre WP 4.7 systems that dont have wp_doing_ajax function
  */

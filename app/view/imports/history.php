@@ -89,8 +89,13 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 							Back to importer history</a></p>
 
 					<?php
-					$rows = ImportLog::get_importer_log( $importer_id, $log );
+					$page = isset($_GET['iwp_page']) && intval($_GET['iwp_page']) > 0 ? intval($_GET['iwp_page']) : 1;
+					$total = ImportLog::get_importer_log_count($importer_id, $log);
+					$per_page = 100;
+					$rows = ImportLog::get_importer_log( $importer_id, $log , 'DESC', $per_page, $page);
 					?>
+
+					<?php iwp_output_pagination($page, $total, $per_page); ?>
 
 					<div id="jci-table-wrapper">
 						<table class="wp-list-table widefat fixed posts" cellspacing="0">
@@ -119,6 +124,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 							</tbody>
 						</table>
 					</div>
+					<?php iwp_output_pagination($page, $total, $per_page); ?>
 
 				</div>
 

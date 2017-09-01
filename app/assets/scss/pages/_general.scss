@@ -121,3 +121,47 @@
     display: inline-block;
 }
 
+.iwp-pagination{
+    width: 100%;;
+    li{
+        display: inline-block;
+    }
+    a, span{
+        display: block;
+        padding: 4px;
+        background: #FFF;
+        border: 1px solid #ddd;
+        text-decoration: none;
+    }
+
+    .iwp-pagination__link--active span{
+        background: none;
+        border: none;
+    }
+}
+
+.iwp-pagination__wrapper{
+    overflow: hidden;
+    p{
+        display: inline-block;
+    }
+    ul{
+        float:right;
+        display: inline-block;
+        width: auto;
+    }
+}
+
+@media screen and (max-width: 767px){
+    .iwp-pagination__wrapper{
+        overflow: hidden;
+        p{
+            display: block;
+        }
+        ul{
+            float:none;
+            display: block;
+            width: auto;
+        }
+    }
+}

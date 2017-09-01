@@ -137,8 +137,25 @@ class ImportLog {
 			$offset = (($page - 1) * $limit);
 			$limit_str = "LIMIT {$offset}, {$limit}";
 		}
-
 		return $wpdb->get_results( "SELECT * FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' AND version='{$log}' ORDER BY id {$order} {$limit_str}", OBJECT );
+	}
+
+	/**
+	 * Get total count of importer logo
+	 *
+	 * @param $importer_id
+	 * @param $log
+	 *
+	 * @return null|string
+	 */
+	static function get_importer_log_count($importer_id, $log){
+
+		global $wpdb;
+
+		$importer_id = intval( $importer_id );
+		$log         = intval( $log );
+
+		return $wpdb->get_var( "SELECT COUNT(*) FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' AND version='{$log}'");
 	}
 
 	static function clearLogs(){
