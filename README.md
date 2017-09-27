@@ -1,6 +1,6 @@
-# ImportWP #
+# ImportWP - Import any XML or CSV File into WordPress #
 **Contributors:** [jcollings](https://profiles.wordpress.org/jcollings)  
-**Tags:** wordpress importer, xml importer, csv importer, import users, import posts, import categories, import tags, import custom post types, jc importer, importwp    
+**Tags:** import, wordpress xml importer, wordpress csv importer, xml, csv  
 **Requires at least:** 4.0    
 **Tested up to:** 4.8  
 **Stable tag:** 0.6.0  
@@ -8,7 +8,7 @@
 **License URI:** http://www.gnu.org/licenses/gpl.html    
 **Donate link:** https://www.importwp.com/  
 
-ImportWP allows you to easily import users, posts, custom post types and taxonomies from XML and CSV files. 
+ImportWP is a powerful importer that allows you to import WordPress posts, pages, users and custom post types from any XML or CSV file.
 
 ## Description ##
 

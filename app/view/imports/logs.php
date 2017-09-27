@@ -57,6 +57,11 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
 				<div id="test-response"></div>
 
+                <?php
+
+                // Hide results table for csv importer
+                if( 'csv' !== JCI()->importer->get_template_type() || isset( $_GET['continue'] ) ): ?>
+
 				<div id="jci-table-wrapper">
 					<table class="wp-list-table widefat fixed posts" cellspacing="0">
 						<thead>
@@ -70,7 +75,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 						</thead>
 						<tbody id="the-list">
 							<?php 
-							if(isset($_GET['continue'])){
+							if(isset($_GET['continue'])):
 
 							    // TODO: add pagination to continue logs
 								$rows = ImportLog::get_importer_log( $importer_id, JCI()->importer->get_version() );
@@ -82,7 +87,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 										require $jcimporter->get_plugin_dir() . 'app/view/imports/log/log_table_record.php';
 									}
 								}
-							}
+
+							endif;
 							?>
 						</tbody>
                         <tfoot>
@@ -92,6 +98,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                         </tfoot>
 					</table>
 				</div>
+
+                <?php endif; ?>
 
 				<?php if(file_exists(JCI()->importer->file)): ?>
 
