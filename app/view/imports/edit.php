@@ -91,6 +91,12 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
 				do_action( 'jci/before_import_settings' );
 
+				echo JCI_FormHelper::text( 'name', array(
+					'label' => 'Importer Name',
+					'default' => $name,
+					'tooltip' => JCI()->text()->get('import.settings.name')
+				) );
+
 				echo JCI_FormHelper::text( 'start-line', array(
 					'label' => 'Start Row',
 					'default' => $start_line,

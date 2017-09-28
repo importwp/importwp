@@ -450,7 +450,10 @@ class JC_Importer_Admin {
 				$settings['import_file'] = $selected_import_id;
 			}
 
+			$importer_name = isset($_POST['jc-importer_name']) && !empty($_POST['jc-importer_name']) ? $_POST['jc-importer_name'] : false;
+
 			$result = ImporterModel::update( $id, array(
+				'name' => $importer_name,
 				'fields'      => $fields,
 				'attachments' => $attachments,
 				'taxonomies'  => $taxonomies,

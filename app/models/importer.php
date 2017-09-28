@@ -471,6 +471,14 @@ class ImporterModel {
 			}
 		}
 
+		// Update Importer Post Record with new Title
+		if(isset($data['name']) && $data['name']){
+			wp_update_post(array(
+				'ID' => $post_id,
+				'post_title' => $data['name']
+			));
+		}
+
 		// save settings
 		$meta['_import_settings'] = $settings;
 
