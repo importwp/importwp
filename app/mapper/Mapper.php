@@ -196,6 +196,8 @@ class JC_BaseMapper {
 
 	final function process( $template = array(), $data = array(), $row = null ) {
 
+		$data = apply_filters('iwp/before_mapper_process', $data);
+
 		IWP_Debug::timer("process::start");
 		
 		$this->setup($template);
