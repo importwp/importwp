@@ -2,6 +2,11 @@
 
 class JC_BaseMapper {
 
+	/**
+	 * Loaded template class
+	 *
+	 * @var JC_Importer_Template
+	 */
 	protected $_template = array();
 
 	protected $_group_process_order = array();
@@ -17,6 +22,11 @@ class JC_BaseMapper {
 
 	protected $_data = false;
 
+	/**
+	 * Loaded Attachment Class
+	 *
+	 * @var JCI_Attachment
+	 */
 	private $attachment_class = false;
 
 	function __construct(){
@@ -36,18 +46,14 @@ class JC_BaseMapper {
 		if($is_ajax)
 			return false;
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$permissions = $jcimporter->importer->get_permissions();
+		$permissions = JCI()->importer->get_permissions();
 
 		if( $permissions['delete'] == 0 )
 			return;
 
-		$groups = $jcimporter->importer->get_template_groups();
-		$version = $jcimporter->importer->get_version();
-		$template = $jcimporter->importer->get_template();
+		$groups = JCI()->importer->get_template_groups();
+		$version = JCI()->importer->get_version();
+		$template = JCI()->importer->get_template();
 
 
 		// setup if not already
@@ -73,18 +79,14 @@ class JC_BaseMapper {
 
 	function get_objects_for_removal( $objects = array() , $importer_id ){
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$permissions = $jcimporter->importer->get_permissions();
+		$permissions = JCI()->importer->get_permissions();
 
 		if( $permissions['delete'] == 0 )
 			return;
 
-		$groups = $jcimporter->importer->get_template_groups();
-		$version = $jcimporter->importer->get_version();
-		$template = $jcimporter->importer->get_template();
+		$groups = JCI()->importer->get_template_groups();
+		$version = JCI()->importer->get_version();
+		$template = JCI()->importer->get_template();
 
 		// setup if not already
 		$this->setup($template);
@@ -121,18 +123,14 @@ class JC_BaseMapper {
 
 	function remove_single_object( $importer_id ){
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$permissions = $jcimporter->importer->get_permissions();
+		$permissions = JCI()->importer->get_permissions();
 
 		if( $permissions['delete'] == 0 )
 			return;
 
-		$groups = $jcimporter->importer->get_template_groups();
-		$version = $jcimporter->importer->get_version();
-		$template = $jcimporter->importer->get_template();
+		$groups = JCI()->importer->get_template_groups();
+		$version = JCI()->importer->get_version();
+		$template = JCI()->importer->get_template();
 		$result = false;
 
 		// setup if not already
@@ -158,10 +156,10 @@ class JC_BaseMapper {
 	/**
 	 * Setup template for processing import
 	 * 
-	 * @param  array  $template 
+	 * @param  JC_Importer_Template  $template
 	 * @return void
 	 */
-	function setup($template = array()){
+	function setup($template){
 
 		// removed due to problem clearing mapper
 		// check to see if already setup
@@ -220,11 +218,7 @@ class JC_BaseMapper {
 			$end_row = $start_row + JCI()->importer->get_row_count();
 		}
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$importer_id = $jcimporter->importer->get_ID();
+		$importer_id = JCI()->importer->get_ID();
 		$this->_running = true;
 
 		IWP_Debug::timer("process::initialized");
@@ -298,14 +292,10 @@ class JC_BaseMapper {
 	 */
 	function complete_check( $row = 0 , $is_ajax = true ) {
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$importer_id = $jcimporter->importer->get_ID();
-		$start_row   = $jcimporter->importer->get_start_line(); // row to start from
-		$row_count   = $jcimporter->importer->get_row_count(); // how many rows to import
-		$total_rows  = $jcimporter->importer->get_total_rows();
+		$importer_id = JCI()->importer->get_ID();
+		$start_row   = JCI()->importer->get_start_line(); // row to start from
+		$row_count   = JCI()->importer->get_row_count(); // how many rows to import
+		$total_rows  = JCI()->importer->get_total_rows();
 
 		// check to see if complete
 		if ( $row_count == 0 ) {
@@ -326,14 +316,9 @@ class JC_BaseMapper {
 	 */
 	function set_import_version($row_index = 0) {
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-
-		$import_id = $jcimporter->importer->get_ID();
-		$start_row = $jcimporter->importer->get_start_line();
-		$version   = $jcimporter->importer->get_version();
+		$import_id = JCI()->importer->get_ID();
+		$start_row = JCI()->importer->get_start_line();
+		$version   = JCI()->importer->get_version();
 
 		if ( $start_row <= 0 ) {
 			$start_row = 1;
@@ -350,7 +335,7 @@ class JC_BaseMapper {
 			}
 
 			// update importer class
-			$jcimporter->importer->set_version( $version );
+			JCI()->importer->set_version( $version );
 		}
 	}
 
@@ -502,11 +487,7 @@ class JC_BaseMapper {
 
 		IWP_Debug::timer("processGroup::start");
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$permissions = $jcimporter->importer->permissions;
+		$permissions = JCI()->importer->get_permissions();
 
 		if ( ! is_array( $data ) ) {
 			return false;
@@ -680,14 +661,10 @@ class JC_BaseMapper {
 
 	final function processTaxonomies( $data ) {
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$jci_taxonomies             = $jcimporter->importer->taxonomies;
-		$jci_taxonomies_permissions = $jcimporter->importer->taxonomies_permissions;
-		$jci_template_type          = $jcimporter->importer->template_type;
-		$jci_file                   = $jcimporter->importer->file;
+		$jci_taxonomies             = JCI()->importer->taxonomies;
+		$jci_taxonomies_permissions = JCI()->importer->taxonomies_permissions;
+		$jci_template_type          = JCI()->importer->template_type;
+		$jci_file                   = JCI()->importer->file;
 
 		if ( ! isset( $jci_taxonomies ) || ! $jci_taxonomies || empty( $jci_taxonomies ) ) {
 			return false;
@@ -781,13 +758,9 @@ class JC_BaseMapper {
 
 	final function processAttachments( $data ) {
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$jci_attachments   = $jcimporter->importer->attachments;
-		$jci_template_type = $jcimporter->importer->template_type;
-		$jci_file          = $jcimporter->importer->file;
+		$jci_attachments   = JCI()->importer->get_attachments();
+		$jci_template_type = JCI()->importer->template_type;
+		$jci_file          = JCI()->importer->file;
 
 		if ( ! isset( $jci_attachments ) || ! $jci_attachments || empty( $jci_attachments ) ) {
 			return false;
@@ -823,7 +796,7 @@ class JC_BaseMapper {
 				// permission check (create, append, overwrite)
 				$permission = $jci_attachments[ $group_id ]['permissions'][ $key ];
 
-				//todo: make sure is always set in $jcimporter->importer
+				//todo: make sure is always set in JCI()->importer
 				$featured = isset( $jci_attachments[ $group_id ]['featured_image'][ $key ] ) ? $jci_attachments[ $group_id ]['featured_image'][ $key ] : 0;
 				if ( $featured == 1 ) {
 					$feature = true;
@@ -910,11 +883,7 @@ class JC_BaseMapper {
 			return true;
 		}
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$jci_attachments = $jcimporter->importer->attachments;
+		$jci_attachments = JCI()->importer->get_attachments();
 
 		switch ( $jci_attachments[ $group_id ]['type'] ) {
 			case 'local':
