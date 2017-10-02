@@ -127,6 +127,7 @@ $jci_template_type = $jcimporter->importer->template_type;
 					type: "POST",
 					beforeSend: function(){
 						$('#preview-loading').show();
+                        $('.preview-text').text('Loading...');
 					},
 					complete: function(){
 						$('#preview-loading').hide();

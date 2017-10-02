@@ -8,11 +8,15 @@ class JC_CSV_Parser extends JC_Parser {
 	protected $_config = array();
 	protected $_records = array();
 	public $name = 'csv';
-	private $curr_row = 0;
 
 	private $default_csv_delimiter = ',';
 	private $default_csv_enclosure = '&quot;';
 
+	/**
+	 * List of file seek index's
+	 *
+	 * @var array
+	 */
 	protected $_seekIndex = array();
 
 	/**
@@ -32,6 +36,26 @@ class JC_CSV_Parser extends JC_Parser {
 				$this,
 				'output_general_settings'
 			) );
+	}
+
+	/**
+	 * Get delimiter for currently loaded importer
+	 *
+	 * @return string
+	 */
+	protected function get_delimiter(){
+		$delimiter = isset( JCI()->importer->addon_settings['csv_delimiter'] ) && !empty( JCI()->importer->addon_settings['csv_delimiter'] ) ? JCI()->importer->addon_settings['csv_delimiter'] : ',';
+		return stripslashes($delimiter);
+
+	}
+
+	/**
+	 * Get enclosure for currently loaded importer
+	 * @return string
+	 */
+	protected function get_enclosure(){
+		$enclosure = isset( JCI()->importer->addon_settings['csv_enclosure'] ) && !empty( JCI()->importer->addon_settings['csv_enclosure'] ) ? JCI()->importer->addon_settings['csv_enclosure'] : '"';
+		return stripslashes($enclosure);
 	}
 
 	/**
@@ -71,7 +95,7 @@ class JC_CSV_Parser extends JC_Parser {
 	 *
 	 * @param  array $settings
 	 *
-	 * @return void
+	 * @return array
 	 */
 	public function load_settings( $settings, $id ) {
 
@@ -91,6 +115,8 @@ class JC_CSV_Parser extends JC_Parser {
 	 * Save XML fields into database
 	 *
 	 * @param  int $id
+	 *
+	 * @param $parser_type
 	 *
 	 * @return void
 	 */
@@ -143,6 +169,14 @@ class JC_CSV_Parser extends JC_Parser {
 		return isset($this->_records[ $row - 1 ]) ? $this->_records[$row-1] : false;
 	}
 
+	/**
+	 * Get importer start and end rows for current importer
+	 *
+	 * @param null $selected_row
+	 * @param int $max_rows_limit
+	 *
+	 * @return array
+	 */
 	public function get_import_info($selected_row = null, $max_rows_limit = 0){
 
 		// Calculate start row
@@ -152,7 +186,6 @@ class JC_CSV_Parser extends JC_Parser {
 		}
 
 		$end = $total_rows = JCI()->importer->get_total_rows() + 1;
-		$per_row = JCI()->importer->get_record_import_count();
 
 		// records per import
 		$max_rows = JCI()->importer->get_row_count();
@@ -176,6 +209,10 @@ class JC_CSV_Parser extends JC_Parser {
 	 * Parse CSV
 	 *
 	 * Load CSV File and parse data into results array
+	 *
+	 * @param null $selected_row
+	 * @param int $max_rows
+	 *
 	 * @return array
 	 */
 	public function parse( $selected_row = null, $max_rows = 0 ) {
@@ -189,7 +226,6 @@ class JC_CSV_Parser extends JC_Parser {
 		$fh      = fopen( $this->file, 'r' );
 
 		$records = array();
-		$counter = 1;
 
 		// read from last seek
 		$status = IWP_Status::read_file();
@@ -210,11 +246,8 @@ class JC_CSV_Parser extends JC_Parser {
 		}
 
 		// set enclosure and delimiter
-		$delimiter = isset( JCI()->importer->addon_settings['csv_delimiter'] ) && !empty( JCI()->importer->addon_settings['csv_delimiter'] ) ? JCI()->importer->addon_settings['csv_delimiter'] : ',';
-		$enclosure = isset( JCI()->importer->addon_settings['csv_enclosure'] ) && !empty( JCI()->importer->addon_settings['csv_enclosure'] ) ? JCI()->importer->addon_settings['csv_enclosure'] : '"';
-
-		$delimiter = stripslashes($delimiter);
-		$enclosure = stripslashes($enclosure);
+		$delimiter = $this->get_delimiter();
+		$enclosure = $this->get_enclosure();
 
 		while ( $line = fgetcsv( $fh, null, $delimiter, $enclosure ) ) {
 
@@ -224,12 +257,6 @@ class JC_CSV_Parser extends JC_Parser {
 				if($selected_row < $counter && $this->end < $counter){
 					break;
 				}
-
-				// only output debug if we are seeking
-//				if(isset($status['seek']) && intval($status['seek']) > 0) {
-//					file_put_contents( JCI()->get_plugin_dir() . '/app/tmp/debug-' . JCI()->importer->get_ID() . '-' . JCI()->importer->get_version() . '.txt',
-//						"Wasted Row: $counter , Selected row: $selected_row , Start: {$this->start}, End: {$this->end}\n", FILE_APPEND );
-//				}
 
 				$counter ++;
 				continue;
@@ -264,25 +291,24 @@ class JC_CSV_Parser extends JC_Parser {
 
 			// escape early if selected row
 			if ( $this->end <= $counter ) {
-
-//				$this->seek = ftell($fh);
-//				$this->seek_record_count = $counter;
-
-				// save file byte location for quick resume
-//				$this->save_session();
 				break;
 			}
 		}
 
 		fclose( $fh );
 
-//		if ( $selected_row && isset( $records[ $selected_row - 1 ] ) ) {
-//			return array( $records[ $selected_row - 1 ] );
-//		}
-
 		return $records;
 	}
 
+	/**
+	 * CSV preview a single record
+	 *
+	 * @param string $map
+	 * @param null $selected_row
+	 * @param $field
+	 *
+	 * @return mixed|string|void
+	 */
 	public function preview_field($map = '', $selected_row = null, $field ) {
 
 		$fh      = fopen( $this->file, 'r' );
@@ -290,11 +316,8 @@ class JC_CSV_Parser extends JC_Parser {
 		$result = '';
 
 		// set enclosure and delimiter
-		$delimiter = isset( JCI()->importer->addon_settings['csv_delimiter'] ) ? JCI()->importer->addon_settings['csv_delimiter'] : ',';
-		$enclosure = isset( JCI()->importer->addon_settings['csv_enclosure'] ) ? JCI()->importer->addon_settings['csv_enclosure'] : '"';
-
-		$delimiter = stripslashes($delimiter);
-		$enclosure = stripslashes($enclosure);
+		$delimiter = $this->get_delimiter();
+		$enclosure = $this->get_enclosure();
 
 		while ( $line = fgetcsv( $fh, null, $delimiter, $enclosure ) ) {
 
@@ -313,10 +336,27 @@ class JC_CSV_Parser extends JC_Parser {
 		return $result;
 	}
 
+	/**
+	 * Ajax preview record method
+	 *
+	 * @param string $result
+	 * @param $row
+	 * @param $map
+	 * @param $field
+	 *
+	 * @return mixed|string|void
+	 */
 	public function ajax_preview_record($result = '', $row, $map, $field ){
 		return $this->preview_field($map, $row, $field);
 	}
 
+	/**
+	 * Ajax record count method
+	 *
+	 * @param int $result
+	 *
+	 * @return int
+	 */
 	public function ajax_record_count($result = 0){
 		return $this->get_total_rows() - 1;
 	}
@@ -330,15 +370,10 @@ class JC_CSV_Parser extends JC_Parser {
 	 */
 	public function get_total_rows( $importer_id = 0 ) {
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-
 		if ( $importer_id > 0 ) {
 			$id = $importer_id;
 		} else {
-			$id = $jcimporter->importer->ID;
+			$id = JCI()->importer->get_ID();
 		}
 
 		// load settings
@@ -349,24 +384,31 @@ class JC_CSV_Parser extends JC_Parser {
 			return 0;
 		}
 
-		$linecount = 0;
+		$line_count = 0;
 		$fh        = fopen( $file, 'r' );
 
 		while ( ! feof( $fh ) ) {
 			$line = fgets( $fh );
-			$linecount ++;
+			$line_count ++;
 		}
 
 		// remove empty lines from end of file
-		if(empty($line) && $linecount > 0){
-			$linecount--;
+		if(empty($line) && $line_count > 0){
+			$line_count--;
 		}
 
 		fclose( $fh );
 
-		return $linecount;
+		return $line_count;
 	}
 
+	/**
+	 * Get seek index for current file
+	 *
+	 * @param $row
+	 *
+	 * @return mixed|null
+	 */
 	public function get_seek_index($row){
 		return isset($this->_seekIndex[$row]) ? $this->_seekIndex[$row] : null;
 	}
@@ -405,5 +447,3 @@ class JCI_CSV_ParseField extends JCI_ParseField {
 		return isset( $this->row[ $col ] ) ? $this->row[ $col ] : $field[0];
 	}
 }
-
-?>
