@@ -2,31 +2,32 @@
 
 /**
  * Get list of installed importer templates
- * 
+ *
  * @param bool $class_name output class name as array value
+ *
  * @return array
  */
-function get_template_list($class_name = true) {
+function get_template_list( $class_name = true ) {
 
 	$templates = array();
 	foreach ( JCI()->get_templates() as $key => $template ) {
 
-		if($class_name){
+		if ( $class_name ) {
 
 			// output class name as value
-			$templates[ $key ] 	= $template;
-		}else{
+			$templates[ $key ] = $template;
+		} else {
 
 			// output human readable version of key
-			$temp 				= $key;
-			$temp 				= str_replace('-', ' ', $temp);
-			$temp 				= ucfirst($temp);
-			$templates[ $key ] 	= $temp;
+			$temp              = $key;
+			$temp              = str_replace( '-', ' ', $temp );
+			$temp              = ucfirst( $temp );
+			$templates[ $key ] = $temp;
 		}
 	}
 
 	// todo: move this to class-importwp-premium
-	if(!class_exists('ImportWP_CustomPostTypes')){
+	if ( ! class_exists( 'ImportWP_CustomPostTypes' ) ) {
 		$templates['custom-post-type'] = 'Custom Post Type';
 	}
 
@@ -42,12 +43,13 @@ function get_template_list($class_name = true) {
  */
 function get_import_template( $template ) {
 
-	return JCI()->get_template($template);
+	return JCI()->get_template( $template );
 }
 
 function load_import_parser( $import_id ) {
 
 	$template_type = ImporterModel::getImportSettings( $import_id, 'template_type' );
+
 	return JCI()->parsers[ $template_type ];
 }
 
@@ -177,21 +179,21 @@ function log_content( $column, $data ) {
 	}
 }
 
-function jci_error_message($e){
+function jci_error_message( $e ) {
 
 	/**
 	 * @global JC_Importer $jcimporter
 	 */
 	global $jcimporter;
 
-	if($jcimporter->is_debug()){
+	if ( $jcimporter->is_debug() ) {
 		return $e->getMessage() . ' in file ' . $e->getFile() . ' on line ' . $e->getLine();
-	}else{
+	} else {
 		return $e->getMessage();
 	}
 }
 
-function jci_display_messages(){
+function jci_display_messages() {
 
 	// output messages
 	if ( isset( $_GET['message'] ) && $_GET['message'] >= 0 ) {
@@ -216,25 +218,25 @@ function jci_display_messages(){
 /**
  * Fetch all posts
  */
-function jci_get_post_list($post_type = ''){
+function jci_get_post_list( $post_type = '' ) {
 
-	$posts = new WP_Query(array(
-		'post_type' => $post_type,
-		'posts_per_page' => -1,
-		'fields' => 'ids'
-	));
+	$posts = new WP_Query( array(
+		'post_type'      => $post_type,
+		'posts_per_page' => - 1,
+		'fields'         => 'ids'
+	) );
 
-	$ordered_posts = array(null => 'None');
+	$ordered_posts = array( null => 'None' );
 
-	if($posts->have_posts()){
+	if ( $posts->have_posts() ) {
 
-		if($posts->found_posts > 1000){
-			foreach($posts->posts as $id){
-				$ordered_posts[$id] = sprintf("Post: %d", $id);
+		if ( $posts->found_posts > 1000 ) {
+			foreach ( $posts->posts as $id ) {
+				$ordered_posts[ $id ] = sprintf( "Post: %d", $id );
 			}
-		}else{
-			foreach($posts->posts as $id){
-				$ordered_posts[$id] = get_the_title($id);
+		} else {
+			foreach ( $posts->posts as $id ) {
+				$ordered_posts[ $id ] = get_the_title( $id );
 			}
 		}
 
@@ -246,70 +248,76 @@ function jci_get_post_list($post_type = ''){
 /**
  * Fetch all users
  */
-function jci_get_user_list(){
+function jci_get_user_list() {
 
-	$users = get_users(array('fields' => 'all'));
+	$users     = get_users( array( 'fields' => 'all' ) );
 	$temp_list = array();
-	foreach($users as $u){
-		$temp_list[$u->data->ID] = $u->data->user_nicename;
+	foreach ( $users as $u ) {
+		$temp_list[ $u->data->ID ] = $u->data->user_nicename;
 	}
 
 	return $temp_list;
 }
 
-function iwp_output_pagination($current = 1, $max_results, $per_page, $max_show = 4){
+function iwp_output_pagination( $current = 1, $max_results, $per_page, $max_show = 4 ) {
 
-	$max = ceil($max_results / $per_page);
+	$max = ceil( $max_results / $per_page );
 
-	$start = $current - floor($max_show / 2);
-	$end = $current + floor($max_show / 2);
+	$start = $current - floor( $max_show / 2 );
+	$end   = $current + floor( $max_show / 2 );
 
-	if($start < 1){
+	if ( $start < 1 ) {
 		$start = 1;
-		$end = $start + $max_show;
+		$end   = $start + $max_show;
 	}
 
-	if($end > $max){
+	if ( $end > $max ) {
 		$end = $max;
 	}
 
-	if($max >= 1): ?>
-		<div class="iwp-pagination__wrapper">
-			<p>Showing Page <?php echo $current; ?> of <?php echo $max; ?></p>
+	if ( $max >= 1 ): ?>
+        <div class="iwp-pagination__wrapper">
+            <p>Showing Page <?php echo $current; ?> of <?php echo $max; ?></p>
 
-			<ul class="iwp-pagination">
+            <ul class="iwp-pagination">
 
-				<?php if($max > $max_show && $current > 2): ?>
-					<li class="iwp-pagination__link"><a href="<?php echo remove_query_arg('iwp_page'); ?>">&laquo;</a></li>
+				<?php if ( $max > $max_show && $current > 2 ): ?>
+                    <li class="iwp-pagination__link"><a href="<?php echo remove_query_arg( 'iwp_page' ); ?>">&laquo;</a>
+                    </li>
 				<?php endif; ?>
-				<?php if($max > 1  && $current > 1): ?>
-					<li class="iwp-pagination__link"><a href="<?php echo add_query_arg('iwp_page', $current - 1); ?>">&larr;</a></li>
+				<?php if ( $max > 1 && $current > 1 ): ?>
+                    <li class="iwp-pagination__link"><a href="<?php echo add_query_arg( 'iwp_page', $current - 1 ); ?>">&larr;</a>
+                    </li>
 				<?php endif; ?>
-				<?php for($i = $start; $i <= $end; $i++): ?>
+				<?php for ( $i = $start; $i <= $end; $i ++ ): ?>
 
-					<?php if($current == $i): ?>
-						<li class="iwp-pagination__link iwp-pagination__link--active"><span><?php echo $i; ?></span></li>
+					<?php if ( $current == $i ): ?>
+                        <li class="iwp-pagination__link iwp-pagination__link--active"><span><?php echo $i; ?></span>
+                        </li>
 					<?php else: ?>
-						<li class="iwp-pagination__link"><a href="<?php echo add_query_arg('iwp_page', $i); ?>"><?php echo $i; ?></a></li>
+                        <li class="iwp-pagination__link"><a
+                                    href="<?php echo add_query_arg( 'iwp_page', $i ); ?>"><?php echo $i; ?></a></li>
 					<?php endif; ?>
 				<?php endfor; ?>
-				<?php if($max > 1 && $current < $max): ?>
-					<li class="iwp-pagination__link"><a href="<?php echo add_query_arg('iwp_page', $current + 1); ?>">&rarr;</a></li>
+				<?php if ( $max > 1 && $current < $max ): ?>
+                    <li class="iwp-pagination__link"><a href="<?php echo add_query_arg( 'iwp_page', $current + 1 ); ?>">&rarr;</a>
+                    </li>
 				<?php endif; ?>
-				<?php if($max > $max_show && $current < $max - 1): ?>
-					<li class="iwp-pagination__link"><a href="<?php echo add_query_arg('iwp_page', $max); ?>">&raquo;</a></li>
+				<?php if ( $max > $max_show && $current < $max - 1 ): ?>
+                    <li class="iwp-pagination__link"><a
+                                href="<?php echo add_query_arg( 'iwp_page', $max ); ?>">&raquo;</a></li>
 				<?php endif; ?>
-			</ul>
-		</div>
+            </ul>
+        </div>
 	<?php endif;
 }
 
 /**
  * Fallback for pre WP 4.7 systems that dont have wp_doing_ajax function
  */
-if(!function_exists('wp_doing_ajax')){
+if ( ! function_exists( 'wp_doing_ajax' ) ) {
 
-	function wp_doing_ajax(){
+	function wp_doing_ajax() {
 		return apply_filters( 'wp_doing_ajax', defined( 'DOING_AJAX' ) && DOING_AJAX );
 	}
 }

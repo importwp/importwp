@@ -88,10 +88,11 @@ class ImporterModel {
 
 	/**
 	 * Set Importer Version
-	 * @param int $id  
+	 *
+	 * @param int $id
 	 * @param int $ver new version number
 	 */
-	static function setImportVersion($id, $ver){
+	static function setImportVersion( $id, $ver ) {
 
 		$old_ver = get_post_meta( $id, '_import_version', true );
 		update_post_meta( $id, '_import_version', $ver, $old_ver );
@@ -155,177 +156,6 @@ class ImporterModel {
 		self::$meta = false;
 	}
 
-	/**
-	 * Load Importer Settings
-	 *
-	 * @param  int $post_id
-	 * @param  string $section
-	 *
-	 * @return string
-	 */
-	static function getImportSettings( $post_id, $section = null ) {
-
-		$settings = self::getImporterMeta( $post_id, 'settings' );
-
-		switch ( $section ) {
-
-			// get ftp settings
-			// TODO: remove to ftp addon
-			case 'ftp':
-				$settings = array(
-					'ftp_loc' => isset( $settings['general']['ftp_loc'] ) ? $settings['general']['ftp_loc'] : '',
-				);
-				break;
-
-			// get remote settings
-			case 'remote':
-				$settings = array(
-					'remote_url' => isset( $settings['general']['remote_url'] ) ? $settings['general']['remote_url'] : '',
-				);
-				break;
-
-			// get local settings
-			case 'local':
-				$settings = array(
-					'local_url' => isset( $settings['general']['local_url'] ) ? $settings['general']['local_url'] : '',
-				);
-				break;
-
-			// individual settings
-			case 'template':
-				$settings = $settings['template'];
-				$settings = (string) $settings;
-				break;
-			case 'template_type':
-				$settings = isset( $settings['template_type'] ) && ! empty( $settings['template_type'] ) ? $settings['template_type'] : 'csv';
-				$settings = (string) $settings;
-				break;
-			case 'import_type':
-				$settings = $settings['import_type'];
-				$settings = (string) $settings;
-				break;
-			case 'start_line':
-				$settings = isset( $settings['start_line'] ) ? $settings['start_line'] : 1;
-				break;
-			case 'row_count':
-				$settings = isset( $settings['row_count'] ) ? $settings['row_count'] : 0;
-				break;
-			case 'record_import_count':
-				$settings = isset( $settings['record_import_count'] ) ? $settings['record_import_count'] : 10;
-				break;
-			case 'import_file':
-				if ( intval( $settings['import_file'] ) > 0 ) {
-
-					$file = self::getImporterFile($settings['import_file']);
-					if($file){
-						$wp_upload_dir = wp_upload_dir();
-						$settings = $wp_upload_dir['basedir'] . $file->src; 
-					}
-					
-				} else {
-					$settings = isset( $settings['import_file'] ) ? $settings['import_file'] : '';
-				}
-				break;
-			case 'permissions':
-				$settings = isset( $settings['permissions'] ) ? $settings['permissions'] : array();
-				break;
-		}
-
-		return $settings;
-	}
-
-	/**
-	 * Get All Importer Metadata
-	 *
-	 * @param  integer $post_id
-	 * @param  string $section
-	 *
-	 * @return array
-	 */
-	static function getImporterMeta( $post_id, $section = null ) {
-
-		if ( ! self::$meta ) {
-			$importer_meta = get_metadata( 'post', $post_id, '', true );
-
-			// get settings
-			$settings       = isset( $importer_meta['_import_settings'] ) ? $importer_meta['_import_settings'][0] : array();
-			$fields         = isset( $importer_meta['_mapped_fields'] ) ? $importer_meta['_mapped_fields'][0] : array();
-			$attachments    = isset( $importer_meta['_attachments'] ) ? $importer_meta['_attachments'][0] : array();
-			$taxonomies     = isset( $importer_meta['_taxonomies'] ) ? $importer_meta['_taxonomies'][0] : array();
-			$addon_settings = isset( $importer_meta['_setting_addons'] ) ? $importer_meta['_setting_addons'][0] : array();
-			$addon_fields   = isset( $importer_meta['_field_addons'] ) ? $importer_meta['_field_addons'][0] : array();
-
-			// only unserialize if string
-			$settings = is_string($settings) ? unserialize($settings) : $settings;
-			$fields = is_string($fields) ? unserialize($fields) : $fields;
-			$attachments = is_string($attachments) ? unserialize($attachments) : $attachments;
-			$taxonomies = is_string($taxonomies) ? unserialize($taxonomies) : $taxonomies;
-			$addon_settings = is_string($addon_settings) ? unserialize($addon_settings) : $addon_settings;
-			$addon_fields = is_string($addon_fields) ? unserialize($addon_fields) : $addon_fields;
-
-			self::$meta = array(
-				'settings'       => $settings,
-				'fields'         => $fields,
-				'attachments'    => $attachments,
-				'taxonomies'     => $taxonomies,
-				'addon_settings' => $addon_settings,
-				'addon_fields'   => $addon_fields,
-			);
-		}
-
-		$meta = self::$meta;
-
-		switch ( $section ) {
-			case 'settings':
-				$meta = $meta['settings'];
-				break;
-			case 'fields':
-				$meta = $meta['fields'];
-				break;
-			case 'attachments':
-				$meta = $meta['attachments'];
-				break;
-			case 'taxonomies':
-				$meta = $meta['taxonomies'];
-				break;
-			case 'addon_settings':
-				$meta = $meta['addon_settings'];
-				break;
-			case 'addon_fields':
-				$meta = $meta['addon_fields'];
-				break;
-		}
-
-		return $meta;
-	}
-
-	private static function get_key( &$arr, $keys = array(), $value = '', $counter = 0 ) {
-
-		$key = $keys[ $counter ];
-		$counter ++;
-		if ( isset( $arr[ $key ] ) ) {
-
-			// if keys exist
-			if ( $counter == count( $keys ) ) {
-				$arr[ $key ] = $value;
-			} else {
-				$arr[ $key ] = self::get_key( $arr[ $key ], $keys, $value, $counter );
-			}
-		} else {
-
-			// create keys
-			$arr[ $key ] = array();
-			if ( $counter == count( $keys ) ) {
-				$arr[ $key ] = $value;
-			} else {
-				$arr[ $key ] = self::get_key( $arr[ $key ], $keys, $value, $counter );
-			}
-
-		}
-
-		return $arr;
-	}
-
 	static function getImporterMetaArr( $post_id, $keys ) {
 
 		if ( is_null( $keys ) || empty( $keys ) ) {
@@ -371,7 +201,7 @@ class ImporterModel {
 			$key       = array_shift( $keys );
 			$old_value = get_post_meta( $post_id, $key, true );
 
-			$temp  = (array)$old_value;
+			$temp  = (array) $old_value;
 			$value = self::get_key( $temp, $keys, $value );
 
 		} elseif ( is_string( $keys ) ) {
@@ -388,6 +218,33 @@ class ImporterModel {
 		}
 	}
 
+	private static function get_key( &$arr, $keys = array(), $value = '', $counter = 0 ) {
+
+		$key = $keys[ $counter ];
+		$counter ++;
+		if ( isset( $arr[ $key ] ) ) {
+
+			// if keys exist
+			if ( $counter == count( $keys ) ) {
+				$arr[ $key ] = $value;
+			} else {
+				$arr[ $key ] = self::get_key( $arr[ $key ], $keys, $value, $counter );
+			}
+		} else {
+
+			// create keys
+			$arr[ $key ] = array();
+			if ( $counter == count( $keys ) ) {
+				$arr[ $key ] = $value;
+			} else {
+				$arr[ $key ] = self::get_key( $arr[ $key ], $keys, $value, $counter );
+			}
+
+		}
+
+		return $arr;
+	}
+
 	static function update( $post_id, $data = array() ) {
 
 		$meta['_mapped_fields']  = isset( $data['fields'] ) ? $data['fields'] : array();
@@ -396,15 +253,15 @@ class ImporterModel {
 		$meta['_field_addons']   = isset( $data['addon_fields'] ) ? $data['addon_fields'] : array();
 		$meta['_setting_addons'] = isset( $data['addon_settings'] ) ? $data['addon_settings'] : array();
 
-		$settings               = get_post_meta( $post_id, '_import_settings', true );
-		$settings['start_line'] = isset( $data['settings']['start_line'] ) ? $data['settings']['start_line'] : 1;
-		$settings['row_count']  = isset( $data['settings']['row_count'] ) ? $data['settings']['row_count'] : 0;
-		$settings['record_import_count']  = isset( $data['settings']['record_import_count'] ) ? $data['settings']['record_import_count'] : 10;
+		$settings                        = get_post_meta( $post_id, '_import_settings', true );
+		$settings['start_line']          = isset( $data['settings']['start_line'] ) ? $data['settings']['start_line'] : 1;
+		$settings['row_count']           = isset( $data['settings']['row_count'] ) ? $data['settings']['row_count'] : 0;
+		$settings['record_import_count'] = isset( $data['settings']['record_import_count'] ) ? $data['settings']['record_import_count'] : 10;
 
 		if ( isset( $data['settings']['template_type'] ) && in_array( $data['settings']['template_type'], array(
-					'csv',
-					'xml'
-				) )
+				'csv',
+				'xml'
+			) )
 		) {
 			$settings['template_type'] = $data['settings']['template_type'];
 		}
@@ -472,11 +329,11 @@ class ImporterModel {
 		}
 
 		// Update Importer Post Record with new Title
-		if(isset($data['name']) && $data['name']){
-			wp_update_post(array(
-				'ID' => $post_id,
+		if ( isset( $data['name'] ) && $data['name'] ) {
+			wp_update_post( array(
+				'ID'         => $post_id,
 				'post_title' => $data['name']
-			));
+			) );
 		}
 
 		// save settings
@@ -499,49 +356,198 @@ class ImporterModel {
 	}
 
 	/**
+	 * Load Importer Settings
+	 *
+	 * @param  int $post_id
+	 * @param  string $section
+	 *
+	 * @return string
+	 */
+	static function getImportSettings( $post_id, $section = null ) {
+
+		$settings = self::getImporterMeta( $post_id, 'settings' );
+
+		switch ( $section ) {
+
+			// get ftp settings
+			// TODO: remove to ftp addon
+			case 'ftp':
+				$settings = array(
+					'ftp_loc' => isset( $settings['general']['ftp_loc'] ) ? $settings['general']['ftp_loc'] : '',
+				);
+				break;
+
+			// get remote settings
+			case 'remote':
+				$settings = array(
+					'remote_url' => isset( $settings['general']['remote_url'] ) ? $settings['general']['remote_url'] : '',
+				);
+				break;
+
+			// get local settings
+			case 'local':
+				$settings = array(
+					'local_url' => isset( $settings['general']['local_url'] ) ? $settings['general']['local_url'] : '',
+				);
+				break;
+
+			// individual settings
+			case 'template':
+				$settings = $settings['template'];
+				$settings = (string) $settings;
+				break;
+			case 'template_type':
+				$settings = isset( $settings['template_type'] ) && ! empty( $settings['template_type'] ) ? $settings['template_type'] : 'csv';
+				$settings = (string) $settings;
+				break;
+			case 'import_type':
+				$settings = $settings['import_type'];
+				$settings = (string) $settings;
+				break;
+			case 'start_line':
+				$settings = isset( $settings['start_line'] ) ? $settings['start_line'] : 1;
+				break;
+			case 'row_count':
+				$settings = isset( $settings['row_count'] ) ? $settings['row_count'] : 0;
+				break;
+			case 'record_import_count':
+				$settings = isset( $settings['record_import_count'] ) ? $settings['record_import_count'] : 10;
+				break;
+			case 'import_file':
+				if ( intval( $settings['import_file'] ) > 0 ) {
+
+					$file = self::getImporterFile( $settings['import_file'] );
+					if ( $file ) {
+						$wp_upload_dir = wp_upload_dir();
+						$settings      = $wp_upload_dir['basedir'] . $file->src;
+					}
+
+				} else {
+					$settings = isset( $settings['import_file'] ) ? $settings['import_file'] : '';
+				}
+				break;
+			case 'permissions':
+				$settings = isset( $settings['permissions'] ) ? $settings['permissions'] : array();
+				break;
+		}
+
+		return $settings;
+	}
+
+	/**
+	 * Get All Importer Metadata
+	 *
+	 * @param  integer $post_id
+	 * @param  string $section
+	 *
+	 * @return array
+	 */
+	static function getImporterMeta( $post_id, $section = null ) {
+
+		if ( ! self::$meta ) {
+			$importer_meta = get_metadata( 'post', $post_id, '', true );
+
+			// get settings
+			$settings       = isset( $importer_meta['_import_settings'] ) ? $importer_meta['_import_settings'][0] : array();
+			$fields         = isset( $importer_meta['_mapped_fields'] ) ? $importer_meta['_mapped_fields'][0] : array();
+			$attachments    = isset( $importer_meta['_attachments'] ) ? $importer_meta['_attachments'][0] : array();
+			$taxonomies     = isset( $importer_meta['_taxonomies'] ) ? $importer_meta['_taxonomies'][0] : array();
+			$addon_settings = isset( $importer_meta['_setting_addons'] ) ? $importer_meta['_setting_addons'][0] : array();
+			$addon_fields   = isset( $importer_meta['_field_addons'] ) ? $importer_meta['_field_addons'][0] : array();
+
+			// only unserialize if string
+			$settings       = is_string( $settings ) ? unserialize( $settings ) : $settings;
+			$fields         = is_string( $fields ) ? unserialize( $fields ) : $fields;
+			$attachments    = is_string( $attachments ) ? unserialize( $attachments ) : $attachments;
+			$taxonomies     = is_string( $taxonomies ) ? unserialize( $taxonomies ) : $taxonomies;
+			$addon_settings = is_string( $addon_settings ) ? unserialize( $addon_settings ) : $addon_settings;
+			$addon_fields   = is_string( $addon_fields ) ? unserialize( $addon_fields ) : $addon_fields;
+
+			self::$meta = array(
+				'settings'       => $settings,
+				'fields'         => $fields,
+				'attachments'    => $attachments,
+				'taxonomies'     => $taxonomies,
+				'addon_settings' => $addon_settings,
+				'addon_fields'   => $addon_fields,
+			);
+		}
+
+		$meta = self::$meta;
+
+		switch ( $section ) {
+			case 'settings':
+				$meta = $meta['settings'];
+				break;
+			case 'fields':
+				$meta = $meta['fields'];
+				break;
+			case 'attachments':
+				$meta = $meta['attachments'];
+				break;
+			case 'taxonomies':
+				$meta = $meta['taxonomies'];
+				break;
+			case 'addon_settings':
+				$meta = $meta['addon_settings'];
+				break;
+			case 'addon_fields':
+				$meta = $meta['addon_fields'];
+				break;
+		}
+
+		return $meta;
+	}
+
+	static function getImporterFile( $file_id ) {
+
+		global $wpdb;
+
+		$result = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `" . $wpdb->prefix . "importer_files` WHERE id=%d", $file_id ) );
+		if ( $result ) {
+			return $result;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Add importer file into directory
 	 *
 	 * @todo : Re-structure this function
 	 * @since 0.2
-	 * @param  int $importer_id 
-	 * @param  string $file        
+	 *
+	 * @param  int $importer_id
+	 * @param  string $file
+	 *
 	 * @return int
 	 */
-	static function insertImporterFile($importer_id, $file){
+	static function insertImporterFile( $importer_id, $file ) {
 
 		$wp_filetype   = wp_check_filetype( $file, null );
-		$wp_upload_dir = wp_upload_dir();	
+		$wp_upload_dir = wp_upload_dir();
 
-		$mime = $wp_filetype['type'];
-		$name = preg_replace( '/\.[^.]+$/', '', basename( $file ) );
+		$mime           = $wp_filetype['type'];
+		$name           = preg_replace( '/\.[^.]+$/', '', basename( $file ) );
 		$attachment_src = $wp_upload_dir['subdir'] . '/' . basename( $file );
-		$author_id = get_current_user_id();
+		$author_id      = get_current_user_id();
 
 		global $wpdb;
 
 		$wpdb->query( $wpdb->prepare( "INSERT INTO `" . $wpdb->prefix . "importer_files`(importer_id, author_id, mime_type, name, src, created) VALUES(%d, %d, %s, %s, %s, NOW())", $importer_id, $author_id, $mime, $name, $attachment_src ) );
+
 		return $wpdb->insert_id;
 	}
 
-	static function getImporterFile($file_id){
+	static function getImporterFiles( $importer_id ) {
 
 		global $wpdb;
 
-		$result = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `" . $wpdb->prefix . "importer_files` WHERE id=%d", $file_id  ) );
-		if($result){
-			return $result;	
+		$result = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM `" . $wpdb->prefix . "importer_files` WHERE importer_id=%d", $importer_id ) );
+		if ( $result ) {
+			return $result;
 		}
-		return false;		
-	}
 
-	static function getImporterFiles($importer_id){
-
-		global $wpdb;
-
-		$result = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM `" . $wpdb->prefix . "importer_files` WHERE importer_id=%d", $importer_id  ) );
-		if($result){
-			return $result;	
-		}
 		return false;
 	}
 }

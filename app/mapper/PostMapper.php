@@ -10,6 +10,8 @@
  */
 class JC_PostMapper {
 
+	public $changed_field_count = 0;
+	public $changed_fields = array();
 	/**
 	 * Reserved Field Names for post table
 	 * @var array
@@ -40,12 +42,8 @@ class JC_PostMapper {
 		'post_name' => 'name',
 		'ID'        => 'p'
 	);
-
 	protected $_template = array();
 	protected $_unique = array();
-
-	public $changed_field_count = 0;
-	public $changed_fields = array();
 
 	function __construct( $template = array(), $unique = array() ) {
 		$this->_template = $template;
@@ -76,7 +74,7 @@ class JC_PostMapper {
 	 */
 	function insert_data( $fields = array(), $post_status = '', $post_type = '' ) {
 
-    IWP_Debug::timer("PostMapper::insert_data -- start", "mapper");
+		IWP_Debug::timer( "PostMapper::insert_data -- start", "mapper" );
 
 		$post = array();
 		$meta = array();
@@ -97,7 +95,7 @@ class JC_PostMapper {
 		$post_id = wp_insert_post( $post, true );
 
 		// check to see if is error
-		if(!is_wp_error($post_id )){
+		if ( ! is_wp_error( $post_id ) ) {
 
 			// create post meta
 			if ( $post_id && ! empty( $meta ) ) {
@@ -109,14 +107,84 @@ class JC_PostMapper {
 				}
 			}
 
-      IWP_Debug::timer("PostMapper::insert_data -- added", "mapper");
+			IWP_Debug::timer( "PostMapper::insert_data -- added", "mapper" );
 
 			$this->add_version_tag( $post_id );
 
-      IWP_Debug::timer("PostMapper::insert_data -- versioned", "mapper");
+			IWP_Debug::timer( "PostMapper::insert_data -- versioned", "mapper" );
 		}
 
 		return $post_id;
+	}
+
+	/**
+	 * Sort fields into post and meta array
+	 *
+	 * @param  array $fields list of fields
+	 * @param  array $post post_data pointer array
+	 * @param  array $meta post_meta pointer array
+	 *
+	 * @return void
+	 */
+	function sortFields( $fields = array(), &$post = array(), &$meta = array() ) {
+
+		foreach ( $fields as $id => $value ) {
+
+			if ( in_array( $id, $this->_post_fields ) ) {
+
+				// post field
+				$post[ $id ] = $value;
+			} else {
+
+				// meta field
+				$meta[ $id ] = $value;
+			}
+		}
+	}
+
+	/**
+	 * Add Import Tracking Tag
+	 *
+	 * @param integer $post_id
+	 */
+	function add_version_tag( $post_id = 0 ) {
+
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
+		global $jcimporter;
+
+		if ( ! isset( $jcimporter->importer ) ) {
+			return;
+		}
+
+		$importer_id = $jcimporter->importer->get_ID();
+		$version     = $jcimporter->importer->get_version();
+
+		add_post_meta( $post_id, '_jci_version_' . $importer_id, $version, true );
+	}
+
+	/**
+	 * Get Group post_status from template
+	 *
+	 * @param  string $group_id
+	 *
+	 * @return string status
+	 * @todo Check field maps for post_status
+	 */
+	function getGroupPostStatus( $group_id = '' ) {
+		return isset( $this->_template->_field_groups[ $group_id ]['post_status'] ) ? $this->_template->_field_groups[ $group_id ]['post_status'] : null;
+	}
+
+	/**
+	 * Get Group post_type from template
+	 *
+	 * @param  string $group_id
+	 *
+	 * @return string post_type
+	 */
+	function getGroupPostType( $group_id = '' ) {
+		return $this->_template->_field_groups[ $group_id ]['import_type_name'];
 	}
 
 	/**
@@ -143,7 +211,7 @@ class JC_PostMapper {
 	 */
 	function update_data( $post_id, $fields = array(), $post_type = '' ) {
 
-	  IWP_Debug::timer("PostMapper::update_data -- start", "mapper");
+		IWP_Debug::timer( "PostMapper::update_data -- start", "mapper" );
 
 		$post                      = array();
 		$meta                      = array();
@@ -161,8 +229,8 @@ class JC_PostMapper {
 
 			// check to see if fields need updating
 			$query = new WP_Query( array(
-				'post_type' => $post_type,
-				'p'         => $post_id,
+				'post_type'      => $post_type,
+				'p'              => $post_id,
 				'posts_per_page' => 1
 			) );
 			if ( $query->found_posts == 1 ) {
@@ -212,13 +280,40 @@ class JC_PostMapper {
 			}
 		}
 
-    IWP_Debug::timer("PostMapper::update_data -- updated", "mapper");
+		IWP_Debug::timer( "PostMapper::update_data -- updated", "mapper" );
 
 		$this->update_version_tag( $post_id );
 
-    IWP_Debug::timer("PostMapper::update_data -- versioned", "mapper");
+		IWP_Debug::timer( "PostMapper::update_data -- versioned", "mapper" );
 
 		return $post_id;
+	}
+
+	/**
+	 * Update Import Tracking Tag
+	 *
+	 * @param integer $post_id
+	 */
+	function update_version_tag( $post_id = 0 ) {
+
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
+		global $jcimporter;
+
+		if ( ! isset( $jcimporter->importer ) ) {
+			return;
+		}
+
+		$importer_id = $jcimporter->importer->get_ID();
+		$version     = $jcimporter->importer->get_version();
+
+		$old_version = get_post_meta( $post_id, '_jci_version_' . $importer_id, true );
+		if ( $old_version ) {
+			update_post_meta( $post_id, '_jci_version_' . $importer_id, $version, $old_version );
+		} else {
+			add_post_meta( $post_id, '_jci_version_' . $importer_id, $version, true );
+		}
 	}
 
 	/**
@@ -250,13 +345,13 @@ class JC_PostMapper {
 			return false;
 		}
 
-    IWP_Debug::timer("PostMapper::exists_data -- start", "mapper");
+		IWP_Debug::timer( "PostMapper::exists_data -- start", "mapper" );
 
 		$meta_args  = array();
 		$query_args = array(
 			'post_type'   => $post_type,
 			'post_status' => $post_status,
-			'fields' => 'ids'
+			'fields'      => 'ids'
 		);
 
 		foreach ( $unique_fields as $field ) {
@@ -283,7 +378,7 @@ class JC_PostMapper {
 
 		$query = new WP_Query( $query_args );
 
-    IWP_Debug::timer("PostMapper::exists_data -- end", "mapper");
+		IWP_Debug::timer( "PostMapper::exists_data -- end", "mapper" );
 
 		if ( $query->post_count == 1 ) {
 			return $query->posts[0];
@@ -293,122 +388,28 @@ class JC_PostMapper {
 	}
 
 	/**
-	 * Sort fields into post and meta array
-	 *
-	 * @param  array $fields list of fields
-	 * @param  array $post post_data pointer array
-	 * @param  array $meta post_meta pointer array
-	 *
-	 * @return void
-	 */
-	function sortFields( $fields = array(), &$post = array(), &$meta = array() ) {
-
-		foreach ( $fields as $id => $value ) {
-
-			if ( in_array( $id, $this->_post_fields ) ) {
-
-				// post field
-				$post[ $id ] = $value;
-			} else {
-
-				// meta field
-				$meta[ $id ] = $value;
-			}
-		}
-	}
-
-	/**
-	 * Get Group post_status from template
-	 *
-	 * @param  string $group_id
-	 *
-	 * @return string status
-	 * @todo Check field maps for post_status
-	 */
-	function getGroupPostStatus( $group_id = '' ) {
-		return isset( $this->_template->_field_groups[ $group_id ]['post_status'] ) ? $this->_template->_field_groups[ $group_id ]['post_status'] : null;
-	}
-
-	/**
-	 * Get Group post_type from template
-	 *
-	 * @param  string $group_id
-	 *
-	 * @return string post_type
-	 */
-	function getGroupPostType( $group_id = '' ) {
-		return $this->_template->_field_groups[ $group_id ]['import_type_name'];
-	}
-
-	/**
-	 * Add Import Tracking Tag
-	 *
-	 * @param integer $post_id
-	 */
-	function add_version_tag( $post_id = 0 ) {
-
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-
-		if(!isset($jcimporter->importer))
-			return;
-
-		$importer_id = $jcimporter->importer->get_ID();
-		$version     = $jcimporter->importer->get_version();
-
-		add_post_meta( $post_id, '_jci_version_' . $importer_id, $version, true );
-	}
-
-	/**
-	 * Update Import Tracking Tag
-	 *
-	 * @param integer $post_id
-	 */
-	function update_version_tag( $post_id = 0 ) {
-
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-
-		if(!isset($jcimporter->importer))
-			return;
-		
-		$importer_id = $jcimporter->importer->get_ID();
-		$version     = $jcimporter->importer->get_version();
-
-		$old_version = get_post_meta( $post_id, '_jci_version_' . $importer_id, true );
-		if ( $old_version ) {
-			update_post_meta( $post_id, '_jci_version_' . $importer_id, $version, $old_version );
-		} else {
-			add_post_meta( $post_id, '_jci_version_' . $importer_id, $version, true );
-		}
-	}
-
-	/**
 	 * Remove all posts from the current tracked import
-	 * 
-	 * @param  int $importer_id 
-	 * @param  int $version     
+	 *
+	 * @param  int $importer_id
+	 * @param  int $version
 	 * @param  string $post_type
+	 *
 	 * @return void
 	 */
 	function remove_all_objects( $importer_id, $version, $post_type ) {
 
 		// get a list of all objects which were not in current update
 		$q = new WP_Query( array(
-			'post_type'  => $post_type,
-			'meta_query' => array(
+			'post_type'      => $post_type,
+			'meta_query'     => array(
 				array(
 					'key'     => '_jci_version_' . $importer_id,
 					'value'   => $version,
 					'compare' => '!='
 				)
 			),
-			'fields'     => 'ids',
-			'posts_per_page' => -1
+			'fields'         => 'ids',
+			'posts_per_page' => - 1
 		) );
 
 		// delete list of objects
@@ -423,31 +424,32 @@ class JC_PostMapper {
 
 	/**
 	 * Remove the next post from the current tracked import
-	 * 
-	 * @param  int $importer_id 
-	 * @param  int $version     
+	 *
+	 * @param  int $importer_id
+	 * @param  int $version
 	 * @param  string $post_type
+	 *
 	 * @return mixed
 	 */
-	function remove_single_object( $importer_id, $version, $post_type ){
+	function remove_single_object( $importer_id, $version, $post_type ) {
 
 		/**
 		 * @global JC_Importer $jcimporter
 		 */
 		global $jcimporter;
-		$record_import_count  = $jcimporter->importer->get_record_import_count();
+		$record_import_count = $jcimporter->importer->get_record_import_count();
 
 		// get a list of all objects which were not in current update
 		$q = new WP_Query( array(
-			'post_type'  => $post_type,
-			'meta_query' => array(
+			'post_type'      => $post_type,
+			'meta_query'     => array(
 				array(
 					'key'     => '_jci_version_' . $importer_id,
 					'value'   => $version,
 					'compare' => '!='
 				)
 			),
-			'fields'     => 'ids',
+			'fields'         => 'ids',
 			'posts_per_page' => $record_import_count
 		) );
 
@@ -456,10 +458,11 @@ class JC_PostMapper {
 			$ids = $q->posts;
 			// return 'FAKE DELETE';
 			foreach ( $ids as $id ) {
-				if(!wp_delete_post( $id, true )){
+				if ( ! wp_delete_post( $id, true ) ) {
 					return false;
 				}
 			}
+
 			return true;
 			// return wp_delete_post(array_shift($ids) , true );
 		}
@@ -469,26 +472,27 @@ class JC_PostMapper {
 
 	/**
 	 * Get list of posts to be removed from current tracked import
-	 * 
-	 * @param  int $importer_id 
-	 * @param  int $version     
-	 * @param  string $post_type   
+	 *
+	 * @param  int $importer_id
+	 * @param  int $version
+	 * @param  string $post_type
+	 *
 	 * @return mixed
 	 */
 	function get_objects_for_removal( $importer_id, $version, $post_type ) {
 
 		// get a list of all objects which were not in current update
 		$q = new WP_Query( array(
-			'post_type'  => $post_type,
-			'meta_query' => array(
+			'post_type'      => $post_type,
+			'meta_query'     => array(
 				array(
 					'key'     => '_jci_version_' . $importer_id,
 					'value'   => $version,
 					'compare' => '!='
 				)
 			),
-			'fields'     => 'ids',
-			'posts_per_page' => -1
+			'fields'         => 'ids',
+			'posts_per_page' => - 1
 		) );
 
 		// delete list of objects

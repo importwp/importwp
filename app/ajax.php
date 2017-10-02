@@ -20,7 +20,7 @@ class JC_Importer_Ajax {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_ajax_import' ) );
 
 		// preview xml base node
-		add_action('wp_ajax_jc_preview_xml_base_bode', array($this, 'admin_ajax_preview_xml_node'));
+		add_action( 'wp_ajax_jc_preview_xml_base_bode', array( $this, 'admin_ajax_preview_xml_node' ) );
 	}
 
 	public function enqueue_ajax_import() {
@@ -30,18 +30,21 @@ class JC_Importer_Ajax {
 		wp_enqueue_style( 'thickbox' );
 		wp_enqueue_script( 'thickbox' );
 
-		$ext = '.min';
+		$ext     = '.min';
 		$version = JCI()->get_version();
-		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
+		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
 			$version = time();
-			$ext = '';
+			$ext     = '';
 		}
 
 		if ( isset( $_GET['page'] ) && $_GET['page'] == 'jci-importers' && isset( $_GET['import'] ) && intval( $_GET['import'] ) > 0 ) {
 
 			$post_id = intval( $_GET['import'] );
-			wp_enqueue_script( 'tiptip', trailingslashit(JCI()->get_plugin_url()) . 'app/assets/js/jquery-tipTip' . $ext . '.js', array(), '1.3' );
-			wp_enqueue_script( 'ajax-importer', trailingslashit(JCI()->get_plugin_url()) .'app/assets/js/importer'.$ext.'.js', array( 'jquery', 'tiptip' ), $version, false );
+			wp_enqueue_script( 'tiptip', trailingslashit( JCI()->get_plugin_url() ) . 'app/assets/js/jquery-tipTip' . $ext . '.js', array(), '1.3' );
+			wp_enqueue_script( 'ajax-importer', trailingslashit( JCI()->get_plugin_url() ) . 'app/assets/js/importer' . $ext . '.js', array(
+				'jquery',
+				'tiptip'
+			), $version, false );
 			wp_localize_script( 'ajax-importer', 'ajax_object', array(
 				'ajax_url'           => admin_url( 'admin-ajax.php' ),
 				'id'                 => $post_id,
@@ -50,26 +53,26 @@ class JC_Importer_Ajax {
 				'record_preview_url' => admin_url( 'admin-ajax.php?action=jc_preview_record&importer_id=' . $post_id ),
 			) );
 
-			do_action('jci/admin_scripts');
+			do_action( 'jci/admin_scripts' );
 		}
-	}	
+	}
 
 	/**
 	 * Ajax show xml generated from currently chosen nodes
 	 * @return void
 	 */
-	public function admin_ajax_preview_xml_node(){
+	public function admin_ajax_preview_xml_node() {
 
 		$importer_id = intval( $_POST['id'] );
-		$base_node = $_POST['base'];
+		$base_node   = $_POST['base'];
 
 		$file = ImporterModel::getImportSettings( $importer_id, 'import_file' );
 
-		if(!empty($base_node) && $base_node != '/'){
+		if ( ! empty( $base_node ) && $base_node != '/' ) {
 			$base_node .= '[1]';
 		}
 
-		$xml = new JCI_XMLOutput($file, $base_node);
+		$xml = new JCI_XMLOutput( $file, $base_node );
 
 		require_once $this->_config->get_plugin_dir() . 'app/view/ajax/xml_node_preview.php';
 		die();
@@ -90,14 +93,14 @@ class JC_Importer_Ajax {
 			case 'xml':
 
 				$base_node = isset( $_GET['base'] ) ? $_GET['base'] : '';
-				$file = ImporterModel::getImportSettings( $post_id, 'import_file' );
+				$file      = ImporterModel::getImportSettings( $post_id, 'import_file' );
 
-				if(!empty($base_node) && $base_node != '/'){
+				if ( ! empty( $base_node ) && $base_node != '/' ) {
 					$base_node .= '[1]';
 				}
 
-				$xml = new JCI_XMLOutput($file, $base_node);
-				
+				$xml = new JCI_XMLOutput( $file, $base_node );
+
 				require_once $this->_config->get_plugin_dir() . 'app/view/ajax/xml_node_select.php';
 				break;
 			case 'csv':
@@ -145,17 +148,17 @@ class JC_Importer_Ajax {
 	/**
 	 * Fetch an array of all possible nodes in the current xml document
 	 *
-	 * Load the importer xml file, and scan through the file to fetch a 
+	 * Load the importer xml file, and scan through the file to fetch a
 	 * list of all possible xml xpath nodes
-	 * 
+	 *
 	 * @return array document xml nodes xpath ['/posts'. '/posts/post']
 	 */
 	public function admin_ajax_base_node() {
 
-		$post_id   = $_GET['importer_id'];
-		$base_node = isset( $_GET['base'] ) ? $_GET['base'] : '';
+		$post_id           = $_GET['importer_id'];
+		$base_node         = isset( $_GET['base'] ) ? $_GET['base'] : '';
 		$current_base_node = isset( $_GET['current'] ) ? $_GET['current'] : 'choose-one';
-		$nodes     = array(); // array of nodes
+		$nodes             = array(); // array of nodes
 
 		// 
 		$file = ImporterModel::getImportSettings( $post_id, 'import_file' );
@@ -164,20 +167,20 @@ class JC_Importer_Ajax {
 		// 	$base_node .= '[1]';
 		// }
 
-		$xml = new JCI_XMLOutput($file, $base_node);
+		$xml   = new JCI_XMLOutput( $file, $base_node );
 		$nodes = $xml->generate_xpath();
 
-		if(!empty($base_node)){
+		if ( ! empty( $base_node ) ) {
 
 			$temp = array();
 
-			foreach($nodes as $node){
+			foreach ( $nodes as $node ) {
 
-				if(strpos($base_node, $node) === false){
+				if ( strpos( $base_node, $node ) === false ) {
 
-					if(strpos($node, $base_node) === 0){
+					if ( strpos( $node, $base_node ) === 0 ) {
 
-						$temp[] = !empty($base_node) && $base_node !== '/' ? substr($node, strlen($base_node)) : $node;
+						$temp[] = ! empty( $base_node ) && $base_node !== '/' ? substr( $node, strlen( $base_node ) ) : $node;
 					}
 				}
 			}
@@ -185,7 +188,7 @@ class JC_Importer_Ajax {
 			$nodes = $temp;
 		}
 
-		$nodes = array_unique($nodes);
+		$nodes = array_unique( $nodes );
 		require_once $this->_config->get_plugin_dir() . 'app/view/ajax/base_node_select.php';
 		die();
 	}
@@ -241,47 +244,54 @@ class JC_Importer_Ajax {
 	 * return mapped data for chosen import record
 	 * @return void
 	 */
-	public function admin_ajax_preview_record(){
+	public function admin_ajax_preview_record() {
 
 		$importer_id = $_POST['id'];
-		$map = $_POST['map'];
-		$row = isset($_POST['row']) && intval($_POST['row']) > 0 ? intval($_POST['row']) : 1;
+		$map         = $_POST['map'];
+		$row         = isset( $_POST['row'] ) && intval( $_POST['row'] ) > 0 ? intval( $_POST['row'] ) : 1;
 
 		// setup importer
 		/**
 		 * @global JC_Importer $jcimporter
 		 */
 
-		JCI()->importer = new JC_Importer_Core($importer_id);
+		JCI()->importer    = new JC_Importer_Core( $importer_id );
 		$jci_file          = JCI()->importer->get_file();
 		$jci_template_type = JCI()->importer->get_template_type();
-		$parser            = JCI()->parsers[$jci_template_type ];
-		$result 		   = array();
+		$parser            = JCI()->parsers[ $jci_template_type ];
+		$result            = array();
 
 		// load file into importer
 		$parser->loadFile( $jci_file );
 
-		if(is_array($map)){
+		if ( is_array( $map ) ) {
 
 			// process list of data maps
-			foreach($map as $map_row){
+			foreach ( $map as $map_row ) {
 
-				$map_val = $map_row['map'];
+				$map_val   = $map_row['map'];
 				$map_field = $map_row['field'];
-				
-				if($map_val == "")
-					continue;
 
-				$result[] = array($map_val, apply_filters( 'jci/ajax_'. $jci_template_type .'/preview_record', '', $row, $map_val, $map_field ));
+				if ( $map_val == "" ) {
+					continue;
+				}
+
+				$result[] = array(
+					$map_val,
+					apply_filters( 'jci/ajax_' . $jci_template_type . '/preview_record', '', $row, $map_val, $map_field )
+				);
 			}
-		}else{
+		} else {
 
 			// process single data map
-			$field = isset($_POST['field']) ? $_POST['field'] : '';
-			$result[] = array($map, apply_filters( 'jci/ajax_'. $jci_template_type .'/preview_record', '', $row, $map, $field ));
+			$field    = isset( $_POST['field'] ) ? $_POST['field'] : '';
+			$result[] = array(
+				$map,
+				apply_filters( 'jci/ajax_' . $jci_template_type . '/preview_record', '', $row, $map, $field )
+			);
 		}
 
-		echo json_encode($result);
+		echo json_encode( $result );
 		die();
 	}
 
@@ -289,7 +299,7 @@ class JC_Importer_Ajax {
 	 * Get Record Count for chosen importer
 	 * @return void
 	 */
-	public function admin_ajax_record_count(){
+	public function admin_ajax_record_count() {
 		$importer_id = $_POST['id'];
 
 		// setup importer
@@ -297,14 +307,14 @@ class JC_Importer_Ajax {
 		 * @global JC_Importer $jcimporter
 		 */
 		global $jcimporter;
-		$jcimporter->importer = new JC_Importer_Core($importer_id);
-		$jci_file          = $jcimporter->importer->file;
-		$jci_template_type = $jcimporter->importer->template_type;
-		$parser            = $jcimporter->parsers[$jci_template_type ];
+		$jcimporter->importer = new JC_Importer_Core( $importer_id );
+		$jci_file             = $jcimporter->importer->file;
+		$jci_template_type    = $jcimporter->importer->template_type;
+		$parser               = $jcimporter->parsers[ $jci_template_type ];
 		$parser->loadFile( $jci_file );
-		$result = apply_filters( 'jci/ajax_'. $jci_template_type .'/record_count', 0);
+		$result = apply_filters( 'jci/ajax_' . $jci_template_type . '/record_count', 0 );
 
-		echo json_encode($result);
+		echo json_encode( $result );
 		die();
 	}
 }

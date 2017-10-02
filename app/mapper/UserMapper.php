@@ -8,11 +8,13 @@
  * @author James Collngs <james@jclabs.co.uk>
  * @version 0.0.1
  */
-class JC_UserMapper{
+class JC_UserMapper {
 
+	public $changed_field_count = 0;
+	public $changed_fields = array();
+	public $notify_insert = false;
 	protected $_template = array();
 	protected $_unique = array();
-
 	protected $_user_fields = array(
 		'ID',
 		'user_pass',
@@ -33,10 +35,6 @@ class JC_UserMapper{
 		'yim'
 	);
 	protected $_user_required = array( 'user_login' );
-
-	public $changed_field_count = 0;
-	public $changed_fields = array();
-	public $notify_insert = false;
 
 	function __construct( $template = array(), $unique = array() ) {
 		$this->_template = $template;
@@ -68,8 +66,8 @@ class JC_UserMapper{
 		}
 
 		// add user meta
-		foreach($fields as $meta_key => $meta_value){
-			if(!in_array($meta_key, $this->_user_fields)){
+		foreach ( $fields as $meta_key => $meta_value ) {
+			if ( ! in_array( $meta_key, $this->_user_fields ) ) {
 				add_user_meta( $result, $meta_key, $meta_value, true );
 			}
 		}
@@ -79,6 +77,28 @@ class JC_UserMapper{
 		do_action( 'jci/after_user_insert', $result, $fields );
 
 		return $result;
+	}
+
+	/**
+	 * Add Import Tracking Tag
+	 *
+	 * @param integer $user_id
+	 */
+	function add_version_tag( $user_id = 0 ) {
+
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
+		global $jcimporter;
+
+		if ( ! isset( $jcimporter->importer ) ) {
+			return;
+		}
+
+		$importer_id = $jcimporter->importer->get_ID();
+		$version     = $jcimporter->importer->get_version();
+
+		add_user_meta( $user_id, '_jci_version_' . $importer_id, $version );
 	}
 
 	/**
@@ -98,8 +118,8 @@ class JC_UserMapper{
 		}
 
 		// update user meta
-		foreach($fields as $meta_key => $meta_value){
-			if(!in_array($meta_key, $this->_user_fields)){
+		foreach ( $fields as $meta_key => $meta_value ) {
+			if ( ! in_array( $meta_key, $this->_user_fields ) ) {
 
 				$old_meta_version = get_user_meta( $user_id, $meta_key, true );
 				if ( $old_meta_version ) {
@@ -113,6 +133,33 @@ class JC_UserMapper{
 		$this->update_version_tag( $user_id );
 
 		return $user_id;
+	}
+
+	/**
+	 * Update Import Tracking Tag
+	 *
+	 * @param integer $user_id
+	 */
+	function update_version_tag( $user_id = 0 ) {
+
+		/**
+		 * @global JC_Importer $jcimporter
+		 */
+		global $jcimporter;
+
+		if ( ! isset( $jcimporter->importer ) ) {
+			return;
+		}
+
+		$importer_id = $jcimporter->importer->get_ID();
+		$version     = $jcimporter->importer->get_version();
+
+		$old_version = get_user_meta( $user_id, '_jci_version_' . $importer_id, true );
+		if ( $old_version ) {
+			update_user_meta( $user_id, '_jci_version_' . $importer_id, $version, $old_version );
+		} else {
+			add_user_meta( $user_id, '_jci_version_' . $importer_id, $version );
+		}
 	}
 
 	/**
@@ -169,78 +216,32 @@ class JC_UserMapper{
 	}
 
 	/**
-	 * Add Import Tracking Tag
-	 *
-	 * @param integer $user_id
-	 */
-	function add_version_tag( $user_id = 0 ) {
-
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-
-		if(!isset($jcimporter->importer))
-			return;
-
-		$importer_id = $jcimporter->importer->get_ID();
-		$version     = $jcimporter->importer->get_version();
-
-		add_user_meta( $user_id, '_jci_version_' . $importer_id, $version );
-	}
-
-	/**
-	 * Update Import Tracking Tag
-	 *
-	 * @param integer $user_id
-	 */
-	function update_version_tag( $user_id = 0 ) {
-
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-
-		if(!isset($jcimporter->importer))
-			return;
-
-		$importer_id = $jcimporter->importer->get_ID();
-		$version     = $jcimporter->importer->get_version();
-
-		$old_version = get_user_meta( $user_id, '_jci_version_' . $importer_id, true );
-		if ( $old_version ) {
-			update_user_meta( $user_id, '_jci_version_' . $importer_id, $version, $old_version );
-		} else {
-			add_user_meta( $user_id, '_jci_version_' . $importer_id, $version );
-		}
-	}
-
-	/**
 	 * Remove all users from the current tracked import
-	 * 
-	 * @param  int $importer_id 
-	 * @param  int $version     
-	 * @param  string $post_type   Not Used
+	 *
+	 * @param  int $importer_id
+	 * @param  int $version
+	 * @param  string $post_type Not Used
+	 *
 	 * @return void
 	 */
 	function remove_all_objects( $importer_id, $version, $post_type ) {
 
 		// get a list of all objects which were not in current update
-		$user_query = new WP_User_Query( array (
-			'meta_query'     	=> array(
+		$user_query = new WP_User_Query( array(
+			'meta_query' => array(
 				array(
-					'key'     	=> '_jci_version_' . $importer_id,
-					'value'   	=> $version,
-					'compare'   => '!=',
+					'key'     => '_jci_version_' . $importer_id,
+					'value'   => $version,
+					'compare' => '!=',
 				),
 			),
-			'fields'			=> array( 'id' ),
+			'fields'     => array( 'id' ),
 		) );
 
 		// delete list of objects
 		if ( ! empty( $user_query->results ) ) {
 			foreach ( $user_query->results as $user ) {
-				wp_delete_user( $user->id);
+				wp_delete_user( $user->id );
 			}
 		}
 
@@ -248,40 +249,42 @@ class JC_UserMapper{
 
 	/**
 	 * Remove the next user from the current tracked import
-	 * 
-	 * @param  int $importer_id 
-	 * @param  int $version     
-	 * @param  string $post_type   Not Used
+	 *
+	 * @param  int $importer_id
+	 * @param  int $version
+	 * @param  string $post_type Not Used
+	 *
 	 * @return mixed
 	 */
-	function remove_single_object( $importer_id, $version, $post_type ){
+	function remove_single_object( $importer_id, $version, $post_type ) {
 
 		/**
 		 * @global JC_Importer $jcimporter
 		 */
 		global $jcimporter;
-		$record_import_count  = $jcimporter->importer->get_record_import_count();
+		$record_import_count = $jcimporter->importer->get_record_import_count();
 
 		// get a list of all objects which were not in current update
-		$user_query = new WP_User_Query( array (
-			'meta_query'     	=> array(
+		$user_query = new WP_User_Query( array(
+			'meta_query' => array(
 				array(
-					'key'     	=> '_jci_version_' . $importer_id,
-					'value'   	=> $version,
-					'compare'   => '!=',
+					'key'     => '_jci_version_' . $importer_id,
+					'value'   => $version,
+					'compare' => '!=',
 				),
 			),
-			'fields'			=> array( 'id' ),
-			'number'         => $record_import_count,
+			'fields'     => array( 'id' ),
+			'number'     => $record_import_count,
 		) );
 
 		// delete list of objects
 		if ( ! empty( $user_query->results ) ) {
 			foreach ( $user_query->results as $user ) {
-				if(is_wp_error(wp_delete_user( $user->id))){
+				if ( is_wp_error( wp_delete_user( $user->id ) ) ) {
 					return false;
 				}
 			}
+
 			return true;
 		}
 
@@ -290,32 +293,34 @@ class JC_UserMapper{
 
 	/**
 	 * Get list of users to be removed from current tracked import
-	 * 
-	 * @param  int $importer_id 
-	 * @param  int $version     
-	 * @param  string $post_type   
+	 *
+	 * @param  int $importer_id
+	 * @param  int $version
+	 * @param  string $post_type
+	 *
 	 * @return mixed
 	 */
 	function get_objects_for_removal( $importer_id, $version, $post_type ) {
 
 		// get a list of all objects which were not in current update
-		$user_query = new WP_User_Query( array (
-			'meta_query'     	=> array(
+		$user_query = new WP_User_Query( array(
+			'meta_query' => array(
 				array(
-					'key'     	=> '_jci_version_' . $importer_id,
-					'value'   	=> $version,
-					'compare'   => '!=',
+					'key'     => '_jci_version_' . $importer_id,
+					'value'   => $version,
+					'compare' => '!=',
 				),
 			),
-			'fields'			=> array( 'id' ),
+			'fields'     => array( 'id' ),
 		) );
-		$ids = array();
+		$ids        = array();
 
 		// delete list of objects
 		if ( ! empty( $user_query->results ) ) {
 			foreach ( $user_query->results as $user ) {
 				$ids[] = $user->id;
 			}
+
 			return $ids;
 		}
 

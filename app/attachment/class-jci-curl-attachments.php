@@ -40,19 +40,6 @@ class JCI_CURL_Attachments extends JCI_Attachment {
 	}
 
 	/**
-	 * Fetch file without curl
-	 *
-	 * @param  string $src Attachment source.
-	 * @param  string $dest Attachment destination.
-	 *
-	 * @return bool
-	 */
-	private function fetch_noncurl_image( $src = '', $dest = '' ) {
-
-		return file_put_contents( $dest, file_get_contents( $src ) );
-	}
-
-	/**
 	 * Fetch file with curl
 	 *
 	 * @param  string $src Attachment source.
@@ -72,6 +59,19 @@ class JCI_CURL_Attachments extends JCI_Attachment {
 		fclose( $fp );
 
 		return $result;
+	}
+
+	/**
+	 * Fetch file without curl
+	 *
+	 * @param  string $src Attachment source.
+	 * @param  string $dest Attachment destination.
+	 *
+	 * @return bool
+	 */
+	private function fetch_noncurl_image( $src = '', $dest = '' ) {
+
+		return file_put_contents( $dest, file_get_contents( $src ) );
 	}
 }
 

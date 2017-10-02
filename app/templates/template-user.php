@@ -65,6 +65,38 @@ class JC_User_Template extends JC_Importer_Template {
 		)
 	);
 
+	public function __construct() {
+		parent::__construct();
+		add_action( 'jci/after_template_fields', array( $this, 'field_settings' ) );
+		add_action( 'jci/save_template', array( $this, 'save_template' ) );
+		add_action( 'jci/after_user_insert', array( $this, 'after_user_insert' ), 10, 2 );
+
+		add_filter( 'jci/log_user_columns', array( $this, 'log_user_columns' ) );
+		add_action( 'jci/log_user_content', array( $this, 'log_user_content' ), 10, 2 );
+
+		// Quick Fix: Skip if we are in an ajax request
+		// TODO: Switch this to an ajax search / select instead so we dont have to list all.
+		if ( true === wp_doing_ajax() ) {
+			return;
+		}
+
+		// output role select
+		global $wp_roles;
+		$test_roles = array();
+
+		foreach ( $wp_roles->roles as $role => $role_arr ) {
+			$test_roles[ $role ] = $role_arr['name'];
+		}
+
+		foreach ( $this->_field_groups['user']['map'] as &$field ) {
+
+			if ( $field['field'] == 'role' ) {
+				$field['options'] = $test_roles;
+			}
+		}
+
+	}
+
 	/**
 	 * Check for errors before any data is saved
 	 *
@@ -113,29 +145,29 @@ class JC_User_Template extends JC_Importer_Template {
 			$importer_id = $jcimporter->importer->ID;
 
 			$enable_user_nicename = ImporterModel::getImporterMetaArr( $importer_id, array(
-					'_template_settings',
-					'enable_user_nicename'
-				) );
+				'_template_settings',
+				'enable_user_nicename'
+			) );
 			$enable_display_name  = ImporterModel::getImporterMetaArr( $importer_id, array(
-					'_template_settings',
-					'enable_display_name'
-				) );
+				'_template_settings',
+				'enable_display_name'
+			) );
 			$enable_nickname      = ImporterModel::getImporterMetaArr( $importer_id, array(
-					'_template_settings',
-					'enable_nickname'
-				) );
+				'_template_settings',
+				'enable_nickname'
+			) );
 			$enable_description   = ImporterModel::getImporterMetaArr( $importer_id, array(
-					'_template_settings',
-					'enable_description'
-				) );
+				'_template_settings',
+				'enable_description'
+			) );
 			$enable_pass          = ImporterModel::getImporterMetaArr( $importer_id, array(
-					'_template_settings',
-					'enable_pass'
-				) );
+				'_template_settings',
+				'enable_pass'
+			) );
 			$enable_role          = ImporterModel::getImporterMetaArr( $importer_id, array(
-					'_template_settings',
-					'enable_role'
-				) );
+				'_template_settings',
+				'enable_role'
+			) );
 
 			if ( $enable_user_nicename == 0 ) {
 				unset( $data['user_nicename'] );
@@ -159,47 +191,15 @@ class JC_User_Template extends JC_Importer_Template {
 
 			// generate password
 			$generate_pass = ImporterModel::getImporterMetaArr( $importer_id, array(
-					'_template_settings',
-					'generate_pass'
-				) );
+				'_template_settings',
+				'generate_pass'
+			) );
 			if ( $generate_pass == 1 && ( ! isset( $data['user_pass'] ) || empty( $data['user_pass'] ) ) ) {
 				$data['user_pass'] = wp_generate_password( 10 );
 			}
 		}
 
 		return $data;
-	}
-
-	public function __construct() {
-		parent::__construct();
-		add_action( 'jci/after_template_fields', array( $this, 'field_settings' ) );
-		add_action( 'jci/save_template', array( $this, 'save_template' ) );
-		add_action( 'jci/after_user_insert', array( $this, 'after_user_insert' ), 10, 2 );
-
-		add_filter( 'jci/log_user_columns', array( $this, 'log_user_columns' ) );
-		add_action( 'jci/log_user_content', array( $this, 'log_user_content' ), 10, 2 );
-
-		// Quick Fix: Skip if we are in an ajax request
-		// TODO: Switch this to an ajax search / select instead so we dont have to list all.
-		if(true === wp_doing_ajax()){
-			return;
-		}
-
-		// output role select
-		global $wp_roles;
-		$test_roles = array();
-
-		foreach($wp_roles->roles as $role => $role_arr){
-			$test_roles[$role] = $role_arr['name'];
-		}
-
-		foreach( $this->_field_groups['user']['map'] as &$field){
-			
-			if($field['field'] == 'role'){
-				$field['options'] = $test_roles;
-			}
-		}
-		
 	}
 
 	/**
@@ -215,106 +215,106 @@ class JC_User_Template extends JC_Importer_Template {
 		if ( $template == $this->_name ) {
 
 			$enable_pass          = ImporterModel::getImporterMetaArr( $id, array(
-					'_template_settings',
-					'enable_pass'
-				) );
+				'_template_settings',
+				'enable_pass'
+			) );
 			$enable_user_nicename = ImporterModel::getImporterMetaArr( $id, array(
-					'_template_settings',
-					'enable_user_nicename'
-				) );
+				'_template_settings',
+				'enable_user_nicename'
+			) );
 			$enable_display_name  = ImporterModel::getImporterMetaArr( $id, array(
-					'_template_settings',
-					'enable_display_name'
-				) );
+				'_template_settings',
+				'enable_display_name'
+			) );
 			$enable_nickname      = ImporterModel::getImporterMetaArr( $id, array(
-					'_template_settings',
-					'enable_nickname'
-				) );
+				'_template_settings',
+				'enable_nickname'
+			) );
 			$enable_description   = ImporterModel::getImporterMetaArr( $id, array(
-					'_template_settings',
-					'enable_description'
-				) );
+				'_template_settings',
+				'enable_description'
+			) );
 			$generate_pass        = ImporterModel::getImporterMetaArr( $id, array(
-					'_template_settings',
-					'generate_pass'
-				) );
+				'_template_settings',
+				'generate_pass'
+			) );
 			$notify_pass          = ImporterModel::getImporterMetaArr( $id, array(
-					'_template_settings',
-					'notify_pass'
-				) );
+				'_template_settings',
+				'notify_pass'
+			) );
 			$notify_reg           = ImporterModel::getImporterMetaArr( $id, array(
-					'_template_settings',
-					'notify_reg'
-				) );
+				'_template_settings',
+				'notify_reg'
+			) );
 			$enable_role          = ImporterModel::getImporterMetaArr( $id, array(
-					'_template_settings',
-					'enable_role'
-				) );
+				'_template_settings',
+				'enable_role'
+			) );
 			?>
-			<div class="jci-group-settings jci-group-section" data-section-id="settings">
-				<h4>Fields</h4>
+            <div class="jci-group-settings jci-group-section" data-section-id="settings">
+                <h4>Fields</h4>
 				<?php
 				echo JCI_FormHelper::checkbox( 'template_settings[enable_user_nicename]', array(
-						'label'   => 'Enable Nice Name Field',
-						'checked' => $enable_user_nicename
-					) );
+					'label'   => 'Enable Nice Name Field',
+					'checked' => $enable_user_nicename
+				) );
 				echo JCI_FormHelper::checkbox( 'template_settings[enable_display_name]', array(
-						'label'   => 'Enable Display Name Field',
-						'checked' => $enable_display_name
-					) );
+					'label'   => 'Enable Display Name Field',
+					'checked' => $enable_display_name
+				) );
 				echo JCI_FormHelper::checkbox( 'template_settings[enable_nickname]', array(
-						'label'   => 'Enable Nickname Field',
-						'checked' => $enable_nickname
-					) );
+					'label'   => 'Enable Nickname Field',
+					'checked' => $enable_nickname
+				) );
 				echo JCI_FormHelper::checkbox( 'template_settings[enable_description]', array(
-						'label'   => 'Enable Description Field',
-						'checked' => $enable_description
-					) );
+					'label'   => 'Enable Description Field',
+					'checked' => $enable_description
+				) );
 				echo JCI_FormHelper::checkbox( 'template_settings[enable_role]', array(
-						'label'   => 'Enable Role Field',
-						'checked' => $enable_role
-					) );
+					'label'   => 'Enable Role Field',
+					'checked' => $enable_role
+				) );
 				?>
 
-				<h4>Passwords:</h4>
+                <h4>Passwords:</h4>
 				<?php
 				echo JCI_FormHelper::checkbox( 'template_settings[enable_pass]', array(
-						'label'   => 'Enable Password Field',
-						'checked' => $enable_pass
-					) );
+					'label'   => 'Enable Password Field',
+					'checked' => $enable_pass
+				) );
 				echo JCI_FormHelper::checkbox( 'template_settings[generate_pass]', array(
-						'label'   => 'Generate Password',
-						'checked' => $generate_pass
-					) );
+					'label'   => 'Generate Password',
+					'checked' => $generate_pass
+				) );
 				?>
 
-				<h4>Notifications:</h4>
+                <h4>Notifications:</h4>
 				<?php
 				//echo JCI_FormHelper::checkbox('template_settings[notify_pass]', array('label' => 'Send new Password', 'checked' => $notify_pass));
 				echo JCI_FormHelper::checkbox( 'template_settings[notify_reg]', array(
-						'label'   => 'Send User Registration',
-						'checked' => $notify_reg
-					) );
+					'label'   => 'Send User Registration',
+					'checked' => $notify_reg
+				) );
 				?>
-			</div>
+            </div>
 
-			<script type="text/javascript">
+            <script type="text/javascript">
 
-				jQuery(document).ready(function ($) {
+                jQuery(document).ready(function ($) {
 
-					// show/hide input fields
-					$.fn.jci_enableField('enable_pass', 'user-user_pass');
-					$.fn.jci_enableField('enable_user_nicename', 'user-user_nicename');
-					$.fn.jci_enableField('enable_display_name', 'user-display_name');
-					$.fn.jci_enableField('enable_nickname', 'user-nickname');
-					$.fn.jci_enableField('enable_description', 'user-description');
+                    // show/hide input fields
+                    $.fn.jci_enableField('enable_pass', 'user-user_pass');
+                    $.fn.jci_enableField('enable_user_nicename', 'user-user_nicename');
+                    $.fn.jci_enableField('enable_display_name', 'user-display_name');
+                    $.fn.jci_enableField('enable_nickname', 'user-nickname');
+                    $.fn.jci_enableField('enable_description', 'user-description');
 
-					// optional selects
-					$.fn.jci_enableSelectField('enable_role', 'user-role');
-				});
+                    // optional selects
+                    $.fn.jci_enableSelectField('enable_role', 'user-role');
+                });
 
-			</script>
-		<?php
+            </script>
+			<?php
 		}
 	}
 
@@ -344,18 +344,18 @@ class JC_User_Template extends JC_Importer_Template {
 			// update template settings
 			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'enable_pass' ), $enable_pass );
 			ImporterModel::setImporterMeta( $id, array(
-					'_template_settings',
-					'enable_user_nicename'
-				), $enable_user_nicename );
+				'_template_settings',
+				'enable_user_nicename'
+			), $enable_user_nicename );
 			ImporterModel::setImporterMeta( $id, array(
-					'_template_settings',
-					'enable_display_name'
-				), $enable_display_name );
+				'_template_settings',
+				'enable_display_name'
+			), $enable_display_name );
 			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'enable_nickname' ), $enable_nickname );
 			ImporterModel::setImporterMeta( $id, array(
-					'_template_settings',
-					'enable_description'
-				), $enable_description );
+				'_template_settings',
+				'enable_description'
+			), $enable_description );
 			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'generate_pass' ), $generate_pass );
 			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'notify_pass' ), $notify_pass );
 			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'notify_reg' ), $notify_reg );

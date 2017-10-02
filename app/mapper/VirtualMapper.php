@@ -10,11 +10,10 @@
  */
 class JC_VirtualMapper {
 
-	protected $_template = array();
-	protected $_unique = array();
-
 	public $changed_fields = 0;
 	public $changed_field_count = 0;
+	protected $_template = array();
+	protected $_unique = array();
 
 	function __construct( $template = array(), $unique = array() ) {
 		$this->_template = $template;

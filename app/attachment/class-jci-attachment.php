@@ -48,15 +48,6 @@ class JCI_Attachment {
 	}
 
 	/**
-	 * Add Error Message
-	 *
-	 * @param string $msg Error message.
-	 */
-	public function set_error( $msg ) {
-		$this->_errors[] = $msg;
-	}
-
-	/**
 	 * Get Latest Error Message
 	 *
 	 * @return string
@@ -66,28 +57,54 @@ class JCI_Attachment {
 	}
 
 	/**
-	 * Set Post Featured Image
+	 * Attach remote image to post
 	 *
-	 * @param  int $post_id Post Id.
-	 * @param  int $attach_id Attachment Id.
+	 * @param  int $post_id Post id.
+	 * @param  string $src Remote image url.
+	 * @param  string $dest Local attachment destination.
+	 * @param  array $args Arguments.
 	 *
 	 * @return bool
 	 */
-	private function wp_attach_featured_image( $post_id, $attach_id ) {
+	public function attach_remote_image( $post_id, $src, $dest, $args = array() ) {
 
-		$value = $attach_id;
-		$key   = '_thumbnail_id';
+		$unique        = isset( $args['unique'] ) && is_bool( $args['unique'] ) ? $args['unique'] : true;
+		$wp_upload_dir = wp_upload_dir();
+		$wp_dest       = $wp_upload_dir['path'] . '/' . $dest;
 
-		$old_value = get_post_meta( $post_id, $key, true );
+		if ( ! $unique && file_exists( $wp_dest ) ) {
+			$this->_errors[] = 'File Already Exists';
 
-		if ( $value && '' === $old_value ) {
-			return add_post_meta( $post_id, $key, $value );
-		} elseif ( $value && $value !== $old_value ) {
-			return update_post_meta( $post_id, $key, $value );
-		} elseif ( '' === $value && $old_value ) {
-			return delete_post_meta( $post_id, $key, $value );
+			return false;
 		}
 
+		if ( $unique ) {
+			$dest    = wp_unique_filename( $wp_upload_dir['path'], $dest );
+			$wp_dest = $wp_upload_dir['path'] . '/' . $dest;
+		}
+
+		if ( ! $this->fetch_image( $src, $wp_dest ) ) {
+			if ( empty( $this->_errors ) ) {
+				$this->_errors[] = 'Unable to fetch remote image';
+			}
+
+			return false;
+		}
+
+		return $this->wp_insert_attachment( $post_id, $wp_dest, $args );
+
+	}
+
+	/**
+	 * Scaffold for child classes to fetch an image
+	 *
+	 * @param  string $src Attachment Source.
+	 * @param  string $dest Local attachment destination.
+	 *
+	 * @return bool
+	 */
+	public function fetch_image( $src, $dest ) {
+		return false;
 	}
 
 	/**
@@ -95,9 +112,9 @@ class JCI_Attachment {
 	 *
 	 * Add attachment and resize
 	 *
-	 * @param  int    $post_id Post Id.
+	 * @param  int $post_id Post Id.
 	 * @param  string $file File name or path.
-	 * @param  array  $args Arguments.
+	 * @param  array $args Arguments.
 	 *
 	 * @return boolean
 	 */
@@ -162,17 +179,85 @@ class JCI_Attachment {
 	}
 
 	/**
-	 * Get mime type
+	 * Set Post Featured Image
 	 *
-	 * @param  string $file File name or path.
+	 * @param  int $post_id Post Id.
+	 * @param  int $attach_id Attachment Id.
 	 *
-	 * @return string
+	 * @return bool
 	 */
-	public function get_file_mime( $file ) {
+	private function wp_attach_featured_image( $post_id, $attach_id ) {
 
-		$mime = mime_content_type( $file );
+		$value = $attach_id;
+		$key   = '_thumbnail_id';
 
-		return $mime;
+		$old_value = get_post_meta( $post_id, $key, true );
+
+		if ( $value && '' === $old_value ) {
+			return add_post_meta( $post_id, $key, $value );
+		} elseif ( $value && $value !== $old_value ) {
+			return update_post_meta( $post_id, $key, $value );
+		} elseif ( '' === $value && $old_value ) {
+			return delete_post_meta( $post_id, $key, $value );
+		}
+
+	}
+
+	/**
+	 * Attach local file to post
+	 *
+	 * @param  string $src Attachment Source.
+	 *
+	 * @return string/bool
+	 */
+	public function attach_local_file( $src ) {
+
+		$wp_upload_dir = wp_upload_dir();
+		$new_file      = $wp_upload_dir['path'] . '/' . basename( $src );
+
+		if ( copy( $src, $new_file ) ) {
+			return $new_file;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Attach remote file to post
+	 *
+	 * @param  int $post_id Post Id.
+	 * @param  string $src Remote image url.
+	 * @param  string $dest Local attachment destination.
+	 * @param  array $args Arguments.
+	 *
+	 * @return array|bool
+	 */
+	public function attach_remote_file( $post_id, $src, $dest, $args = array() ) {
+
+		$unique        = isset( $args['unique'] ) && is_bool( $args['unique'] ) ? $args['unique'] : true;
+		$wp_upload_dir = wp_upload_dir();
+		$wp_dest       = $wp_upload_dir['path'] . '/' . $dest;
+
+		if ( ! $unique && file_exists( $wp_dest ) ) {
+			return false;
+		}
+
+		if ( $unique ) {
+			$dest    = wp_unique_filename( $wp_upload_dir['path'], $dest );
+			$wp_dest = $wp_upload_dir['path'] . '/' . $dest;
+		}
+
+		if ( ! $this->fetch_image( $src, $wp_dest ) ) {
+			return false;
+		}
+
+		$template_type = $this->get_template_type( $wp_dest );
+
+		return array(
+			'dest' => $wp_dest,
+			'type' => $template_type,
+			'id'   => $this->wp_insert_attachment( $post_id, $wp_dest, $args ),
+		);
 	}
 
 	/**
@@ -209,6 +294,20 @@ class JCI_Attachment {
 	/**
 	 * Get mime type
 	 *
+	 * @param  string $file File name or path.
+	 *
+	 * @return string
+	 */
+	public function get_file_mime( $file ) {
+
+		$mime = mime_content_type( $file );
+
+		return $mime;
+	}
+
+	/**
+	 * Get mime type
+	 *
 	 * @param  string $mime Mimetype.
 	 *
 	 * @return string/bool
@@ -233,110 +332,11 @@ class JCI_Attachment {
 	}
 
 	/**
-	 * Attach remote image to post
+	 * Add Error Message
 	 *
-	 * @param  int    $post_id Post id.
-	 * @param  string $src Remote image url.
-	 * @param  string $dest Local attachment destination.
-	 * @param  array  $args Arguments.
-	 *
-	 * @return bool
+	 * @param string $msg Error message.
 	 */
-	public function attach_remote_image( $post_id, $src, $dest, $args = array() ) {
-
-		$unique        = isset( $args['unique'] ) && is_bool( $args['unique'] ) ? $args['unique'] : true;
-		$wp_upload_dir = wp_upload_dir();
-		$wp_dest       = $wp_upload_dir['path'] . '/' . $dest;
-
-		if ( ! $unique && file_exists( $wp_dest ) ) {
-			$this->_errors[] = 'File Already Exists';
-
-			return false;
-		}
-
-		if ( $unique ) {
-			$dest    = wp_unique_filename( $wp_upload_dir['path'], $dest );
-			$wp_dest = $wp_upload_dir['path'] . '/' . $dest;
-		}
-
-		if ( ! $this->fetch_image( $src, $wp_dest ) ) {
-			if ( empty( $this->_errors ) ) {
-				$this->_errors[] = 'Unable to fetch remote image';
-			}
-
-			return false;
-		}
-
-		return $this->wp_insert_attachment( $post_id, $wp_dest, $args );
-
-	}
-
-	/**
-	 * Scaffold for child classes to fetch an image
-	 *
-	 * @param  string $src Attachment Source.
-	 * @param  string $dest Local attachment destination.
-	 *
-	 * @return bool
-	 */
-	public function fetch_image( $src, $dest ) {
-		return false;
-	}
-
-	/**
-	 * Attach local file to post
-	 *
-	 * @param  string $src Attachment Source.
-	 *
-	 * @return string/bool
-	 */
-	public function attach_local_file( $src ) {
-
-		$wp_upload_dir = wp_upload_dir();
-		$new_file      = $wp_upload_dir['path'] . '/' . basename( $src );
-
-		if ( copy( $src, $new_file ) ) {
-			return $new_file;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Attach remote file to post
-	 *
-	 * @param  int    $post_id Post Id.
-	 * @param  string $src Remote image url.
-	 * @param  string $dest Local attachment destination.
-	 * @param  array  $args Arguments.
-	 *
-	 * @return array|bool
-	 */
-	public function attach_remote_file( $post_id, $src, $dest, $args = array() ) {
-
-		$unique        = isset( $args['unique'] ) && is_bool( $args['unique'] ) ? $args['unique'] : true;
-		$wp_upload_dir = wp_upload_dir();
-		$wp_dest       = $wp_upload_dir['path'] . '/' . $dest;
-
-		if ( ! $unique && file_exists( $wp_dest ) ) {
-			return false;
-		}
-
-		if ( $unique ) {
-			$dest    = wp_unique_filename( $wp_upload_dir['path'], $dest );
-			$wp_dest = $wp_upload_dir['path'] . '/' . $dest;
-		}
-
-		if ( ! $this->fetch_image( $src, $wp_dest ) ) {
-			return false;
-		}
-
-		$template_type = $this->get_template_type( $wp_dest );
-
-		return array(
-			'dest' => $wp_dest,
-			'type' => $template_type,
-			'id'   => $this->wp_insert_attachment( $post_id, $wp_dest, $args ),
-		);
+	public function set_error( $msg ) {
+		$this->_errors[] = $msg;
 	}
 }

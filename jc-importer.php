@@ -60,80 +60,59 @@ require_once 'app/functions.php';
 class JC_Importer {
 
 	/**
-	 * Current Plugin Version
+	 * Single instance of class
 	 *
-	 * @var string
+	 * @var null
 	 */
-	protected $version = '0.6.0';
-
-	/**
-	 * Plugin base directory
-	 *
-	 * @var string
-	 */
-	protected $plugin_dir;
-
-	/**
-	 * Plugin base url
-	 *
-	 * @var string
-	 */
-	protected $plugin_url;
-
-	/**
-	 * List of available template strings
-	 *
-	 * @var array[string]
-	 */
-	protected $templates = array();
-
-	/**
-	 * Current plugin database schema version
-	 *
-	 * @var int
-	 */
-	protected $db_version = 2;
-
-	/**
-	 * Debug flag
-	 *
-	 * @var bool
-	 */
-	protected $debug = false;
-
+	protected static $_instance = null;
 	/**
 	 * Loaded Importer Class
 	 *
 	 * @var JC_Importer_Core
 	 */
 	public $importer;
-
+	/**
+	 * Current Plugin Version
+	 *
+	 * @var string
+	 */
+	protected $version = '0.6.0';
+	/**
+	 * Plugin base directory
+	 *
+	 * @var string
+	 */
+	protected $plugin_dir;
+	/**
+	 * Plugin base url
+	 *
+	 * @var string
+	 */
+	protected $plugin_url;
+	/**
+	 * List of available template strings
+	 *
+	 * @var array[string]
+	 */
+	protected $templates = array();
+	/**
+	 * Current plugin database schema version
+	 *
+	 * @var int
+	 */
+	protected $db_version = 2;
+	/**
+	 * Debug flag
+	 *
+	 * @var bool
+	 */
+	protected $debug = false;
 	/**
 	 * Plugin Text Strings
 	 *
 	 * @var IWP_Text
 	 */
 	private $text;
-
-	/**
-	 * Single instance of class
-	 *
-	 * @var null
-	 */
-	protected static $_instance = null;
-
-	/**
-	 * Return current instance of class
-	 *
-	 * @return JC_Importer
-	 */
-	public static function instance() {
-		if ( is_null( self::$_instance ) ) {
-			self::$_instance = new self();
-		}
-
-		return self::$_instance;
-	}
 
 	/**
 	 * JC_Importer constructor.
@@ -154,6 +133,19 @@ class JC_Importer {
 		// activation.
 		register_activation_hook( __FILE__, array( $this, 'activation' ) );
 		add_action( 'admin_init', array( $this, 'load_plugin' ) );
+	}
+
+	/**
+	 * Return current instance of class
+	 *
+	 * @return JC_Importer
+	 */
+	public static function instance() {
+		if ( is_null( self::$_instance ) ) {
+			self::$_instance = new self();
+		}
+
+		return self::$_instance;
 	}
 
 	/**
@@ -181,7 +173,7 @@ class JC_Importer {
 		require_once 'app/models/log.php';
 		require_once 'app/models/class-iwp-status.php';
 
-		if ( is_admin() || ( defined('DOING_AJAX') && DOING_AJAX ) ) {
+		if ( is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
 
 			// load importer.
 			$importer_id = isset( $_GET['import'] ) && ! empty( $_GET['import'] ) ? intval( $_GET['import'] ) : 0;
@@ -288,16 +280,16 @@ class JC_Importer {
 	 *
 	 * @return string
 	 */
-	public function get_tmp_dir(){
+	public function get_tmp_dir() {
 
 		$path = WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'uploads';
 		if ( ! is_dir( $path ) ) {
-			mkdir($path);
+			mkdir( $path );
 		}
 
 		$path .= DIRECTORY_SEPARATOR . 'importwp';
-		if(!is_dir($path)){
-			mkdir($path);
+		if ( ! is_dir( $path ) ) {
+			mkdir( $path );
 		}
 
 		return $path;
@@ -372,7 +364,7 @@ class JC_Importer {
 	 *
 	 * @return IWP_Text
 	 */
-	public function text(){
+	public function text() {
 		return $this->text;
 	}
 }

@@ -21,10 +21,10 @@ class JCI_String_Attachments extends JCI_Attachment {
 	/**
 	 * Save string into file
 	 *
-	 * @param  int    $post_id Post id.
+	 * @param  int $post_id Post id.
 	 * @param  string $string Content to save to file.
 	 * @param  string $a_name Attachment Name.
-	 * @param  array  $args Arguments.
+	 * @param  array $args Arguments.
 	 *
 	 * @return array|bool
 	 */

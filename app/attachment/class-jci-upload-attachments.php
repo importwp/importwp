@@ -21,7 +21,7 @@ class JCI_Upload_Attachments extends JCI_Attachment {
 	/**
 	 * Attach uploaded file to post
 	 *
-	 * @param  int   $post_id Post id.
+	 * @param  int $post_id Post id.
 	 * @param  array $attachment $_FILES array.
 	 * @param  array $args Arguments.
 	 *

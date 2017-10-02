@@ -42,29 +42,29 @@ class ImportLog {
 
 		$template = ImporterModel::getImportSettings( $import_id );
 		$importer = ImporterModel::getImporter( $import_id );
-		$version = $jcimporter->importer->get_version();
+		$version  = $jcimporter->importer->get_version();
 
 		// copy version settings (previously stored in post meta) to first row only
-		if( $row == 1 || $row == $start_row ){
-			$import_settings = get_post_meta( $import_id, '_import_settings', true );
-			$mapped_fields = get_post_meta( $import_id, '_mapped_fields', true );
-			$attachments = get_post_meta( $import_id, '_attachments', true );
-			$taxonomies = get_post_meta( $import_id, '_taxonomies', true );
-			$parser_settings = get_post_meta( $import_id, '_parser_settings', true );
+		if ( $row == 1 || $row == $start_row ) {
+			$import_settings   = get_post_meta( $import_id, '_import_settings', true );
+			$mapped_fields     = get_post_meta( $import_id, '_mapped_fields', true );
+			$attachments       = get_post_meta( $import_id, '_attachments', true );
+			$taxonomies        = get_post_meta( $import_id, '_taxonomies', true );
+			$parser_settings   = get_post_meta( $import_id, '_parser_settings', true );
 			$template_settings = get_post_meta( $import_id, '_template_settings', true );
-		}else{
-			$import_settings = '';
-			$mapped_fields = '';
-			$attachments = '';
-			$taxonomies = '';
-			$parser_settings = '';
+		} else {
+			$import_settings   = '';
+			$mapped_fields     = '';
+			$attachments       = '';
+			$taxonomies        = '';
+			$parser_settings   = '';
 			$template_settings = '';
 		}
 
-		$wpdb->query( $wpdb->prepare("
+		$wpdb->query( $wpdb->prepare( "
 			INSERT INTO `" . $wpdb->prefix . "importer_log` (importer_name, object_id, template,type,file, version, row, src, value, created, import_settings, mapped_fields, attachments, taxonomies, parser_settings, template_settings)
-			VALUES(%s, %d, %s, %s, %s, %d, %d, '', %s, NOW(), %s, %s, %s, %s, %s, %s);" ,
-		$importer->post->post_name, $import_id, $template['template'], $template['template_type'], $template['import_file'], $version, $row, serialize( $record ), serialize( $import_settings ), serialize( $mapped_fields), serialize( $attachments ), serialize( $taxonomies ), serialize( $parser_settings ), serialize( $template_settings ) ) );
+			VALUES(%s, %d, %s, %s, %s, %d, %d, '', %s, NOW(), %s, %s, %s, %s, %s, %s);",
+			$importer->post->post_name, $import_id, $template['template'], $template['template_type'], $template['import_file'], $version, $row, serialize( $record ), serialize( $import_settings ), serialize( $mapped_fields ), serialize( $attachments ), serialize( $taxonomies ), serialize( $parser_settings ), serialize( $template_settings ) ) );
 	}
 
 	/**
@@ -78,13 +78,13 @@ class ImportLog {
 	static function get_last_row( $import_id, $version ) {
 		global $wpdb;
 		$import_id = intval( $import_id );
-		$row       = $wpdb->get_row( $wpdb->prepare("SELECT row FROM `" . $wpdb->prefix . "importer_log` WHERE object_id=%d AND version=%d GROUP BY row ORDER BY row DESC LIMIT 1", $import_id, $version ));
+		$row       = $wpdb->get_row( $wpdb->prepare( "SELECT row FROM `" . $wpdb->prefix . "importer_log` WHERE object_id=%d AND version=%d GROUP BY row ORDER BY row DESC LIMIT 1", $import_id, $version ) );
 
 		if ( ! $row ) {
 			return 0;
 		}
 
-		return intval($row->row);
+		return intval( $row->row );
 	}
 
 	/**
@@ -97,13 +97,13 @@ class ImportLog {
 	static function get_current_version( $import_id ) {
 		global $wpdb;
 		$import_id = intval( $import_id );
-		$row       = $wpdb->get_row( $wpdb->prepare("SELECT version FROM `" . $wpdb->prefix . "importer_log` WHERE object_id=%d GROUP BY version ORDER BY version DESC", $import_id ));
+		$row       = $wpdb->get_row( $wpdb->prepare( "SELECT version FROM `" . $wpdb->prefix . "importer_log` WHERE object_id=%d GROUP BY version ORDER BY version DESC", $import_id ) );
 
 		if ( ! $row ) {
 			return 0;
 		}
 
-		return intval($row->version);
+		return intval( $row->version );
 	}
 
 	/**
@@ -128,15 +128,16 @@ class ImportLog {
 		$importer_id = intval( $importer_id );
 		$log         = intval( $log );
 
-		if(!in_array($order, array('DESC', 'ASC'))){
+		if ( ! in_array( $order, array( 'DESC', 'ASC' ) ) ) {
 			$order = 'DESC';
 		}
 
 		$limit_str = '';
-		if($limit > 0){
-			$offset = (($page - 1) * $limit);
+		if ( $limit > 0 ) {
+			$offset    = ( ( $page - 1 ) * $limit );
 			$limit_str = "LIMIT {$offset}, {$limit}";
 		}
+
 		return $wpdb->get_results( "SELECT * FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' AND version='{$log}' ORDER BY id {$order} {$limit_str}", OBJECT );
 	}
 
@@ -148,20 +149,21 @@ class ImportLog {
 	 *
 	 * @return null|string
 	 */
-	static function get_importer_log_count($importer_id, $log){
+	static function get_importer_log_count( $importer_id, $log ) {
 
 		global $wpdb;
 
 		$importer_id = intval( $importer_id );
 		$log         = intval( $log );
 
-		return $wpdb->get_var( "SELECT COUNT(*) FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' AND version='{$log}'");
+		return $wpdb->get_var( "SELECT COUNT(*) FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' AND version='{$log}'" );
 	}
 
-	static function clearLogs(){
+	static function clearLogs() {
 
 		global $wpdb;
-		return $wpdb->query($wpdb->prepare("DELETE FROM `" . $wpdb->prefix . "importer_log` WHERE created < %s", date('Y-m-d H:i:s', strtotime('- 1 DAY'))));
+
+		return $wpdb->query( $wpdb->prepare( "DELETE FROM `" . $wpdb->prefix . "importer_log` WHERE created < %s", date( 'Y-m-d H:i:s', strtotime( '- 1 DAY' ) ) ) );
 	}
 
 }

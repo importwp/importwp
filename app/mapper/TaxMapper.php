@@ -1,9 +1,12 @@
 <?php
+
 class JC_TaxMapper {
 
+	public $changed_field_count = 0;
+	public $changed_fields = array();
 	protected $_template = array();
 	protected $_unique = array();
-	protected $_required = array('slug');
+	protected $_required = array( 'slug' );
 	protected $_tax_fields = array(
 		'term_id',
 		'alias_of',
@@ -11,9 +14,6 @@ class JC_TaxMapper {
 		'parent',
 		'slug'
 	);
-
-	public $changed_field_count = 0;
-	public $changed_fields = array();
 
 	function __construct( $template = array(), $unique = array() ) {
 		$this->_template = $template;
@@ -32,34 +32,35 @@ class JC_TaxMapper {
 		return $this->insert_data( $fields );
 	}
 
-	function insert_data( $fields = array() ){
-		
-		$args = array();
+	function insert_data( $fields = array() ) {
+
+		$args          = array();
 		$custom_fields = array();
 
 		// escape if required fields are not entered
-		if(!isset($fields['term']) || !isset($fields['taxonomy'])){
+		if ( ! isset( $fields['term'] ) || ! isset( $fields['taxonomy'] ) ) {
 			return false;
 		}
 
-		$term = !empty($fields['term']) ? $fields['term'] : false;
-		$taxonomy = !empty($fields['taxonomy']) ? $fields['taxonomy'] : false;
+		$term     = ! empty( $fields['term'] ) ? $fields['term'] : false;
+		$taxonomy = ! empty( $fields['taxonomy'] ) ? $fields['taxonomy'] : false;
 
-		if($term && $taxonomy){
+		if ( $term && $taxonomy ) {
 
-			unset($fields['term']);
-			unset($fields['taxonomy']);
+			unset( $fields['term'] );
+			unset( $fields['taxonomy'] );
 
-			foreach($fields as $key => $value){
+			foreach ( $fields as $key => $value ) {
 
 				//
-				if(empty($value))
+				if ( empty( $value ) ) {
 					continue;
+				}
 
-				if(in_array($key, $this->_tax_fields)){
-					$args[$key] = $value;
-				}else{
-					$custom_fields[$key] = $value;
+				if ( in_array( $key, $this->_tax_fields ) ) {
+					$args[ $key ] = $value;
+				} else {
+					$custom_fields[ $key ] = $value;
 				}
 			}
 
@@ -79,25 +80,27 @@ class JC_TaxMapper {
 	 */
 	function update( $term_id, $group_id = null, $fields = array() ) {
 
-		$taxonomy = !empty($fields['taxonomy']) ? $fields['taxonomy'] : false;
-		return $this->update_data( $term_id, $taxonomy, $fields);
+		$taxonomy = ! empty( $fields['taxonomy'] ) ? $fields['taxonomy'] : false;
+
+		return $this->update_data( $term_id, $taxonomy, $fields );
 	}
 
-	function update_data($term_id, $taxonomy, $fields = array()){
+	function update_data( $term_id, $taxonomy, $fields = array() ) {
 
-		$args = array();
+		$args          = array();
 		$custom_fields = array();
 
-		foreach($fields as $key => $value){
+		foreach ( $fields as $key => $value ) {
 
 			//
-			if(empty($value))
+			if ( empty( $value ) ) {
 				continue;
+			}
 
-			if(in_array($key, $this->_tax_fields) || $key == 'name'){
-				$args[$key] = $value;
-			}else{
-				$custom_fields[$key] = $value;
+			if ( in_array( $key, $this->_tax_fields ) || $key == 'name' ) {
+				$args[ $key ] = $value;
+			} else {
+				$custom_fields[ $key ] = $value;
 			}
 		}
 
@@ -122,21 +125,21 @@ class JC_TaxMapper {
 		$group_template = $this->_template->_field_groups[ $group_id ];
 
 		// escape if required fields are not entered
-		if(!isset($fields['term']) || !isset($fields['taxonomy'])){
+		if ( ! isset( $fields['term'] ) || ! isset( $fields['taxonomy'] ) ) {
 			return false;
 		}
 
-		$term = !empty($fields['term']) ? $fields['term'] : false;
-		$taxonomy = !empty($fields['taxonomy']) ? $fields['taxonomy'] : false;
+		$term     = ! empty( $fields['term'] ) ? $fields['term'] : false;
+		$taxonomy = ! empty( $fields['taxonomy'] ) ? $fields['taxonomy'] : false;
 
-		return $this->exist_data( $term, $taxonomy, array_shift($unique_fields));
+		return $this->exist_data( $term, $taxonomy, array_shift( $unique_fields ) );
 	}
 
-	function exist_data($term = '', $taxonomy = '', $field_type = 'name'){
+	function exist_data( $term = '', $taxonomy = '', $field_type = 'name' ) {
 
 		$term = get_term_by( $field_type, $term, $taxonomy );
-		
-		if($term && isset($term->term_id)){
+
+		if ( $term && isset( $term->term_id ) ) {
 			return $term->term_id;
 		}
 

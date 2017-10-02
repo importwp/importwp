@@ -1,6 +1,6 @@
-<?php 
+<?php
 
-class JCI_DB_Schema{
+class JCI_DB_Schema {
 
 	private $config = null;
 
@@ -11,7 +11,7 @@ class JCI_DB_Schema{
 	/**
 	 * Install Importer Tables in db
 	 */
-	public function install(){
+	public function install() {
 
 		global $wpdb;
 
@@ -47,7 +47,7 @@ class JCI_DB_Schema{
 			  `template_settings` TEXT NULL,
 			  PRIMARY KEY (`id`)
 			) $charset_collate; ";
-		
+
 		dbDelta( $sql );
 
 		$sql = "CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "importer_files`(  
@@ -66,9 +66,10 @@ class JCI_DB_Schema{
 
 	/**
 	 * Upgrade Existing Databases
-	 * @param  int $old_version 
+	 *
+	 * @param  int $old_version
 	 */
-	public function upgrade($old_version){
+	public function upgrade( $old_version ) {
 
 		global $wpdb;
 
@@ -85,7 +86,7 @@ class JCI_DB_Schema{
 
 		$migrate_versions = array();
 
-		switch($old_version){
+		switch ( $old_version ) {
 			case 0:
 			case 1:
 				// db version 2
@@ -109,10 +110,10 @@ class JCI_DB_Schema{
 					  `template_settings` TEXT NULL,
 					  PRIMARY KEY (`id`)
 					) $charset_collate; ";
-				
+
 				dbDelta( $sql );
 
-  				$sql = "CREATE TABLE `" . $wpdb->prefix . "importer_files`(  
+				$sql = "CREATE TABLE `" . $wpdb->prefix . "importer_files`(  
 					  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 					  `importer_id` INT(11),
 					  `author_id` INT(11),
@@ -123,27 +124,27 @@ class JCI_DB_Schema{
 					  PRIMARY KEY (`id`)
 					) $charset_collate;";
 				dbDelta( $sql );
-				
+
 				$migrate_versions[] = 2;
-			break;
+				break;
 		}
 
-		if(!empty($migrate_versions)){
-			add_option( 'jci_db_migrate', serialize($migrate_versions));
+		if ( ! empty( $migrate_versions ) ) {
+			add_option( 'jci_db_migrate', serialize( $migrate_versions ) );
 		}
 	}
 
-	public function db_migration(){
-		
-		$migrate_versions = maybe_unserialize( get_option( 'jci_db_migrate', false ) );
-		
-		if(is_array( $migrate_versions )){
-			foreach($migrate_versions as $version){
+	public function db_migration() {
 
-				switch($version){
+		$migrate_versions = maybe_unserialize( get_option( 'jci_db_migrate', false ) );
+
+		if ( is_array( $migrate_versions ) ) {
+			foreach ( $migrate_versions as $version ) {
+
+				switch ( $version ) {
 					case 2:
 						$this->migrate_ver_2_data();
-					break;
+						break;
 				}
 			}
 		}
@@ -151,37 +152,9 @@ class JCI_DB_Schema{
 		delete_option( 'jci_db_migrate' );
 	}
 
-	/**
-	 * Fetch list of current importer_file id's
-	 * @return array
-	 */
-	private function get_migrate_2_importer_file_ids(){
-		global $wpdb;
+	private function migrate_ver_2_data() {
 
-		$transient = get_transient( 'jci_db_import_file_ids');
-		if(get_transient( 'jci_db_import_file_ids') === false){
-	
-			$importer_files = array();
-
-			$importer_settings = $wpdb->get_results("SELECT * FROM `" . $wpdb->prefix . "postmeta` WHERE meta_key='_import_settings'");
-			if($importer_settings){
-
-				foreach($importer_settings as $settings){
-					$value = maybe_unserialize( $settings->meta_value );
-					$importer_files[$value['import_file']] = null;
-				}
-			}
-			set_transient( 'jci_db_import_file_ids', $importer_files );
-			return $importer_files;
-
-		}else{
-			return $transient;
-		}
-	}
-
-	private function migrate_ver_2_data(){
-
-		set_time_limit(0);
+		set_time_limit( 0 );
 
 		global $wpdb;
 
@@ -189,74 +162,74 @@ class JCI_DB_Schema{
 		$importer_file_ids = $this->get_migrate_2_importer_file_ids();
 
 		// get ids of all importers and fetch all their import files
-		$importers = $wpdb->get_col("SELECT id FROM " . $wpdb->posts . " WHERE post_type = 'jc-imports'");
+		$importers = $wpdb->get_col( "SELECT id FROM " . $wpdb->posts . " WHERE post_type = 'jc-imports'" );
 
-		// 
+		//
 		$or_query = '';
-		if(!empty($importers)){
+		if ( ! empty( $importers ) ) {
 			$or_query = "
 				OR (
 					post_type = 'attachment'
-					AND post_parent IN ( " . implode(',', $importers) .")
+					AND post_parent IN ( " . implode( ',', $importers ) . ")
 				)
 			";
 		}
 
-		$results = $wpdb->get_results("
+		$results = $wpdb->get_results( "
 			SELECT ID, guid, post_parent, post_author, post_mime_type, post_name, post_date 
-			FROM " .$wpdb->posts . " 
+			FROM " . $wpdb->posts . " 
 			WHERE 
 				(post_type = 'jc-import-files')
 				" . $or_query . "
-		");
+		" );
 
 
-		if(!empty($results)){
-			
+		if ( ! empty( $results ) ) {
+
 			// print_r($importer_attachments);
 			$upload_dir = wp_upload_dir();
-			$baseurl = $upload_dir['baseurl'];
-			$records = array();
+			$baseurl    = $upload_dir['baseurl'];
+			$records    = array();
 
-			foreach($results as $importer){
+			foreach ( $results as $importer ) {
 
 				$src = $importer->guid;
-				if(strpos($src, $baseurl) === 0){
-					$src = substr($src, strlen($baseurl));
+				if ( strpos( $src, $baseurl ) === 0 ) {
+					$src = substr( $src, strlen( $baseurl ) );
 				}
 				// $record = array(
-				$importer_id = $importer->post_parent;
-				$author_id = $importer->post_author;
-				$mime = $importer->post_mime_type;
-				$name = $importer->post_name;
+				$importer_id    = $importer->post_parent;
+				$author_id      = $importer->post_author;
+				$mime           = $importer->post_mime_type;
+				$name           = $importer->post_name;
 				$attachment_src = $src;
-				$created = $importer->post_date;
+				$created        = $importer->post_date;
 				// );
 
 				$query_result = $wpdb->query( $wpdb->prepare( "INSERT INTO `" . $wpdb->prefix . "importer_files`(importer_id, author_id, mime_type, name, src, created) VALUES(%d, %d, %s, %s, %s, %s)", $importer_id, $author_id, $mime, $name, $attachment_src, $created ) );
 
 				// check if importer_file_id exists in importer settings array
-				if(is_array($importer_file_ids) && array_key_exists($importer->ID, $importer_file_ids)){
-					$importer_file_ids[$importer->ID] = $wpdb->insert_id;
+				if ( is_array( $importer_file_ids ) && array_key_exists( $importer->ID, $importer_file_ids ) ) {
+					$importer_file_ids[ $importer->ID ] = $wpdb->insert_id;
 					set_transient( 'jci_db_import_file_ids', $importer_file_ids );
 				}
 
-				if($query_result){
+				if ( $query_result ) {
 					wp_delete_post( $importer->ID, true );
 				}
 			}
 		}
 
 		// loop through all importer_file meta data
-		$importer_settings = $wpdb->get_results("SELECT * FROM `" . $wpdb->prefix . "postmeta` WHERE meta_key='_import_settings'");
-		if($importer_settings){
+		$importer_settings = $wpdb->get_results( "SELECT * FROM `" . $wpdb->prefix . "postmeta` WHERE meta_key='_import_settings'" );
+		if ( $importer_settings ) {
 
-			foreach($importer_settings as $settings){
-				
+			foreach ( $importer_settings as $settings ) {
+
 				$post_id = $settings->post_id;
-				$value = maybe_unserialize( $settings->meta_value );
+				$value   = maybe_unserialize( $settings->meta_value );
 
-				if(is_array($importer_file_ids) && array_key_exists($value['import_file'], $importer_file_ids)){
+				if ( is_array( $importer_file_ids ) && array_key_exists( $value['import_file'], $importer_file_ids ) ) {
 					$value['import_file'] = $importer_file_ids[ $value['import_file'] ];
 					update_post_meta( $post_id, '_import_settings', $value );
 					continue;
@@ -265,5 +238,34 @@ class JCI_DB_Schema{
 		}
 
 		return true;
+	}
+
+	/**
+	 * Fetch list of current importer_file id's
+	 * @return array
+	 */
+	private function get_migrate_2_importer_file_ids() {
+		global $wpdb;
+
+		$transient = get_transient( 'jci_db_import_file_ids' );
+		if ( get_transient( 'jci_db_import_file_ids' ) === false ) {
+
+			$importer_files = array();
+
+			$importer_settings = $wpdb->get_results( "SELECT * FROM `" . $wpdb->prefix . "postmeta` WHERE meta_key='_import_settings'" );
+			if ( $importer_settings ) {
+
+				foreach ( $importer_settings as $settings ) {
+					$value                                   = maybe_unserialize( $settings->meta_value );
+					$importer_files[ $value['import_file'] ] = null;
+				}
+			}
+			set_transient( 'jci_db_import_file_ids', $importer_files );
+
+			return $importer_files;
+
+		} else {
+			return $transient;
+		}
 	}
 }

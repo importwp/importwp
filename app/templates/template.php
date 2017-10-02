@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Abstract Template class
  *
@@ -14,7 +15,10 @@ class JC_Importer_Template {
 
 		// before record gets imported
 		if ( method_exists( $this, 'before_template_save' ) ) {
-			add_action( 'jci/before_' . $this->get_name() . '_row_save', array( $this, 'before_template_save' ), 10, 2 );
+			add_action( 'jci/before_' . $this->get_name() . '_row_save', array(
+				$this,
+				'before_template_save'
+			), 10, 2 );
 		}
 
 		// before group save
@@ -49,13 +53,13 @@ class JC_Importer_Template {
 	 *
 	 * @return array
 	 */
-	public function add_reference_fields($groups = array()){
+	public function add_reference_fields( $groups = array() ) {
 
-		foreach($this->_field_groups as $k => $group){
-			if(isset($groups[$k])){
-				if(isset($group['identifiers']) && !empty($group['identifiers'])){
-					foreach($group['identifiers'] as $field => $map){
-						$groups[$k]['fields']['_jci_ref_'.$field] = $map;
+		foreach ( $this->_field_groups as $k => $group ) {
+			if ( isset( $groups[ $k ] ) ) {
+				if ( isset( $group['identifiers'] ) && ! empty( $group['identifiers'] ) ) {
+					foreach ( $group['identifiers'] as $field => $map ) {
+						$groups[ $k ]['fields'][ '_jci_ref_' . $field ] = $map;
 					}
 				}
 			}
@@ -73,27 +77,27 @@ class JC_Importer_Template {
 	 *
 	 * @return bool
 	 */
-	protected function get_post_by_cf($field, $value, $group_id){
+	protected function get_post_by_cf( $field, $value, $group_id ) {
 
-		if(!isset($this->_field_groups[$group_id])){
+		if ( ! isset( $this->_field_groups[ $group_id ] ) ) {
 			return false;
 		}
 
-		$post_type = $this->_field_groups[$group_id]['import_type_name'];
+		$post_type = $this->_field_groups[ $group_id ]['import_type_name'];
 
-		$query = new WP_Query(array(
-			'post_type' => $post_type,
+		$query = new WP_Query( array(
+			'post_type'      => $post_type,
 			'posts_per_page' => 1,
-			'fields' => 'ids',
-			'meta_query' => array(
+			'fields'         => 'ids',
+			'meta_query'     => array(
 				array(
-					'key' => '_jci_ref_' . $field,
+					'key'   => '_jci_ref_' . $field,
 					'value' => $value
 				)
 			)
-		));
+		) );
 
-		if($query->have_posts()){
+		if ( $query->have_posts() ) {
 			return $query->posts[0];
 		}
 

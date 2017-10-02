@@ -24,13 +24,13 @@ if ( ! $error ) {
 	if ( ! $error && $data['_jci_status'] == 'S' ) {
 		// success
 		?>
-		<tr>
-			<td><?php echo $row; ?></td>
+        <tr>
+            <td><?php echo $row; ?></td>
 			<?php foreach ( $columns as $key => $col ): ?>
-				<td><?php do_action( "jci/log_{$template}_content", $key, $data ); ?></td>
+                <td><?php do_action( "jci/log_{$template}_content", $key, $data ); ?></td>
 			<?php endforeach; ?>
-		</tr>
-	<?php
+        </tr>
+		<?php
 
 	}
 
@@ -39,8 +39,8 @@ if ( ! $error ) {
 // display error message
 if ( $error !== false ) {
 	?>
-	<tr>
-		<td colspan="<?php echo count( $columns ) + 1; ?>">Error: <?php echo $error; ?></td>
-	</tr>
-<?php
+    <tr>
+        <td colspan="<?php echo count( $columns ) + 1; ?>">Error: <?php echo $error; ?></td>
+    </tr>
+	<?php
 }

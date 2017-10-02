@@ -8,12 +8,11 @@
  * @author James Collngs <james@jclabs.co.uk>
  * @version 0.0.1
  */
-class JC_TableMapper{
-
-	protected $_template = array();
-	protected $_unique = array();
+class JC_TableMapper {
 
 	public $changed_field_count = 0;
+	protected $_template = array();
+	protected $_unique = array();
 
 	function __construct( $template = array(), $unique = array() ) {
 		$this->_template = $template;

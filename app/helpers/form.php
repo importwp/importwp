@@ -7,8 +7,8 @@ class JCI_FormHelper {
 	static $name = false;
 	static $config;
 	static $has_posted = false;
-	private static $complete = false;
 	static $prefix = 'jc-importer_';
+	private static $complete = false;
 
 	static function init( &$config ) {
 		self::$config = $config;
@@ -27,6 +27,111 @@ class JCI_FormHelper {
 		}
 
 		self::process();
+	}
+
+	/**
+	 * Set Form Validation Rules
+	 *
+	 * Set all form validation rules to the same format
+	 *
+	 * @param array $validation_fields
+	 *
+	 * @return  void
+	 */
+	static function set_validation_rules( $validation_fields = array() ) {
+		// set all validation rules to the same format
+		if ( isset( $validation_fields ) ) {
+			if ( is_array( $validation_fields ) ) {
+				foreach ( $validation_fields as $field => $rules ) {
+
+					$field_rules = array();
+
+					if ( ! is_array( $rules ) ) {
+						continue;
+					}
+
+					// is single rule
+					if ( isset( $rules['rule'] ) ) {
+						$rule          = $rules;
+						$field_rules[] = $rules;
+					} else {
+						foreach ( $rules as $rule ) {
+							if ( ! isset( $rule['rule'] ) ) {
+								continue;
+							}
+							$field_rules[] = $rule;
+						}
+					}
+
+					$fields[ $field ] = array_reverse( $field_rules );
+				}
+			}
+		}
+
+		self::$validation = $fields;
+	}
+
+	static function process() {
+		if ( isset( $_POST[ self::$prefix . 'form_action' ] ) ) {
+			self::$has_posted = true;
+		}
+
+		if ( self::$has_posted ) {
+			self::run_validation();
+
+			$field_name = strtolower( self::$name );
+			if ( ! isset( $_POST[ self::$prefix . 'secret_' . $field_name ] ) || ! wp_verify_nonce( $_POST[ self::$prefix . 'secret_' . $field_name ], self::$prefix . 'secret_' . $field_name ) ) {
+				self::$errors[] = 'Sorry but your form could not be submitted';
+			}
+
+			if ( empty( self::$errors ) ) {
+				self::$complete = true;
+			}
+		}
+	}
+
+	static function run_validation() {
+		$validation = self::$validation;
+
+		foreach ( $validation as $field_name => $rules ) {
+			foreach ( $rules as $rule ) {
+
+				if ( ! isset( $rule['rule'] ) ) {
+					continue;
+				}
+
+				$args_count = count( $rule['rule'] ) - 1;
+
+				if ( $args_count == - 1 ) {
+					continue;
+				}
+
+				$validation_rule = $rule['rule'][0];
+				if ( isset( $rule['type'] ) && $rule['type'] == 'file' ) {
+					$validation_field = $_FILES[ self::$prefix . $field_name ]['name'];
+				} else {
+					$validation_field = $_POST[ self::$prefix . $field_name ];
+				}
+
+				$validation_message = $rule['message'];
+
+				switch ( $args_count ) {
+					case 0:
+						if ( ! FormValidator::$validation_rule( $validation_field ) ) {
+							self::$errors[ $field_name ] = $validation_message;
+							continue;
+						}
+						break;
+					case 1:
+						if ( ! FormValidator::$validation_rule( $validation_field, $rule['rule'][1] ) ) {
+							self::$errors[ $field_name ] = $validation_message;
+							continue;
+						}
+						break;
+				}
+			}
+		}
+
 	}
 
 	static function is_complete() {
@@ -77,11 +182,37 @@ class JCI_FormHelper {
 		}
 
 
-		$output .= self::hidden( 'form_action', array( 'value' => $name ) );
+		$output     .= self::hidden( 'form_action', array( 'value' => $name ) );
 		$field_name = strtolower( $name );
-		$output .= wp_nonce_field( self::$prefix . 'secret_' . $field_name, self::$prefix . 'secret_' . $field_name, true, false );
+		$output     .= wp_nonce_field( self::$prefix . 'secret_' . $field_name, self::$prefix . 'secret_' . $field_name, true, false );
 
 		return $output;
+	}
+
+	static function hidden( $name, $args = array() ) {
+		$value = 1;
+		if ( isset( $args['value'] ) ) {
+			$value = $args['value'];
+		}
+		if ( isset( $args['default'] ) ) {
+			$value = $args['default'];
+		}
+
+		$value  = self::get_value( $name, $args['value'] );
+		$output = '<input type="hidden" name="' . self::$prefix . $name . '" id="' . self::$prefix . $name . '" value="' . $value . '" />';
+
+		return $output;
+	}
+
+	static function get_value( $field, $default = false ) {
+		return isset( $_POST[ self::$prefix . $field ] ) ? $_POST[ self::$prefix . $field ] : $default;
+	}
+
+	static function password( $name, $args = array() ) {
+		$args['type'] = 'password';
+
+		return self::text( $name, $args );
+
 	}
 
 	static function text( $name, $args = array() ) {
@@ -91,14 +222,14 @@ class JCI_FormHelper {
 		$type     = 'text';
 		$default  = '';
 		$after    = null;
-		$data = array();
-		$tooltip = '';
+		$data     = array();
+		$tooltip  = '';
 		extract( $args );
 
 		$data_str = '';
-		if(is_array($data) && !empty($data)){
-			foreach($data as $dk => $dv){
-				$data_str .= ' data-' . $dk .'="'.$dv.'"';
+		if ( is_array( $data ) && ! empty( $data ) ) {
+			foreach ( $data as $dk => $dv ) {
+				$data_str .= ' data-' . $dk . '="' . $dv . '"';
 			}
 		}
 
@@ -136,7 +267,7 @@ class JCI_FormHelper {
 
 		$id = self::get_id( self::$prefix . $name );
 
-		$output .= '<input type="' . $type . '" name="' . self::$prefix . $name . '" id="' . $id . '" value="' . $value . '" '.$data_str.' />';
+		$output .= '<input type="' . $type . '" name="' . self::$prefix . $name . '" id="' . $id . '" value="' . $value . '" ' . $data_str . ' />';
 
 		if ( $after ) {
 			$output .= $after;
@@ -151,18 +282,31 @@ class JCI_FormHelper {
 		return $output;
 	}
 
+	static function get_error( $name ) {
+		if ( isset( self::$errors[ $name ] ) && ! empty( self::$errors[ $name ] ) ) {
+			return '<div class="validation_msg"><p>&uarr; ' . self::$errors[ $name ] . '</p></div>';
+		}
+
+		return false;
+	}
+
+	static function get_label( $name, $tooltip = '' ) {
+		$tooltip_str   = '';
+		$label_classes = array( 'iwp-field__label' );
+		if ( ! empty( $tooltip ) ) {
+			$label_classes[] = 'iwp-field__label--has_tooltip';
+			$tooltip_str     = '<span class="iwp-field__tooltip iwp-field__tooltip--inline" data-title="' . esc_attr( $tooltip ) . '" title="' . esc_attr( $tooltip ) . '">?</span>';
+		}
+		$output = '<label class="' . implode( ' ', $label_classes ) . '">' . $name . $tooltip_str . '</label>';
+
+		return $output;
+	}
+
 	static function get_id( $id ) {
 
 		$id = str_replace( array( '[', ']' ), array( '-', '' ), $id );
 
 		return $id;
-	}
-
-	static function password( $name, $args = array() ) {
-		$args['type'] = 'password';
-
-		return self::text( $name, $args );
-
 	}
 
 	static function file( $name, $args = array() ) {
@@ -320,7 +464,7 @@ class JCI_FormHelper {
 		$options  = array();
 		$empty    = false;
 		$tooltip  = '';
-		$id = false;
+		$id       = false;
 		extract( $args );
 
 		$value   = self::get_value( $name );
@@ -346,25 +490,25 @@ class JCI_FormHelper {
 		}
 
 		$id_string = '';
-		if($id){
-				$id_string = ' id="'.$id.'"';
+		if ( $id ) {
+			$id_string = ' id="' . $id . '"';
 		}
 
-		$output = '<div class="' . implode( ' ', $classes ) . '" '.$id_string.' />';
+		$output = '<div class="' . implode( ' ', $classes ) . '" ' . $id_string . ' />';
 
 		if ( $label !== false ) {
 			$output .= self::get_label( $label, $tooltip );
 		}
 
-		$output .= '<select name="' . self::$prefix . $name . '" id="' . self::get_id(self::$prefix . $name) . '">';
+		$output .= '<select name="' . self::$prefix . $name . '" id="' . self::get_id( self::$prefix . $name ) . '">';
 
 		if ( $empty ) {
 			$empty_val = $empty === true ? '' : $empty;
-			$output .= '<option value="">' . $empty_val . '</option>';
+			$output    .= '<option value="">' . $empty_val . '</option>';
 		}
 
 		foreach ( $options as $option_id => $option ) {
-			if ( ($option_id === $default && empty($value)) || $option_id === $value ) {
+			if ( ( $option_id === $default && empty( $value ) ) || $option_id === $value ) {
 				$output .= '<option value="' . $option_id . '" selected="selected">' . $option . '</option>';
 			} else {
 				$output .= '<option value="' . $option_id . '">' . $option . '</option>';
@@ -421,7 +565,7 @@ class JCI_FormHelper {
 		$label    = $name;
 		$required = false;
 		$checked  = true;
-		$after = null;
+		$after    = null;
 		extract( $args );
 		$error   = self::get_error( $name );
 		$classes = array( 'input', 'support-checkbox' );
@@ -466,17 +610,14 @@ class JCI_FormHelper {
 		return $output;
 	}
 
-	static function hidden( $name, $args = array() ) {
-		$value = 1;
-		if ( isset( $args['value'] ) ) {
-			$value = $args['value'];
-		}
-		if ( isset( $args['default'] ) ) {
-			$value = $args['default'];
+	static function end( $submit = '', $args = array() ) {
+		$output = '';
+		if ( $submit != '' ) {
+			$output .= self::submit( $submit, $args );
 		}
 
-		$value  = self::get_value( $name, $args['value'] );
-		$output = '<input type="hidden" name="' . self::$prefix . $name . '" id="' . self::$prefix . $name . '" value="' . $value . '" />';
+		$output .= '</form>';
+		$output .= '</div>';
 
 		return $output;
 	}
@@ -492,151 +633,9 @@ class JCI_FormHelper {
 		return $output;
 	}
 
-	static function end( $submit = '', $args = array() ) {
-		$output = '';
-		if ( $submit != '' ) {
-			$output .= self::submit( $submit, $args );
-		}
-
-		$output .= '</form>';
-		$output .= '</div>';
-
-		return $output;
-	}
-
-	static function get_label( $name, $tooltip = '' ) {
-		$tooltip_str = '';
-		$label_classes = array('iwp-field__label');
-		if(!empty($tooltip))
-		{
-			$label_classes[] = 'iwp-field__label--has_tooltip';
-			$tooltip_str = '<span class="iwp-field__tooltip iwp-field__tooltip--inline" data-title="' . esc_attr( $tooltip ) . '" title="' . esc_attr( $tooltip ) . '">?</span>';
-		}
-		$output = '<label class="'.implode(' ', $label_classes).'">' . $name . $tooltip_str . '</label>';
-
-		return $output;
-	}
-
-	static function get_value( $field, $default = false ) {
-		return isset( $_POST[ self::$prefix . $field ] ) ? $_POST[ self::$prefix . $field ] : $default;
-	}
-
-	static function get_error( $name ) {
-		if ( isset( self::$errors[ $name ] ) && ! empty( self::$errors[ $name ] ) ) {
-			return '<div class="validation_msg"><p>&uarr; ' . self::$errors[ $name ] . '</p></div>';
-		}
-
-		return false;
-	}
-
 	static function set_error( $error ) {
 		self::$errors['message'] = $error;
 		self::$complete          = false;
-	}
-
-	static function process() {
-		if ( isset( $_POST[ self::$prefix . 'form_action' ] ) ) {
-			self::$has_posted = true;
-		}
-
-		if ( self::$has_posted ) {
-			self::run_validation();
-
-			$field_name = strtolower( self::$name );
-			if ( ! isset( $_POST[ self::$prefix . 'secret_' . $field_name ] ) || ! wp_verify_nonce( $_POST[ self::$prefix . 'secret_' . $field_name ], self::$prefix . 'secret_' . $field_name ) ) {
-				self::$errors[] = 'Sorry but your form could not be submitted';
-			}
-
-			if ( empty( self::$errors ) ) {
-				self::$complete = true;
-			}
-		}
-	}
-
-	static function run_validation() {
-		$validation = self::$validation;
-
-		foreach ( $validation as $field_name => $rules ) {
-			foreach ( $rules as $rule ) {
-
-				if ( ! isset( $rule['rule'] ) ) {
-					continue;
-				}
-
-				$args_count = count( $rule['rule'] ) - 1;
-
-				if ( $args_count == - 1 ) {
-					continue;
-				}
-
-				$validation_rule = $rule['rule'][0];
-				if ( isset( $rule['type'] ) && $rule['type'] == 'file' ) {
-					$validation_field = $_FILES[ self::$prefix . $field_name ]['name'];
-				} else {
-					$validation_field = $_POST[ self::$prefix . $field_name ];
-				}
-
-				$validation_message = $rule['message'];
-
-				switch ( $args_count ) {
-					case 0:
-						if ( ! FormValidator::$validation_rule( $validation_field ) ) {
-							self::$errors[ $field_name ] = $validation_message;
-							continue;
-						}
-						break;
-					case 1:
-						if ( ! FormValidator::$validation_rule( $validation_field, $rule['rule'][1] ) ) {
-							self::$errors[ $field_name ] = $validation_message;
-							continue;
-						}
-						break;
-				}
-			}
-		}
-
-	}
-
-	/**
-	 * Set Form Validation Rules
-	 *
-	 * Set all form validation rules to the same format
-	 *
-	 * @param array $validation_fields
-	 *
-	 * @return  void
-	 */
-	static function set_validation_rules( $validation_fields = array() ) {
-		// set all validation rules to the same format
-		if ( isset( $validation_fields ) ) {
-			if ( is_array( $validation_fields ) ) {
-				foreach ( $validation_fields as $field => $rules ) {
-
-					$field_rules = array();
-
-					if ( ! is_array( $rules ) ) {
-						continue;
-					}
-
-					// is single rule
-					if ( isset( $rules['rule'] ) ) {
-						$rule          = $rules;
-						$field_rules[] = $rules;
-					} else {
-						foreach ( $rules as $rule ) {
-							if ( ! isset( $rule['rule'] ) ) {
-								continue;
-							}
-							$field_rules[] = $rule;
-						}
-					}
-
-					$fields[ $field ] = array_reverse( $field_rules );
-				}
-			}
-		}
-
-		self::$validation = $fields;
 	}
 }
 
@@ -679,7 +678,7 @@ class FormValidator {
 		return false;
 	}
 
-	static function notEqual($string, $value){
+	static function notEqual( $string, $value ) {
 		if ( $string !== $value ) {
 			return true;
 		}

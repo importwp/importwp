@@ -5,10 +5,10 @@
  */
 class JC_XML_Parser extends JC_Parser {
 
-	protected $_config = array();
 	public $name = 'xml';
 	public $_xml = null;
 	public $field_parser = false;
+	protected $_config = array();
 
 	/**
 	 * Setup Actions and filters
@@ -19,18 +19,18 @@ class JC_XML_Parser extends JC_Parser {
 		add_filter( 'jci/parse_xml_field', array( $this, 'parse_field' ), 10, 4 );
 		add_filter( 'jci/process_xml_map_field', array( $this, 'process_map_field' ), 10, 2 );
 		add_filter( 'jci/load_xml_settings', array( $this, 'load_settings' ), 10, 2 );
-		add_filter( 'jci/ajax_xml/preview_record', array ( $this, 'ajax_preview_record'), 10, 4);
-		add_filter( 'jci/ajax_xml/record_count', array ( $this, 'ajax_record_count'), 10, 1);
+		add_filter( 'jci/ajax_xml/preview_record', array( $this, 'ajax_preview_record' ), 10, 4 );
+		add_filter( 'jci/ajax_xml/record_count', array( $this, 'ajax_record_count' ), 10, 1 );
 
 		add_action( 'jci/save_template', array( $this, 'save_template' ), 10, 2 );
 		add_action( 'jci/output_' . $this->get_name() . '_general_settings', array(
-				$this,
-				'output_general_settings'
-			) );
+			$this,
+			'output_general_settings'
+		) );
 		add_action( 'jci/output_' . $this->get_name() . '_group_settings', array(
-				$this,
-				'output_group_settings'
-			), 10, 2 );
+			$this,
+			'output_group_settings'
+		), 10, 2 );
 	}
 
 	/**
@@ -41,11 +41,11 @@ class JC_XML_Parser extends JC_Parser {
 
 		$import_base = ImporterModel::getImporterMetaArr( $id, array( '_parser_settings', 'import_base' ) );
 		echo JCI_FormHelper::text( 'parser_settings[import_base]', array(
-				'label'   => 'Base',
-				'default' => $import_base,
-				'after'   => ' <a href="#" class="base-node-select base button button-small button-iwp">Select</a>',
-				'class'   => 'jc-importer_general-base'
-			) );
+			'label'   => 'Base',
+			'default' => $import_base,
+			'after'   => ' <a href="#" class="base-node-select base button button-small button-iwp">Select</a>',
+			'class'   => 'jc-importer_general-base'
+		) );
 	}
 
 	/**
@@ -56,11 +56,11 @@ class JC_XML_Parser extends JC_Parser {
 
 		$import_base = ImporterModel::getImporterMetaArr( $id, array( '_parser_settings', 'group_base', $group ) );
 		echo JCI_FormHelper::text( "parser_settings[group][{$group}][base]", array(
-				'label'   => 'Base',
-				'default' => $import_base,
-				'after'   => ' <a href="#" class="base-node-select group button button-small button-iwp">Select</a>',
-				'class'   => 'jc-importer_general-group'
-			) );
+			'label'   => 'Base',
+			'default' => $import_base,
+			'after'   => ' <a href="#" class="base-node-select group button button-small button-iwp">Select</a>',
+			'class'   => 'jc-importer_general-group'
+		) );
 	}
 
 	/**
@@ -299,7 +299,7 @@ class JC_XML_Parser extends JC_Parser {
 
 			$output_base_node                 = $base_node . '[' . ( $record_id + 1 ) . ']' . $group_node . '/';
 			$terms                            = apply_filters( 'jci/parse_xml_field', $map, $map, $output_base_node, $xml );
-			$terms                            = apply_filters( 'jci/parse_xml_field/'.$field_id, $terms, $map, $output_base_node, $xml );
+			$terms                            = apply_filters( 'jci/parse_xml_field/' . $field_id, $terms, $map, $output_base_node, $xml );
 			$output_group_record[ $field_id ] = (string) $terms;
 		}
 
@@ -337,7 +337,15 @@ class JC_XML_Parser extends JC_Parser {
 		return $output_group_record;
 	}
 
-	public function preview_field($map = '', $selected_row = null, $field, $general_base = null, $group_base = null ) {
+	public function ajax_preview_record( $result = '', $row, $map, $field ) {
+
+		$general_base = isset( $_POST['general_base'] ) ? $_POST['general_base'] : null;
+		$group_base   = isset( $_POST['group_base'] ) ? $_POST['group_base'] : null;
+
+		return $this->preview_field( $map, $row, $field, $general_base, $group_base );
+	}
+
+	public function preview_field( $map = '', $selected_row = null, $field, $general_base = null, $group_base = null ) {
 
 		/**
 		 * @global JC_Importer $jcimporter
@@ -345,9 +353,9 @@ class JC_XML_Parser extends JC_Parser {
 		global $jcimporter;
 
 		$xml = simplexml_load_file( $this->file );
-		
-		$base_node = is_null($general_base) ? $jcimporter->importer->addon_settings['import_base'] : $general_base; // set general xml base
-		$group_base = is_null($group_base) ? '' : $group_base; // set xml group base if one is provided
+
+		$base_node  = is_null( $general_base ) ? $jcimporter->importer->addon_settings['import_base'] : $general_base; // set general xml base
+		$group_base = is_null( $group_base ) ? '' : $group_base; // set xml group base if one is provided
 
 		$output_base_node = $base_node . "[$selected_row]" . $group_base;
 
@@ -357,20 +365,13 @@ class JC_XML_Parser extends JC_Parser {
 		return $result;
 	}
 
-	public function ajax_preview_record($result = '', $row, $map, $field ){
-
-		$general_base = isset($_POST['general_base']) ? $_POST['general_base'] : null;
-		$group_base = isset($_POST['group_base']) ? $_POST['group_base'] : null;
-		
-		return $this->preview_field($map, $row, $field, $general_base, $group_base);
-	}
-
-	public function ajax_record_count($result = 0){
+	public function ajax_record_count( $result = 0 ) {
 
 		$xml = simplexml_load_file( $this->file );
 
-		$general_base = isset($_POST['general_base']) ? $_POST['general_base'] : '';
-		$result = $this->count_rows($xml, $general_base);
+		$general_base = isset( $_POST['general_base'] ) ? $_POST['general_base'] : '';
+		$result       = $this->count_rows( $xml, $general_base );
+
 		return $result;
 	}
 }
@@ -381,6 +382,7 @@ class JC_XML_Parser extends JC_Parser {
 add_filter( 'jci/register_parser', 'register_xml_parser', 10, 1 );
 function register_xml_parser( $parsers = array() ) {
 	$parsers['xml'] = new JC_XML_Parser(); // 'JC_XML_Parser';
+
 	return $parsers;
 }
 
@@ -399,9 +401,9 @@ class JCI_XML_ParseField extends JCI_ParseField {
 		$this->base_node = $base_node;
 		$result          = preg_replace_callback( '/{(.*?)}/', array( $this, 'parse_value' ), $field );
 		$result          = preg_replace_callback( '/\[jci::([a-z]+)\(([a-zA-Z0-9_ -]+)\)(\/)?\]/', array(
-				$this,
-				'parse_func'
-			), $result );
+			$this,
+			'parse_func'
+		), $result );
 
 		return $result;
 	}

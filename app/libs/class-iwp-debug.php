@@ -20,7 +20,7 @@ class IWP_Debug {
 	/**
 	 * Add checkpoint for timer
 	 *
-	 * @param string $str   Timer Message
+	 * @param string $str Timer Message
 	 * @param string $group Timer Group
 	 */
 	static function timer( $str, $group = '' ) {

@@ -29,137 +29,65 @@ class JC_BaseMapper {
 	 */
 	private $attachment_class = false;
 
-	function __construct(){
+	function __construct() {
 
-		add_action( 'jci/import_finished', array( $this, 'on_import_complete' ) , 10 , 2 );
-		add_filter( 'jci/import_removal_check' , array( $this, 'get_objects_for_removal' ), 10 , 2 );
+		add_action( 'jci/import_finished', array( $this, 'on_import_complete' ), 10, 2 );
+		add_filter( 'jci/import_removal_check', array( $this, 'get_objects_for_removal' ), 10, 2 );
 	}
 
 	/**
 	 * Remove objects which arn't being import
-	 * 
-	 * @param  int $importer_id 
+	 *
+	 * @param  int $importer_id
+	 *
 	 * @return void
 	 */
-	public function on_import_complete( $importer_id , $is_ajax ) {
+	public function on_import_complete( $importer_id, $is_ajax ) {
 
-		if($is_ajax)
+		if ( $is_ajax ) {
 			return false;
+		}
 
 		$permissions = JCI()->importer->get_permissions();
 
-		if( $permissions['delete'] == 0 )
+		if ( $permissions['delete'] == 0 ) {
 			return;
+		}
 
-		$groups = JCI()->importer->get_template_groups();
-		$version = JCI()->importer->get_version();
+		$groups   = JCI()->importer->get_template_groups();
+		$version  = JCI()->importer->get_version();
 		$template = JCI()->importer->get_template();
 
 
 		// setup if not already
-		$this->setup($template);
+		$this->setup( $template );
 
 		// update status file to say deleting
-		$status = IWP_Status::read_file(JCI()->importer->get_ID(), JCI()->importer->get_version());
+		$status           = IWP_Status::read_file( JCI()->importer->get_ID(), JCI()->importer->get_version() );
 		$status['status'] = 'deleting';
-		IWP_Status::write_file($status, JCI()->importer->get_ID(), JCI()->importer->get_version());
+		IWP_Status::write_file( $status, JCI()->importer->get_ID(), JCI()->importer->get_version() );
 
 		// loop through all groups
-		foreach($groups as $group => $args) {
+		foreach ( $groups as $group => $args ) {
 
 			// get importer
 			$importer = $this->_mappers[ $args['import_type'] ];
 
 			// if mapper has remove function
-			if( method_exists( $importer, 'remove_all_objects' ) ){
+			if ( method_exists( $importer, 'remove_all_objects' ) ) {
 				$importer->remove_all_objects( $importer_id, $version, $args['import_type_name'] );
 			}
 		}
 	}
 
-	function get_objects_for_removal( $objects = array() , $importer_id ){
-
-		$permissions = JCI()->importer->get_permissions();
-
-		if( $permissions['delete'] == 0 )
-			return;
-
-		$groups = JCI()->importer->get_template_groups();
-		$version = JCI()->importer->get_version();
-		$template = JCI()->importer->get_template();
-
-		// setup if not already
-		$this->setup($template);
-
-		// loop through all groups
-		foreach($groups as $group => $args) {
-
-			// get importer
-			$importer = $this->_mappers[ $args['import_type'] ];
-
-			// if mapper has remove function
-			if( method_exists( $importer, 'get_objects_for_removal' ) ){
-				$result = $importer->get_objects_for_removal( $importer_id , $version , $args['import_type_name'] );
-				if( is_array( $result ) && !empty( $result ) ){
-					$objects = array_merge( $objects , $result );
-				}
-			}
-		}
-
-		$remove_complete = 1;
-		if(count($objects) > 0){
-			$remove_complete = 0;
-		}
-
-		$old_version = get_post_meta( $importer_id, '_jci_remove_complete_' . $version, true );
-		if ( $old_version !== false ) {
-			update_post_meta( $importer_id, '_jci_remove_complete_' . $version, $remove_complete, $old_version );
-		} else {
-			add_post_meta( $importer_id, '_jci_remove_complete_' . $version, $remove_complete);
-		}
-
-		return array_unique( $objects );
-	}
-
-	function remove_single_object( $importer_id ){
-
-		$permissions = JCI()->importer->get_permissions();
-
-		if( $permissions['delete'] == 0 )
-			return;
-
-		$groups = JCI()->importer->get_template_groups();
-		$version = JCI()->importer->get_version();
-		$template = JCI()->importer->get_template();
-		$result = false;
-
-		// setup if not already
-		$this->setup($template);
-
-		// loop through all groups
-		foreach($groups as $group => $args) {
-
-			// get importer
-			$importer = $this->_mappers[ $args['import_type'] ];
-
-			// if mapper has remove function
-			if( method_exists( $importer, 'remove_single_object' ) ){
-				$result[] = $importer->remove_single_object( $importer_id , $version , $args['import_type_name'] );
-			}
-		}
-
-		$this->get_objects_for_removal( array(), $importer_id );
-
-		return $result;
-	}
-
 	/**
 	 * Setup template for processing import
-	 * 
-	 * @param  JC_Importer_Template  $template
+	 *
+	 * @param  JC_Importer_Template $template
+	 *
 	 * @return void
 	 */
-	function setup($template){
+	function setup( $template ) {
 
 		// removed due to problem clearing mapper
 		// check to see if already setup
@@ -189,154 +117,86 @@ class JC_BaseMapper {
 
 		// $this->setGroupProcessOrder();
 		$this->_group_process_order = $this->set_group_process_order( $template->get_groups() );
-		$this->_setup = true;
-	}
-
-	final function process( $template = array(), $data = array(), $row = null ) {
-
-		$data = apply_filters('iwp/before_mapper_process', $data);
-
-		IWP_Debug::timer("process::start");
-		
-		$this->setup($template);
-		$is_ajax = true;
-
-		if(is_null($row))
-			$is_ajax = false;
-
-		if ( $row ) {
-			// @quickfix: set current row to selected row
-			$this->_current_row = ( $row - 1 );
-		}
-
-		// TODO: Showing the wrong number for end row.
-		$start_row = JCI()->importer->get_start_line();
-		$row_count = JCI()->importer->get_row_count();
-		if(intval($row_count) === 0){
-			$end_row = JCI()->importer->get_total_rows();
-		}else{
-			$end_row = $start_row + JCI()->importer->get_row_count();
-		}
-
-		$importer_id = JCI()->importer->get_ID();
-		$this->_running = true;
-
-		IWP_Debug::timer("process::initialized");
-
-		$parser = JCI()->importer->get_parser();
-
-		foreach ( $data as $data_index => $data_row ) {
-
-			IWP_Debug::timer("process::row_start");
-
-
-			$status = IWP_Status::read_file();
-			if(IWP_Status::has_status('paused')){
-				// we are paused so lets not continue
-				break;
-			}
-
-			$status_counter = isset($status['counter']) ? intval($status['counter']) : 0;
-			$this->_current_row = $start_row + $status_counter -1;
-
-			$this->set_import_version($data_index);
-
-			IWP_Debug::timer("process::increase import version");
-
-			$this->processRow( $data_row );
-
-			IWP_Debug::timer("process::process row");
-			ImportLog::insert( $importer_id, $this->_current_row, $this->_insert[ $this->_current_row ] );
-			IWP_Debug::timer("process::insert log");
-
-			// get seek info
-			$seek = 0;
-			if(method_exists($parser, 'get_seek_index')){
-				$seek = $parser->get_seek_index($data_index);
-			}
-
-			IWP_Debug::timer("process::get seek value");
-
-			$status_counter++;
-
-			// write to status file
-			IWP_Status::write_file(array(
-				'status' => 'running',
-				'message' => '',
-				'last_record' => $data_index + 1,
-				'counter' => $status_counter,
-				'seek' => $seek,
-				'start' => $start_row,
-				'end' => $end_row,
-				'time' => time()
-			));
-
-			IWP_Debug::timer("process::write log");
-		}
-
-		IWP_Debug::timer("process::complete check");
-
-		// check to see if last row
-		$this->complete_check( $this->_current_row, $is_ajax);
-
-		IWP_Debug::timer("process::complete check started");
-
-		return $this->_insert;
+		$this->_setup               = true;
 	}
 
 	/**
-	 * Check to see if the current row is the last
+	 * Set Keys
+	 */
+	final function parse_keys( $data ) {
+		if ( ! isset( $data['key'] ) ) {
+			return;
+		}
+
+		foreach ( $data['key'] as $key ) {
+
+			if ( isset( $this->_key[ $data['group'] ] ) ) {
+				$this->_key[ $data['group'] ][] = $key;
+			}
+		}
+	}
+
+	/**
+	 * Set Relationships
+	 */
+	final function parse_relationship( $data ) {
+		$this->_relationship[ $data['group'] ] = $data['relationship'];
+	}
+
+	/**
+	 * Set Field Type
+	 */
+	final function parse_field_type( $data ) {
+		$this->_field_types[ $data['group'] ] = $data['field_type'];
+	}
+
+	/**
+	 * Set Unique Field
+	 */
+	final function parse_unique_field( $data ) {
+
+		// set unique via template (new templates)
+		if ( isset( $data['unique'] ) ) {
+			$this->_unique[ $data['group'] ] = $data['unique'];
+		}
+
+		// get from indevidual field (old templates)
+		if ( isset( $data['map'] ) ) {
+			foreach ( $data['map'] as $field_data ) {
+
+				if ( array_key_exists( 'unique', $field_data ) ) {
+					$this->_unique[ $data['group'] ][] = $field_data['field'];
+				}
+			}
+		}
+		// todo: allow for unique keys not to be present
+		$this->_unique[ $data['group'] ] = array_unique( $this->_unique[ $data['group'] ] );
+	}
+
+	/**
+	 * Load Mapper
 	 *
-	 * @param  integer $row
+	 * Load group mapper (POST, TABLE, USER, VIRTUAL)
+	 *
+	 * @param  array $data
+	 *
 	 * @return void
 	 */
-	function complete_check( $row = 0 , $is_ajax = true ) {
+	final function load_mapper( $data ) {
 
-		$importer_id = JCI()->importer->get_ID();
-		$start_row   = JCI()->importer->get_start_line(); // row to start from
-		$row_count   = JCI()->importer->get_row_count(); // how many rows to import
-		$total_rows  = JCI()->importer->get_total_rows();
+		$type    = $data['import_type'];
+		$mappers = array();
 
-		// check to see if complete
-		if ( $row_count == 0 ) {
+		// load mappers
+		$mappers = apply_filters( 'jci/register_importer', $mappers );
 
-			if ( $row == $total_rows ) {
-				do_action( 'jci/import_finished', $importer_id, $is_ajax );
-			}
-		} else {
-
-			if ( ( $start_row - 1 ) + $row_count == $row ) {
-				do_action( 'jci/import_finished', $importer_id, $is_ajax );
-			}
-		}
-	}
-
-	/**
-	 * Update import version if current row equals the starting row
-	 */
-	function set_import_version($row_index = 0) {
-
-		$import_id = JCI()->importer->get_ID();
-		$start_row = JCI()->importer->get_start_line();
-		$version   = JCI()->importer->get_version();
-
-		if ( $start_row <= 0 ) {
-			$start_row = 1;
+		if ( ! array_key_exists( $type, $mappers ) ) {
+			return false;
 		}
 
-		if ( $row_index == ( $start_row - 1 ) ) {
-
-			// update import version in db
-			$old_version = get_post_meta( $import_id, '_import_version', true );
-			if ( $old_version ) {
-				update_post_meta( $import_id, '_import_version', $version, $old_version );
-			} else {
-				add_post_meta( $import_id, '_import_version', $version, true );
-			}
-
-			// update importer class
-			JCI()->importer->set_version( $version );
-		}
+		// load importer
+		$mapper                  = $mappers[ $type ];
+		$this->_mappers[ $type ] = new $mapper( $this->_template, $this->_unique );
 	}
 
 	/**
@@ -394,203 +254,203 @@ class JC_BaseMapper {
 		return $order;
 	}
 
-	/**
-	 * Set Keys
-	 */
-	final function parse_keys( $data ) {
-		if ( ! isset( $data['key'] ) ) {
-			return;
-		}
-
-		foreach ( $data['key'] as $key ) {
-
-			if ( isset( $this->_key[ $data['group'] ] ) ) {
-				$this->_key[ $data['group'] ][] = $key;
-			}
-		}
-	}
-
-	/**
-	 * Set Relationships
-	 */
-	final function parse_relationship( $data ) {
-		$this->_relationship[ $data['group'] ] = $data['relationship'];
-	}
-
-	/**
-	 * Set Field Type
-	 */
-	final function parse_field_type( $data ) {
-		$this->_field_types[ $data['group'] ] = $data['field_type'];
-	}
-
-	/**
-	 * Set Unique Field
-	 */
-	final function parse_unique_field( $data ) {
-
-		// set unique via template (new templates)
-		if ( isset( $data['unique'] ) ) {
-			$this->_unique[ $data['group'] ] = $data['unique'];
-		}
-
-		// get from indevidual field (old templates)
-		if ( isset( $data['map'] ) ) {
-			foreach ( $data['map'] as $field_data ) {
-
-				if ( array_key_exists( 'unique', $field_data ) ) {
-					$this->_unique[ $data['group'] ][] = $field_data['field'];
-				}
-			}
-		}
-		// todo: allow for unique keys not to be present
-		$this->_unique[ $data['group'] ] = array_unique( $this->_unique[ $data['group'] ] );
-	}
-
-	/**
-	 * Process Data
-	 */
-	final function processData( $matches ) {
-
-		$match = $matches[1];
-
-		$temp = explode( '.', $match );
-
-		if ( count( $temp ) < 2 ) {
-			return false;
-		}
-
-		$group = $temp[0];
-		$field = $temp[1];
-
-		if ( $group == 'this' ) {
-			return $this->_current_group[ $field ];
-		} else {
-			return $this->_insert[ $this->_current_row ][ $group ][ $field ];
-		}
-	}
-
-	/**
-	 * Process Field
-	 */
-	final function processField( $field ) {
-
-		$field = preg_replace_callback( '/{(.*?)}/', array( $this, 'processData' ), $field );
-
-		return $field;
-	}
-
-	/**
-	 * Process Group
-	 */
-	final function processGroup( $group_id, $data ) {
-
-		IWP_Debug::timer("processGroup::start");
+	function remove_single_object( $importer_id ) {
 
 		$permissions = JCI()->importer->get_permissions();
 
-		if ( ! is_array( $data ) ) {
-			return false;
+		if ( $permissions['delete'] == 0 ) {
+			return;
 		}
 
-		try {
+		$groups   = JCI()->importer->get_template_groups();
+		$version  = JCI()->importer->get_version();
+		$template = JCI()->importer->get_template();
+		$result   = false;
 
-			// get import type: post | table | user
-			$import_template_groups = $this->_template->get_groups();
-			$import_type = $import_template_groups[ $group_id ]['import_type'];
+		// setup if not already
+		$this->setup( $template );
 
-			$mapper = $this->_mappers[ $import_type ];
+		// loop through all groups
+		foreach ( $groups as $group => $args ) {
 
-			// merge relational fields
-			if ( isset( $this->_relationship[ $group_id ] ) && is_array( $this->_relationship[ $group_id ] ) ) {
-				$data = array_merge( $data, $this->_relationship[ $group_id ] );
+			// get importer
+			$importer = $this->_mappers[ $args['import_type'] ];
+
+			// if mapper has remove function
+			if ( method_exists( $importer, 'remove_single_object' ) ) {
+				$result[] = $importer->remove_single_object( $importer_id, $version, $args['import_type_name'] );
 			}
+		}
 
-			$this->_current_group = $data;
+		$this->get_objects_for_removal( array(), $importer_id );
 
-			foreach ( $data as $id => $field ) {
-				IWP_Debug::timer("processGroup::field_start");
+		return $result;
+	}
 
-				// process field
-				$data[ $id ] = $this->processField( $field );
-				IWP_Debug::timer("processGroup::field_before_filter");
-				$data[ $id ] = apply_filters( 'jci/' . $this->_template->get_name() . '/process_field', $data[ $id ], $id);
-				IWP_Debug::timer("processGroup::field_end");
-			}
+	function get_objects_for_removal( $objects = array(), $importer_id ) {
 
-			IWP_Debug::timer("processGroup::before_group_save");
-			$data = apply_filters( 'jci/before_' . $this->_template->get_name() . '_group_save', $data, $group_id );
-			IWP_Debug::timer("processGroup::after_group_save");
+		$permissions = JCI()->importer->get_permissions();
 
-			IWP_Debug::timer("processGroup::exist_check");
-			if ( ! $post_id = $mapper->exists( $group_id, $data ) ) {
+		if ( $permissions['delete'] == 0 ) {
+			return;
+		}
 
-				IWP_Debug::timer("processGroup::exist_create_start");
+		$groups   = JCI()->importer->get_template_groups();
+		$version  = JCI()->importer->get_version();
+		$template = JCI()->importer->get_template();
 
-				// create if allowed
-				if ( isset( $permissions['create'] ) && $permissions['create'] == 1 ) {
-					$result = $mapper->insert( $group_id, $data );
-					if ( ! is_wp_error( $result ) ) {
-						$data['ID']        = $result;
-						$data['_jci_type'] = 'I';
-					} else {
-						throw new JCI_Exception( $result->get_error_message(), JCI_ERR );
-					}
+		// setup if not already
+		$this->setup( $template );
 
-					// $this->_insert[$this->_current_row]['type'] = 'I';
-				} else {
-					throw new JCI_Exception( "No Enough Permissions to Insert Record", JCI_ERR );
+		// loop through all groups
+		foreach ( $groups as $group => $args ) {
+
+			// get importer
+			$importer = $this->_mappers[ $args['import_type'] ];
+
+			// if mapper has remove function
+			if ( method_exists( $importer, 'get_objects_for_removal' ) ) {
+				$result = $importer->get_objects_for_removal( $importer_id, $version, $args['import_type_name'] );
+				if ( is_array( $result ) && ! empty( $result ) ) {
+					$objects = array_merge( $objects, $result );
 				}
+			}
+		}
 
-				IWP_Debug::timer("processGroup::exist_create_end");
+		$remove_complete = 1;
+		if ( count( $objects ) > 0 ) {
+			$remove_complete = 0;
+		}
 
+		$old_version = get_post_meta( $importer_id, '_jci_remove_complete_' . $version, true );
+		if ( $old_version !== false ) {
+			update_post_meta( $importer_id, '_jci_remove_complete_' . $version, $remove_complete, $old_version );
+		} else {
+			add_post_meta( $importer_id, '_jci_remove_complete_' . $version, $remove_complete );
+		}
+
+		return array_unique( $objects );
+	}
+
+	final function process( $template = array(), $data = array(), $row = null ) {
+
+		$data = apply_filters( 'iwp/before_mapper_process', $data );
+
+		IWP_Debug::timer( "process::start" );
+
+		$this->setup( $template );
+		$is_ajax = true;
+
+		if ( is_null( $row ) ) {
+			$is_ajax = false;
+		}
+
+		if ( $row ) {
+			// @quickfix: set current row to selected row
+			$this->_current_row = ( $row - 1 );
+		}
+
+		// TODO: Showing the wrong number for end row.
+		$start_row = JCI()->importer->get_start_line();
+		$row_count = JCI()->importer->get_row_count();
+		if ( intval( $row_count ) === 0 ) {
+			$end_row = JCI()->importer->get_total_rows();
+		} else {
+			$end_row = $start_row + JCI()->importer->get_row_count();
+		}
+
+		$importer_id    = JCI()->importer->get_ID();
+		$this->_running = true;
+
+		IWP_Debug::timer( "process::initialized" );
+
+		$parser = JCI()->importer->get_parser();
+
+		foreach ( $data as $data_index => $data_row ) {
+
+			IWP_Debug::timer( "process::row_start" );
+
+
+			$status = IWP_Status::read_file();
+			if ( IWP_Status::has_status( 'paused' ) ) {
+				// we are paused so lets not continue
+				break;
+			}
+
+			$status_counter     = isset( $status['counter'] ) ? intval( $status['counter'] ) : 0;
+			$this->_current_row = $start_row + $status_counter - 1;
+
+			$this->set_import_version( $data_index );
+
+			IWP_Debug::timer( "process::increase import version" );
+
+			$this->processRow( $data_row );
+
+			IWP_Debug::timer( "process::process row" );
+			ImportLog::insert( $importer_id, $this->_current_row, $this->_insert[ $this->_current_row ] );
+			IWP_Debug::timer( "process::insert log" );
+
+			// get seek info
+			$seek = 0;
+			if ( method_exists( $parser, 'get_seek_index' ) ) {
+				$seek = $parser->get_seek_index( $data_index );
+			}
+
+			IWP_Debug::timer( "process::get seek value" );
+
+			$status_counter ++;
+
+			// write to status file
+			IWP_Status::write_file( array(
+				'status'      => 'running',
+				'message'     => '',
+				'last_record' => $data_index + 1,
+				'counter'     => $status_counter,
+				'seek'        => $seek,
+				'start'       => $start_row,
+				'end'         => $end_row,
+				'time'        => time()
+			) );
+
+			IWP_Debug::timer( "process::write log" );
+		}
+
+		IWP_Debug::timer( "process::complete check" );
+
+		// check to see if last row
+		$this->complete_check( $this->_current_row, $is_ajax );
+
+		IWP_Debug::timer( "process::complete check started" );
+
+		return $this->_insert;
+	}
+
+	/**
+	 * Update import version if current row equals the starting row
+	 */
+	function set_import_version( $row_index = 0 ) {
+
+		$import_id = JCI()->importer->get_ID();
+		$start_row = JCI()->importer->get_start_line();
+		$version   = JCI()->importer->get_version();
+
+		if ( $start_row <= 0 ) {
+			$start_row = 1;
+		}
+
+		if ( $row_index == ( $start_row - 1 ) ) {
+
+			// update import version in db
+			$old_version = get_post_meta( $import_id, '_import_version', true );
+			if ( $old_version ) {
+				update_post_meta( $import_id, '_import_version', $version, $old_version );
 			} else {
-
-				IWP_Debug::timer("processGroup::exist_update_start");
-
-				// update if allowed
-				if ( isset( $permissions['update'] ) && $permissions['update'] == 1 ) {
-					$data['ID']        = $mapper->update( $post_id, $group_id, $data );
-					$data['_jci_type'] = 'U';
-					// $this->_insert[$this->_current_row]['type'] = 'U';
-				} else {
-					$data['ID'] = $post_id;
-					throw new JCI_Exception( "No Enough Permissions to Update Record", JCI_ERR );
-				}
-
-				IWP_Debug::timer("processGroup::exist_update_end");
+				add_post_meta( $import_id, '_import_version', $version, true );
 			}
 
-			$data['_jci_updated_fields'] = $mapper->changed_fields;
-			$data['_jci_updated']        = $mapper->changed_field_count;
-
-			$data = apply_filters( 'jci/after_' . $this->_template->get_name() . '_group_save', $data, $group_id );
-
-			$data['_jci_status'] = 'S';
-			$data['_jci_msg']    = '';
-		} catch ( JCI_Exception $e ) {
-
-			$data['_jci_status'] = 'E';
-			$data['_jci_msg']    = jci_error_message($e);
-
-			// throw errors not warnings to row
-			if ( $e->getCode() == JCI_ERR ) {
-				throw $e;
-			}
-
-
-		} catch ( Exception $e ) {
-
-			// catch group errors
-			$data['_jci_status'] = 'E';
-			$data['_jci_msg']    = jci_error_message($e);
-
-			throw $e;
+			// update importer class
+			JCI()->importer->set_version( $version );
 		}
-
-		IWP_Debug::timer("processGroup::end");
-
-		return $data;
 	}
 
 	/**
@@ -598,7 +458,7 @@ class JC_BaseMapper {
 	 */
 	final function processRow( $data ) {
 
-		IWP_Debug::timer("processRow::start");
+		IWP_Debug::timer( "processRow::start" );
 
 		$this->_current_row ++;
 
@@ -608,7 +468,7 @@ class JC_BaseMapper {
 
 			foreach ( $this->_group_process_order as $group_id ) {
 
-				IWP_Debug::timer("processRow::loop_start");
+				IWP_Debug::timer( "processRow::loop_start" );
 
 				$group = $data[ $group_id ];
 
@@ -627,16 +487,16 @@ class JC_BaseMapper {
 						}
 						break;
 				}
-				IWP_Debug::timer("processRow::loop_end");
+				IWP_Debug::timer( "processRow::loop_end" );
 			}
 
-			IWP_Debug::timer("processRow::attachment_start");
+			IWP_Debug::timer( "processRow::attachment_start" );
 			$this->processAttachments( $data );
-			IWP_Debug::timer("processRow::attachment_end");
+			IWP_Debug::timer( "processRow::attachment_end" );
 
-			IWP_Debug::timer("processRow::taxonomy_start");
+			IWP_Debug::timer( "processRow::taxonomy_start" );
 			$this->processTaxonomies( $data );
-			IWP_Debug::timer("processRow::taxonomy_end");
+			IWP_Debug::timer( "processRow::taxonomy_end" );
 
 			do_action( 'jci/after_' . $this->_template->get_name() . '_row_save', $data, $this->_current_row );
 
@@ -646,114 +506,140 @@ class JC_BaseMapper {
 
 			// catch record errors
 			$this->_insert[ $this->_current_row ]['_jci_status'] = 'E';
-			$this->_insert[ $this->_current_row ]['_jci_msg']    = jci_error_message($e);
+			$this->_insert[ $this->_current_row ]['_jci_msg']    = jci_error_message( $e );
 
 
 		} catch ( Exception $e ) {
 
 			// catch record errors
 			$this->_insert[ $this->_current_row ]['_jci_status'] = 'E';
-			$this->_insert[ $this->_current_row ]['_jci_msg']    = jci_error_message($e);
+			$this->_insert[ $this->_current_row ]['_jci_msg']    = jci_error_message( $e );
 		}
 
-		IWP_Debug::timer("processRow::end");
+		IWP_Debug::timer( "processRow::end" );
 	}
 
-	final function processTaxonomies( $data ) {
+	/**
+	 * Process Group
+	 */
+	final function processGroup( $group_id, $data ) {
 
-		$jci_taxonomies             = JCI()->importer->taxonomies;
-		$jci_taxonomies_permissions = JCI()->importer->taxonomies_permissions;
-		$jci_template_type          = JCI()->importer->template_type;
-		$jci_file                   = JCI()->importer->file;
+		IWP_Debug::timer( "processGroup::start" );
 
-		if ( ! isset( $jci_taxonomies ) || ! $jci_taxonomies || empty( $jci_taxonomies ) ) {
+		$permissions = JCI()->importer->get_permissions();
+
+		if ( ! is_array( $data ) ) {
 			return false;
 		}
 
-		if(!isset($this->_insert[ $this->_current_row ]))
-			return;
+		try {
 
-		$row = $this->_insert[ $this->_current_row ];
-
-		foreach ( $jci_taxonomies as $group_id => $taxonomies ) {
-
+			// get import type: post | table | user
 			$import_template_groups = $this->_template->get_groups();
-			if ( isset( $import_template_groups[ $group_id ]['taxonomies'] ) && $import_template_groups[ $group_id ]['taxonomies'] <> 1 ) {
-				continue;
+			$import_type            = $import_template_groups[ $group_id ]['import_type'];
+
+			$mapper = $this->_mappers[ $import_type ];
+
+			// merge relational fields
+			if ( isset( $this->_relationship[ $group_id ] ) && is_array( $this->_relationship[ $group_id ] ) ) {
+				$data = array_merge( $data, $this->_relationship[ $group_id ] );
 			}
 
-			if(count($jci_taxonomies[$group_id]) === 1 && empty($taxonomies)){
-				continue;
+			$this->_current_group = $data;
+
+			foreach ( $data as $id => $field ) {
+				IWP_Debug::timer( "processGroup::field_start" );
+
+				// process field
+				$data[ $id ] = $this->processField( $field );
+				IWP_Debug::timer( "processGroup::field_before_filter" );
+				$data[ $id ] = apply_filters( 'jci/' . $this->_template->get_name() . '/process_field', $data[ $id ], $id );
+				IWP_Debug::timer( "processGroup::field_end" );
 			}
 
-			$post_id = $row[ $group_id ]['ID'];
+			IWP_Debug::timer( "processGroup::before_group_save" );
+			$data = apply_filters( 'jci/before_' . $this->_template->get_name() . '_group_save', $data, $group_id );
+			IWP_Debug::timer( "processGroup::after_group_save" );
 
-			foreach ( $taxonomies as $tax => $term_arr ) {
+			IWP_Debug::timer( "processGroup::exist_check" );
+			if ( ! $post_id = $mapper->exists( $group_id, $data ) ) {
 
-				// permission check (create, append, overwrite)
-				$permission = $jci_taxonomies_permissions[ $group_id ][ $tax ];
+				IWP_Debug::timer( "processGroup::exist_create_start" );
 
-				if ( $permission == 'create' ) {
-
-					$existing_terms = wp_get_object_terms( $post_id, $tax );
-
-					if ( ! empty( $existing_terms ) ) {
-						continue;
-					}
-				}
-
-				// clear categories
-				if ( $permission == 'overwrite' ) {
-					wp_set_object_terms( $post_id, null, $tax );
-				}
-
-				foreach ( $term_arr as $term_value ) {
-
-					//@TODO: Add xml to filter
-					if ( $jci_template_type == 'xml' ) {
-
-						$field_map = apply_filters( 'jci/process_' . $jci_template_type . '_map_field', $group_id, $this->_current_row );
-
-						$xml   = simplexml_load_file( $jci_file );
-						$terms = apply_filters( 'jci/parse_' . $jci_template_type . '_field', $term_value, $term_value, $field_map, $xml );
+				// create if allowed
+				if ( isset( $permissions['create'] ) && $permissions['create'] == 1 ) {
+					$result = $mapper->insert( $group_id, $data );
+					if ( ! is_wp_error( $result ) ) {
+						$data['ID']        = $result;
+						$data['_jci_type'] = 'I';
 					} else {
-						$field_map = apply_filters( 'jci/process_' . $jci_template_type . '_map_field', $group_id, $this->_current_row );
-						$terms     = apply_filters( 'jci/parse_' . $jci_template_type . '_field', $term_value, $term_value, $field_map, '' );
+						throw new JCI_Exception( $result->get_error_message(), JCI_ERR );
 					}
 
-					$term_delimiter = apply_filters('jci/value_delimiter', ',');
-					$term_delimiter = apply_filters('jci/taxonomy/value_delimiter', $term_delimiter);
-					$terms = explode( $term_delimiter, $terms );
-
-					foreach ( $terms as $t ) {
-
-						$t = trim( $t );
-
-						if ( empty( $t ) ) {
-							continue;
-						}
-
-						// skip if already has term
-						if ( $permission == 'append' && has_term( $t, $tax, $post_id ) ) {
-							continue;
-						}
-
-						$this->_insert[ $this->_current_row ]['taxonomies'][ $tax ][] = $t;
-
-						if ( term_exists( $t, $tax ) ) {
-
-							// attach term to post
-							wp_set_object_terms( $post_id, $t, $tax, true );
-						} else {
-
-							// add term
-							$term_id = wp_insert_term( $t, $tax );
-							wp_set_object_terms( $post_id, $term_id, $tax, true );
-						}
-					}
+					// $this->_insert[$this->_current_row]['type'] = 'I';
+				} else {
+					throw new JCI_Exception( "No Enough Permissions to Insert Record", JCI_ERR );
 				}
+
+				IWP_Debug::timer( "processGroup::exist_create_end" );
+
+			} else {
+
+				IWP_Debug::timer( "processGroup::exist_update_start" );
+
+				// update if allowed
+				if ( isset( $permissions['update'] ) && $permissions['update'] == 1 ) {
+					$data['ID']        = $mapper->update( $post_id, $group_id, $data );
+					$data['_jci_type'] = 'U';
+					// $this->_insert[$this->_current_row]['type'] = 'U';
+				} else {
+					$data['ID'] = $post_id;
+					throw new JCI_Exception( "No Enough Permissions to Update Record", JCI_ERR );
+				}
+
+				IWP_Debug::timer( "processGroup::exist_update_end" );
 			}
+
+			$data['_jci_updated_fields'] = $mapper->changed_fields;
+			$data['_jci_updated']        = $mapper->changed_field_count;
+
+			$data = apply_filters( 'jci/after_' . $this->_template->get_name() . '_group_save', $data, $group_id );
+
+			$data['_jci_status'] = 'S';
+			$data['_jci_msg']    = '';
+		} catch ( JCI_Exception $e ) {
+
+			$data['_jci_status'] = 'E';
+			$data['_jci_msg']    = jci_error_message( $e );
+
+			// throw errors not warnings to row
+			if ( $e->getCode() == JCI_ERR ) {
+				throw $e;
+			}
+
+
+		} catch ( Exception $e ) {
+
+			// catch group errors
+			$data['_jci_status'] = 'E';
+			$data['_jci_msg']    = jci_error_message( $e );
+
+			throw $e;
 		}
+
+		IWP_Debug::timer( "processGroup::end" );
+
+		return $data;
+	}
+
+	/**
+	 * Process Field
+	 */
+	final function processField( $field ) {
+
+		$field = preg_replace_callback( '/{(.*?)}/', array( $this, 'processData' ), $field );
+
+		return $field;
 	}
 
 	final function processAttachments( $data ) {
@@ -766,8 +652,9 @@ class JC_BaseMapper {
 			return false;
 		}
 
-		if(!isset($this->_insert[ $this->_current_row ]))
+		if ( ! isset( $this->_insert[ $this->_current_row ] ) ) {
 			return;
+		}
 
 		$row = $this->_insert[ $this->_current_row ];
 
@@ -779,7 +666,7 @@ class JC_BaseMapper {
 			}
 
 			// escape if not attachment location has been entered
-			if(empty($attachments['location']) || (count($attachments['location']) === 1 && empty($attachments['location'][0]))){
+			if ( empty( $attachments['location'] ) || ( count( $attachments['location'] ) === 1 && empty( $attachments['location'][0] ) ) ) {
 				continue;
 			}
 
@@ -820,7 +707,7 @@ class JC_BaseMapper {
 						return false;
 					}
 
-					// parse fields	
+					// parse fields
 					//@TODO: Add xml to filter
 					if ( $jci_template_type == 'xml' ) {
 
@@ -839,10 +726,11 @@ class JC_BaseMapper {
 					$dest = apply_filters( 'jci/attachment_name', $dest, $key );
 
 					// download and install attachments
-					$result = $this->attachment_class->attach_remote_image( $post_id, $src, $dest, array( 'unique'  => true,
-					                                                                                      'parent'  => $post_id,
-					                                                                                      'feature' => $feature
-						) );
+					$result = $this->attachment_class->attach_remote_image( $post_id, $src, $dest, array(
+						'unique'  => true,
+						'parent'  => $post_id,
+						'feature' => $feature
+					) );
 					if ( $result ) {
 
 						$this->_insert[ $this->_current_row ]['attachments'][] = array(
@@ -858,7 +746,7 @@ class JC_BaseMapper {
 				} catch ( Exception $e ) {
 					$this->_insert[ $this->_current_row ]['attachments'][] = array(
 						'status' => 'E',
-						'msg'    => jci_error_message($e)
+						'msg'    => jci_error_message( $e )
 					);
 				}
 
@@ -866,15 +754,6 @@ class JC_BaseMapper {
 
 			}
 		}
-	}
-
-	function handleError( $errno, $errstr, $errfile, $errline, $errcontext = array() ) {
-		// error was suppressed with the @-operator
-		if ( 0 === error_reporting() ) {
-			return false;
-		}
-
-		throw new ErrorException( $errstr, 0, $errno, $errfile, $errline );
 	}
 
 	final function initAttachment( $group_id ) {
@@ -888,11 +767,12 @@ class JC_BaseMapper {
 		switch ( $jci_attachments[ $group_id ]['type'] ) {
 			case 'local':
 				$this->attachment_class = new JCI_Local_Attachments();
-				$base_path = $jci_attachments[$group_id]['local']['base_path'];
+				$base_path              = $jci_attachments[ $group_id ]['local']['base_path'];
 
-				if(!$this->attachment_class->set_local_dir($base_path)){
+				if ( ! $this->attachment_class->set_local_dir( $base_path ) ) {
 					return false;
 				}
+
 				return true;
 				break;
 			case 'url':
@@ -927,29 +807,161 @@ class JC_BaseMapper {
 		}
 	}
 
-	/**
-	 * Load Mapper
-	 *
-	 * Load group mapper (POST, TABLE, USER, VIRTUAL)
-	 *
-	 * @param  array $data
-	 *
-	 * @return void
-	 */
-	final function load_mapper( $data ) {
+	final function processTaxonomies( $data ) {
 
-		$type      = $data['import_type'];
-		$mappers   = array();
+		$jci_taxonomies             = JCI()->importer->taxonomies;
+		$jci_taxonomies_permissions = JCI()->importer->taxonomies_permissions;
+		$jci_template_type          = JCI()->importer->template_type;
+		$jci_file                   = JCI()->importer->file;
 
-		// load mappers
-		$mappers = apply_filters( 'jci/register_importer', $mappers );
-
-		if ( ! array_key_exists( $type, $mappers ) ) {
+		if ( ! isset( $jci_taxonomies ) || ! $jci_taxonomies || empty( $jci_taxonomies ) ) {
 			return false;
 		}
 
-		// load importer
-		$mapper                  = $mappers[ $type ];
-		$this->_mappers[ $type ] = new $mapper( $this->_template, $this->_unique );
+		if ( ! isset( $this->_insert[ $this->_current_row ] ) ) {
+			return;
+		}
+
+		$row = $this->_insert[ $this->_current_row ];
+
+		foreach ( $jci_taxonomies as $group_id => $taxonomies ) {
+
+			$import_template_groups = $this->_template->get_groups();
+			if ( isset( $import_template_groups[ $group_id ]['taxonomies'] ) && $import_template_groups[ $group_id ]['taxonomies'] <> 1 ) {
+				continue;
+			}
+
+			if ( count( $jci_taxonomies[ $group_id ] ) === 1 && empty( $taxonomies ) ) {
+				continue;
+			}
+
+			$post_id = $row[ $group_id ]['ID'];
+
+			foreach ( $taxonomies as $tax => $term_arr ) {
+
+				// permission check (create, append, overwrite)
+				$permission = $jci_taxonomies_permissions[ $group_id ][ $tax ];
+
+				if ( $permission == 'create' ) {
+
+					$existing_terms = wp_get_object_terms( $post_id, $tax );
+
+					if ( ! empty( $existing_terms ) ) {
+						continue;
+					}
+				}
+
+				// clear categories
+				if ( $permission == 'overwrite' ) {
+					wp_set_object_terms( $post_id, null, $tax );
+				}
+
+				foreach ( $term_arr as $term_value ) {
+
+					//@TODO: Add xml to filter
+					if ( $jci_template_type == 'xml' ) {
+
+						$field_map = apply_filters( 'jci/process_' . $jci_template_type . '_map_field', $group_id, $this->_current_row );
+
+						$xml   = simplexml_load_file( $jci_file );
+						$terms = apply_filters( 'jci/parse_' . $jci_template_type . '_field', $term_value, $term_value, $field_map, $xml );
+					} else {
+						$field_map = apply_filters( 'jci/process_' . $jci_template_type . '_map_field', $group_id, $this->_current_row );
+						$terms     = apply_filters( 'jci/parse_' . $jci_template_type . '_field', $term_value, $term_value, $field_map, '' );
+					}
+
+					$term_delimiter = apply_filters( 'jci/value_delimiter', ',' );
+					$term_delimiter = apply_filters( 'jci/taxonomy/value_delimiter', $term_delimiter );
+					$terms          = explode( $term_delimiter, $terms );
+
+					foreach ( $terms as $t ) {
+
+						$t = trim( $t );
+
+						if ( empty( $t ) ) {
+							continue;
+						}
+
+						// skip if already has term
+						if ( $permission == 'append' && has_term( $t, $tax, $post_id ) ) {
+							continue;
+						}
+
+						$this->_insert[ $this->_current_row ]['taxonomies'][ $tax ][] = $t;
+
+						if ( term_exists( $t, $tax ) ) {
+
+							// attach term to post
+							wp_set_object_terms( $post_id, $t, $tax, true );
+						} else {
+
+							// add term
+							$term_id = wp_insert_term( $t, $tax );
+							wp_set_object_terms( $post_id, $term_id, $tax, true );
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Check to see if the current row is the last
+	 *
+	 * @param  integer $row
+	 *
+	 * @return void
+	 */
+	function complete_check( $row = 0, $is_ajax = true ) {
+
+		$importer_id = JCI()->importer->get_ID();
+		$start_row   = JCI()->importer->get_start_line(); // row to start from
+		$row_count   = JCI()->importer->get_row_count(); // how many rows to import
+		$total_rows  = JCI()->importer->get_total_rows();
+
+		// check to see if complete
+		if ( $row_count == 0 ) {
+
+			if ( $row == $total_rows ) {
+				do_action( 'jci/import_finished', $importer_id, $is_ajax );
+			}
+		} else {
+
+			if ( ( $start_row - 1 ) + $row_count == $row ) {
+				do_action( 'jci/import_finished', $importer_id, $is_ajax );
+			}
+		}
+	}
+
+	/**
+	 * Process Data
+	 */
+	final function processData( $matches ) {
+
+		$match = $matches[1];
+
+		$temp = explode( '.', $match );
+
+		if ( count( $temp ) < 2 ) {
+			return false;
+		}
+
+		$group = $temp[0];
+		$field = $temp[1];
+
+		if ( $group == 'this' ) {
+			return $this->_current_group[ $field ];
+		} else {
+			return $this->_insert[ $this->_current_row ][ $group ][ $field ];
+		}
+	}
+
+	function handleError( $errno, $errstr, $errfile, $errline, $errcontext = array() ) {
+		// error was suppressed with the @-operator
+		if ( 0 === error_reporting() ) {
+			return false;
+		}
+
+		throw new ErrorException( $errstr, 0, $errno, $errfile, $errline );
 	}
 }

@@ -41,26 +41,6 @@ class JCI_FTP_Attachments extends JCI_Attachment {
 	}
 
 	/**
-	 * Disconnect ftp connection
-	 */
-	public function __destruct() {
-		$this->_disconnect();
-	}
-
-	/**
-	 * Check to see if an ftp connection exists
-	 *
-	 * @return boolean
-	 */
-	public function is_connected() {
-		if ( $this->_conn ) {
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
 	 * Ftp Connect
 	 *
 	 * Connect to FTP Server with server and auth credentials
@@ -83,6 +63,13 @@ class JCI_FTP_Attachments extends JCI_Attachment {
 	}
 
 	/**
+	 * Disconnect ftp connection
+	 */
+	public function __destruct() {
+		$this->_disconnect();
+	}
+
+	/**
 	 * Disconnect from FTP
 	 *
 	 * @return void
@@ -92,6 +79,19 @@ class JCI_FTP_Attachments extends JCI_Attachment {
 		if ( $this->_conn ) {
 			ftp_close( $this->_conn );
 		}
+	}
+
+	/**
+	 * Check to see if an ftp connection exists
+	 *
+	 * @return boolean
+	 */
+	public function is_connected() {
+		if ( $this->_conn ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
