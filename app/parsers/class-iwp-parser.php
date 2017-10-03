@@ -1,6 +1,10 @@
 <?php
 
-class JC_Parser {
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+class IWP_Parser {
 
 	/**
 	 * Store loaded string data
@@ -29,11 +33,8 @@ class JC_Parser {
 
 	/**
 	 * Load initial variables
-	 *
-	 * @param string $filename
 	 */
 	public function __construct() {
-		// add_filter('jci/register_'.$this->get_name().'_addon_settings', array($this, 'register_settings'), 10, 1);
 		add_action( 'jci/load_' . $this->get_name() . '_parser_config', array( $this, 'register_config' ), 10, 2 );
 	}
 
@@ -148,21 +149,3 @@ class JC_Parser {
 	public function register_config( $general, $fields ) {
 	}
 }
-
-class JCI_ParseField {
-
-	function parse_func( $field ) {
-
-		switch ( $field[1] ) {
-			case 'strtolower':
-				return strtolower( $field[2] );
-				break;
-			case 'strtoupper':
-				return strtoupper( $field[2] );
-		}
-
-		return '';
-	}
-}
-
-?>

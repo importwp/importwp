@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once 'app/core/exceptions.php';
-require_once 'app/parse/parser.php';
+require_once 'app/parsers/class-iwp-parser.php';
 
 // libs.
 require_once 'app/libs/xmloutput.php';
@@ -39,8 +39,11 @@ require_once 'app/mapper/VirtualMapper.php';
 require_once 'app/mapper/TaxMapper.php';
 
 // parsers.
-require_once 'app/parse/data-csv.php';
-require_once 'app/parse/data-xml.php';
+require_once 'app/parsers/class-iwp-field-parser.php';
+require_once 'app/parsers/class-iwp-csv-field-parser.php';
+require_once 'app/parsers/class-iwp-xml-field-parser.php';
+require_once 'app/parsers/class-iwp-csv-parser.php';
+require_once 'app/parsers/class-iwp-xml-parser.php';
 
 // templates.
 require_once 'app/templates/template.php';

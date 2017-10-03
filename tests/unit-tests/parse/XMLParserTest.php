@@ -26,7 +26,7 @@ class XMLParserTest extends WP_UnitTestCase {
 	public function testParseXMLField() {
 
 		$xml    = simplexml_load_string( '<xml><cows><cow id="123">Ted</cow><cow id="456">Steve</cow><cow id="789">Jeff</cow></cows></xml>' );
-		$parser = new JCI_XML_ParseField( $xml );
+		$parser = new IWP_XML_Field_Parser( $xml );
 
 		$this->assertEquals( 'Ted', $parser->parse_field( '{/cow[1]}', '/xml/cows[1]' ) );
 		$this->assertEquals( 'Ted', $parser->parse_field( '{/cow[1]}', '/xml[1]/cows[1]' ) );
@@ -47,7 +47,7 @@ class XMLParserTest extends WP_UnitTestCase {
 	 */
 	public function test_parse_single_xml() {
 		$xml    = simplexml_load_string( '<xml><cows><cow id="1">Ted1</cow><cow id="2">Steve1</cow><cow id="3">Jeff1</cow></cows><cows><cow id="4">Ted2</cow><cow id="5">Steve2</cow><cow id="6">Jeff2</cow></cows></xml>' );
-		$parser = new JC_XML_Parser();
+		$parser = new IWP_XML_Parser();
 
 		$result = $parser->parse_xml( $xml, 0, '/xml/cows', array(
 			'cows' => array(
@@ -75,7 +75,7 @@ class XMLParserTest extends WP_UnitTestCase {
 	 */
 	public function test_parse_repeater_xml() {
 		$xml    = simplexml_load_file( $this->importer->get_plugin_dir() . '/tests/data/data-order.xml' );
-		$parser = new JC_XML_Parser();
+		$parser = new IWP_XML_Parser();
 
 		$result = $parser->parse_xml( $xml, 0, '/orders/order', array(
 			'order'       => array(

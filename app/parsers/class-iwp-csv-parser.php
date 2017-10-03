@@ -1,9 +1,13 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
 /**
  * ImportWP CSV Parser
  */
-class JC_CSV_Parser extends JC_Parser {
+class IWP_CSV_Parser extends IWP_Parser {
 
 	public $name = 'csv';
 	protected $_config = array();
@@ -129,7 +133,7 @@ class JC_CSV_Parser extends JC_Parser {
 	 */
 	public function parse_field( $field, $map, $row ) {
 
-		$field_parser = new JCI_CSV_ParseField( $row );
+		$field_parser = new IWP_CSV_Field_Parser( $row );
 
 		return $field_parser->parse_field( $field );
 	}
@@ -420,32 +424,7 @@ class JC_CSV_Parser extends JC_Parser {
  */
 add_filter( 'jci/register_parser', 'register_csv_parser', 10, 1 );
 function register_csv_parser( $parsers = array() ) {
-	$parsers['csv'] = new JC_CSV_Parser(); //'JC_CSV_Parser';
+	$parsers['csv'] = new IWP_CSV_Parser(); //'JC_CSV_Parser';
 
 	return $parsers;
-}
-
-class JCI_CSV_ParseField extends JCI_ParseField {
-
-	var $row = '';
-
-	function __construct( $row ) {
-		$this->row = $row;
-	}
-
-	function parse_value( $field ) {
-		$col = $this->parse_field( intval( $field[1] ) );
-
-		return isset( $this->row[ $col ] ) ? $this->row[ $col ] : $field[0];
-	}
-
-	function parse_field( $field ) {
-		$result = preg_replace_callback( '/{(.*?)}/', array( $this, 'parse_value' ), $field );
-		$result = preg_replace_callback( '/\[jci::([a-z]+)\(([a-zA-Z0-9_ -]+)\)(\/)?\]/', array(
-			$this,
-			'parse_func'
-		), $result );
-
-		return $result;
-	}
 }

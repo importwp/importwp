@@ -1,9 +1,13 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
 /**
  * ImportWP XML Parser
  */
-class JC_XML_Parser extends JC_Parser {
+class IWP_XML_Parser extends IWP_Parser {
 
 	public $name = 'xml';
 	public $_xml = null;
@@ -144,7 +148,7 @@ class JC_XML_Parser extends JC_Parser {
 	 */
 	public function parse_field( $field, $map, $base_node, $xml ) {
 
-		$field_parser = new JCI_XML_ParseField( $xml );
+		$field_parser = new IWP_XML_Field_Parser( $xml );
 
 		return $field_parser->parse_field( $field, $base_node );
 	}
@@ -381,56 +385,7 @@ class JC_XML_Parser extends JC_Parser {
  */
 add_filter( 'jci/register_parser', 'register_xml_parser', 10, 1 );
 function register_xml_parser( $parsers = array() ) {
-	$parsers['xml'] = new JC_XML_Parser(); // 'JC_XML_Parser';
+	$parsers['xml'] = new IWP_XML_Parser(); // 'JC_XML_Parser';
 
 	return $parsers;
 }
-
-class JCI_XML_ParseField extends JCI_ParseField {
-
-	var $base_node = '';
-	var $xml = '';
-
-
-	function __construct( $xml ) {
-		$this->xml = $xml;
-	}
-
-	function parse_field( $field, $base_node ) {
-
-		$this->base_node = $base_node;
-		$result          = preg_replace_callback( '/{(.*?)}/', array( $this, 'parse_value' ), $field );
-		$result          = preg_replace_callback( '/\[jci::([a-z]+)\(([a-zA-Z0-9_ -]+)\)(\/)?\]/', array(
-			$this,
-			'parse_func'
-		), $result );
-
-		return $result;
-	}
-
-	function parse_value( $field ) {
-
-		$xpath_query = $this->base_node . $field[1];
-		$jc_results  = array();
-		$values      = array();
-
-		$terms = $this->xml->xpath( $xpath_query );
-
-		foreach ( $terms as $t ) {
-
-			if ( strpos( $t, ',' ) !== false ) {
-				// csv
-				$temp   = explode( ',', str_replace( ', ', ',', $t ) );
-				$values = array_merge( $values, $temp );
-			} else {
-				$values[] = (string) $t;
-			}
-		}
-
-		$temp = array_merge( $jc_results, $values );
-
-		return implode( ',', $temp );
-	}
-}
-
-?>

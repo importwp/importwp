@@ -19,7 +19,7 @@ class CSVParserTest extends WP_UnitTestCase {
 	public function testParseCSVField() {
 
 		$row    = array( 'Ted', 'Steve', 'Jeff' );
-		$parser = new JCI_CSV_ParseField( $row );
+		$parser = new IWP_CSV_Field_Parser( $row );
 
 		$this->assertEquals( 'Ted', $parser->parse_field( '{0}' ) );
 		$this->assertEquals( 'Jeff', $parser->parse_field( '{2}' ) );
@@ -37,7 +37,7 @@ class CSVParserTest extends WP_UnitTestCase {
 	public function testRandomCSVField(){
 
 		$row    = array( '0', '1', '2' );
-		$parser = new JCI_CSV_ParseField( $row );
+		$parser = new IWP_CSV_Field_Parser( $row );
 
 		$this->assertEquals( '0', $parser->parse_field( '{0}' ) );
 		$this->assertEquals( '1', $parser->parse_field( '{1}' ) );
