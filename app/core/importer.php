@@ -401,17 +401,6 @@ class JC_Importer_Core {
 		$parser            = JCI()->parsers[ $this->template_type ];
 		$start_line        = $this->get_start_line();
 
-		// use session if row > 0
-		if ( $session ) {
-			$parser->session = true;
-		}
-
-		// clear session if first record is being imported
-		if ( $row == $start_line ) {
-			$parser->clear_session();
-//			$this->version++;
-		}
-
 		do_action( 'jci/before_import' );
 
 		$mapper = new JC_BaseMapper();

@@ -2,9 +2,6 @@
 
 class JC_Parser {
 
-	public $seek = 0;
-	public $seek_record_count = 0;
-	public $session = false;
 	/**
 	 * Store loaded string data
 	 * @var string
@@ -150,84 +147,6 @@ class JC_Parser {
 
 	public function register_config( $general, $fields ) {
 	}
-
-	/**
-	 * Save current file progress to session
-	 * @return void
-	 */
-	public function save_session() {
-
-		if ( ! $this->session ) {
-			return;
-		}
-
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-
-		$data = array(
-			'counter' => $this->seek_record_count,
-			'seek'    => $this->seek
-		);
-		$data = serialize( $data );
-
-		// importer version get increased in Mapper->set_import_version when the first record is imported
-		$version = $jcimporter->importer->get_version();
-		if ( $this->start === JCI()->importer->get_start_line() ) {
-			$version ++;
-		}
-
-		file_put_contents( $jcimporter->get_plugin_dir() . '/app/tmp/session-' . $jcimporter->importer->ID . '-' . $version, $data );
-	}
-
-	/**
-	 * Load last file progress from session for current import
-	 * @return void
-	 */
-	public function load_session() {
-
-		if ( ! $this->session ) {
-			return;
-		}
-
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-
-		$tmp_session_file = $jcimporter->get_plugin_dir() . '/app/tmp/session-' . $jcimporter->importer->ID . '-' . $jcimporter->importer->get_version();
-
-		if ( file_exists( $tmp_session_file ) ) {
-			$tmp_seek                = unserialize( file_get_contents( $tmp_session_file ) );
-			$this->seek              = intval( $tmp_seek['seek'] );
-			$this->seek_record_count = intval( $tmp_seek['counter'] );
-		}
-	}
-
-	/**
-	 * Wipe session data for current import
-	 * @return void
-	 */
-	public function clear_session() {
-
-		if ( ! $this->session ) {
-			return;
-		}
-
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-
-		$files = glob( $jcimporter->get_plugin_dir() . '/app/tmp/session-' . $jcimporter->importer->ID . '-*' ); // get all file names
-		foreach ( $files as $file ) { // iterate files
-			if ( is_file( $file ) ) {
-				unlink( $file );
-			} // delete file
-		}
-	}
-
 }
 
 class JCI_ParseField {
