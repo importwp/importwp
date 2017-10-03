@@ -181,6 +181,8 @@ class JC_Importer {
 				$this->importer = new JC_Importer_Core( $importer_id );
 			}
 
+			require_once 'app/libs/class-iwp-imports-list-table.php';
+
 			require_once 'app/admin.php';
 			new JC_Importer_Admin( $this );
 
