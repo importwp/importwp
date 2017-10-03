@@ -28,7 +28,8 @@ class ImporterModel {
 	static function getImporters() {
 
 		$query = new WP_Query( array(
-			'post_type' => 'jc-imports',
+			'post_type'      => 'jc-imports',
+			'posts_per_page' => - 1
 		) );
 
 		return $query;
