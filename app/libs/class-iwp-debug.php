@@ -59,7 +59,7 @@ class IWP_Debug {
 		}
 
 		$contents = self::output_timings();
-		file_put_contents( JCI()->get_plugin_dir() . '/app/tmp/debug-' . $prefix . $total . time() . '.txt', $contents, FILE_APPEND );
+		file_put_contents( JCI()->get_tmp_dir() . DIRECTORY_SEPARATOR . 'debug-' . $prefix . $total . time() . '.txt', $contents, FILE_APPEND );
 	}
 
 	/**
