@@ -16,6 +16,8 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 
 class IWP_Imports_List_Table extends WP_List_Table {
 
+	protected $_last_ran;
+
 	public function __construct() {
 		parent::__construct( array(
 			'singular' => 'iwp_import_list',
@@ -44,6 +46,14 @@ class IWP_Imports_List_Table extends WP_List_Table {
 		$columns                           = $this->get_columns();
 		$_wp_column_headers[ $screen->id ] = $columns;
 		$this->items                       = $importers->posts;
+
+		// TODO: Fetch last ran times in model not here!
+		global $wpdb;
+		$res             = $wpdb->get_results( "SELECT object_id as ID, MAX(created) as created FROM `" . $wpdb->prefix . "importer_log` GROUP BY object_id ORDER BY created DESC" );
+		$this->_last_ran = array();
+		foreach ( $res as $obj ) {
+			$this->_last_ran[ $obj->ID ] = $obj->created;
+		}
 	}
 
 	/**
@@ -110,7 +120,7 @@ class IWP_Imports_List_Table extends WP_List_Table {
 							echo sprintf( '<td>%s</td>', ImporterModel::getImportSettings( $item->ID, 'template_type' ) );
 							break;
 						case 'col_import_last_ran':
-							echo sprintf( '<td>%s</td>', 'N/A' );
+							echo sprintf( '<td>%s</td>', isset( $this->_last_ran[ $item->ID ] ) ? date( 'H:i:s \<\b\r \/\> ' . get_option( 'date_format' ), strtotime( $this->_last_ran[ $item->ID ] ) ) : 'N/A' );
 							break;
 						case 'col_import_created':
 							echo sprintf( '<td>%s</td>', get_the_date( '', $item->ID ) );
@@ -123,6 +133,9 @@ class IWP_Imports_List_Table extends WP_List_Table {
 				endforeach;
 
 				echo '</tr>';
+
+				// Reset importer data so next record is not loaded from cache
+				ImporterModel::clearImportSettings();
 
 			endforeach;
 		}
