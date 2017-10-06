@@ -102,7 +102,13 @@ class IWP_Imports_List_Table extends WP_List_Table {
 
 							$links   = array();
 							$links[] = '<span class="edit"><a href="' . $link . '" aria-label="View">Edit</a></span>';
-							$links[] = '<span class="edit"><a href="' . admin_url( sprintf( 'admin.php?page=jci-importers&import=%d&action=logs', $item->ID ) ) . '" aria-label="Run">Run</a></span>';
+
+							$run_url = admin_url(sprintf('admin.php?page=jci-importers&import=%d&action=logs', $item->ID ));
+							if( in_array( ImporterModel::getImportSettings($item->ID, 'import_type'), array('local', 'remote') ) ){
+								$run_url = admin_url(sprintf('admin.php?page=jci-importers&import=%d&action=fetch', $item->ID) );
+							}
+
+							$links[] = '<span class="edit"><a href="' . $run_url . '" aria-label="Run">Run</a></span>';
 							$links[] = '<span class="edit"><a href="' . admin_url( sprintf( 'admin.php?page=jci-importers&import=%s&action=history', $item->ID ) ) . '" aria-label="History">History</a></span>';
 							$links[] = '<span class="delete"><a href="' . admin_url( sprintf( 'admin.php?page=jci-importers&import=%s&action=trash', $item->ID ) ) . '" aria-label="Delete">Delete</a></span>';
 
