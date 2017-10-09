@@ -16,8 +16,6 @@ class UserMapperTest extends WP_UnitTestCase {
 	 */
 	public function test_insert() {
 
-		// todo: test fails due to user template hooking into it and using the jcimporter->importer global
-
 		$mapper = new JC_UserMapper();
 		$result = $mapper->insert( 'user', array(
 			'user_email' => 'james@test.com',

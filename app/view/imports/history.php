@@ -62,7 +62,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                                         <td><?php echo $row->version; ?></td>
                                         <td><?php echo $row->type; ?></td>
                                         <td><?php echo $row->row_total; ?></td>
-                                        <td><?php echo date( 'd/m/y', strtotime( $row->created ) ); ?></td>
+                                        <td><?php echo date( 'H:i:s d/m/y', strtotime( $row->created ) ); ?></td>
                                         <td>
                                             <a href="admin.php?page=jci-importers&import=<?php echo $importer_id; ?>&log=<?php echo $row->version; ?>&action=history">View</a>
                                         </td>

@@ -85,7 +85,6 @@ class JC_Importer_Ajax {
 	public function admin_ajax_node_select() {
 
 		// get url values
-		// todo: put this into parser class
 		$post_id = intval( $_GET['importer_id'] );
 		$type    = isset( $_GET['type'] ) ? $_GET['type'] : '';
 

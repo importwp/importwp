@@ -198,8 +198,6 @@ class JC_Importer_Admin {
 				) );
 			}
 
-			// todo: save import frequency, setup cron
-
 			// update settings with new file
 			ImporterModel::setImporterMeta( $importer, array( '_import_settings', 'import_file' ), $result['id'] );
 
@@ -282,7 +280,6 @@ class JC_Importer_Admin {
 					$attach = new JCI_Upload_Attachments();
 					$result = $attach->attach_upload( $post_id, $_FILES['jc-importer_import_file'], array( 'importer-file' => true ) );
 
-					// todo: replace the result
 					$result['attachment'] = $attach;
 					break;
 
@@ -297,7 +294,6 @@ class JC_Importer_Admin {
 					$general['remote_url'] = $src;
 					$file_error_field      = 'remote_url';
 
-					// todo: replace the result
 					$result['attachment'] = $attach;
 					break;
 				case 'local':
@@ -323,12 +319,11 @@ class JC_Importer_Admin {
 
 			// restrict file attached filetype
 			if ( ! isset( $result['type'] ) || ! in_array( $result['type'], array( 'xml', 'csv' ) ) ) {
-				// todo delete import file
 				$errors[] = 'Filetype not supported';
 			}
 
 			// escape and remove inserted importer if attach errors have happened
-			// todo: allow for hooked datasources to rollback on error, at the moment only
+			// allow for hooked datasources to rollback on error, at the moment only
 			if ( isset( $result['attachment'] ) && $result['attachment']->has_error() ) {
 				$errors[] = $result['attachment']->get_error();
 			}

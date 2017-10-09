@@ -603,7 +603,7 @@ class JC_BaseMapper {
 			$data['_jci_updated_fields'] = $mapper->changed_fields;
 			$data['_jci_updated']        = $mapper->changed_field_count;
 
-			$data = apply_filters( 'jci/after_' . $this->_template->get_name() . '_group_save', $data, $group_id );
+			$data = apply_filters( 'jci/after_' . $this->_template->get_name() . '_group_save', $data, $group_id, $mapper );
 
 			$data['_jci_status'] = 'S';
 			$data['_jci_msg']    = '';

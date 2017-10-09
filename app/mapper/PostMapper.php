@@ -102,7 +102,7 @@ class JC_PostMapper {
 				foreach ( $meta as $key => $value ) {
 
 					if ( $value != '' ) {
-						add_post_meta( $post_id, $key, $value );
+						$this->update_custom_field( $post_id, $key, $value );
 					}
 				}
 			}
@@ -259,24 +259,7 @@ class JC_PostMapper {
 		if ( ! empty( $meta ) ) {
 
 			foreach ( $meta as $key => $value ) {
-
-				$old_value = get_post_meta( $post_id, $key, true );
-
-				// check if new value
-				if ( $old_value == $value ) {
-					continue;
-				}
-
-				$this->changed_field_count ++;
-				$this->changed_fields[] = $key;
-
-				if ( $value && '' == $old_value ) {
-					add_post_meta( $post_id, $key, $value );
-				} elseif ( $value && $value != $old_value ) {
-					update_post_meta( $post_id, $key, $value );
-				} elseif ( '' == $value && $old_value ) {
-					delete_post_meta( $post_id, $key, $value );
-				}
+				$this->update_custom_field( $post_id, $key, $value );
 			}
 		}
 
@@ -287,6 +270,28 @@ class JC_PostMapper {
 		IWP_Debug::timer( "PostMapper::update_data -- versioned", "mapper" );
 
 		return $post_id;
+	}
+
+	public function update_custom_field( $post_id, $key, $value, $unique = false ) {
+
+		$old_value = get_post_meta( $post_id, $key, true );
+
+		// check if new value
+		if ( $old_value == $value ) {
+			return;
+		}
+
+		$this->changed_field_count ++;
+		$this->changed_fields[] = $key;
+
+		if ( $value && '' == $old_value ) {
+			add_post_meta( $post_id, $key, $value, $unique );
+		} elseif ( $value && $value != $old_value ) {
+			update_post_meta( $post_id, $key, $value );
+		} elseif ( '' == $value && $old_value ) {
+			delete_post_meta( $post_id, $key, $value );
+		}
+
 	}
 
 	/**

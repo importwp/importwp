@@ -68,7 +68,7 @@ class JC_UserMapper {
 		// add user meta
 		foreach ( $fields as $meta_key => $meta_value ) {
 			if ( ! in_array( $meta_key, $this->_user_fields ) ) {
-				add_user_meta( $result, $meta_key, $meta_value, true );
+				$this->update_custom_field( $result, $meta_key, $meta_value, true );
 			}
 		}
 
@@ -121,18 +121,22 @@ class JC_UserMapper {
 		foreach ( $fields as $meta_key => $meta_value ) {
 			if ( ! in_array( $meta_key, $this->_user_fields ) ) {
 
-				$old_meta_version = get_user_meta( $user_id, $meta_key, true );
-				if ( $old_meta_version ) {
-					update_user_meta( $user_id, $meta_key, $meta_value, $old_meta_version );
-				} else {
-					add_user_meta( $user_id, $meta_key, $meta_value );
-				}
+				$this->update_custom_field( $user_id, $meta_key, $meta_value );
 			}
 		}
 
 		$this->update_version_tag( $user_id );
 
 		return $user_id;
+	}
+
+	public function update_custom_field( $user_id, $meta_key, $meta_value, $unique = false ) {
+		$old_meta_version = get_user_meta( $user_id, $meta_key, true );
+		if ( $old_meta_version ) {
+			update_user_meta( $user_id, $meta_key, $meta_value, $old_meta_version );
+		} else {
+			add_user_meta( $user_id, $meta_key, $meta_value, $unique );
+		}
 	}
 
 	/**
