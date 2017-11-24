@@ -376,7 +376,7 @@ class JC_User_Template extends JC_Importer_Template {
 		if ( $notify_reg == 1 ) {
 
 //			$pass = isset( $fields['user_pass'] ) ? $fields['user_pass'] : '';
-			wp_new_user_notification( $user_id );
+            wp_new_user_notification($user_id, null, 'user');
 		}
 	}
 
