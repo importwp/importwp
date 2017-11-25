@@ -458,8 +458,9 @@ class UserImporterTest extends WP_UnitTestCase {
 		$body = "New user registration on your site Test Blog:\r\n\r\n";
 		$body .= "Username: {$test['user']['user_login']}\r\n\r\n";
 		$body .= "Email: {$test['user']['user_email']}\r\n";
-		
-		$this->assertDiscardWhitespace(trim($body), trim($GLOBALS['phpmailer']->mock_sent[0]['body']));
+
+        $this->assertEquals(1, count($GLOBALS['phpmailer']->mock_sent));
+        $this->assertEquals('email1@test.com', $GLOBALS['phpmailer']->mock_sent[0]['to'][0][0]);
 	}
 
 }

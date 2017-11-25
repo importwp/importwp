@@ -255,6 +255,10 @@ class JC_Importer_Core {
 		$total_records = $this->get_total_rows();
 
 		$max_records = $this->get_row_count();
+        if ($max_records > $total_records) {
+            $max_records = $total_records;
+        }
+
 		if ( $max_records > 0 ) {
 			$total_records = $start_row + $max_records - 1;
 		}
