@@ -234,9 +234,10 @@ class JCI_Attachment {
 	 */
 	public function attach_remote_file( $post_id, $src, $dest, $args = array() ) {
 
-		$unique        = isset( $args['unique'] ) && is_bool( $args['unique'] ) ? $args['unique'] : true;
-		$wp_upload_dir = wp_upload_dir();
-		$wp_dest       = $wp_upload_dir['path'] . '/' . $dest;
+		$unique            = isset( $args['unique'] ) && is_bool( $args['unique'] ) ? $args['unique'] : true;
+		$wp_upload_dir     = wp_upload_dir();
+		$wp_dest           = $wp_upload_dir['path'] . '/' . $dest;
+        $restrict_filetype = isset($args['restrict_filetype']) ? $args['restrict_filetype'] : true;
 
 		if ( ! $unique && file_exists( $wp_dest ) ) {
 			return false;
@@ -251,7 +252,11 @@ class JCI_Attachment {
 			return false;
 		}
 
-		$template_type = $this->get_template_type( $wp_dest );
+        if ($restrict_filetype) {
+            $template_type = $this->get_template_type($wp_dest);
+        } else {
+            $template_type = $this->get_file_mime($wp_dest);
+        }
 
 		return array(
 			'dest' => $wp_dest,
