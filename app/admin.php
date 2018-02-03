@@ -210,6 +210,16 @@ class JC_Importer_Admin {
 			exit();
 		}
 
+		// if importer has complete status, then increase version
+		if($importer && $action === 'start'){
+			$status = IWP_Status::read_file();
+			if($status['status'] === 'complete'){
+				JCI()->importer->increase_version();
+				wp_redirect( 'admin.php?page=jci-importers&import=' . $importer . '&action=logs' );
+				exit();
+			}
+		}
+
 		if ( $action == 'trash' && ( $importer || $template ) ) {
 
 			if ( $importer ) {

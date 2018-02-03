@@ -106,6 +106,12 @@ class IWP_Imports_List_Table extends WP_List_Table {
 							$run_url = admin_url(sprintf('admin.php?page=jci-importers&import=%d&action=logs', $item->ID ));
 							if( in_array( ImporterModel::getImportSettings($item->ID, 'import_type'), array('local', 'remote') ) ){
 								$run_url = admin_url(sprintf('admin.php?page=jci-importers&import=%d&action=fetch', $item->ID) );
+							}else{
+								$importer = new JC_Importer_Core($item->ID);
+								$status = IWP_Status::read_file($importer->get_ID(), $importer->get_version());
+								if($status['status'] === 'complete'){
+									$run_url = admin_url(sprintf('admin.php?page=jci-importers&import=%d&action=start', $item->ID ));
+								}
 							}
 
 							$links[] = '<span class="edit"><a href="' . $run_url . '" aria-label="Run">Run</a></span>';
