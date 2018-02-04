@@ -109,6 +109,7 @@ class IWP_Imports_List_Table extends WP_List_Table {
 							}else{
 								$importer = new JC_Importer_Core($item->ID);
 								$status = IWP_Status::read_file($importer->get_ID(), $importer->get_version());
+								IWP_Status::reset_handle(); // clear file lock
 								if($status['status'] === 'complete'){
 									$run_url = admin_url(sprintf('admin.php?page=jci-importers&import=%d&action=start', $item->ID ));
 								}

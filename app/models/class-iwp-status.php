@@ -47,6 +47,13 @@ class IWP_Status {
 		return false;
 	}
 
+	public static function reset_handle(){
+		if(self::$_fh != null){
+			flock(self::$_fh, LOCK_UN);
+			self::$_fh = null;
+		}
+	}
+
 	private static function generate_cache_key( $importer_id = null, $version = null ) {
 
 		$importer_id = is_null( $importer_id ) ? JCI()->importer->get_ID() : intval( $importer_id );
