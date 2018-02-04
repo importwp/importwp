@@ -45,10 +45,11 @@ class IWP_XML_Parser extends IWP_Parser {
 
 		$import_base = ImporterModel::getImporterMetaArr( $id, array( '_parser_settings', 'import_base' ) );
 		echo JCI_FormHelper::text( 'parser_settings[import_base]', array(
-			'label'   => 'Base',
+			'label'   => 'Record Base',
 			'default' => $import_base,
 			'after'   => ' <a href="#" class="base-node-select base button button-small button-iwp">Select</a>',
-			'class'   => 'jc-importer_general-base'
+			'class'   => 'jc-importer_general-base',
+			'tooltip' => JCI()->text()->get( 'import.settings.xml_base_node'  )
 		) );
 	}
 
@@ -59,12 +60,22 @@ class IWP_XML_Parser extends IWP_Parser {
 	public function output_group_settings( $id, $group ) {
 
 		$import_base = ImporterModel::getImporterMetaArr( $id, array( '_parser_settings', 'group_base', $group ) );
-		echo JCI_FormHelper::text( "parser_settings[group][{$group}][base]", array(
-			'label'   => 'Base',
-			'default' => $import_base,
-			'after'   => ' <a href="#" class="base-node-select group button button-small button-iwp">Select</a>',
-			'class'   => 'jc-importer_general-group'
-		) );
+
+		$importer_version = ImporterModel::getImporterMetaArr($id, array('_import_settings', 'version'));
+		if(version_compare($importer_version, '0.6.0', '>=') || empty($import_base)){
+			echo JCI_FormHelper::hidden("parser_settings[group][{$group}][base]", array(
+				'default' => $import_base,
+				'class'   => 'jc-importer_general-group',
+			));
+		}else {
+			echo JCI_FormHelper::text( "parser_settings[group][{$group}][base]", array(
+				'label'   => 'Record Base',
+				'default' => $import_base,
+				'after'   => ' <a href="#" class="base-node-select group button button-small button-iwp">Select</a>',
+				'class'   => 'jc-importer_general-group',
+				'tooltip' => JCI()->text()->get( 'import.settings.xml_base_node' )
+			) );
+		}
 	}
 
 	/**

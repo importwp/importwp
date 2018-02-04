@@ -198,8 +198,17 @@ class JCI_FormHelper {
 			$value = $args['default'];
 		}
 
+		$id = self::get_id( self::$prefix . $name );
+
+		$classes = array();
+		if(isset($args['class'])){
+			$classes[] = $args['class'];
+		}
+
 		$value  = self::get_value( $name, $args['value'] );
-		$output = '<input type="hidden" name="' . self::$prefix . $name . '" id="' . self::$prefix . $name . '" value="' . $value . '" />';
+		$output = '<div class="input input--hidden '.implode(' ', $classes).'">' .
+		          '<input type="hidden" name="' . self::$prefix . $name . '" id="' . $id . '" value="' . $value . '" />' .
+		          '</div>';
 
 		return $output;
 	}
@@ -626,8 +635,10 @@ class JCI_FormHelper {
 		$args_class = isset( $args['class'] ) ? $args['class'] : '';
 		$value      = isset( $args['value'] ) ? $args['value'] : $name;
 
+		$id = self::get_id( self::$prefix . $name );
+
 		$output = '<div class="input submit">';
-		$output .= '<input type="submit" name="' . self::$prefix . $name . '" value="' . $value . '" class="' . $args_class . '" id="' . self::$prefix . $name . '-' . strtolower( $value ) . '" />';
+		$output .= '<input type="submit" name="' . self::$prefix . $name . '" value="' . $value . '" class="' . $args_class . '" id="' . $id . '-' . strtolower( $value ) . '" />';
 		$output .= '</div>';
 
 		return $output;

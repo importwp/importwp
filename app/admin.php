@@ -366,7 +366,8 @@ class JC_Importer_Admin {
 						'template_type' => $template_type,
 						'import_file'   => $result['id'],
 						'general'       => $general,
-						'permissions'   => $permissions
+						'permissions'   => $permissions,
+						'version' => JCI()->get_version()
 					),
 				) );
 
