@@ -2,8 +2,8 @@
 Contributors: jcollings  
 Tags: import, wordpress xml importer, wordpress csv importer, xml, csv
 Requires at least: 4.0  
-Tested up to: 4.8
-Stable tag: 0.6.0
+Tested up to: 4.9
+Stable tag: 0.7.0
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -66,6 +66,12 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 == Changelog ==
+
+= 0.7 - 04/02/2018 =
+
+* Add - tooltips ot xml base node fields, Slightly simplify XML process by hiding group base nodes.
+* Fix - Run link on importer archive screen would not start new csv import if one had completed previously.
+* Fix - Change links in about block
 
 = 0.6 - 22/08/2017 =
 
