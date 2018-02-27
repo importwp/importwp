@@ -34,6 +34,7 @@ class JC_TaxMapper {
 
 	function insert_data( $fields = array() ) {
 
+		$term_id        = false;
 		$args          = array();
 		$custom_fields = array();
 
@@ -64,10 +65,19 @@ class JC_TaxMapper {
 				}
 			}
 
-			return wp_insert_term( $term, $taxonomy, $args );
+			$term_id = wp_insert_term( $term, $taxonomy, $args );
+
+			if(!is_wp_error($term_id) && intval($term_id) > 0 && !empty($custom_fields)){
+				foreach($custom_fields as $meta_key => $meta_value) {
+
+					if($meta_value != '') {
+						$this->update_custom_field( $term_id, $meta_key, $meta_value );
+					}
+				}
+			}
 		}
 
-		return false;
+		return $term_id;
 	}
 
 	/**
@@ -90,6 +100,9 @@ class JC_TaxMapper {
 		$args          = array();
 		$custom_fields = array();
 
+		unset( $fields['term'] );
+		unset( $fields['taxonomy'] );
+
 		foreach ( $fields as $key => $value ) {
 
 			//
@@ -101,6 +114,12 @@ class JC_TaxMapper {
 				$args[ $key ] = $value;
 			} else {
 				$custom_fields[ $key ] = $value;
+			}
+		}
+
+		if(!empty($custom_fields)){
+			foreach($custom_fields as $meta_key => $meta_value) {
+				$this->update_custom_field( $term_id, $meta_key, $meta_value );
 			}
 		}
 
@@ -144,6 +163,30 @@ class JC_TaxMapper {
 		}
 
 		return false;
+	}
+
+	public function update_custom_field( $term, $key, $value, $unique = false ) {
+
+		$term_id = $term['term_id'];
+
+		$old_value = get_term_meta( $term_id, $key, true );
+
+		// check if new value
+		if ( $old_value == $value ) {
+			return;
+		}
+
+		$this->changed_field_count ++;
+		$this->changed_fields[] = $key;
+
+		if ( $value && '' == $old_value ) {
+			add_term_meta( $term_id, $key, $value, $unique );
+		} elseif ( $value && $value != $old_value ) {
+			update_term_meta( $term_id, $key, $value );
+		} elseif ( '' == $value && $old_value ) {
+			delete_term_meta( $term_id, $key, $value );
+		}
+
 	}
 }
 

@@ -456,6 +456,8 @@ table#jci-csv-select {
 
 .jci-node-group-tabs {
   text-transform: capitalize; }
+  .jci-node-group-tabs a:focus {
+    outline: none; }
 
 div.form-actions .input {
   float: left;
