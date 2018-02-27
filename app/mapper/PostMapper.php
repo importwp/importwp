@@ -79,6 +79,12 @@ class JC_PostMapper {
 		$post = array();
 		$meta = array();
 
+		// if we are trying to insert a post with a specific id then used import_id instead.
+		if(isset($fields['ID']) && !empty($fields['ID'])){
+			$post['import_id'] = $fields['ID'];
+			unset($fields['ID']);
+		}
+
 		$this->changed_field_count = count( $fields );
 		$this->changed_fields      = array_keys( $fields );
 
