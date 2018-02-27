@@ -61,6 +61,11 @@
 
 .jci-node-group-tabs {
     text-transform: capitalize;
+    a{
+        &:focus{
+            outline: none;
+        }
+    }
 }
 
 div.form-actions .input {
