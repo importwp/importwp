@@ -27,9 +27,9 @@ class PostMapperTest extends WP_UnitTestCase {
 		$result = $mapper->insert_data( array(), 'publish', 'post' );
 		$this->assertInstanceOf( 'WP_Error', $result );
 
-		// check for basic insert success
+		// check for basic insert success when passing ID
 		$result = $mapper->insert_data( array( 'ID' => 999, 'post_title' => 'ABC', 'post_name' => $slug ), 'publish', 'post' );
-		$this->assertGreaterThan( 0, $result );
+		$this->assertEquals( 999, $result );
 
 	}
 
