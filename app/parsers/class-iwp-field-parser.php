@@ -20,6 +20,11 @@ class IWP_Field_Parser {
 				break;
 			case 'strtoupper':
 				return strtoupper( $field[2] );
+			case 'serialize':
+				// Serialize a csv list
+				return serialize(explode(',', $field[2]));
+			case 'strtotime':
+				return strtotime($field[2]);
 		}
 
 		return '';

@@ -11,6 +11,7 @@
         <order>0</order>
         <comments>0</comments>
         <status>draft</status>
+        <img>http://placehold.it/100x100.png</img>
     </page>
     <page id="101">
         <slug>page-101</slug>
@@ -23,6 +24,7 @@
         <order>0</order>
         <comments>0</comments>
         <status>publish</status>
+        <img>http://placehold.it/200x200.png</img>
     </page>
     <page id="102">
         <slug>page-102</slug>
@@ -35,5 +37,6 @@
         <order>0</order>
         <comments>0</comments>
         <status>publish</status>
+        <img>http://placehold.it/300x300.png</img>
     </page>
 </pages>

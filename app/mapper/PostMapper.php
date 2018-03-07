@@ -282,19 +282,24 @@ class JC_PostMapper {
 
 		$old_value = get_post_meta( $post_id, $key, true );
 
+		// Stop double serialization
+		if(is_serialized($value)){
+			$value = unserialize($value);
+		}
+
 		// check if new value
-		if ( $old_value == $value ) {
+		if ( $old_value === $value ) {
 			return;
 		}
 
 		$this->changed_field_count ++;
 		$this->changed_fields[] = $key;
 
-		if ( $value && '' == $old_value ) {
+		if ( $value !== '' && '' == $old_value ) {
 			add_post_meta( $post_id, $key, $value, $unique );
-		} elseif ( $value && $value != $old_value ) {
+		} elseif ( $value !== '' && $value !== $old_value ) {
 			update_post_meta( $post_id, $key, $value );
-		} elseif ( '' == $value && $old_value ) {
+		} elseif ( '' === $value && $old_value ) {
 			delete_post_meta( $post_id, $key, $value );
 		}
 

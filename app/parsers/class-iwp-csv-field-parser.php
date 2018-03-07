@@ -26,7 +26,7 @@ class IWP_CSV_Field_Parser extends IWP_Field_Parser {
 
 	function parse_field( $field ) {
 		$result = preg_replace_callback( '/{(.*?)}/', array( $this, 'parse_value' ), $field );
-		$result = preg_replace_callback( '/\[jci::([a-z]+)\(([a-zA-Z0-9_ -]+)\)(\/)?\]/', array(
+		$result = preg_replace_callback( '/\[(?:jci|iwp)::([a-z_]+)\((.*?)\)(\/)?\]/', array(
 			$this,
 			'parse_func'
 		), $result );
