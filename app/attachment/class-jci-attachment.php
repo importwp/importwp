@@ -326,6 +326,7 @@ class JCI_Attachment {
 			case 'application/vnd.ms-excel':
 			case 'application/vnd.msexcel':
 			case 'text/anytext':
+			case 'text/plain':
 				return 'csv';
 			case 'text/xml':
 			case 'application/xml':
