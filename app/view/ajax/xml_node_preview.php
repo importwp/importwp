@@ -3,11 +3,11 @@
  * Preview xml selection from currently selected base node
  */
 ?>
-<ul id="treeView">
+<div id="treeView">
 	<?php
-	$xml->output();
+	echo $xml->output();
 	?>
-</ul>
+</div>
 
 <style type="text/css">
     #treeView li {

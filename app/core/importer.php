@@ -407,17 +407,21 @@ class JC_Importer_Core {
 		$end   = $info['end']-1;
 
 		// On record imported update status file
-		\ImportWP\Importer\EventHandler::instance()->listen('importer.complete', function (\ImportWP\Importer $importer){
+		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_complete', function (\ImportWP\Importer $importer){
 
 			$status = IWP_Status::read_file();
+			$counter = isset($status['counter']) ? intval($status['counter']) : 0;
+			$counter++;
 
 			// write to status file
 			IWP_Status::write_file( array(
 				'status'      => 'running',
 				'message'     => '',
+				'counter'     => $counter,
 				'last_record' => $importer->getRecordEnd(),
-				'start'       => $status['start'],
-				'end'         => $status['end'],
+				'start'       => JCI()->importer->start_line,
+				'end'         => JCI()->importer->total_rows,
+				'error'      => 0,
 				'time'        => time()
 			) );
 		});
@@ -495,7 +499,27 @@ class JC_Importer_Core {
 
 		}else{
 
+			$csv_delimiter = ImporterModel::getImporterMetaArr( $this->ID, array(
+				'_parser_settings',
+				'csv_delimiter'
+			) );
+			$csv_enclosure = ImporterModel::getImporterMetaArr( $this->ID, array(
+				'_parser_settings',
+				'csv_enclosure'
+			) );
+			$csv_enclosure = stripslashes( $csv_enclosure );
+
+			if ( empty( $csv_delimiter ) ) {
+				$csv_delimiter = ',';
+			}
+
+			if ( empty( $csv_enclosure ) ) {
+				$csv_enclosure = '"';
+			}
+
 			$file = new \ImportWP\Importer\File\CSVFile($this->file, $config);
+			$file->setDelimiter($csv_delimiter);
+			$file->setEnclosure($csv_enclosure);
 			$parser = new \ImportWP\Importer\Parser\CSVParser($file);
 
 		}

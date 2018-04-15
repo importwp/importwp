@@ -68,11 +68,10 @@ class JC_Importer_Ajax {
 
 		$file = ImporterModel::getImportSettings( $importer_id, 'import_file' );
 
-		if ( ! empty( $base_node ) && $base_node != '/' ) {
-			$base_node .= '[1]';
-		}
-
-		$xml = new JCI_XMLOutput( $file, $base_node );
+		$config_file = tempnam(sys_get_temp_dir(), 'config');
+		$config = new \ImportWP\Importer\Config\Config($config_file);
+		$xml_file = new \ImportWP\Importer\File\XMLFile($file);
+		$xml = new \ImportWP\Importer\Preview\XMLPreview($xml_file, $base_node);
 
 		require_once $this->_config->get_plugin_dir() . 'app/view/ajax/xml_node_preview.php';
 		die();
@@ -94,11 +93,10 @@ class JC_Importer_Ajax {
 				$base_node = isset( $_GET['base'] ) ? $_GET['base'] : '';
 				$file      = ImporterModel::getImportSettings( $post_id, 'import_file' );
 
-				if ( ! empty( $base_node ) && $base_node != '/' ) {
-					$base_node .= '[1]';
-				}
-
-				$xml = new JCI_XMLOutput( $file, $base_node );
+				$config_file = tempnam(sys_get_temp_dir(), 'config');
+				$config = new \ImportWP\Importer\Config\Config($config_file);
+				$xml_file = new \ImportWP\Importer\File\XMLFile( $file, $config );
+				$xml = new \ImportWP\Importer\Preview\XMLPreview( $xml_file, $base_node );
 
 				require_once $this->_config->get_plugin_dir() . 'app/view/ajax/xml_node_select.php';
 				break;
@@ -128,16 +126,25 @@ class JC_Importer_Ajax {
 					$csv_enclosure = '"';
 				}
 
-				while ( $line = fgetcsv( $fh, null, $csv_delimiter, $csv_enclosure ) ) {
+				$config_file = tempnam(sys_get_temp_dir(), 'config');
+				$config = new \ImportWP\Importer\Config\Config($config_file);
+				$csv_file = new \ImportWP\Importer\File\CSVFile($file, $config);
+				$csv_file->setDelimiter($csv_delimiter);
+				$csv_file->setEnclosure($csv_enclosure);
+				$parser = new \ImportWP\Importer\Parser\CSVParser($csv_file);
 
-					if ( $counter > 5 ) {
-						break;
-					}
+				$limit = $csv_file->getRecordCount();
+				if($limit > 5){
+					$limit = 5;
+				}
 
+				while($csv_file->hasNextRecord() && $counter < $limit){
+
+					$line = $parser->getRecord($counter)->record();
 					$records[] = $line;
 					$counter ++;
 				}
-				fclose( $fh );
+
 				require_once $this->_config->get_plugin_dir() . 'app/view/ajax/csv_node_select.php';
 				break;
 		}
@@ -162,12 +169,11 @@ class JC_Importer_Ajax {
 		// 
 		$file = ImporterModel::getImportSettings( $post_id, 'import_file' );
 
-		// if(!empty($base_node) && $base_node != '/'){
-		// 	$base_node .= '[1]';
-		// }
-
-		$xml   = new JCI_XMLOutput( $file, $base_node );
-		$nodes = $xml->generate_xpath();
+		$config_file = tempnam(sys_get_temp_dir(), 'config');
+		$config = new \ImportWP\Importer\Config\Config($config_file);
+		$xml_file = new \ImportWP\Importer\File\XMLFile( $file, $config );
+		$xml = new \ImportWP\Importer\Preview\XMLPreview( $xml_file, $base_node );
+		$nodes = $xml_file->get_node_list();
 
 		if ( ! empty( $base_node ) ) {
 
@@ -175,11 +181,10 @@ class JC_Importer_Ajax {
 
 			foreach ( $nodes as $node ) {
 
-				if ( strpos( $base_node, $node ) === false ) {
-
-					if ( strpos( $node, $base_node ) === 0 ) {
-
-						$temp[] = ! empty( $base_node ) && $base_node !== '/' ? substr( $node, strlen( $base_node ) ) : $node;
+				if ( strpos( $node, $base_node ) === 0 ) {
+					$node_temp = substr( $node, strlen( $base_node ) );
+					if ( ! empty( $node_temp ) ) {
+						$temp[] = $node_temp;
 					}
 				}
 			}
@@ -187,7 +192,6 @@ class JC_Importer_Ajax {
 			$nodes = $temp;
 		}
 
-		$nodes = array_unique( $nodes );
 		require_once $this->_config->get_plugin_dir() . 'app/view/ajax/base_node_select.php';
 		die();
 	}

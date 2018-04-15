@@ -296,7 +296,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
                             clearInterval(interval);
                             complete = true;
-                            status_text = 'Complete, Imported ' + response.data.counter + ' Records, Elapsed time ' + time_in_seconds + 's';
+                            status_text = 'Complete, Imported ' + response.data.counter + ' Records, '+response.data.error+' Errors, Elapsed time ' + time_in_seconds + 's';
                             $progress.removeClass('iwp__progress--running');
                             $btn.text('Complete');
                             document.title = "Complete";
