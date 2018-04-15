@@ -315,20 +315,22 @@ class JC_Importer_Ajax {
 	 */
 	public function admin_ajax_record_count() {
 		$importer_id = $_POST['id'];
+		JCI()->importer = new JC_Importer_Core( $importer_id );
 
-		// setup importer
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$jcimporter->importer = new JC_Importer_Core( $importer_id );
-		$jci_file             = $jcimporter->importer->file;
-		$jci_template_type    = $jcimporter->importer->template_type;
-		$parser               = $jcimporter->parsers[ $jci_template_type ];
-		$parser->loadFile( $jci_file );
+		$config_file = tempnam(sys_get_temp_dir(), 'config');
+		$config = new \ImportWP\Importer\Config\Config($config_file);
 
+		if(JCI()->importer->get_template_type() === 'csv'){
 
-		$result = apply_filters( 'jci/ajax_' . $jci_template_type . '/record_count', 0 );
+			$file = new \ImportWP\Importer\File\CSVFile(JCI()->importer->get_file());
+			$result = $file->getRecordCount();
+
+		}else{
+			$base = isset($_POST['general_base']) ? $_POST['general_base'] : '';
+			$file = new \ImportWP\Importer\File\XMLFile(JCI()->importer->get_file());
+			$file->setRecordPath($base);
+			$result = $file->getRecordCount();
+		}
 
 		echo json_encode( $result );
 		die();
