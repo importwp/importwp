@@ -3,6 +3,7 @@
 class JC_Post_Template extends JC_Importer_Template {
 
 	public $_name = 'post';
+	public $_unique = array( 'post_name' );
 
 	public $_field_groups = array(
 

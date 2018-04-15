@@ -3,6 +3,7 @@
 class JC_Tax_Template extends JC_Importer_Template {
 
 	public $_name = 'taxonomy';
+	public $_unique = array( 'name' );
 
 	public $_field_groups = array(
 

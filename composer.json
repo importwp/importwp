@@ -1,0 +1,26 @@
+{
+  "name": "jclabs/importwp-wordpress",
+  "description": "WordPress CSV and XML Importer Plugin",
+  "type": "project",
+  "authors": [
+    {
+      "name": "James Collings",
+      "email": "james@jclabs.co.uk"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "C:\\Users\\james\\PhpstormProjects\\php-importer"
+    }
+  ],
+  "require": {
+    "jclabs/importwp": "@dev"
+  },
+  "require-dev": {},
+  "autoload": {
+    "psr-4": {
+      "ImportWP\\" : "src/"
+    }
+  }
+}

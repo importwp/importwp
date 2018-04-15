@@ -26,6 +26,9 @@ class JC_Importer_Core {
 	protected $attachments = array(); // upload|remote
 	protected $import_type; // post|user|table|virtual
 	protected $template_type;
+	/**
+	 * @var JC_Importer_Template
+	 */
 	protected $template;
 	protected $template_name;
 	protected $taxonomies = array();
@@ -398,55 +401,156 @@ class JC_Importer_Core {
 	 */
 	public function run_import( $row = null, $session = false, $per_row = 1 ) {
 
-		$importer_id       = $this->get_ID();
-		$jci_file          = $this->file;
-		$jci_template      = $this->template;
-		$jci_template_type = $this->template_type;
-		$parser            = JCI()->parsers[ $this->template_type ];
-		$start_line        = $this->get_start_line();
+		// Get Start and End
+		$info        = $this->get_import_info( $row, $per_row );
+		$start = $info['start']-1;
+		$end   = $info['end']-1;
+
+		// On record imported update status file
+		\ImportWP\Importer\EventHandler::instance()->listen('importer.complete', function (\ImportWP\Importer $importer){
+
+			$status = IWP_Status::read_file();
+
+			// write to status file
+			IWP_Status::write_file( array(
+				'status'      => 'running',
+				'message'     => '',
+				'last_record' => $importer->getRecordEnd(),
+				'start'       => $status['start'],
+				'end'         => $status['end'],
+				'time'        => time()
+			) );
+		});
+
+		$template = $this->template;
+
+		// Trigger template actions
+		\ImportWP\Importer\EventHandler::instance()->listen('importer.before_mapper', function(\ImportWP\Importer $importer, \ImportWP\Importer\ParsedData $data) use ($template){
+			$recordIndex = $importer->getParser()->getRecordIndex();
+
+			// Call row save before group save
+			do_action( 'jci/before_' . $template->get_name() . '_row_save', $data->getData(), $recordIndex );
+			$updated_data = apply_filters( 'jci/before_' . $template->get_name() . '_group_save', $data->getData(), $template->_field_groups[$template] );
+
+			// Update ParsedData with new values
+			$data->update($updated_data);
+		});
 
 		do_action( 'jci/before_import' );
 
-		$mapper = new JC_BaseMapper();
-		if ( $parser->loadFile( $jci_file ) ) {
+		$groups = $this->get_template_groups();
 
-			if ( $row ) {
+		$config_file = tempnam(sys_get_temp_dir(), 'config');
+		$config = new \ImportWP\Importer\Config\Config($config_file);
+//		$config = new IWP_Config();
 
-				IWP_Debug::timer( "Parser Start", "core" );
-				$results = $parser->parse( $row, $per_row );
-				if ( empty( $results ) ) {
-					return false;
-				}
+		// TEMPLATE FIELDS
+		$import_data = [
+			[
+				'fields' => $groups[$this->template_name]['fields']
+			]
+		];
+		// END TEMPLATE FIELDS
 
-				IWP_Debug::timer( "Parser End, Start Processing", "core" );
-
-				$result = $mapper->process( $jci_template, $results );
-				IWP_Debug::timer( "Processing End", "core" );
-
-
-			} else {
-
-				// import all at one, may take a while to complete
-
-				$results = $parser->parse();
-				$result  = $mapper->process( $jci_template, $results );
+		// TAX
+		foreach($this->taxonomies  as $group_id => $taxonomies){
+			if(!empty($taxonomies)){
+				array_push($import_data, [
+					'id' => 'taxonomies',
+					'fields' => $taxonomies
+				]);
 			}
+		}
+		// END TAX
 
-			// check result
-			if ( count( $results ) == count( $result ) ) {
-				return $result;
+		// ATTACHMENTS
+		foreach($this->attachments as $group_id => $attachments){
+			if(!empty($attachments)){
+				array_push($import_data, [
+					'id' => 'attachments',
+					'fields' => $attachments
+				]);
 			}
+		}
+		// END ATTACHMENTS
 
-		} else {
-			return array(
-				array(
-					'_jci_status' => 'E',
-					'_jci_msg'    => 'File could not be found: ' . $this->file
-				)
-			);
+		// CUSTOM FIELDS
+		if(isset($groups[$this->template_name]['custom_fields'])){
+			array_push($import_data, [
+				'id' => 'custom_fields',
+				'fields' => $groups[$this->template_name]['custom_fields']
+			]);
+		}
+		// END CUSTOM FIELDS
+
+		$config->set('data', $import_data);
+
+		// load parser
+		if($this->template_type === 'xml'){
+
+			$file = new \ImportWP\Importer\File\XMLFile($this->file, $config);
+			$base_node = $this->addon_settings['import_base'];
+			$file->setRecordPath($base_node);
+			$parser = new \ImportWP\Importer\Parser\XMLParser($file);
+
+		}else{
+
+			$file = new \ImportWP\Importer\File\CSVFile($this->file, $config);
+			$parser = new \ImportWP\Importer\Parser\CSVParser($file);
+
 		}
 
-		return false;
+		// load mapper
+		if($this->template_name == 'user') {
+			$mapper = new UserMapper($this->template);
+		}elseif($this->template_name == 'taxonomy'){
+			$mapper = new TaxMapper($this->template);
+		}else{
+			$mapper = new PostMapper($this->template);
+		}
+
+		$importer = new \ImportWP\Importer($config);
+		$importer->from($start);
+		$importer->to($end);
+		$importer->parser($parser);
+		$importer->mapper($mapper);
+		$importer->import();
+	}
+
+	/**
+	 * Get importer start and end rows for current importer
+	 *
+	 * @param null $selected_row
+	 * @param int $max_rows_limit
+	 *
+	 * @return array
+	 */
+	public function get_import_info( $selected_row = null, $max_rows_limit = 0 ) {
+
+		// Calculate start row
+		$start = $start_row = $this->get_start_line();
+		if ( ! is_null( $selected_row ) ) {
+			$start = $selected_row;
+		}
+
+		$end = $total_rows = $this->get_total_rows() + 1;
+
+		// records per import
+		$max_rows = $this->get_row_count();
+		if ( $max_rows > 0 && $end > $start_row + $max_rows ) {
+			$end = $start_row + $max_rows;
+		}
+
+		if ( $max_rows_limit > 0 && $start + $max_rows_limit < $end ) {
+			$end = $start + $max_rows_limit;
+		}
+
+		$info = array(
+			'start' => $start,
+			'end'   => $end
+		);
+
+		return $info;
 	}
 
 	/**
@@ -559,5 +663,3 @@ class JC_Importer_Core {
 		return $default;
 	}
 }
-
-?>

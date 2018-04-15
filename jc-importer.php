@@ -15,6 +15,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+// required packages
+require_once 'vendor/autoload.php';
+require_once 'src/Importer/Config/IWP_Config.php';
+require_once 'src/Importer/Mapper/AbstractMapper.php';
+require_once 'src/Importer/Mapper/PostMapper.php';
+require_once 'src/Importer/Mapper/UserMapper.php';
+require_once 'src/Importer/Mapper/TaxMapper.php';
+
 require_once 'app/core/exceptions.php';
 require_once 'app/parsers/class-iwp-parser.php';
 

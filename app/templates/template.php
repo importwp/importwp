@@ -11,6 +11,12 @@ class JC_Importer_Template {
 	public $_name = '';
 	public $_field_groups = array();
 
+	/**
+	 * List of identifier fields
+	 * @var array $_unique
+	 */
+	public $_unique;
+
 	public function __construct() {
 
 		// before record gets imported
