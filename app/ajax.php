@@ -10,7 +10,6 @@ class JC_Importer_Ajax {
 	public function __construct( &$config ) {
 		$this->_config = $config;
 
-		add_action( 'wp_ajax_jc_import_file', array( $this, 'admin_ajax_import_file' ) );
 		add_action( 'wp_ajax_jc_base_node', array( $this, 'admin_ajax_base_node' ) );
 		add_action( 'wp_ajax_jc_preview_record', array( $this, 'admin_ajax_preview_record' ) );
 		add_action( 'wp_ajax_jc_record_total', array( $this, 'admin_ajax_record_count' ) );
@@ -227,22 +226,6 @@ class JC_Importer_Ajax {
 		return false;
 	}
 
-	public function admin_ajax_import_file() {
-
-		// grab post
-		$post_id = $_POST['id'];
-		$base    = $_POST['base'];
-
-		// get xml segment
-		$file = ImporterModel::getImportSettings( $post_id, 'import_file' );
-
-		$xml     = simplexml_load_file( $file );
-		$results = $xml->xpath( $base );
-
-		echo $results[0]->asXml();
-		die();
-	}
-
 	/**
 	 * return mapped data for chosen import record
 	 * @return void
@@ -254,44 +237,72 @@ class JC_Importer_Ajax {
 		$row         = isset( $_POST['row'] ) && intval( $_POST['row'] ) > 0 ? intval( $_POST['row'] ) : 1;
 
 		// setup importer
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-
 		JCI()->importer    = new JC_Importer_Core( $importer_id );
-		$jci_file          = JCI()->importer->get_file();
-		$jci_template_type = JCI()->importer->get_template_type();
-		$parser            = JCI()->parsers[ $jci_template_type ];
 		$result            = array();
 
-		// load file into importer
-		$parser->loadFile( $jci_file );
+		$config_file = tempnam(sys_get_temp_dir(), 'config');
+		$config = new \ImportWP\Importer\Config\Config($config_file);
 
-		if ( is_array( $map ) ) {
+		if(JCI()->importer->get_template_type() === 'csv'){
 
-			// process list of data maps
-			foreach ( $map as $map_row ) {
+			$file = new \ImportWP\Importer\File\CSVFile(JCI()->importer->get_file());
+			$parser = new \ImportWP\Importer\Parser\CSVParser($file);
 
-				$map_val   = $map_row['map'];
-				$map_field = $map_row['field'];
+		}else{
+			$base = isset($_POST['general_base']) ? $_POST['general_base'] : '';
+			$file = new \ImportWP\Importer\File\XMLFile(JCI()->importer->get_file());
+			$file->setRecordPath($base);
+			$parser = new \ImportWP\Importer\Parser\XMLParser($file);
+		}
 
-				if ( $map_val == "" ) {
-					continue;
+		try {
+			$record = $parser->getRecord( $row - 1 );
+
+			if(is_array($map)){
+
+
+				$group = [];
+
+				// process list of data maps
+				foreach ( $map as $map_row ) {
+
+					$map_val   = $map_row['map'];
+					$map_field = $map_row['field'];
+
+					if ( $map_val == "" ) {
+						continue;
+					}
+
+					$group[$map_field] = $map_val;
 				}
 
-				$result[] = array(
-					$map_val,
-					apply_filters( 'jci/ajax_' . $jci_template_type . '/preview_record', '', $row, $map_val, $map_field )
-				);
-			}
-		} else {
+				$results = $record->queryGroup( [ 'fields' => $group]);
+				if(!empty($results)) {
+					foreach ( $map as $map_row ) {
 
-			// process single data map
-			$field    = isset( $_POST['field'] ) ? $_POST['field'] : '';
-			$result[] = array(
-				$map,
-				apply_filters( 'jci/ajax_' . $jci_template_type . '/preview_record', '', $row, $map, $field )
-			);
+						$map_val   = $map_row['map'];
+						$map_field = $map_row['field'];
+
+						if ( $map_val == "" ) {
+							continue;
+						}
+
+						$result[] = array( $map_val, $results[ $map_field ] );
+					}
+				}
+
+			}else{
+				$map_field    = isset( $_POST['field'] ) ? $_POST['field'] : '';
+				$map_val = $map;
+
+
+				$results = $record->queryGroup( [ 'fields' => [ $map_field => $map_val]]);
+
+				$result[] = array($map_val, $results[$map_field]);
+			}
+
+		}catch(Exception $e){
+
 		}
 
 		echo json_encode( $result );
@@ -315,6 +326,8 @@ class JC_Importer_Ajax {
 		$jci_template_type    = $jcimporter->importer->template_type;
 		$parser               = $jcimporter->parsers[ $jci_template_type ];
 		$parser->loadFile( $jci_file );
+
+
 		$result = apply_filters( 'jci/ajax_' . $jci_template_type . '/record_count', 0 );
 
 		echo json_encode( $result );
