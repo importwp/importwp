@@ -144,7 +144,11 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			$this->processTaxonomies($data);
 			$this->processAttachments($data);
 
+			$fields['ID'] = $this->ID;
+			$this->logImport($fields, 'insert', 'post');
 			$this->add_version_tag();
+		}else{
+			throw new \ImportWP\Importer\Exception\MapperException( $this->ID->get_error_message() );
 		}
 
 		return $this->ID;
@@ -191,7 +195,10 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			if ( ! empty( $post ) ) {
 				// update remaining
 				$post['ID'] = $this->ID;
-				wp_update_post( $post );
+				$res = wp_update_post( $post, true );
+				if(is_wp_error($res)){
+						throw new \ImportWP\Importer\Exception\MapperException( $res->get_error_message() );
+				}
 			}
 		}
 
@@ -208,6 +215,8 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 		$this->processTaxonomies($data);
 		$this->processAttachments($data);
 
+		$fields['ID'] = $this->ID;
+		$this->logImport($fields, 'update', 'post');
 		$this->update_version_tag();
 
 		return $this->ID;

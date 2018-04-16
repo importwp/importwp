@@ -106,19 +106,21 @@ class JC_User_Template extends JC_Importer_Template {
 	 * @param  string $group_id template group name
 	 *
 	 * @return void
+	 * @throws \ImportWP\Importer\Exception\MapperException
 	 */
 	public function before_template_save( $data, $group_id ) {
 
-		if ( empty( $data['user']['user_login'] ) ) {
-			throw new JCI_Exception( "No Username Found", JCI_WARN );
+		if ( empty( $data['user_login'] ) ) {
+			throw new \ImportWP\Importer\Exception\MapperException( "No Username Found" );
+
 		}
 
-		if ( empty( $data['user']['user_email'] ) ) {
-			throw new JCI_Exception( "No Email Found", JCI_WARN );
+		if ( empty( $data['user_email'] ) ) {
+			throw new \ImportWP\Importer\Exception\MapperException( "No Email Found" );
 		}
 
-		if ( ! empty( $data['user']['user_email'] ) && ! is_email( $data['user']['user_email'] ) ) {
-			throw new JCI_Exception( strval( $data['user']['user_email'] ) . " is not a valid email address", JCI_WARN );
+		if ( ! empty( $data['user_email'] ) && ! is_email( $data['user_email'] ) ) {
+			throw new \ImportWP\Importer\Exception\MapperException( strval( $data['user_email'] ) . " is not a valid email address" );
 		}
 
 

@@ -388,17 +388,6 @@ class JC_Importer_Core {
 		return $this->record_import_count;
 	}
 
-	/**
-	 * Run Data Imports
-	 *
-	 * @param  integer $row Specific Row
-	 *
-	 * @param bool $session
-	 * @param int $per_row
-	 *
-	 * @return array Response
-	 * @internal param int $import_id
-	 */
 	public function run_import( $row = null, $session = false, $per_row = 1 ) {
 
 		// Get Start and End
@@ -411,6 +400,7 @@ class JC_Importer_Core {
 
 			$status = IWP_Status::read_file();
 			$counter = isset($status['counter']) ? intval($status['counter']) : 0;
+			$error = isset($status['error']) ? intval($status['error']) : 0;
 			$counter++;
 
 			// write to status file
@@ -421,7 +411,7 @@ class JC_Importer_Core {
 				'last_record' => $importer->getRecordEnd(),
 				'start'       => JCI()->importer->start_line,
 				'end'         => JCI()->importer->total_rows,
-				'error'      => 0,
+				'error'      => $error,
 				'time'        => time()
 			) );
 		});
@@ -438,6 +428,45 @@ class JC_Importer_Core {
 
 			// Update ParsedData with new values
 			$data->update($updated_data);
+		});
+
+		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_exception', function(\ImportWP\Importer $importer, $error_msg){
+
+			$recordIndex = $importer->getParser()->getRecordIndex();
+			ImportLog::insert(JCI()->importer->get_ID(), $recordIndex, array(
+				'_jci_status' => 'E',
+				'_jci_msg' => $error_msg
+			));
+
+			$status = IWP_Status::read_file();
+			if($status === null){
+				$status = array(
+					'status'      => 'running',
+					'message'     => '',
+					'counter'     => 0,
+					'last_record' => $importer->getRecordEnd(),
+					'start'       => JCI()->importer->start_line,
+					'end'         => JCI()->importer->total_rows,
+					'error'      => 0,
+					'time'        => time()
+				);
+			}
+			$status['error']++;
+
+			// write to status file
+			IWP_Status::write_file( $status );
+		});
+
+		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_imported', function(\ImportWP\Importer $importer, \ImportWP\Importer\ParsedData $data){
+
+			if($data === null){
+				return;
+			}
+
+			$recordIndex = $importer->getParser()->getRecordIndex();
+			$output = array('_jci_status' => 'S');
+
+			ImportLog::insert(JCI()->importer->get_ID(), $recordIndex, array_merge($output, $data->getLog()));
 		});
 
 		do_action( 'jci/before_import' );
@@ -685,5 +714,9 @@ class JC_Importer_Core {
 		}
 
 		return $default;
+	}
+
+	public function logError($error_msg){
+
 	}
 }

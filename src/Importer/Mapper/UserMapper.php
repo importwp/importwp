@@ -76,17 +76,17 @@ class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 		$fields = $data->getData('default');
 
 		if ( ! isset( $fields['user_login'] ) || empty( $fields['user_login'] ) ) {
-			throw new JCI_Exception( "No username present", JCI_ERR );
+			throw new \ImportWP\Importer\Exception\MapperException( "No username present" );
 		}
 
 		if ( ! isset( $fields['user_pass'] ) || empty( $fields['user_pass'] ) ) {
 
-			throw new JCI_Exception( "No password present", JCI_ERR );
+			throw new \ImportWP\Importer\Exception\MapperException( "No password present " . $fields['user_login'] );
 		}
 
 		$result = wp_insert_user( $fields );
 		if ( is_wp_error( $result ) ) {
-			throw new JCI_Exception( $result->get_error_message(), JCI_ERR );
+			throw new \ImportWP\Importer\Exception\MapperException( $result->get_error_message() );
 		}
 
 		$this->ID = $result;
@@ -98,6 +98,9 @@ class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			}
 		}
 
+		$fields['ID'] = $this->ID;
+
+		$this->logImport($fields, 'insert', 'user');
 		$this->add_version_tag();
 
 		do_action( 'jci/after_user_insert', $result, $fields );
@@ -113,7 +116,8 @@ class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 		$fields['ID'] = $this->ID;
 		$result       = wp_update_user( $fields );
 		if ( is_wp_error( $result ) ) {
-			throw new JCI_Exception( $result->get_error_message(), JCI_ERR );
+			$this->logError( $result->get_error_message());
+			return false;
 		}
 
 		// update user meta
@@ -124,6 +128,7 @@ class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			}
 		}
 
+		$this->logImport($fields, 'update', 'user');
 		$this->add_version_tag();
 
 		return $this->ID;

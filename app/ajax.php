@@ -240,12 +240,31 @@ class JC_Importer_Ajax {
 		JCI()->importer    = new JC_Importer_Core( $importer_id );
 		$result            = array();
 
-		$config_file = tempnam(sys_get_temp_dir(), 'config');
-		$config = new \ImportWP\Importer\Config\Config($config_file);
-
 		if(JCI()->importer->get_template_type() === 'csv'){
 
 			$file = new \ImportWP\Importer\File\CSVFile(JCI()->importer->get_file());
+
+			$csv_delimiter = ImporterModel::getImporterMetaArr( JCI()->importer->get_ID(), array(
+				'_parser_settings',
+				'csv_delimiter'
+			) );
+			$csv_enclosure = ImporterModel::getImporterMetaArr( JCI()->importer->get_ID(), array(
+				'_parser_settings',
+				'csv_enclosure'
+			) );
+			$csv_enclosure = stripslashes( $csv_enclosure );
+
+			if ( empty( $csv_delimiter ) ) {
+				$csv_delimiter = ',';
+			}
+
+			if ( empty( $csv_enclosure ) ) {
+				$csv_enclosure = '"';
+			}
+
+			$file->setDelimiter($csv_delimiter);
+			$file->setEnclosure($csv_enclosure);
+
 			$parser = new \ImportWP\Importer\Parser\CSVParser($file);
 
 		}else{
