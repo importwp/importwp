@@ -81,7 +81,7 @@ class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 		if ( ! isset( $fields['user_pass'] ) || empty( $fields['user_pass'] ) ) {
 
-			throw new \ImportWP\Importer\Exception\MapperException( "No password present " . $fields['user_login'] );
+			throw new \ImportWP\Importer\Exception\MapperException( "No password present" );
 		}
 
 		$result = wp_insert_user( $fields );

@@ -422,9 +422,13 @@ class JC_Importer_Core {
 		\ImportWP\Importer\EventHandler::instance()->listen('importer.before_mapper', function(\ImportWP\Importer $importer, \ImportWP\Importer\ParsedData $data) use ($template){
 			$recordIndex = $importer->getParser()->getRecordIndex();
 
+			reset( $template->_field_groups );
+			$template_field_group = key( $template->_field_groups );
+
 			// Call row save before group save
 			do_action( 'jci/before_' . $template->get_name() . '_row_save', $data->getData(), $recordIndex );
-			$updated_data = apply_filters( 'jci/before_' . $template->get_name() . '_group_save', $data->getData(), $template->_field_groups[$template] );
+			$updated_data = apply_filters( 'jci/before_' . $template->get_name() . '_group_save', $data->getData(),
+				$template_field_group );
 
 			// Update ParsedData with new values
 			$data->update($updated_data);
@@ -443,11 +447,11 @@ class JC_Importer_Core {
 				$status = array(
 					'status'      => 'running',
 					'message'     => '',
-					'counter'     => 0,
+					'counter'     => 1,
 					'last_record' => $importer->getRecordEnd(),
 					'start'       => JCI()->importer->start_line,
 					'end'         => JCI()->importer->total_rows,
-					'error'      => 0,
+					'error'       => 0,
 					'time'        => time()
 				);
 			}
@@ -478,9 +482,12 @@ class JC_Importer_Core {
 //		$config = new IWP_Config();
 
 		// TEMPLATE FIELDS
+		reset( $groups );
+		$template_field_group = key( $groups );
+
 		$import_data = [
 			[
-				'fields' => $groups[$this->template_name]['fields']
+				'fields' => $groups[ $template_field_group ]['fields']
 			]
 		];
 		// END TEMPLATE FIELDS
