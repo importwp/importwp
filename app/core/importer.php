@@ -300,8 +300,7 @@ class JC_Importer_Core {
 		IWP_Debug::timer( "Deleting Files", "core" );
 
 		// TODO: Delete Records
-		$mapper = new JC_BaseMapper();
-		$mapper->on_import_complete( $this->get_ID(), false );
+		$this->on_import_complete();
 
 		IWP_Debug::timer( "Deleted Files", "core" );
 
@@ -316,6 +315,50 @@ class JC_Importer_Core {
 		IWP_Debug::timer_log( $this->get_version() . '-' . $this->get_last_import_row() );
 
 		return $this->do_success( $status );
+	}
+
+	/**
+	 * Remove objects which arn't being import
+	 *
+	 * @param  int $importer_id
+	 *
+	 * @return void
+	 */
+	public function on_import_complete( ) {
+
+		$permissions = JCI()->importer->get_permissions();
+
+		if ( $permissions['delete'] == 0 ) {
+			return;
+		}
+
+		$groups   = JCI()->importer->get_template_groups();
+		$version  = JCI()->importer->get_version();
+		$template = JCI()->importer->get_template();
+
+
+		// update status file to say deleting
+		$status           = IWP_Status::read_file( JCI()->importer->get_ID(), JCI()->importer->get_version() );
+		$status['status'] = 'deleting';
+		IWP_Status::write_file( $status, JCI()->importer->get_ID(), JCI()->importer->get_version() );
+
+		// load mapper
+		if($this->template_name == 'user') {
+			$mapper = new UserMapper($this->template);
+		}elseif($this->template_name == 'taxonomy'){
+			$mapper = new TaxMapper($this->template);
+		}else{
+			$mapper = new PostMapper($this->template);
+		}
+
+		// loop through all groups
+		foreach ( $groups as $group => $args ) {
+
+			// if mapper has remove function
+			if ( method_exists( $mapper, 'remove_all_objects' ) ) {
+				$mapper->remove_all_objects( JCI()->importer->get_ID(), $version );
+			}
+		}
 	}
 
 	public function get_ID() {
@@ -422,8 +465,7 @@ class JC_Importer_Core {
 		\ImportWP\Importer\EventHandler::instance()->listen('importer.before_mapper', function(\ImportWP\Importer $importer, \ImportWP\Importer\ParsedData $data) use ($template){
 			$recordIndex = $importer->getParser()->getRecordIndex();
 
-			reset( $template->_field_groups );
-			$template_field_group = key( $template->_field_groups );
+			$template_field_group = $template->get_template_group_id();
 
 			// Call row save before group save
 			do_action( 'jci/before_' . $template->get_name() . '_row_save', $data->getData(), $recordIndex );
@@ -482,8 +524,7 @@ class JC_Importer_Core {
 //		$config = new IWP_Config();
 
 		// TEMPLATE FIELDS
-		reset( $groups );
-		$template_field_group = key( $groups );
+		$template_field_group = $this->template->get_template_group_id();
 
 		$import_data = [
 			[

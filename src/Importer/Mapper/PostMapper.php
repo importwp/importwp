@@ -389,6 +389,10 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 		foreach($attachments['location'] as $key => $src){
 
+			if(empty($src)){
+				continue;
+			}
+
 			$permission = $attachments['permissions'][ $key ];
 
 			$featured = isset( $attachments['featured_image'][ $key ] ) ? $attachments['featured_image'][ $key ] : 0;
@@ -421,23 +425,11 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 				) );
 				if ( $result ) {
 					$this->appendLog( array(array('status' => 'S', 'msg' => $dest)), 'attachments');
-//					$this->_insert[ $this->_current_row ]['attachments'][] = array(
-//						'status' => 'S',
-//						'msg'    => $dest
-//					);
 				} else {
 					$this->appendLog( array(array('status' => 'E', 'msg' => $this->attachment_class->get_error())), 'attachments');
-//					$this->_insert[ $this->_current_row ]['attachments'][] = array(
-//						'status' => 'E',
-//						'msg'    => $this->attachment_class->get_error()
-//					);
 				}
 			} catch ( Exception $e ) {
 				$this->appendLog( array(array('status' => 'E', 'msg' => jci_error_message( $e ))), 'attachments');
-//				$this->_insert[ $this->_current_row ]['attachments'][] = array(
-//					'status' => 'E',
-//					'msg'    => jci_error_message( $e )
-//				);
 			}
 			restore_error_handler();
 		}
@@ -489,5 +481,42 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			return false;
 		}
 		throw new ErrorException( $errstr, 0, $errno, $errfile, $errline );
+	}
+
+	/**
+	 * Remove all posts from the current tracked import
+	 *
+	 * @param  int $importer_id
+	 * @param  int $version
+	 * @param  string $post_type
+	 *
+	 * @return void
+	 */
+	function remove_all_objects( $importer_id, $version ) {
+
+		$post_type = $this->template->_field_groups[$this->template->get_template_group_id()]['import_type_name'];
+
+		// get a list of all objects which were not in current update
+		$q = new WP_Query( array(
+			'post_type'      => $post_type,
+			'meta_query'     => array(
+				array(
+					'key'     => '_jci_version_' . $importer_id,
+					'value'   => $version,
+					'compare' => '!='
+				)
+			),
+			'fields'         => 'ids',
+			'posts_per_page' => - 1
+		) );
+
+		// delete list of objects
+		if ( $q->have_posts() ) {
+			$ids = $q->posts;
+			foreach ( $ids as $id ) {
+				wp_delete_post( $id, true );
+			}
+		}
+
 	}
 }

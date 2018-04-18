@@ -66,6 +66,8 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 		$term     = ! empty( $fields['term'] ) ? $fields['term'] : false;
 		$taxonomy = ! empty( $fields['taxonomy'] ) ? $fields['taxonomy'] : false;
 
+		$all_fields = $fields;
+
 		if ( $term && $taxonomy ) {
 
 			unset( $fields['term'] );
@@ -92,6 +94,10 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 					$this->update_custom_field( $this->ID, $meta_key, $meta_value );
 				}
 			}
+
+			$this->add_version_tag();
+			$all_fields['ID'] = $this->ID;
+			$this->logImport($all_fields, 'insert', 'taxonomy');
 		}
 
 		return $this->ID;
@@ -107,6 +113,7 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 		$this->checkPermissions('update');
 
 		$fields = $data->getData('default');
+		$all_fields = $fields;
 
 		$args          = array();
 		$custom_fields = array();
@@ -141,7 +148,13 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 			}
 		}
 
-		return wp_update_term( $this->ID, $taxonomy, $args );
+		$result = wp_update_term( $this->ID, $taxonomy, $args );
+		if(!is_wp_error($result)){
+			$all_fields['ID'] = $this->ID;
+			$this->logImport($all_fields, 'update', 'taxonomy');
+			$this->update_version_tag();
+		}
+		return $result;
 	}
 
 	public function delete( \ImportWP\Importer\ParsedData $data ) {
@@ -168,6 +181,38 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 			update_term_meta( $term_id, $key, $value );
 		} elseif ( '' == $value && $old_value ) {
 			delete_term_meta( $term_id, $key, $value );
+		}
+	}
+
+	function add_version_tag() {
+
+		if ( ! isset( JCI()->importer ) ) {
+			return;
+		}
+
+		$importer_id = JCI()->importer->get_ID();
+		$version     = JCI()->importer->get_version();
+
+		update_term_meta( $this->ID, '_jci_version_' . $importer_id, $version, true );
+	}
+
+	/**
+	 * Update Import Tracking Tag
+	 */
+	function update_version_tag() {
+
+		if ( ! isset( JCI()->importer ) ) {
+			return;
+		}
+
+		$importer_id = JCI()->importer->get_ID();
+		$version     = JCI()->importer->get_version();
+
+		$old_version = get_term_meta( $this->ID, '_jci_version_' . $importer_id, true );
+		if ( $old_version ) {
+			update_term_meta( $this->ID, '_jci_version_' . $importer_id, $version, $old_version );
+		} else {
+			add_term_meta( $this->ID, '_jci_version_' . $importer_id, $version, true );
 		}
 	}
 }

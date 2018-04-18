@@ -171,4 +171,36 @@ class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			add_user_meta( $user_id, $meta_key, $meta_value, $unique );
 		}
 	}
+
+	/**
+	 * Remove all users from the current tracked import
+	 *
+	 * @param  int $importer_id
+	 * @param  int $version
+	 * @param  string $post_type Not Used
+	 *
+	 * @return void
+	 */
+	function remove_all_objects( $importer_id, $version ) {
+
+		// get a list of all objects which were not in current update
+		$user_query = new WP_User_Query( array(
+			'meta_query' => array(
+				array(
+					'key'     => '_jci_version_' . $importer_id,
+					'value'   => $version,
+					'compare' => '!=',
+				),
+			),
+			'fields'     => array( 'id' ),
+		) );
+
+		// delete list of objects
+		if ( ! empty( $user_query->results ) ) {
+			foreach ( $user_query->results as $user ) {
+				wp_delete_user( $user->id );
+			}
+		}
+
+	}
 }

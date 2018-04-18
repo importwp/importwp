@@ -109,4 +109,10 @@ class JC_Importer_Template {
 
 		return false;
 	}
+
+	public function get_template_group_id(){
+
+		reset( $this->_field_groups );
+		return key( $this->_field_groups );
+	}
 }
