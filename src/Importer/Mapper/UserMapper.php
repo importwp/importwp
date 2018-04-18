@@ -73,6 +73,12 @@ class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 	public function insert( \ImportWP\Importer\ParsedData $data ) {
 
+		// clear log
+		$this->clearLog();
+
+		// check permissions
+		$this->checkPermissions('insert');
+
 		$fields = $data->getData('default');
 
 		if ( ! isset( $fields['user_login'] ) || empty( $fields['user_login'] ) ) {
@@ -110,6 +116,12 @@ class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 	}
 
 	public function update( \ImportWP\Importer\ParsedData $data ) {
+
+		// clear log
+		$this->clearLog();
+
+		// check permissions
+		$this->checkPermissions('update');
 
 		$fields = $data->getData('default');
 

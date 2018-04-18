@@ -278,7 +278,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
                         var response_text = '';
                         if (response !== null && typeof response === 'object' && response.hasOwnProperty('data') && response.data.hasOwnProperty('last_record') && response.data.hasOwnProperty('end')) {
-                            response_text = response.data.last_record + "/" + response.data.end;
+                            response_text = response.data.counter + "/" + response.data.end + ' , '+response.data.error+' Errors';
                         } else {
                             response_text = "initialising";
                         }

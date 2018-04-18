@@ -100,6 +100,12 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 	public function insert( \ImportWP\Importer\ParsedData $data ) {
 
+		// clear log
+		$this->clearLog();
+
+		// check permissions
+		$this->checkPermissions('insert');
+
 		$fields      = $data->getData('default');
 		$post_type   = $this->template->_field_groups['post']['import_type_name'];
 		$post_status = $this->template->_field_groups['post']['post_status'];
@@ -155,6 +161,12 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 	}
 
 	public function update( \ImportWP\Importer\ParsedData $data ) {
+
+		// clear log
+		$this->clearLog();
+
+		// check permissions
+		$this->checkPermissions('update');
 
 		$fields    = $data->getData('default');
 		$post_type = $this->template->_field_groups['post']['import_type_name'];
@@ -320,6 +332,8 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			return;
 		}
 
+		$log = array();
+
 		foreach($taxonomies as $tax  => $term_arr ){
 
 			$permission = $taxonomies_permissions[$tax];
@@ -328,6 +342,7 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			if ( $permission == 'overwrite' ) {
 				wp_set_object_terms( $this->ID, null, $tax );
 			}
+
 
 			foreach($term_arr  as $term_value ){
 
@@ -345,6 +360,8 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 						continue;
 					}
 
+					$log[ $tax ][] = $t;
+
 					if ( term_exists( $t, $tax ) ) {
 						// attach term to post
 						wp_set_object_terms( $this->ID, $t, $tax, true );
@@ -357,6 +374,8 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 			}
 		}
+
+		$this->appendLog($log, 'taxonomies');
 
 	}
 
@@ -400,18 +419,21 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 					'parent'  => $this->ID,
 					'feature' => $feature
 				) );
-//				if ( $result ) {
+				if ( $result ) {
+					$this->appendLog( array(array('status' => 'S', 'msg' => $dest)), 'attachments');
 //					$this->_insert[ $this->_current_row ]['attachments'][] = array(
 //						'status' => 'S',
 //						'msg'    => $dest
 //					);
-//				} else {
+				} else {
+					$this->appendLog( array(array('status' => 'E', 'msg' => $this->attachment_class->get_error())), 'attachments');
 //					$this->_insert[ $this->_current_row ]['attachments'][] = array(
 //						'status' => 'E',
 //						'msg'    => $this->attachment_class->get_error()
 //					);
-//				}
+				}
 			} catch ( Exception $e ) {
+				$this->appendLog( array(array('status' => 'E', 'msg' => jci_error_message( $e ))), 'attachments');
 //				$this->_insert[ $this->_current_row ]['attachments'][] = array(
 //					'status' => 'E',
 //					'msg'    => jci_error_message( $e )

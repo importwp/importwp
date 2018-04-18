@@ -46,6 +46,12 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 
 	public function insert( \ImportWP\Importer\ParsedData $data ) {
 
+		// clear log
+		$this->clearLog();
+
+		// check permissions
+		$this->checkPermissions('insert');
+
 		$fields = $data->getData('default');
 
 		$this->ID        = false;
@@ -93,6 +99,12 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 	}
 
 	public function update( \ImportWP\Importer\ParsedData $data ) {
+
+		// clear log
+		$this->clearLog();
+
+		// check permissions
+		$this->checkPermissions('update');
 
 		$fields = $data->getData('default');
 

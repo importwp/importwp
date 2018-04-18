@@ -66,4 +66,30 @@ class AbstractMapper {
 		return $this->log;
 	}
 
+	public function clearLog(){
+		$this->log = array();
+	}
+
+	/**
+	 * Check relevant permissions for action
+	 * @param $method
+	 *
+	 * @return bool
+	 * @throws \ImportWP\Importer\Exception\MapperException
+	 */
+	protected function checkPermissions($method){
+
+		$permissions = JCI()->importer->get_permissions();
+
+		if($method === 'insert' && (!isset( $permissions['create'] ) || intval($permissions['create']) !== 1)){
+			throw new \ImportWP\Importer\Exception\MapperException( "No Enough Permissions to Insert Record");
+		}
+
+		if($method === 'update' && (!isset( $permissions['update'] ) || intval($permissions['update']) !== 1 ) ){
+			throw new \ImportWP\Importer\Exception\MapperException( "No Enough Permissions to Update Record");
+		}
+
+		return true;
+	}
+
 }
