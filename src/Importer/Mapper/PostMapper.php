@@ -325,7 +325,7 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 	function processTaxonomies(\ImportWP\Importer\ParsedData $data){
 
-		$taxonomies_permissions = JCI()->importer->taxonomies_permissions[JCI()->importer->get_template_name()];
+		$taxonomies_permissions = JCI()->importer->taxonomies_permissions[$this->template->get_template_group_id()];
 		$taxonomies = $data->getData('taxonomies');
 
 		if(empty($taxonomies)){

@@ -303,9 +303,26 @@ class ImporterModel {
 		if ( $importer_settings['import_type'] != 'post' ) {
 
 			// if file exists get total rows
-			$parser    = $jcimporter->parsers[ $template_type ];
-			$meta2     = get_metadata( 'post', $post_id, '', true );
-			$row_count = $parser->get_total_rows( $post_id );
+			$file = self::getImporterFile( $settings['import_file'] );
+			if ( $file ) {
+				$wp_upload_dir = wp_upload_dir();
+				$filepath      = $wp_upload_dir['basedir'] . $file->src;
+			}
+
+			$config_file = tempnam(sys_get_temp_dir(), 'config');
+			$config = new \ImportWP\Importer\Config\Config($config_file);
+
+			if($settings['template_type'] === 'csv'){
+
+				$file = new \ImportWP\Importer\File\CSVFile($filepath, $config);
+				$row_count = $file->getRecordCount();
+
+			}else{
+				$base = isset($_POST['general_base']) ? $_POST['general_base'] : '';
+				$file = new \ImportWP\Importer\File\XMLFile($filepath);
+				$file->setRecordPath($base);
+				$row_count = $file->getRecordCount();
+			}
 
 			if ( $settings['start_line'] > $row_count ) {
 				if ( $settings['row_count'] > $row_count ) {

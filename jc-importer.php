@@ -24,7 +24,6 @@ require_once 'src/Importer/Mapper/UserMapper.php';
 require_once 'src/Importer/Mapper/TaxMapper.php';
 
 require_once 'app/core/exceptions.php';
-require_once 'app/parsers/class-iwp-parser.php';
 
 // libs.
 require_once 'app/libs/xmloutput.php';
@@ -38,20 +37,10 @@ require_once 'app/attachment/class-jci-upload-attachments.php';
 require_once 'app/attachment/class-jci-string-attachments.php';
 require_once 'app/attachment/class-jci-local-attachments.php';
 
-// mappers.
-require_once 'app/mapper/Mapper.php';
-require_once 'app/mapper/PostMapper.php';
-require_once 'app/mapper/TableMapper.php';
-require_once 'app/mapper/UserMapper.php';
-require_once 'app/mapper/VirtualMapper.php';
-require_once 'app/mapper/TaxMapper.php';
-
 // parsers.
 require_once 'app/parsers/class-iwp-field-parser.php';
 require_once 'app/parsers/class-iwp-csv-field-parser.php';
 require_once 'app/parsers/class-iwp-xml-field-parser.php';
-require_once 'app/parsers/class-iwp-csv-parser.php';
-require_once 'app/parsers/class-iwp-xml-parser.php';
 
 // templates.
 require_once 'app/templates/template.php';
@@ -138,8 +127,6 @@ class JC_Importer {
 
 		add_action( 'init', array( $this, 'init' ) );
 		add_action( 'plugins_loaded', array( $this, 'db_update_check' ) );
-
-		$this->parsers = apply_filters( 'jci/register_parser', array() );
 
 		// activation.
 		register_activation_hook( __FILE__, array( $this, 'activation' ) );

@@ -24,7 +24,7 @@ class JC_Importer_Admin {
 		add_action( 'admin_init', array( $this, 'admin_enqueue_styles' ) );
 
 		// ajax import
-		add_action( 'wp_ajax_jc_import_row', array( $this, 'admin_ajax_import_row' ) );
+//		add_action( 'wp_ajax_jc_import_row', array( $this, 'admin_ajax_import_row' ) );
 		add_action( 'wp_ajax_jc_process_delete', array( $this, 'admin_ajax_process_delete' ) );
 
 		// ajax import all at once with status file
@@ -453,22 +453,10 @@ class JC_Importer_Admin {
 			// load parser settings
 
 			$template_type   = ImporterModel::getImportSettings( $id, 'template_type' );
-			$this->_parser   = load_import_parser( $id );
-			$parser_settings = apply_filters( 'jci/register_' . $template_type . '_addon_settings', array(
-				'general' => array(),
-				'group'   => array()
-			) );
 
 			// select file to use for import
 			$selected_import_id = intval( $_POST['jc-importer_file_select'] );
-			// $attachment_check   = new WP_Query( array(
-			// 		'post_type'   => 'jc-import-files',
-			// 		'post_parent' => $id,
-			// 		'post_status' => 'any',
-			// 		'p'           => $selected_import_id
-			// 	) );
-			if ( /*$attachment_check->post_count == 1*/
-				$selected_import_id > 0 ) {
+			if ( $selected_import_id > 0 ) {
 
 				// increase version number
 				$version  = get_post_meta( $id, '_import_version', true );
@@ -555,18 +543,6 @@ class JC_Importer_Admin {
 		$max_records  = $jcimporter->importer->get_row_count();
 
 		$total_records = $jcimporter->importer->get_total_rows();
-
-//		$res = $jcimporter->importer->run_import( $current_row, true, $records );
-//		$counter = 0;
-//		foreach($res as $data_arr){
-//			$row = $current_row + $counter;
-//			$data = array($data_arr);
-//			ob_start();
-//			require $jcimporter->get_plugin_dir() . 'app/view/imports/log/log_table_record.php';
-//			$output[] = ob_get_clean();
-//			$counter++;
-//		}
-
 
 		for ( $i = 0; $i < $records; $i ++ ) {
 

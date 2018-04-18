@@ -69,7 +69,7 @@ class JC_Importer_Ajax {
 
 		$config_file = tempnam(sys_get_temp_dir(), 'config');
 		$config = new \ImportWP\Importer\Config\Config($config_file);
-		$xml_file = new \ImportWP\Importer\File\XMLFile($file);
+		$xml_file = new \ImportWP\Importer\File\XMLFile($file, $config);
 		$xml = new \ImportWP\Importer\Preview\XMLPreview($xml_file, $base_node);
 
 		require_once $this->_config->get_plugin_dir() . 'app/view/ajax/xml_node_preview.php';
@@ -193,37 +193,6 @@ class JC_Importer_Ajax {
 
 		require_once $this->_config->get_plugin_dir() . 'app/view/ajax/base_node_select.php';
 		die();
-	}
-
-	public function nodeIterator( $xml, $temp = array(), $depth = 0 ) {
-
-		$children = $xml->children();
-		if ( count( $children ) > 0 ) {
-
-			if ( $depth > $this->_curr_row ) {
-
-				$this->_curr_row = $depth;
-				$temp[]          = $xml->getName();
-			} elseif ( $depth == $this->_curr_row ) {
-
-				$this->_curr_row            = $depth;
-				$temp[ count( $temp ) - 1 ] = $xml->getName();
-			} elseif ( $depth < $this->_curr_row ) {
-
-				$this->_curr_row = count( $temp ) - 1;
-			}
-
-			$xpath = implode( '/', $temp );
-			if ( ! in_array( $xpath, $this->_results ) ) {
-				$this->_results[] = $xpath;
-			}
-
-			foreach ( $children as $child ) {
-				$this->nodeIterator( $child, $temp, $depth + 1 );
-			}
-		}
-
-		return false;
 	}
 
 	/**

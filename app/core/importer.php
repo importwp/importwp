@@ -402,8 +402,22 @@ class JC_Importer_Core {
 		if ( $this->total_rows === - 1 ) {
 			$meta = get_post_meta( $this->get_ID(), sprintf( '_total_rows_%d', $this->get_version() ), true );
 			if ( empty( $meta ) ) {
-				$parser           = $this->get_parser();
-				$this->total_rows = $parser->get_total_rows();
+
+				$config_file = tempnam(sys_get_temp_dir(), 'config');
+				$config = new \ImportWP\Importer\Config\Config($config_file);
+
+				if($this->get_template_type() === 'csv'){
+
+					$file = new \ImportWP\Importer\File\CSVFile($this->get_file(), $config);
+					$this->total_rows = $file->getRecordCount();
+
+				}else{
+					$base = isset($_POST['general_base']) ? $_POST['general_base'] : '';
+					$file = new \ImportWP\Importer\File\XMLFile($this->get_file(), $config);
+					$file->setRecordPath($base);
+					$this->total_rows = $file->getRecordCount();
+				}
+
 				update_post_meta( $this->get_ID(), sprintf( '_total_rows_%d', $this->get_version() ), $this->total_rows );
 			} else {
 				$this->total_rows = intval( $meta );
@@ -411,16 +425,6 @@ class JC_Importer_Core {
 		}
 
 		return $this->total_rows;
-	}
-
-	public function get_parser() {
-
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-
-		return $jcimporter->parsers[ $this->template_type ];
 	}
 
 	public function get_row_count() {
@@ -466,6 +470,7 @@ class JC_Importer_Core {
 			$recordIndex = $importer->getParser()->getRecordIndex();
 
 			$template_field_group = $template->get_template_group_id();
+			$data = apply_filters( 'iwp/before_mapper_process', $data );
 
 			// Call row save before group save
 			do_action( 'jci/before_' . $template->get_name() . '_row_save', $data->getData(), $recordIndex );
@@ -503,7 +508,7 @@ class JC_Importer_Core {
 			IWP_Status::write_file( $status );
 		});
 
-		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_imported', function(\ImportWP\Importer $importer, \ImportWP\Importer\ParsedData $data){
+		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_imported', function(\ImportWP\Importer $importer, \ImportWP\Importer\ParsedData $data) use ($template){
 
 			if($data === null){
 				return;
@@ -556,10 +561,10 @@ class JC_Importer_Core {
 		// END ATTACHMENTS
 
 		// CUSTOM FIELDS
-		if(isset($groups[$this->template_name]['custom_fields'])){
+		if(isset($groups[$template_field_group]['custom_fields'])){
 			array_push($import_data, [
 				'id' => 'custom_fields',
-				'fields' => $groups[$this->template_name]['custom_fields']
+				'fields' => $groups[$template_field_group]['custom_fields']
 			]);
 		}
 		// END CUSTOM FIELDS

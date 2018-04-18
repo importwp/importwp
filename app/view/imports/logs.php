@@ -1,7 +1,6 @@
 <?php
 // load settings from gloabl
 $importer_id         = JCI()->importer->get_ID();
-$parser              = JCI()->importer->get_parser();
 $template_name       = JCI()->importer->get_template_name();
 $template            = JCI()->importer->get_template();
 $start_line          = JCI()->importer->get_start_line();
@@ -12,7 +11,7 @@ $template_type       = JCI()->importer->get_template_type();
 $import_status       = 0;
 
 if ( $row_count <= 0 ) {
-	$record_count = $parser->get_total_rows();
+	$record_count = 0; //$parser->get_total_rows();
 } else {
 	$record_count = ( $start_line - 1 ) + $row_count;
 }

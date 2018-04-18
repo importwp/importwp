@@ -46,13 +46,6 @@ function get_import_template( $template ) {
 	return JCI()->get_template( $template );
 }
 
-function load_import_parser( $import_id ) {
-
-	$template_type = ImporterModel::getImportSettings( $import_id, 'template_type' );
-
-	return JCI()->parsers[ $template_type ];
-}
-
 if ( ! function_exists( 'mime_content_type' ) ) {
 
 	function mime_content_type( $filename ) {
