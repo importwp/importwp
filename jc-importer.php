@@ -16,41 +16,41 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // required packages
-require_once 'vendor/autoload.php';
-require_once 'src/Importer/Config/IWP_Config.php';
-require_once 'src/Importer/Mapper/AbstractMapper.php';
-require_once 'src/Importer/Mapper/PostMapper.php';
-require_once 'src/Importer/Mapper/UserMapper.php';
-require_once 'src/Importer/Mapper/TaxMapper.php';
+require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/src/Importer/Config/IWP_Config.php';
+require_once __DIR__ . '/src/Importer/Mapper/AbstractMapper.php';
+require_once __DIR__ . '/src/Importer/Mapper/PostMapper.php';
+require_once __DIR__ . '/src/Importer/Mapper/UserMapper.php';
+require_once __DIR__ . '/src/Importer/Mapper/TaxMapper.php';
 
-require_once 'app/core/exceptions.php';
+require_once __DIR__ . '/app/core/exceptions.php';
 
 // libs.
-require_once 'app/libs/xmloutput.php';
-require_once 'app/libs/class-importwp-premium.php';
+require_once __DIR__ . '/app/libs/xmloutput.php';
+require_once __DIR__ . '/app/libs/class-importwp-premium.php';
 
 // attachments.
-require_once 'app/attachment/class-jci-attachment.php';
-require_once 'app/attachment/class-jci-ftp-attachments.php';
-require_once 'app/attachment/class-jci-curl-attachments.php';
-require_once 'app/attachment/class-jci-upload-attachments.php';
-require_once 'app/attachment/class-jci-string-attachments.php';
-require_once 'app/attachment/class-jci-local-attachments.php';
+require_once __DIR__ . '/app/attachment/class-jci-attachment.php';
+require_once __DIR__ . '/app/attachment/class-jci-ftp-attachments.php';
+require_once __DIR__ . '/app/attachment/class-jci-curl-attachments.php';
+require_once __DIR__ . '/app/attachment/class-jci-upload-attachments.php';
+require_once __DIR__ . '/app/attachment/class-jci-string-attachments.php';
+require_once __DIR__ . '/app/attachment/class-jci-local-attachments.php';
 
 // parsers.
-require_once 'app/parsers/class-iwp-field-parser.php';
-require_once 'app/parsers/class-iwp-csv-field-parser.php';
-require_once 'app/parsers/class-iwp-xml-field-parser.php';
+require_once __DIR__ . '/app/parsers/class-iwp-field-parser.php';
+require_once __DIR__ . '/app/parsers/class-iwp-csv-field-parser.php';
+require_once __DIR__ . '/app/parsers/class-iwp-xml-field-parser.php';
 
 // templates.
-require_once 'app/templates/template.php';
-require_once 'app/templates/template-user.php';
-require_once 'app/templates/template-post.php';
-require_once 'app/templates/template-page.php';
-require_once 'app/templates/template-tax.php';
+require_once __DIR__ . '/app/templates/template.php';
+require_once __DIR__ . '/app/templates/template-user.php';
+require_once __DIR__ . '/app/templates/template-post.php';
+require_once __DIR__ . '/app/templates/template-page.php';
+require_once __DIR__ . '/app/templates/template-tax.php';
 
-require_once 'app/helpers/form.php';
-require_once 'app/functions.php';
+require_once __DIR__ . '/app/helpers/form.php';
+require_once __DIR__ . '/app/functions.php';
 
 /**
  * Class JC_Importer
@@ -122,7 +122,7 @@ class JC_Importer {
 		$this->plugin_dir = plugin_dir_path( __FILE__ );
 		$this->plugin_url = plugins_url( '/', __FILE__ );
 
-		require_once 'app/libs/class-iwp-text.php';
+		require_once $this->plugin_dir . 'app/libs/class-iwp-text.php';
 		$this->text = new IWP_Text();
 
 		add_action( 'init', array( $this, 'init' ) );
@@ -153,7 +153,7 @@ class JC_Importer {
 	 */
 	public function init() {
 
-		require_once 'app/libs/class-iwp-debug.php';
+		require_once $this->plugin_dir . 'app/libs/class-iwp-debug.php';
 
 
 		do_action( 'jci/before_init' );
@@ -164,12 +164,12 @@ class JC_Importer {
 		$this->templates = apply_filters( 'jci/register_template', $this->templates );
 
 		// load importer.
-		require_once 'app/core/importer.php';
+		require_once $this->plugin_dir . 'app/core/importer.php';
 
 		// core models.
-		require_once 'app/models/importer.php';
-		require_once 'app/models/log.php';
-		require_once 'app/models/class-iwp-status.php';
+		require_once $this->plugin_dir . 'app/models/importer.php';
+		require_once $this->plugin_dir . 'app/models/log.php';
+		require_once $this->plugin_dir . 'app/models/class-iwp-status.php';
 
 		if ( is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
 
@@ -179,12 +179,12 @@ class JC_Importer {
 				$this->importer = new JC_Importer_Core( $importer_id );
 			}
 
-			require_once 'app/libs/class-iwp-imports-list-table.php';
+			require_once $this->plugin_dir . 'app/libs/class-iwp-imports-list-table.php';
 
-			require_once 'app/admin.php';
+			require_once $this->plugin_dir . 'app/admin.php';
 			new JC_Importer_Admin( $this );
 
-			require_once 'app/ajax.php';
+			require_once $this->plugin_dir . 'app/ajax.php';
 			new JC_Importer_Ajax( $this );
 		}
 
