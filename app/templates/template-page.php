@@ -98,8 +98,13 @@ class JC_Page_Template extends JC_Importer_Template {
 		add_action( 'jci/after_template_fields', array( $this, 'field_settings' ) );
 		add_action( 'jci/save_template', array( $this, 'save_template' ) );
 
+		// backwards compatibility
 		add_filter( 'jci/log_page_columns', array( $this, 'log_page_columns' ) );
 		add_action( 'jci/log_page_content', array( $this, 'log_page_content' ), 10, 2 );
+
+		// all post types use the post columns
+		add_filter( 'jci/log_post_columns', array( $this, 'log_page_columns' ) );
+		add_action( 'jci/log_post_content', array( $this, 'log_page_content' ), 10, 2 );
 
 		add_action( 'jci/before_import', array( $this, 'before_import' ) );
 
@@ -596,18 +601,23 @@ class JC_Page_Template extends JC_Importer_Template {
 	 */
 	public function log_page_content( $column, $data ) {
 
+		$key = 'page';
+		if(isset($data['post'])){
+			$key = 'post';
+		}
+
 		switch ( $column ) {
 			case 'name':
-				echo edit_post_link( $data['page']['post_title'] . ' #' . $data['page']['ID'], '', '', $data['page']['ID'] );
+				echo edit_post_link( $data[$key]['post_title'] . ' #' . $data[$key]['ID'], '', '', $data[$key]['ID'] );
 				break;
 			case 'slug':
-				echo $data['page']['post_name'];
+				echo $data[$key]['post_name'];
 				break;
 			case 'method':
 
-				if ( $data['page']['_jci_type'] == 'I' ) {
+				if ( $data[$key]['_jci_type'] == 'I' ) {
 					echo 'Inserted';
-				} elseif ( $data['page']['_jci_type'] == 'U' ) {
+				} elseif ( $data[$key]['_jci_type'] == 'U' ) {
 					echo 'Updated';
 				}
 				break;

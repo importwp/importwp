@@ -49,8 +49,9 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 		$unique_fields = $this->template->_unique;
 		$default_group = $data->getData('default');
-		$post_type     = $this->template->_field_groups['post']['import_type_name'];
-		$post_status   = $this->template->_field_groups['post']['post_status'];
+		$template_group_id = $this->template->get_template_group_id();
+		$post_type     = $this->template->_field_groups[$template_group_id]['import_type_name'];
+		$post_status   = $this->template->_field_groups[$template_group_id]['post_status'];
 
 		$meta_args  = array();
 		$query_args = array(
@@ -107,8 +108,9 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 		$this->checkPermissions('insert');
 
 		$fields      = $data->getData('default');
-		$post_type   = $this->template->_field_groups['post']['import_type_name'];
-		$post_status = $this->template->_field_groups['post']['post_status'];
+		$template_group_id = $this->template->get_template_group_id();
+		$post_type   = $this->template->_field_groups[$template_group_id]['import_type_name'];
+		$post_status = $this->template->_field_groups[$template_group_id]['post_status'];
 
 		$post = array();
 		$meta = array();
@@ -168,9 +170,10 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 		// check permissions
 		$this->checkPermissions('update');
+		$template_group_id = $this->template->get_template_group_id();
 
 		$fields    = $data->getData('default');
-		$post_type = $this->template->_field_groups['post']['import_type_name'];
+		$post_type = $this->template->_field_groups[$template_group_id]['import_type_name'];
 
 		$post                      = array();
 		$meta                      = array();
