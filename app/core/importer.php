@@ -514,7 +514,12 @@ class JC_Importer_Core {
 				return;
 			}
 
-			$recordIndex = $importer->getParser()->getRecordIndex();
+			$template_field_group = $template->get_template_group_id();
+			$recordIndex          = $importer->getParser()->getRecordIndex();
+
+			// Call row save after group save
+			do_action( 'iwp_after_row_save', $template, $data, $importer );
+
 			$output = array('_jci_status' => 'S');
 
 			ImportLog::insert(JCI()->importer->get_ID(), $recordIndex, array_merge($output, $data->getLog()));

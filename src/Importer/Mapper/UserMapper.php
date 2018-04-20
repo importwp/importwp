@@ -108,6 +108,7 @@ class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 		$this->logImport($fields, 'insert', 'user');
 		$this->add_version_tag();
+		$data->update( $fields );
 
 		do_action( 'jci/after_user_insert', $result, $fields );
 
@@ -142,6 +143,7 @@ class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 		$this->logImport($fields, 'update', 'user');
 		$this->add_version_tag();
+		$data->update( $fields );
 
 		return $this->ID;
 

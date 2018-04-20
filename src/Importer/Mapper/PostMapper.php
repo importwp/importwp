@@ -153,6 +153,7 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			$fields['ID'] = $this->ID;
 			$this->logImport($fields, 'insert', 'post');
 			$this->add_version_tag();
+			$data->update( $fields );
 		}else{
 			throw new \ImportWP\Importer\Exception\MapperException( $this->ID->get_error_message() );
 		}
@@ -230,6 +231,7 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 		$fields['ID'] = $this->ID;
 		$this->logImport($fields, 'update', 'post');
 		$this->update_version_tag();
+		$data->update( $fields );
 
 		return $this->ID;
 
