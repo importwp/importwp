@@ -95,6 +95,8 @@ class JC_Importer_Template {
 			'post_type'      => $post_type,
 			'posts_per_page' => 1,
 			'fields'         => 'ids',
+			'cache_results' => false,
+			'update_post_meta_cache' => false,
 			'meta_query'     => array(
 				array(
 					'key'   => '_jci_ref_' . $field,

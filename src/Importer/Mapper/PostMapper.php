@@ -57,7 +57,9 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 		$query_args = array(
 			'post_type'   => $post_type,
 			'post_status' => $post_status,
-			'fields'      => 'ids'
+			'fields'      => 'ids',
+			'cache_results' => false,
+			'update_post_meta_cache' => false,
 		);
 
 		foreach ( $unique_fields as $field ) {
@@ -193,7 +195,9 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			$query = new WP_Query( array(
 				'post_type'      => $post_type,
 				'p'              => $this->ID,
-				'posts_per_page' => 1
+				'posts_per_page' => 1,
+				'cache_results' => false,
+				'update_post_meta_cache' => false,
 			) );
 			if ( $query->found_posts == 1 ) {
 				$old_post = $query->post;
@@ -512,7 +516,9 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 				)
 			),
 			'fields'         => 'ids',
-			'posts_per_page' => - 1
+			'posts_per_page' => - 1,
+			'cache_results' => false,
+			'update_post_meta_cache' => false,
 		) );
 
 		// delete list of objects

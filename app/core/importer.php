@@ -435,6 +435,82 @@ class JC_Importer_Core {
 		return $this->record_import_count;
 	}
 
+	public function on_record_complete(\ImportWP\Importer $importer){
+		$status = IWP_Status::read_file();
+		$counter = isset($status['counter']) ? intval($status['counter']) : 0;
+		$error = isset($status['error']) ? intval($status['error']) : 0;
+		$counter++;
+
+		// write to status file
+		IWP_Status::write_file( array(
+			'status'      => 'running',
+			'message'     => '',
+			'counter'     => $counter,
+			'last_record' => $importer->getRecordEnd(),
+			'start'       => JCI()->importer->start_line,
+			'end'         => JCI()->importer->total_rows,
+			'error'      => $error,
+			'time'        => time()
+		) );
+	}
+
+	public function on_before_mapper(\ImportWP\Importer $importer, \ImportWP\Importer\ParsedData $data){
+		$recordIndex = $importer->getParser()->getRecordIndex();
+
+		$template_field_group = $this->template->get_template_group_id();
+		$data = apply_filters( 'iwp/before_mapper_process', $data );
+
+		// Call row save before group save
+		do_action( 'jci/before_' . $this->template->get_name() . '_row_save', $data->getData(), $recordIndex );
+		$updated_data = apply_filters( 'jci/before_' . $this->template->get_name() . '_group_save', $data->getData(),
+			$template_field_group );
+
+		// Update ParsedData with new values
+		$data->update($updated_data);
+	}
+
+	public function on_record_exception(\ImportWP\Importer $importer, $error_msg){
+		$recordIndex = $importer->getParser()->getRecordIndex();
+		ImportLog::insert(JCI()->importer->get_ID(), $recordIndex, array(
+			'_jci_status' => 'E',
+			'_jci_msg' => $error_msg
+		));
+
+		$status = IWP_Status::read_file();
+		if($status === null){
+			$status = array(
+				'status'      => 'running',
+				'message'     => '',
+				'counter'     => 1,
+				'last_record' => $importer->getRecordEnd(),
+				'start'       => JCI()->importer->start_line,
+				'end'         => JCI()->importer->total_rows,
+				'error'       => 0,
+				'time'        => time()
+			);
+		}
+		$status['error']++;
+
+		// write to status file
+		IWP_Status::write_file( $status );
+	}
+
+	public function on_record_imported(\ImportWP\Importer $importer, \ImportWP\Importer\ParsedData $data){
+		if($data === null){
+			return;
+		}
+
+		$template_field_group = $this->template->get_template_group_id();
+		$recordIndex          = $importer->getParser()->getRecordIndex();
+
+		// Call row save after group save
+		do_action( 'iwp_after_row_save', $this->template, $data, $importer );
+
+		$output = array('_jci_status' => 'S');
+
+		ImportLog::insert(JCI()->importer->get_ID(), $recordIndex, array_merge($output, $data->getLog()));
+	}
+
 	public function run_import( $row = null, $session = false, $per_row = 1 ) {
 
 		// Get Start and End
@@ -442,88 +518,10 @@ class JC_Importer_Core {
 		$start = $info['start']-1;
 		$end   = $info['end']-1;
 
-		// On record imported update status file
-		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_complete', function (\ImportWP\Importer $importer){
-
-			$status = IWP_Status::read_file();
-			$counter = isset($status['counter']) ? intval($status['counter']) : 0;
-			$error = isset($status['error']) ? intval($status['error']) : 0;
-			$counter++;
-
-			// write to status file
-			IWP_Status::write_file( array(
-				'status'      => 'running',
-				'message'     => '',
-				'counter'     => $counter,
-				'last_record' => $importer->getRecordEnd(),
-				'start'       => JCI()->importer->start_line,
-				'end'         => JCI()->importer->total_rows,
-				'error'      => $error,
-				'time'        => time()
-			) );
-		});
-
-		$template = $this->template;
-
-		// Trigger template actions
-		\ImportWP\Importer\EventHandler::instance()->listen('importer.before_mapper', function(\ImportWP\Importer $importer, \ImportWP\Importer\ParsedData $data) use ($template){
-			$recordIndex = $importer->getParser()->getRecordIndex();
-
-			$template_field_group = $template->get_template_group_id();
-			$data = apply_filters( 'iwp/before_mapper_process', $data );
-
-			// Call row save before group save
-			do_action( 'jci/before_' . $template->get_name() . '_row_save', $data->getData(), $recordIndex );
-			$updated_data = apply_filters( 'jci/before_' . $template->get_name() . '_group_save', $data->getData(),
-				$template_field_group );
-
-			// Update ParsedData with new values
-			$data->update($updated_data);
-		});
-
-		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_exception', function(\ImportWP\Importer $importer, $error_msg){
-
-			$recordIndex = $importer->getParser()->getRecordIndex();
-			ImportLog::insert(JCI()->importer->get_ID(), $recordIndex, array(
-				'_jci_status' => 'E',
-				'_jci_msg' => $error_msg
-			));
-
-			$status = IWP_Status::read_file();
-			if($status === null){
-				$status = array(
-					'status'      => 'running',
-					'message'     => '',
-					'counter'     => 1,
-					'last_record' => $importer->getRecordEnd(),
-					'start'       => JCI()->importer->start_line,
-					'end'         => JCI()->importer->total_rows,
-					'error'       => 0,
-					'time'        => time()
-				);
-			}
-			$status['error']++;
-
-			// write to status file
-			IWP_Status::write_file( $status );
-		});
-
-		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_imported', function(\ImportWP\Importer $importer, \ImportWP\Importer\ParsedData $data) use ($template){
-
-			if($data === null){
-				return;
-			}
-
-			$template_field_group = $template->get_template_group_id();
-			$recordIndex          = $importer->getParser()->getRecordIndex();
-
-			// Call row save after group save
-			do_action( 'iwp_after_row_save', $template, $data, $importer );
-
-			$output = array('_jci_status' => 'S');
-
-			ImportLog::insert(JCI()->importer->get_ID(), $recordIndex, array_merge($output, $data->getLog()));
-		});
+		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_complete', array($this, 'on_record_complete'));
+		\ImportWP\Importer\EventHandler::instance()->listen('importer.before_mapper', array($this, 'on_before_mapper'));
+		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_exception', array($this, 'on_record_exception'));
+		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_imported', array($this, 'on_record_imported'));
 
 		do_action( 'jci/before_import' );
 
@@ -626,6 +624,13 @@ class JC_Importer_Core {
 		$importer->parser($parser);
 		$importer->mapper($mapper);
 		$importer->import();
+
+		do_action( 'jci/after_import' );
+
+		\ImportWP\Importer\EventHandler::instance()->unlisten('importer.record_complete', array($this, 'on_record_complete'));
+		\ImportWP\Importer\EventHandler::instance()->unlisten('importer.before_mapper', array($this, 'on_before_mapper'));
+		\ImportWP\Importer\EventHandler::instance()->unlisten('importer.record_exception', array($this, 'on_record_exception'));
+		\ImportWP\Importer\EventHandler::instance()->unlisten('importer.record_imported', array($this, 'on_record_imported'));
 	}
 
 	/**
