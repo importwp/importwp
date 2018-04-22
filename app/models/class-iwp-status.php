@@ -98,6 +98,12 @@ class IWP_Status {
 
 	static function write_file( $data, $importer_id = null, $version = null ) {
 
+		// Debug show memory usage
+		if(defined('IWP_DEBUG') && IWP_DEBUG === true){
+			$data['peak_memory_usage'] = memory_get_peak_usage();
+			$data['memory_usage'] = memory_get_usage();
+		}
+
 		$status_file = self::get_file_path( $importer_id, $version );
 		self::update_cache( $data, $importer_id, $version );
 

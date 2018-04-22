@@ -41,6 +41,8 @@ require_once __DIR__ . '/app/attachment/class-jci-local-attachments.php';
 require_once __DIR__ . '/app/parsers/class-iwp-field-parser.php';
 require_once __DIR__ . '/app/parsers/class-iwp-csv-field-parser.php';
 require_once __DIR__ . '/app/parsers/class-iwp-xml-field-parser.php';
+require_once __DIR__ . '/app/parsers/class-iwp-csv-parser.php';
+require_once __DIR__ . '/app/parsers/class-iwp-xml-parser.php';
 
 // templates.
 require_once __DIR__ . '/app/templates/template.php';

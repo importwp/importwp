@@ -162,6 +162,8 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			throw new \ImportWP\Importer\Exception\MapperException( $this->ID->get_error_message() );
 		}
 
+		clean_post_cache($this->ID);
+
 		return $this->ID;
 	}
 
@@ -239,6 +241,8 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 		$this->logImport($fields, 'update', 'post');
 		$this->update_version_tag();
 		$data->update( $fields );
+
+		clean_post_cache($this->ID);
 
 		return $this->ID;
 

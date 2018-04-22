@@ -412,7 +412,7 @@ class JC_Importer_Core {
 					$this->total_rows = $file->getRecordCount();
 
 				}else{
-					$base = isset($_POST['general_base']) ? $_POST['general_base'] : '';
+					$base = $this->addon_settings['import_base'];
 					$file = new \ImportWP\Importer\File\XMLFile($this->get_file(), $config);
 					$file->setRecordPath($base);
 					$this->total_rows = $file->getRecordCount();
@@ -527,52 +527,55 @@ class JC_Importer_Core {
 
 		$groups = $this->get_template_groups();
 
-		$config_file = tempnam(sys_get_temp_dir(), 'config');
+		$config_file = JCI()->get_tmp_dir() . DIRECTORY_SEPARATOR . sprintf('config-%d-%d.json', $this->get_ID(), $this->get_version());
+		$config_setup = !file_exists($config_file) ? true : false;
 		$config = new \ImportWP\Importer\Config\Config($config_file);
-//		$config = new IWP_Config();
 
-		// TEMPLATE FIELDS
-		$template_field_group = $this->template->get_template_group_id();
+		if($config_setup === true) {
 
-		$import_data = [
-			[
-				'fields' => $groups[ $template_field_group ]['fields']
-			]
-		];
-		// END TEMPLATE FIELDS
+			// TEMPLATE FIELDS
+			$template_field_group = $this->template->get_template_group_id();
 
-		// TAX
-		foreach($this->taxonomies  as $group_id => $taxonomies){
-			if(!empty($taxonomies)){
-				array_push($import_data, [
-					'id' => 'taxonomies',
-					'fields' => $taxonomies
-				]);
+			$import_data = [
+				[
+					'fields' => $groups[ $template_field_group ]['fields']
+				]
+			];
+			// END TEMPLATE FIELDS
+
+			// TAX
+			foreach ( $this->taxonomies as $group_id => $taxonomies ) {
+				if ( ! empty( $taxonomies ) ) {
+					array_push( $import_data, [
+						'id'     => 'taxonomies',
+						'fields' => $taxonomies
+					] );
+				}
 			}
-		}
-		// END TAX
+			// END TAX
 
-		// ATTACHMENTS
-		foreach($this->attachments as $group_id => $attachments){
-			if(!empty($attachments)){
-				array_push($import_data, [
-					'id' => 'attachments',
-					'fields' => $attachments
-				]);
+			// ATTACHMENTS
+			foreach ( $this->attachments as $group_id => $attachments ) {
+				if ( ! empty( $attachments ) ) {
+					array_push( $import_data, [
+						'id'     => 'attachments',
+						'fields' => $attachments
+					] );
+				}
 			}
-		}
-		// END ATTACHMENTS
+			// END ATTACHMENTS
 
-		// CUSTOM FIELDS
-		if(isset($groups[$template_field_group]['custom_fields'])){
-			array_push($import_data, [
-				'id' => 'custom_fields',
-				'fields' => $groups[$template_field_group]['custom_fields']
-			]);
-		}
-		// END CUSTOM FIELDS
+			// CUSTOM FIELDS
+			if ( isset( $groups[ $template_field_group ]['custom_fields'] ) ) {
+				array_push( $import_data, [
+					'id'     => 'custom_fields',
+					'fields' => $groups[ $template_field_group ]['custom_fields']
+				] );
+			}
+			// END CUSTOM FIELDS
 
-		$config->set('data', $import_data);
+			$config->set('data', $import_data);
+		}
 
 		// load parser
 		if($this->template_type === 'xml'){
@@ -631,6 +634,12 @@ class JC_Importer_Core {
 		\ImportWP\Importer\EventHandler::instance()->unlisten('importer.before_mapper', array($this, 'on_before_mapper'));
 		\ImportWP\Importer\EventHandler::instance()->unlisten('importer.record_exception', array($this, 'on_record_exception'));
 		\ImportWP\Importer\EventHandler::instance()->unlisten('importer.record_imported', array($this, 'on_record_imported'));
+
+		unset($importer);
+		unset($mapper);
+		unset($parser);
+		unset($file);
+		unset($config);
 	}
 
 	/**
@@ -676,7 +685,9 @@ class JC_Importer_Core {
 
 		$error = error_get_last();
 		if ( $error && $error['type'] === E_ERROR ) {
-			$status_arr = array( 'status' => 'error', 'message' => $error['message'] );
+			$status_arr = IWP_Status::read_file( $this->get_ID(), $this->get_version() );
+			$status_arr['status'] = 'error';
+			$status_arr['message'] = $error['message'];
 			IWP_Status::write_file( $status_arr );
 
 			return $this->do_error( $status_arr );
