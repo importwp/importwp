@@ -466,7 +466,7 @@ class JC_Importer_Core {
 			$template_field_group );
 
 		// Update ParsedData with new values
-		$data->update($updated_data);
+		$data->replace($updated_data);
 	}
 
 	public function on_record_exception(\ImportWP\Importer $importer, $error_msg){

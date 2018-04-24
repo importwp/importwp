@@ -190,7 +190,7 @@ class JCI_FormHelper {
 	}
 
 	static function hidden( $name, $args = array() ) {
-		$value = 1;
+		$value = '';
 		if ( isset( $args['value'] ) ) {
 			$value = $args['value'];
 		}
@@ -205,7 +205,7 @@ class JCI_FormHelper {
 			$classes[] = $args['class'];
 		}
 
-		$value  = self::get_value( $name, $args['value'] );
+		$value  = self::get_value( $name, $value );
 		$output = '<div class="input input--hidden '.implode(' ', $classes).'">' .
 		          '<input type="hidden" name="' . self::$prefix . $name . '" id="' . $id . '" value="' . $value . '" />' .
 		          '</div>';
