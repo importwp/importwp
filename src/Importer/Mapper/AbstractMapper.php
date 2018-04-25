@@ -27,8 +27,11 @@ class AbstractMapper {
 	 */
 	protected $template;
 
-	public function __construct(JC_Importer_Template $template) {
-		$this->template = $template;
+	protected $permissions;
+
+	public function __construct( JC_Importer_Template $template, $permissions ) {
+		$this->template    = $template;
+		$this->permissions = $permissions;
 	}
 
 	public function logError($msg){
@@ -79,17 +82,15 @@ class AbstractMapper {
 	 */
 	protected function checkPermissions($method){
 
-		$permissions = JCI()->importer->get_permissions();
-
-		if($method === 'insert' && (!isset( $permissions['create'] ) || intval($permissions['create']) !== 1)){
+		if ( $method === 'insert' && ( ! isset( $this->permissions['create'] ) || intval( $this->permissions['create'] ) !== 1 ) ) {
 			throw new \ImportWP\Importer\Exception\MapperException( "No Enough Permissions to Insert Record");
 		}
 
-		if($method === 'update' && (!isset( $permissions['update'] ) || intval($permissions['update']) !== 1 ) ){
+		if ( $method === 'update' && ( ! isset( $this->permissions['update'] ) || intval( $this->permissions['update'] ) !== 1 ) ) {
 			throw new \ImportWP\Importer\Exception\MapperException( "No Enough Permissions to Update Record");
 		}
 
-		if($method === 'delete' && (!isset( $permissions['delete'] ) || intval($permissions['delete']) !== 1 ) ){
+		if ( $method === 'delete' && ( ! isset( $this->permissions['delete'] ) || intval( $this->permissions['delete'] ) !== 1 ) ) {
 			throw new \ImportWP\Importer\Exception\MapperException( "No Enough Permissions to Delete Record");
 		}
 

@@ -62,17 +62,18 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			'update_post_meta_cache' => false,
 		);
 
+		$has_unique_field = false;
+
 		foreach ( $unique_fields as $field ) {
 
 			if ( in_array( $field, $this->_post_fields ) ) {
 
 				if ( array_key_exists( $field, $this->_query_vars ) ) {
 
-					if ( empty( $default_group[ $field ] ) ) {
-						return false;
+					if ( ! empty( $default_group[ $field ] ) ) {
+						$query_args[ $this->_query_vars[ $field ] ] = $default_group[ $field ];
+						$has_unique_field                           = true;
 					}
-
-					$query_args[ $this->_query_vars[ $field ] ] = $default_group[ $field ];
 
 				} else {
 					$query_args[ $field ] = $default_group[ $field ];
@@ -84,6 +85,10 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 					'value' => $default_group[ $field ]
 				);
 			}
+		}
+
+		if ( ! $has_unique_field ) {
+			return false;
 		}
 
 		if ( ! empty( $meta_args ) ) {

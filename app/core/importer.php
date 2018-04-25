@@ -344,11 +344,11 @@ class JC_Importer_Core {
 
 		// load mapper
 		if($this->template_name == 'user') {
-			$mapper = new UserMapper($this->template);
+			$mapper = new UserMapper( $this->template, $permissions );
 		}elseif($this->template_name == 'taxonomy'){
-			$mapper = new TaxMapper($this->template);
+			$mapper = new TaxMapper( $this->template, $permissions );
 		}else{
-			$mapper = new PostMapper($this->template);
+			$mapper = new PostMapper( $this->template, $permissions );
 		}
 
 		// loop through all groups
@@ -612,13 +612,15 @@ class JC_Importer_Core {
 
 		}
 
+		$permissions = JCI()->importer->get_permissions();
+
 		// load mapper
 		if($this->template_name == 'user') {
-			$mapper = new UserMapper($this->template);
+			$mapper = new UserMapper( $this->template, $permissions );
 		}elseif($this->template_name == 'taxonomy'){
-			$mapper = new TaxMapper($this->template);
+			$mapper = new TaxMapper( $this->template, $permissions );
 		}else{
-			$mapper = new PostMapper($this->template);
+			$mapper = new PostMapper( $this->template, $permissions );
 		}
 
 		$importer = new \ImportWP\Importer($config);
