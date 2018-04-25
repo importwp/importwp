@@ -89,6 +89,10 @@ class AbstractMapper {
 			throw new \ImportWP\Importer\Exception\MapperException( "No Enough Permissions to Update Record");
 		}
 
+		if($method === 'delete' && (!isset( $permissions['delete'] ) || intval($permissions['delete']) !== 1 ) ){
+			throw new \ImportWP\Importer\Exception\MapperException( "No Enough Permissions to Delete Record");
+		}
+
 		return true;
 	}
 
