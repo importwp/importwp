@@ -67,9 +67,13 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			if ( in_array( $field, $this->_post_fields ) ) {
 
 				if ( array_key_exists( $field, $this->_query_vars ) ) {
-					if($default_group[$field] !== '') {
-						$query_args[ $this->_query_vars[ $field ] ] = $default_group[ $field ];
+
+					if ( empty( $default_group[ $field ] ) ) {
+						return false;
 					}
+
+					$query_args[ $this->_query_vars[ $field ] ] = $default_group[ $field ];
+
 				} else {
 					$query_args[ $field ] = $default_group[ $field ];
 				}
