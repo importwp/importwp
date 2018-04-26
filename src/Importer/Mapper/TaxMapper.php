@@ -24,17 +24,24 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 	public function exists( \ImportWP\Importer\ParsedData $data ) {
 
 		$fields = $data->getData('default');
-		$unique_fields = $this->template->_unique;
-
-		// escape if required fields are not entered
-		if ( ! isset( $fields['term'] ) || ! isset( $fields['taxonomy'] ) ) {
-			return false;
-		}
 
 		$term     = ! empty( $fields['term'] ) ? $fields['term'] : false;
+		$slug     = ! empty( $fields['slug'] ) ? $fields['slug'] : false;
+		$term_id     = ! empty( $fields['term_id'] ) ? $fields['term_id'] : false;
 		$taxonomy = ! empty( $fields['taxonomy'] ) ? $fields['taxonomy'] : false;
 
-		$term = get_term_by( array_shift( $unique_fields ), $term, $taxonomy );
+		// escape if required fields are not entered
+		if(false === $taxonomy || ( false === $term && false === $slug && false === $term_id)){
+			return;
+		}
+
+		if(!empty($term_id)){
+			$term = get_term_by('id' , $term_id, $taxonomy );
+		}else if(!empty($slug)){
+			$term = get_term_by('slug' , $slug, $taxonomy );
+		}else if(!empty($term)){
+			$term = get_term_by('name' , $term, $taxonomy );
+		}
 
 		if ( $term && isset( $term->term_id ) ) {
 			$this->ID = $term->term_id;
