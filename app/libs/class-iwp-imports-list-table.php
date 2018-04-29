@@ -66,10 +66,10 @@ class IWP_Imports_List_Table extends WP_List_Table {
 
 		return $columns = array(
 			'col_import_name'     => __( 'Name', 'iwp' ),
-			'col_import_template' => __( 'Template', 'iwp' ),
-			'col_import_type'     => __( 'Type', 'iwp' ),
+//			'col_import_template' => __( 'Template', 'iwp' ),
+//			'col_import_type'     => __( 'Type', 'iwp' ),
 			'col_import_last_ran' => __( 'Last Ran', 'iwp' ),
-			'col_import_created'  => __( 'Created', 'iwp' ),
+//			'col_import_created'  => __( 'Created', 'iwp' ),
 		);
 
 	}

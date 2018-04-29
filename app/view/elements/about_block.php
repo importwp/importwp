@@ -16,6 +16,6 @@
         </ul>
     </div>
     <p class="iwp-about__version">
-        Version: <strong><?php echo JCI()->get_version(); ?></strong>
+        Version: <strong><?php echo apply_filters('iwp/display_version',JCI()->get_version()); ?></strong>
     </p>
 </div>

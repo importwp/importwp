@@ -3,7 +3,7 @@ Contributors: jcollings
 Tags: import, wordpress xml importer, wordpress csv importer, xml, csv
 Requires at least: 4.0  
 Tested up to: 4.9
-Stable tag: 0.7.2
+Stable tag: 1.0.0
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -66,6 +66,10 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 == Changelog ==
+
+= 1.0 - 29/04/2018 =
+
+* Integrated new and improved XML and CSV importers
 
 = 0.7 - 04/02/2018 =
 
