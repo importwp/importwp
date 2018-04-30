@@ -103,7 +103,7 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 			}
 
 			$this->add_version_tag();
-			$all_fields['ID'] = $this->ID;
+			$all_fields['ID'] = $fields['ID'] = $this->ID;
 			$this->logImport($all_fields, 'insert', 'taxonomy');
 			$data->update( $fields );
 		}
@@ -158,7 +158,7 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 
 		$result = wp_update_term( $this->ID, $taxonomy, $args );
 		if(!is_wp_error($result)){
-			$all_fields['ID'] = $this->ID;
+			$all_fields['ID'] = $fields['ID'] = $this->ID;
 			$this->logImport($all_fields, 'update', 'taxonomy');
 			$this->update_version_tag();
 			$data->update( $fields );
