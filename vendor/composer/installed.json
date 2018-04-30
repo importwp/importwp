@@ -5,14 +5,17 @@
         "version_normalized": "dev-dev",
         "source": {
             "type": "git",
-            "url": "C:\\Users\\james\\PhpstormProjects\\php-importer",
-            "reference": "54af72d164f85647c13d5b6a50199adf4897d8aa"
+          "url": "git@bitbucket.org:jcollings89/importwp-importer.git",
+          "reference": "ab967f2a699d33bd95bbb742cf2281461defaef5"
+        },
+      "require": {
+        "php": ">=5.2.4"
         },
         "require-dev": {
             "phpunit/phpunit": ">=5.7",
             "prewk/xml-faker": "*"
         },
-        "time": "2018-04-11T21:37:00+00:00",
+      "time": "2018-04-24T22:03:02+00:00",
         "type": "project",
         "installation-source": "source",
         "autoload": {

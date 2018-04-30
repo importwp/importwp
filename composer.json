@@ -11,16 +11,11 @@
   "repositories": [
     {
       "type": "vcs",
-      "url": "/Applications/AMPPS/www/importwp-importer"
+      "url": "git@bitbucket.org:jcollings89/importwp-importer.git"
     }
   ],
   "require": {
     "jclabs/importwp": "@dev"
   },
-  "require-dev": {},
-  "autoload": {
-    "psr-4": {
-      "ImportWP\\" : "src/"
-    }
-  }
+  "require-dev": {}
 }

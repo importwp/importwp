@@ -16,8 +16,7 @@ class ComposerStaticInitd53863a5e37696d12c00f4eefe34e83a
     public static $prefixDirsPsr4 = array (
         'ImportWP\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/src',
-            1 => __DIR__ . '/..' . '/jclabs/importwp/src',
+	        0 => __DIR__ . '/..' . '/jclabs/importwp/src',
         ),
     );
 
