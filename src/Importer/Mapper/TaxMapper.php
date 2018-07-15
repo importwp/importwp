@@ -176,7 +176,7 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 
 	public function update_custom_field( $term, $key, $value, $unique = false ) {
 
-		$term_id = $term['term_id'];
+		$term_id = intval($term) > 0 ? intval($term) : $term['term_id'];
 
 		$old_value = get_term_meta( $term_id, $key, true );
 
