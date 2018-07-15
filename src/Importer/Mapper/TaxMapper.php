@@ -224,4 +224,32 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 			add_term_meta( $this->ID, '_jci_version_' . $importer_id, $version, true );
 		}
 	}
+
+	/**
+	 * Remove all users from the current tracked import
+	 *
+	 * @param  int $importer_id
+	 * @param  int $version
+	 * @param  string $post_type Not Used
+	 *
+	 * @return void
+	 */
+	function remove_all_objects( $importer_id, $version ) {
+		$tax_query = get_terms(array(
+			'hide_empty' => false,
+			'meta_query' => array(
+				array(
+					'key' => '_jci_version_' . $importer_id,
+					'value' => $version,
+					'compare' => '!='
+				)
+			)
+		));
+
+		if(!empty($tax_query)){
+			foreach($tax_query as $term){
+				wp_delete_term($term->term_id, $term->taxonomy);
+			}
+		}
+	}
 }
