@@ -197,10 +197,16 @@ class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			'fields'     => array( 'id' ),
 		) );
 
+		$status           = IWP_Status::read_file( $importer_id, $version );
+		$status['delete'] = isset($status['delete']) ? intval($status['delete']) : 0;
+
 		// delete list of objects
 		if ( ! empty( $user_query->results ) ) {
 			foreach ( $user_query->results as $user ) {
 				wp_delete_user( $user->id );
+
+				$status['delete']++;
+				IWP_Status::write_file( $status, $importer_id, $version );
 			}
 		}
 

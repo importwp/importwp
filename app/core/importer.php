@@ -307,6 +307,7 @@ class JC_Importer_Core {
 
 		$this->_running = false;
 
+		$status           = IWP_Status::read_file( $this->get_ID(), $this->get_version() );
 		$status['status'] = 'complete';
 		IWP_Status::write_file( $status, $this->get_ID(), $this->get_version() );
 		IWP_Debug::timer( "Complete", "core" );
@@ -340,6 +341,7 @@ class JC_Importer_Core {
 		// update status file to say deleting
 		$status           = IWP_Status::read_file( JCI()->importer->get_ID(), JCI()->importer->get_version() );
 		$status['status'] = 'deleting';
+		$status['delete'] = isset($status['delete']) ? intval($status['delete']) : 0;
 		IWP_Status::write_file( $status, JCI()->importer->get_ID(), JCI()->importer->get_version() );
 
 		// load mapper

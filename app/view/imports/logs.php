@@ -293,9 +293,15 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                             diff = currentDate.getTime() - startDate.getTime();
                             time_in_seconds = Math.floor(diff / 1000);
 
+                            var deleteCount = response.data.hasOwnProperty('delete') ? response.data.delete : 0;
+                            var deleteString = '';
+                            if(deleteCount > 0){
+                              deleteString = ', Deleted ' + deleteCount + ' Records';
+                            }
+
                             clearInterval(interval);
                             complete = true;
-                            status_text = 'Complete, Imported ' + response.data.counter + ' Records, '+response.data.error+' Errors, Elapsed time ' + time_in_seconds + 's';
+                            status_text = 'Complete, Imported ' + response.data.counter + ' Records'+ deleteString +', '+response.data.error+' Errors, Elapsed time ' + time_in_seconds + 's';
                             $progress.removeClass('iwp__progress--running');
                             $btn.text('Complete');
                             document.title = "Complete";

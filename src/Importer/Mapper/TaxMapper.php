@@ -94,7 +94,10 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 				}
 			}
 
-			$this->ID = wp_insert_term( $term, $taxonomy, $args );
+			// returns array('term_id' => #, 'taxonomy_id' => #)
+			$insert = wp_insert_term( $term, $taxonomy, $args );
+
+			$this->ID = $insert['term_id'];
 
 			if(!is_wp_error($this->ID) && intval($this->ID) > 0 && !empty($custom_fields)){
 				foreach($custom_fields as $meta_key => $meta_value) {
@@ -102,7 +105,7 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 				}
 			}
 
-			$this->add_version_tag();
+			$this->update_version_tag();
 			$all_fields['ID'] = $fields['ID'] = $this->ID;
 			$this->logImport($all_fields, 'insert', 'taxonomy');
 			$data->update( $fields );
@@ -156,6 +159,7 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 			}
 		}
 
+		// returns array('term_id' => #, 'taxonomy_id' => #)
 		$result = wp_update_term( $this->ID, $taxonomy, $args );
 		if(!is_wp_error($result)){
 			$all_fields['ID'] = $fields['ID'] = $this->ID;
@@ -246,9 +250,15 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 			)
 		));
 
+		$status           = IWP_Status::read_file( $importer_id, $version );
+		$status['delete'] = isset($status['delete']) ? intval($status['delete']) : 0;
+
 		if(!empty($tax_query)){
 			foreach($tax_query as $term){
-				wp_delete_term($term->term_id, $term->taxonomy);
+				$res = wp_delete_term($term->term_id, $term->taxonomy);
+
+				$status['delete']++;
+				IWP_Status::write_file( $status, $importer_id, $version );
 			}
 		}
 	}

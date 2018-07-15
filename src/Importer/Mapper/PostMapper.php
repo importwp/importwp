@@ -534,11 +534,17 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			'update_post_meta_cache' => false,
 		) );
 
+		$status           = IWP_Status::read_file( $importer_id, $version );
+		$status['delete'] = isset($status['delete']) ? intval($status['delete']) : 0;
+
 		// delete list of objects
 		if ( $q->have_posts() ) {
 			$ids = $q->posts;
 			foreach ( $ids as $id ) {
 				wp_delete_post( $id, true );
+
+				$status['delete']++;
+				IWP_Status::write_file( $status, $importer_id, $version );
 			}
 		}
 
