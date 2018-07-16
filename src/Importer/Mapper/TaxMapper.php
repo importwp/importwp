@@ -32,7 +32,7 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 
 		// escape if required fields are not entered
 		if(false === $taxonomy || ( false === $term && false === $slug && false === $term_id)){
-			return;
+			return false;
 		}
 
 		if(!empty($term_id)){
@@ -96,6 +96,9 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 
 			// returns array('term_id' => #, 'taxonomy_id' => #)
 			$insert = wp_insert_term( $term, $taxonomy, $args );
+			if(is_wp_error($insert)){
+				return $insert;
+			}
 
 			$this->ID = $insert['term_id'];
 
@@ -167,7 +170,7 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 			$this->update_version_tag();
 			$data->update( $fields );
 		}
-		return $result;
+		return $this->ID;
 	}
 
 	public function delete( \ImportWP\Importer\ParsedData $data ) {
