@@ -6,5 +6,5 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-	'ImportWP\\' => array( $vendorDir . '/jclabs/importwp/src' ),
+    'ImportWP\\' => array($vendorDir . '/jclabs/importwp/src'),
 );

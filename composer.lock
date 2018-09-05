@@ -1,18 +1,19 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3d6c8cf3bc96b4513d4033e26e776ce0",
+    "content-hash": "df00f728dee6522b491ed86d2198ef3c",
     "packages": [
         {
             "name": "jclabs/importwp",
             "version": "dev-dev",
-            "source": {
-                "type": "git",
-                "url": "git@bitbucket.org:jcollings89/importwp-importer.git",
-                "reference": "ab967f2a699d33bd95bbb742cf2281461defaef5"
+            "dist": {
+                "type": "path",
+                "url": "/importwp-importer",
+                "reference": "ab967f2a699d33bd95bbb742cf2281461defaef5",
+                "shasum": null
             },
             "require": {
                 "php": ">=5.2.4"
@@ -34,7 +35,9 @@
                 }
             ],
             "description": "CSV and XML Importer",
-            "time": "2018-04-24T22:03:02+00:00"
+            "transport-options": {
+                "symlink": false
+            }
         }
     ],
     "packages-dev": [],

@@ -6,28 +6,4 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'ImportWP\\Importer' => $vendorDir . '/jclabs/importwp/src/Importer.php',
-    'ImportWP\\Importer\\ConfigInterface' => $vendorDir . '/jclabs/importwp/src/Importer/ConfigInterface.php',
-    'ImportWP\\Importer\\Config\\Config' => $vendorDir . '/jclabs/importwp/src/Importer/Config/Config.php',
-    'ImportWP\\Importer\\DataParser' => $vendorDir . '/jclabs/importwp/src/Importer/DataParser.php',
-    'ImportWP\\Importer\\EventHandler' => $vendorDir . '/jclabs/importwp/src/Importer/EventHandler.php',
-    'ImportWP\\Importer\\Exception\\MapperException' => $vendorDir . '/jclabs/importwp/src/Importer/Exception/MapperException.php',
-    'ImportWP\\Importer\\Exception\\ParserException' => $vendorDir . '/jclabs/importwp/src/Importer/Exception/ParserException.php',
-    'ImportWP\\Importer\\FileInterface' => $vendorDir . '/jclabs/importwp/src/Importer/FileInterface.php',
-    'ImportWP\\Importer\\File\\AbstractFile' => $vendorDir . '/jclabs/importwp/src/Importer/File/AbstractFile.php',
-    'ImportWP\\Importer\\File\\AbstractIndexedFile' => $vendorDir . '/jclabs/importwp/src/Importer/File/AbstractIndexedFile.php',
-    'ImportWP\\Importer\\File\\CSVFile' => $vendorDir . '/jclabs/importwp/src/Importer/File/CSVFile.php',
-    'ImportWP\\Importer\\File\\XMLFile' => $vendorDir . '/jclabs/importwp/src/Importer/File/XMLFile.php',
-    'ImportWP\\Importer\\IndexedFileInterface' => $vendorDir . '/jclabs/importwp/src/Importer/IndexedFileInterface.php',
-    'ImportWP\\Importer\\MapperInterface' => $vendorDir . '/jclabs/importwp/src/Importer/MapperInterface.php',
-    'ImportWP\\Importer\\ParsedData' => $vendorDir . '/jclabs/importwp/src/Importer/ParsedData.php',
-    'ImportWP\\Importer\\ParserInterface' => $vendorDir . '/jclabs/importwp/src/Importer/ParserInterface.php',
-    'ImportWP\\Importer\\Parser\\AbstractParser' => $vendorDir . '/jclabs/importwp/src/Importer/Parser/AbstractParser.php',
-    'ImportWP\\Importer\\Parser\\CSVParser' => $vendorDir . '/jclabs/importwp/src/Importer/Parser/CSVParser.php',
-    'ImportWP\\Importer\\Parser\\XMLParser' => $vendorDir . '/jclabs/importwp/src/Importer/Parser/XMLParser.php',
-    'ImportWP\\Importer\\PreviewInterface' => $vendorDir . '/jclabs/importwp/src/Importer/PreviewInterface.php',
-    'ImportWP\\Importer\\Preview\\CSVPreview' => $vendorDir . '/jclabs/importwp/src/Importer/Preview/CSVPreview.php',
-    'ImportWP\\Importer\\Preview\\XMLNodePreview' => $vendorDir . '/jclabs/importwp/src/Importer/Preview/XMLNodePreview.php',
-    'ImportWP\\Importer\\Preview\\XMLPreview' => $vendorDir . '/jclabs/importwp/src/Importer/Preview/XMLPreview.php',
-    'ImportWP\\Importer\\TemplateInterface' => $vendorDir . '/jclabs/importwp/src/Importer/TemplateInterface.php',
 );

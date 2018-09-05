@@ -10,8 +10,11 @@
   ],
   "repositories": [
     {
-      "type": "vcs",
-      "url": "git@bitbucket.org:jcollings89/importwp-importer.git"
+      "type": "path",
+      "url": "/importwp-importer",
+      "options": {
+        "symlink": false
+      }
     }
   ],
   "require": {
