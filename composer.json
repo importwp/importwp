@@ -18,7 +18,7 @@
     }
   ],
   "require": {
-    "jclabs/importwp": "@dev"
+    "jclabs/importwp": "@master"
   },
   "require-dev": {}
 }

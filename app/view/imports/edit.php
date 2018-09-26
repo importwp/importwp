@@ -309,7 +309,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 									echo JCI_FormHelper::text( 'field[' . $group_id . '][' . $key . ']', array(
 										'label'   => $title,
 										'tooltip' => $tooltip,
-										'default' => $value,
+										'default' => esc_attr($value),
 										'class'   => 'xml-drop jci-group',
 										'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
 										'data'    => array(

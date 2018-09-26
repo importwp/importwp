@@ -158,7 +158,10 @@
   clear: left;
   display: block;
   margin-left: 131px;
-  color: #999; }
+  color: #999;
+  word-break: break-word;
+  max-height: 100px;
+  overflow: auto; }
 
 #preview-record {
   width: 50px; }

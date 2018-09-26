@@ -254,7 +254,7 @@ class JC_Importer_Ajax {
 				// process list of data maps
 				foreach ( $map as $map_row ) {
 
-					$map_val   = $map_row['map'];
+					$map_val   = stripslashes($map_row['map']);
 					$map_field = $map_row['field'];
 
 					if ( $map_val == "" ) {
@@ -268,7 +268,7 @@ class JC_Importer_Ajax {
 				if(!empty($results)) {
 					foreach ( $map as $map_row ) {
 
-						$map_val   = $map_row['map'];
+						$map_val   = stripslashes($map_row['map']);
 						$map_field = $map_row['field'];
 
 						if ( $map_val == "" ) {
@@ -281,7 +281,7 @@ class JC_Importer_Ajax {
 
 			}else{
 				$map_field    = isset( $_POST['field'] ) ? $_POST['field'] : '';
-				$map_val = $map;
+				$map_val = stripslashes($map);
 
 
 				$results = $record->queryGroup( [ 'fields' => [ $map_field => $map_val]]);
