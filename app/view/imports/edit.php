@@ -266,9 +266,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
             <div id="jci-preview-block" class="postbox-container jci-sidebar">
 
 				<?php
-				if ( $total_rows > 0 ) {
-					include $this->config->get_plugin_dir() . '/app/view/elements/preview_block.php';
-				}
+                include $this->config->get_plugin_dir() . '/app/view/elements/preview_block.php';
 				?>
 
             </div><!-- /#jci-preview-block -->

@@ -78,7 +78,7 @@ $jci_template_type = $jcimporter->importer->template_type;
                                 $('#preview-loading').show();
                             },
                             complete: function () {
-                                $('#preview-loading').hide();
+                                clearLoading();
                             },
                             success: function (response) {
 
@@ -133,7 +133,7 @@ $jci_template_type = $jcimporter->importer->template_type;
                             $('.preview-text').text('Loading...');
                         },
                         complete: function () {
-                            $('#preview-loading').hide();
+                            clearLoading();
                         },
                         success: function (response) {
 
@@ -145,6 +145,15 @@ $jci_template_type = $jcimporter->importer->template_type;
                                     }
                                 })
                             });
+                        }
+                    });
+                }
+
+                function clearLoading(){
+                    $('#preview-loading').hide();
+                    $('.xml-drop input').each(function () {
+                        if ($(this).val() ===  '') {
+                            $(this).parent().find('.preview-text').text('Preview: ');
                         }
                     });
                 }
