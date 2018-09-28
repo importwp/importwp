@@ -67,6 +67,12 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 
 == Changelog ==
 
+= 1.0.1 - 28/09/2018 =
+
+* FIX - multiple XML import issues
+* FIX - import display to show error total
+* FIX - Preview block to hide loading text if no value
+
 = 1.0 - 29/04/2018 =
 
 * Integrated new and improved XML and CSV importers
