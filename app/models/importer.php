@@ -318,7 +318,7 @@ class ImporterModel {
 				$row_count = $file->getRecordCount();
 
 			}else{
-				$base = isset($_POST['general_base']) ? $_POST['general_base'] : '';
+				$base = isset($_POST['jc-importer_parser_settings']) && isset($_POST['jc-importer_parser_settings']['import_base']) ? $_POST['jc-importer_parser_settings']['import_base'] : '';
 				$file = new \ImportWP\Importer\File\XMLFile($filepath);
 				$file->setRecordPath($base);
 				$row_count = $file->getRecordCount();

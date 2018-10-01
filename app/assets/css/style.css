@@ -279,6 +279,10 @@
   height: 0;
   width: 0; }
 
+.jci-group.select select {
+  width: 160px;
+  max-width: 160px; }
+
 .jci-left {
   float: left; }
 
