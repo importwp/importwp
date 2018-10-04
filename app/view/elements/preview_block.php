@@ -4,7 +4,6 @@
  *
  * @todo ammend to work with multiple groups, currently only works with one
  */
-
 $jci_template_type = $jcimporter->importer->template_type;
 ?>
 <div id="postimagediv" class="postbox">
@@ -19,42 +18,30 @@ $jci_template_type = $jcimporter->importer->template_type;
                                                                                                            title="View Next Record">&raquo;</a>
         <script type="text/javascript">
             jQuery(function ($) {
-
                 var preview_record = $('#preview-record');
                 var min_record = 1;
-                var max_record = <?php echo $jcimporter->importer->get_total_rows(); ?>;
-
                 $('#prev-record').click(function () {
-
-                    val = parseInt(preview_record.val());
+                    var val = parseInt(preview_record.val());
                     if (val - 1 >= min_record) {
                         preview_record.val(val - 1);
                         preview_record.trigger('change');
                     }
                     return false;
                 });
-
                 $('#next-record').click(function () {
-
-                    val = parseInt(preview_record.val());
-                    if (val + 1 <= max_record) {
-                        preview_record.val(val + 1);
-                        preview_record.trigger('change');
-                    }
+                    var val = parseInt(preview_record.val());
+                    preview_record.val(val + 1);
+                    preview_record.trigger('change');
                     return false;
                 });
-
                 // new record preview
                 $(document).on('change', '.xml-drop input', function () {
-
                     var val = $(this).val();
                     var obj = $(this).parent();
                     var field = $(this).data('jci-field');
-
                     if (field === undefined) {
                         field = '';
                     }
-
                     if (val != '') {
                         $.ajax({
                             url: ajax_object.ajax_url,
@@ -69,7 +56,6 @@ $jci_template_type = $jcimporter->importer->template_type;
 								<?php else: ?>map: val,
                                 row: $('#preview-record').val()
 								<?php endif; ?>
-
                             },
                             dataType: 'json',
                             type: "POST",
@@ -81,28 +67,21 @@ $jci_template_type = $jcimporter->importer->template_type;
                                 clearLoading();
                             },
                             success: function (response) {
-
                                 $.each(response, function (index, value) {
                                     obj.find('.preview-text').text('Preview: ' + value[1]);
                                 });
-
                             }
                         });
                     } else {
                         obj.find('.preview-text').text('Preview:');
                     }
-
                 });
-
-
                 // change all inputs
                 function refreshPreview() {
                     var nodes = [];
                     var mappings = [];
-
                     $('.xml-drop input').each(function () {
-
-                        input_val = $(this).val();
+                        var input_val = $(this).val();
                         mappings.push({
                             map: input_val,
                             field: $(this).data('jci-field')
@@ -112,43 +91,43 @@ $jci_template_type = $jcimporter->importer->template_type;
                             nodes.push(input_val);
                         }
                     });
-
-                    $.ajax({
-                        url: ajax_object.ajax_url,
-                        data: {
-                            action: 'jc_preview_record',
-                            id: ajax_object.id,
-							<?php if($jci_template_type == 'xml'): ?>map: mappings,
-                            row: $('#preview-record').val(),
-                            general_base: $('#jc-importer_parser_settings-import_base').val(),
-                            group_base: $('input[id^="jc-importer_parser_settings-group-"]').val()
-							<?php else: ?>map: mappings,
-                            row: $('#preview-record').val()
-							<?php endif; ?>
-                        },
-                        dataType: 'json',
-                        type: "POST",
-                        beforeSend: function () {
-                            $('#preview-loading').show();
-                            $('.preview-text').text('Loading...');
-                        },
-                        complete: function () {
-                            clearLoading();
-                        },
-                        success: function (response) {
-
-                            $.each(response, function (index, value) {
-
-                                $('.xml-drop input').each(function () {
-                                    if ($(this).val() == value[0]) {
-                                        $(this).parent().find('.preview-text').text('Preview: ' + value[1]);
-                                    }
-                                })
-                            });
-                        }
-                    });
+                    if(nodes.length > 0) {
+                        $.ajax({
+                            url: ajax_object.ajax_url,
+                            data: {
+                                action: 'jc_preview_record',
+                                id: ajax_object.id,
+								<?php if($jci_template_type == 'xml'): ?>map: mappings,
+                                row: $('#preview-record').val(),
+                                general_base: $('#jc-importer_parser_settings-import_base').val(),
+                                group_base: $('input[id^="jc-importer_parser_settings-group-"]').val()
+								<?php else: ?>map: mappings,
+                                row: $('#preview-record').val()
+								<?php endif; ?>
+                            },
+                            dataType: 'json',
+                            type: "POST",
+                            beforeSend: function () {
+                                $('#preview-loading').show();
+                                $('.preview-text').text('Loading...');
+                            },
+                            complete: function () {
+                                clearLoading();
+                            },
+                            success: function (response) {
+                                $.each(response, function (index, value) {
+                                    $('.xml-drop input').each(function () {
+                                        if ($(this).val() == value[0]) {
+                                            $(this).parent().find('.preview-text').text('Preview: ' + value[1]);
+                                        }
+                                    })
+                                });
+                            }
+                        });
+                    }else{
+                        $('.preview-text').text('Preview:');
+                    }
                 }
-
                 function clearLoading(){
                     $('#preview-loading').hide();
                     $('.xml-drop input').each(function () {
@@ -157,40 +136,13 @@ $jci_template_type = $jcimporter->importer->template_type;
                         }
                     });
                 }
-
-                function getRecordCount() {
-                    $.ajax({
-                        url: ajax_object.ajax_url,
-                        data: {
-                            action: 'jc_record_total',
-                            id: ajax_object.id,
-							<?php if($jci_template_type == 'xml'): ?>general_base: $('#jc-importer_parser_settings-import_base').val()
-							<?php endif; ?>
-                        },
-                        dataType: 'json',
-                        type: "POST",
-                        success: function (response) {
-
-                            max_record = response;
-                            if (max_record < $('#preview-record').val()) {
-                                $('#preview-record').val(max_record);
-                            }
-                        }
-                    })
-                }
-
-                getRecordCount();
-
                 $('#preview-record').change('change', function () {
                     refreshPreview();
                 });
-
 				<?php if($jci_template_type == 'xml'): ?>$('#jc-importer_parser_settings-import_base, input[id^="jc-importer_parser_settings-group-"]').on('change', function () {
                     refreshPreview();
-                    getRecordCount();
                 });
 				<?php endif; ?>
-
                 $('#preview-record').val($('#jc-importer_start-line').val());
                 $('#preview-record').trigger('change');
             });

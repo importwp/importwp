@@ -399,6 +399,12 @@ class JC_Importer_Admin {
 				// $version = get_post_meta( $id, '_import_version', true );
 				// ImporterModel::setImportVersion($id, $version + 1);
 
+				// Delete edit screen config file
+				$config_file = JCI()->get_tmp_config_path($id);
+				if(file_exists($config_file)){
+					unlink($config_file);
+				}
+
 				wp_redirect( admin_url( 'admin.php?page=jci-importers&import=' . $id . '&action=edit' ) );
 				exit();
 			}

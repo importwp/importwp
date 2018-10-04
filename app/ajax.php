@@ -67,8 +67,9 @@ class JC_Importer_Ajax {
 
 		$file = ImporterModel::getImportSettings( $importer_id, 'import_file' );
 
-		$config_file = tempnam(sys_get_temp_dir(), 'config');
+		$config_file = JCI()->get_tmp_config_path($importer_id);
 		$config = new \ImportWP\Importer\Config\Config($config_file);
+
 		$xml_file = new \ImportWP\Importer\File\XMLFile($file, $config);
 		$xml = new \ImportWP\Importer\Preview\XMLPreview($xml_file, $base_node);
 
@@ -86,14 +87,15 @@ class JC_Importer_Ajax {
 		$post_id = intval( $_GET['importer_id'] );
 		$type    = isset( $_GET['type'] ) ? $_GET['type'] : '';
 
+		$config_file = JCI()->get_tmp_config_path($post_id);
+		$config = new \ImportWP\Importer\Config\Config($config_file);
+
 		switch ( $type ) {
 			case 'xml':
 
 				$base_node = isset( $_GET['base'] ) ? $_GET['base'] : '';
 				$file      = ImporterModel::getImportSettings( $post_id, 'import_file' );
 
-				$config_file = tempnam(sys_get_temp_dir(), 'config');
-				$config = new \ImportWP\Importer\Config\Config($config_file);
 				$xml_file = new \ImportWP\Importer\File\XMLFile( $file, $config );
 				$xml = new \ImportWP\Importer\Preview\XMLPreview( $xml_file, $base_node );
 
@@ -125,8 +127,6 @@ class JC_Importer_Ajax {
 					$csv_enclosure = '"';
 				}
 
-				$config_file = tempnam(sys_get_temp_dir(), 'config');
-				$config = new \ImportWP\Importer\Config\Config($config_file);
 				$csv_file = new \ImportWP\Importer\File\CSVFile($file, $config);
 				$csv_file->setDelimiter($csv_delimiter);
 				$csv_file->setEnclosure($csv_enclosure);
@@ -168,8 +168,9 @@ class JC_Importer_Ajax {
 		// 
 		$file = ImporterModel::getImportSettings( $post_id, 'import_file' );
 
-		$config_file = tempnam(sys_get_temp_dir(), 'config');
+		$config_file = JCI()->get_tmp_config_path($post_id);
 		$config = new \ImportWP\Importer\Config\Config($config_file);
+
 		$xml_file = new \ImportWP\Importer\File\XMLFile( $file, $config );
 		$xml = new \ImportWP\Importer\Preview\XMLPreview( $xml_file, $base_node );
 		$nodes = $xml_file->get_node_list();
@@ -209,9 +210,12 @@ class JC_Importer_Ajax {
 		JCI()->importer    = new JC_Importer_Core( $importer_id );
 		$result            = array();
 
+		$config_file = JCI()->get_tmp_config_path($importer_id);
+		$config = new \ImportWP\Importer\Config\Config($config_file);
+
 		if(JCI()->importer->get_template_type() === 'csv'){
 
-			$file = new \ImportWP\Importer\File\CSVFile(JCI()->importer->get_file());
+			$file = new \ImportWP\Importer\File\CSVFile(JCI()->importer->get_file(), $config);
 
 			$csv_delimiter = ImporterModel::getImporterMetaArr( JCI()->importer->get_ID(), array(
 				'_parser_settings',
@@ -238,7 +242,7 @@ class JC_Importer_Ajax {
 
 		}else{
 			$base = isset($_POST['general_base']) ? $_POST['general_base'] : '';
-			$file = new \ImportWP\Importer\File\XMLFile(JCI()->importer->get_file());
+			$file = new \ImportWP\Importer\File\XMLFile(JCI()->importer->get_file(), $config);
 			$file->setRecordPath($base);
 			$parser = new \ImportWP\Importer\Parser\XMLParser($file);
 		}
@@ -305,20 +309,12 @@ class JC_Importer_Ajax {
 		$importer_id = $_POST['id'];
 		JCI()->importer = new JC_Importer_Core( $importer_id );
 
-		$config_file = tempnam(sys_get_temp_dir(), 'config');
-		$config = new \ImportWP\Importer\Config\Config($config_file);
-
-		if(JCI()->importer->get_template_type() === 'csv'){
-
-			$file = new \ImportWP\Importer\File\CSVFile(JCI()->importer->get_file());
-			$result = $file->getRecordCount();
-
-		}else{
+		if(JCI()->importer->get_template_type() === 'xml'){
 			$base = isset($_POST['general_base']) ? $_POST['general_base'] : '';
-			$file = new \ImportWP\Importer\File\XMLFile(JCI()->importer->get_file());
-			$file->setRecordPath($base);
-			$result = $file->getRecordCount();
+			JCI()->importer->addon_settings['import_base'] = $base;
 		}
+
+		$result = JCI()->importer->get_total_rows();
 
 		echo json_encode( $result );
 		die();

@@ -13,7 +13,7 @@ $permissions_general  = $jcimporter->importer->get_permissions();
 $taxonomies           = $jcimporter->importer->get_taxonomies();
 $taxonomy_permissions = $jcimporter->importer->get_taxonomies_permissions();
 $attachments          = $jcimporter->importer->get_attachments();
-$total_rows = $jcimporter->importer->get_total_rows();
+$total_rows = 0;//$jcimporter->importer->get_total_rows();
 $last_import_row = $jcimporter->importer->get_last_import_row();
 ?>
 

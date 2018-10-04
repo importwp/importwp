@@ -243,6 +243,7 @@ class JC_Importer_Core {
 					$status['status'] = 'timeout';
 					break;
 				case 'started':
+					$this->get_total_rows(true, true);
 					break;
 				default:
 					if ( 'error' === $status['status'] ) {
@@ -399,33 +400,29 @@ class JC_Importer_Core {
 	 * Get file record count
 	 * @return int
 	 */
-	public function get_total_rows() {
+	public function get_total_rows($skip_cache = false, $is_live = false) {
+		$meta = get_post_meta( $this->get_ID(), sprintf( '_total_rows_%d', $this->get_version() ), true );
+		if ( $skip_cache === true){ // || $this->total_rows === - 1 ) {
 
-		if ( $this->total_rows === - 1 ) {
-			$meta = get_post_meta( $this->get_ID(), sprintf( '_total_rows_%d', $this->get_version() ), true );
-			if ( empty( $meta ) ) {
-
-				$config_file = tempnam(sys_get_temp_dir(), 'config');
-				$config = new \ImportWP\Importer\Config\Config($config_file);
-
-				if($this->get_template_type() === 'csv'){
-
-					$file = new \ImportWP\Importer\File\CSVFile($this->get_file(), $config);
-					$this->total_rows = $file->getRecordCount();
-
-				}else{
-					$base = $this->addon_settings['import_base'];
-					$file = new \ImportWP\Importer\File\XMLFile($this->get_file(), $config);
-					$file->setRecordPath($base);
-					$this->total_rows = $file->getRecordCount();
-				}
-
-				update_post_meta( $this->get_ID(), sprintf( '_total_rows_%d', $this->get_version() ), $this->total_rows );
-			} else {
-				$this->total_rows = intval( $meta );
+			$config_file = JCI()->get_tmp_config_path($this->get_ID());
+			if(true === $is_live){
+				$config_file = JCI()->get_tmp_dir() . DIRECTORY_SEPARATOR . sprintf('config-%d-%d.json', $this->get_ID(), $this->get_version());
 			}
-		}
 
+			$config = new \ImportWP\Importer\Config\Config($config_file);
+			if($this->get_template_type() === 'csv'){
+				$file = new \ImportWP\Importer\File\CSVFile($this->get_file(), $config);
+				$this->total_rows = $file->getRecordCount();
+			}else{
+				$base = $this->addon_settings['import_base'];
+				$file = new \ImportWP\Importer\File\XMLFile($this->get_file(), $config);
+				$file->setRecordPath($base);
+				$this->total_rows = $file->getRecordCount();
+			}
+			update_post_meta( $this->get_ID(), sprintf( '_total_rows_%d', $this->get_version() ), $this->total_rows );
+		} else {
+			$this->total_rows = intval( $meta );
+		}
 		return $this->total_rows;
 	}
 
@@ -515,11 +512,6 @@ class JC_Importer_Core {
 
 	public function run_import( $row = null, $session = false, $per_row = 1 ) {
 
-		// Get Start and End
-		$info        = $this->get_import_info( $row, $per_row );
-		$start = $info['start']-1;
-		$end   = $info['end']-1;
-
 		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_complete', array($this, 'on_record_complete'));
 		\ImportWP\Importer\EventHandler::instance()->listen('importer.before_mapper', array($this, 'on_before_mapper'));
 		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_exception', array($this, 'on_record_exception'));
@@ -533,7 +525,7 @@ class JC_Importer_Core {
 		$config_setup = !file_exists($config_file) ? true : false;
 		$config = new \ImportWP\Importer\Config\Config($config_file);
 
-		if($config_setup === true) {
+		if($config_setup === true || !$config->get('fields')) {
 
 			// TEMPLATE FIELDS
 			$template_field_group = $this->template->get_template_group_id();
@@ -578,6 +570,11 @@ class JC_Importer_Core {
 
 			$config->set('data', $import_data);
 		}
+
+		// Get Start and End
+		$info        = $this->get_import_info( $row, $per_row );
+		$start = $info['start']-1;
+		$end   = $info['end']-1;
 
 		// load parser
 		if($this->template_type === 'xml'){

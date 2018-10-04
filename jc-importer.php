@@ -368,6 +368,10 @@ class JC_Importer {
 	public function text() {
 		return $this->text;
 	}
+
+	public function get_tmp_config_path($id){
+		return JCI()->get_tmp_dir() . DIRECTORY_SEPARATOR . sprintf('temp-config-%d.json', $id);
+	}
 }
 
 /**
