@@ -153,11 +153,9 @@ $jci_template_type = $jcimporter->importer->template_type;
 				<?php endif; ?>
                 $('#preview-record').val($('#jc-importer_start-line').val());
 
-                $(document).ready(function(){
-                    window.iwp.onProcessComplete.add(function(){
-                        console.log('load preview');
-                        $('#preview-record').trigger('change');
-                    });
+                window.iwp.onProcessComplete.add(function(){
+                    console.log('load preview');
+                    $('#preview-record').trigger('change');
                 });
             });
         </script>
