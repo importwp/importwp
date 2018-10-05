@@ -1,51 +1,61 @@
-(function($, window){
+(function($, window, settings){
 
     // global iwp
     window.iwp = window.iwp || {
 
-        isProcessed: false,
+        isProcessed: (settings.processed === 'yes'),
 
         init: function(){
             console.log('iwp.init');
             console.log('iwp.isProcessing', this.isProcessed);
 
-            if(this.isProcessed === false){
+            if(this.isProcessed === false) {
+
+                var self = this;
                 $('#processing').show();
+
+                $.ajax({
+                    url: ajax_object.ajax_url,
+                    data: {
+                        action: 'iwp_process',
+                        id: ajax_object.id,
+                    },
+                    dataType: 'json',
+                    type: "POST",
+                    beforeSend: function () {
+                        $('#poststuff').fadeOut();
+                    },
+                    complete: function () {
+
+                    },
+                    success: function (response) {
+                        self.isProcessed = true;
+                        $('#processing p').text('File Processed Successfully.');
+                        $('#processing .preview-loading').hide();
+                        $('#poststuff').fadeIn();
+                        console.log('SUCCESS');
+                        self.onProcessComplete.run(self);
+
+                        // hide message after a period of time
+                        setTimeout(function(){
+                            $('#processing').slideUp();
+                        }, 2000);
+                    },
+                    error: function (e) {
+                        $('#processing').hide();
+                        iwp.onError('An Error has occurred when processing your file, ' + JSON.parse(e.responseText).data.error.message);
+                    }
+                });
+            }else{
+                this.onProcessComplete.run(this);
             }
-
-            var self = this;
-
-            $.ajax({
-                url: ajax_object.ajax_url,
-                data: {
-                    action: 'iwp_process',
-                    id: ajax_object.id,
-                },
-                dataType: 'json',
-                type: "POST",
-                beforeSend: function () {
-
-                },
-                complete: function () {
-
-                },
-                success: function (response) {
-                    self.isProcessed = true;
-                    $('#processing').hide();
-                    self.onProcessComplete.run(self);
-                },
-                error: function(e){
-                    iwp.onError(e);
-                }
-            });
         },
         ready: function(){
             console.log('iwp.ready');
             console.log('iwp.isProcessing', this.isProcessed);
         },
         onError: function(e){
-            console.log('iwp.error', e);
-
+            $('#ajaxResponse').html('<div class="error_msg warn error below-h2"><p>'+e+'</p></div>');
         },
         onProcessComplete: {
             callbacks: [],
@@ -64,4 +74,4 @@
         window.iwp.init();
     });
 
-})(jQuery, window);
+})(jQuery, window, iwp_settings);

@@ -2,10 +2,11 @@
 /**
  * Preview xml selection from currently selected base node
  */
+$output = $xml->output();
 ?>
 <div id="treeView">
 	<?php
-	echo $xml->output();
+	echo $output;
 	?>
 </div>
 

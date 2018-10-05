@@ -33,9 +33,9 @@
         <div class="jci-right">
             <a class="button-primary jci-select-node">Submit</a>
         </div>
-        <!--<div class="jci-right">
+        <div class="jci-right">
             <p>Total Records: <span id="jci-record-count"></span></p>
-        </div>-->
+        </div>
     </div>
 
     <script type="text/javascript">
@@ -66,9 +66,11 @@
 
                 $.post(ajax_object.ajax_url, data, function (xml) {
 
-                    $('#jci-node-select-preview').html(xml);
+                    $('#jci-node-select-preview').html(xml.data);
                 }).always(function () {
                     $('.jci-node-select .preview-loading').hide();
+                }).fail(function(e){
+                    $('#jci-node-select-preview').html('<p>An error has occurred when choosing a base node: '+e.responseJSON.data.error.message + '</p>' );
                 });
 
                 // get max amount of records which chosen base node
@@ -77,20 +79,20 @@
                 }
 
                 // Remove Record count
-                // $.ajax({
-                //     url: ajax_object.ajax_url,
-                //     data: {
-                //         action: 'jc_record_total',
-                //         id: ajax_object.id,
-                //         general_base: output_base_node
-                //     },
-                //     dataType: 'json',
-                //     type: "POST",
-                //     success: function (response) {
-                //
-                //         $('#jci-record-count').text(response);
-                //     }
-                // })
+                $.ajax({
+                    url: ajax_object.ajax_url,
+                    data: {
+                        action: 'jc_record_total',
+                        id: ajax_object.id,
+                        general_base: output_base_node
+                    },
+                    dataType: 'json',
+                    type: "POST",
+                    success: function (response) {
+
+                        $('#jci-record-count').text(response);
+                    }
+                })
             });
 
             $('a.jci-select-node').click(function (event) {

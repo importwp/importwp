@@ -305,7 +305,8 @@
     height: 280px;
     background: #fcfcfc; }
   .jci-node-select #jci-node-selector {
-    float: right; }
+    float: right;
+    max-width: 200px; }
   .jci-node-select #jci-record-count {
     font-weight: bold; }
   .jci-node-select .jci-heading .jci-left {

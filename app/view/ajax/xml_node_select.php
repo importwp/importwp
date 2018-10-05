@@ -1,3 +1,6 @@
+<?php
+$output = $xml->output();
+?>
 <script type="text/javascript">
     jQuery(document).ready(function ($) {
         $.fn.nodeSelect('<?php echo $base_node; ?>');
@@ -6,7 +9,7 @@
 
 <div id="treeView">
 	<?php
-	echo $xml->output();
+	echo $output;
 	?>
 </div>
 

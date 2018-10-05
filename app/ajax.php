@@ -7,6 +7,8 @@ class JC_Importer_Ajax {
 	private $_curr_row = 0;
 	private $_results = array();
 
+	private $error_on_shutdown;
+
 	public function __construct( &$config ) {
 		$this->_config = $config;
 
@@ -21,6 +23,27 @@ class JC_Importer_Ajax {
 
 		// preview xml base node
 		add_action( 'wp_ajax_jc_preview_xml_base_bode', array( $this, 'admin_ajax_preview_xml_node' ) );
+	}
+
+	public function get_last_error(){
+
+		if(false === $this->error_on_shutdown){
+			return;
+		}
+
+		$last_error = error_get_last();
+		wp_send_json_error(array('error' => $last_error));
+	}
+
+	private function start_request(){
+		$this->error_on_shutdown = true;
+		register_shutdown_function(array($this, 'get_last_error'));
+	}
+
+	private function end_request($result = null){
+		$this->error_on_shutdown = false;
+		wp_send_json_success($result);
+		die();
 	}
 
 	public function enqueue_ajax_import() {
@@ -63,6 +86,8 @@ class JC_Importer_Ajax {
 	 */
 	public function admin_ajax_preview_xml_node() {
 
+		$this->start_request();
+
 		$importer_id = intval( $_POST['id'] );
 		$base_node   = $_POST['base'];
 
@@ -74,8 +99,11 @@ class JC_Importer_Ajax {
 		$xml_file = new \ImportWP\Importer\File\XMLFile($file, $config);
 		$xml = new \ImportWP\Importer\Preview\XMLPreview($xml_file, $base_node);
 
+		ob_start();
 		require_once $this->_config->get_plugin_dir() . 'app/view/ajax/xml_node_preview.php';
-		die();
+		$contents = ob_get_clean();
+
+		$this->end_request($contents);
 	}
 
 	/**
@@ -334,6 +362,9 @@ class JC_Importer_Ajax {
 
 		set_time_limit(0);
 
+		// enable error handler
+		$this->start_request();
+
 		$importer_id = $_POST['id'];
 		JCI()->importer = new JC_Importer_Core( $importer_id );
 
@@ -341,16 +372,16 @@ class JC_Importer_Ajax {
 		$config = new \ImportWP\Importer\Config\Config( $config_file );
 		if( $config->get('processed') !== true ) {
 
-			$file = JCI()->importer->get_file();
+			$file_path = JCI()->importer->get_file();
 			if(JCI()->importer->get_template_type() === 'xml'){
 
 				// generate node list
-				$file = new \ImportWP\Importer\File\XMLFile( JCI()->importer->get_file(), $config );
+				$file = new \ImportWP\Importer\File\XMLFile( $file_path, $config );
 				$file->get_node_list();
 
 				// generate indices for current basepath
 				$base = JCI()->importer->addon_settings['import_base'];
-				$file = new \ImportWP\Importer\File\XMLFile( JCI()->importer->get_file(), $config );
+				$file = new \ImportWP\Importer\File\XMLFile( $file_path, $config );
 				$file->setRecordPath($base);
 				$file->getRecordCount();
 
@@ -363,8 +394,8 @@ class JC_Importer_Ajax {
 			}
 		}
 
-		wp_send_json_success();
-		die();
+		// output and disable error handler
+		$this->end_request();
 	}
 }
 

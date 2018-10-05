@@ -103,7 +103,21 @@ class JC_Importer_Admin {
 		if(isset($_GET['action'])){
 			switch($_GET['action']){
 				case 'edit':
+
+					$importer_id = $_GET['import'];
+					$config_file = JCI()->get_tmp_config_path($importer_id);
+					$config = new \ImportWP\Importer\Config\Config( $config_file );
+
 					wp_enqueue_script('importer-edit', trailingslashit( $this->config->get_plugin_url() ) . 'app/assets/js/edit' . $ext . '.js', array('jquery'), $version);
+
+					$settings = array(
+						'processed' => 'no'
+					);
+					$processed = $config->get('processed');
+					if(true === $processed){
+						$settings['processed'] = 'yes';
+					}
+					wp_localize_script('importer-edit', 'iwp_settings', $settings);
 					break;
 			}
 		}
