@@ -21,7 +21,7 @@ class JC_Importer_Admin {
 		// add_action( 'admin_init', array($this, 'register_settings' ));
 		add_action( 'admin_menu', array( $this, 'settings_menu' ) );
 		add_action( 'wp_loaded', array( $this, 'process_forms' ) );
-		add_action( 'admin_init', array( $this, 'admin_enqueue_styles' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_styles' ) );
 
 		// ajax import
 //		add_action( 'wp_ajax_jc_import_row', array( $this, 'admin_ajax_import_row' ) );
@@ -86,6 +86,11 @@ class JC_Importer_Admin {
 
 	public function admin_enqueue_styles() {
 
+		$screen = get_current_screen();
+		if($screen->id !== 'toplevel_page_jci-importers'){
+			return;
+		}
+
 		$ext     = '.min';
 		$version = JCI()->get_version();
 		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
@@ -94,6 +99,14 @@ class JC_Importer_Admin {
 		}
 
 		wp_enqueue_style( 'jc-importer-style', trailingslashit( $this->config->get_plugin_url() ) . 'app/assets/css/style' . $ext . '.css', array(), $version );
+
+		if(isset($_GET['action'])){
+			switch($_GET['action']){
+				case 'edit':
+					wp_enqueue_script('importer-edit', trailingslashit( $this->config->get_plugin_url() ) . 'app/assets/js/edit' . $ext . '.js', array('jquery'), $version);
+					break;
+			}
+		}
 	}
 
 	public function settings_menu() {

@@ -309,7 +309,7 @@ class ImporterModel {
 				$filepath      = $wp_upload_dir['basedir'] . $file->src;
 			}
 
-			$config_file = tempnam(sys_get_temp_dir(), 'config');
+			$config_file = JCI()->get_tmp_config_path($post_id); // tempnam(sys_get_temp_dir(), 'config');
 			$config = new \ImportWP\Importer\Config\Config($config_file);
 
 			if($settings['template_type'] === 'csv'){
@@ -319,7 +319,7 @@ class ImporterModel {
 
 			}else{
 				$base = isset($_POST['jc-importer_parser_settings']) && isset($_POST['jc-importer_parser_settings']['import_base']) ? $_POST['jc-importer_parser_settings']['import_base'] : '';
-				$file = new \ImportWP\Importer\File\XMLFile($filepath);
+				$file = new \ImportWP\Importer\File\XMLFile($filepath, $config);
 				$file->setRecordPath($base);
 				$row_count = $file->getRecordCount();
 			}

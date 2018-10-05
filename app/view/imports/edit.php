@@ -26,6 +26,8 @@ $last_import_row = $jcimporter->importer->get_last_import_row();
 
 <div id="ajaxResponse"></div>
 
+<div id="processing" style="display: none;" class="error_msg warn error below-h2"><span class="spinner preview-loading" style="display: block; visibility: visible;"></span><p>Processing File</p></div>
+
 <?php
 jci_display_messages();
 

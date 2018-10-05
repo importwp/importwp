@@ -14,6 +14,7 @@ $debug_info = array(
 		'Php version'        => phpversion(),
 		'Max execution time' => ini_get( 'max_execution_time' ),
 		'Max input time'     => ini_get( 'max_input_time' ),
+        'Memory Limit'       => ini_get('memory_limit'),
 	),
 	'File Upload' => array(
 		'Post max size'       => ini_get( 'post_max_size' ),

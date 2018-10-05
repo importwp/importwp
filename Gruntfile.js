@@ -97,6 +97,7 @@ module.exports = function(grunt) {
             my_target: {
                 files: {
                     'app/assets/js/importer.min.js': ['app/assets/js/importer.js'],
+                    'app/assets/js/edit.min.js': ['app/assets/js/edit.js'],
                     'app/assets/js/main.min.js': ['app/assets/js/main.js'],
                     'app/assets/js/jquery-tipTip.min.js': ['app/assets/js/jquery-tipTip.js']
                 }

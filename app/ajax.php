@@ -11,6 +11,7 @@ class JC_Importer_Ajax {
 		$this->_config = $config;
 
 		add_action( 'wp_ajax_jc_base_node', array( $this, 'admin_ajax_base_node' ) );
+		add_action( 'wp_ajax_iwp_process', array( $this, 'process' ) );
 		add_action( 'wp_ajax_jc_preview_record', array( $this, 'admin_ajax_preview_record' ) );
 		add_action( 'wp_ajax_jc_record_total', array( $this, 'admin_ajax_record_count' ) );
 
@@ -161,6 +162,11 @@ class JC_Importer_Ajax {
 	public function admin_ajax_base_node() {
 
 		$post_id           = $_GET['importer_id'];
+		if(intval($post_id) <= 0){
+			http_response_code(404);
+			die();
+		}
+
 		$base_node         = isset( $_GET['base'] ) ? $_GET['base'] : '';
 		$current_base_node = isset( $_GET['current'] ) ? $_GET['current'] : 'choose-one';
 		$nodes             = array(); // array of nodes
@@ -211,90 +217,94 @@ class JC_Importer_Ajax {
 		$result            = array();
 
 		$config_file = JCI()->get_tmp_config_path($importer_id);
-		$config = new \ImportWP\Importer\Config\Config($config_file);
+		$config = new \ImportWP\Importer\Config\Config( $config_file );
+		if($config->get('processed') === true) {
 
-		if(JCI()->importer->get_template_type() === 'csv'){
+			if ( JCI()->importer->get_template_type() === 'csv' ) {
 
-			$file = new \ImportWP\Importer\File\CSVFile(JCI()->importer->get_file(), $config);
+				$file = new \ImportWP\Importer\File\CSVFile( JCI()->importer->get_file(), $config );
 
-			$csv_delimiter = ImporterModel::getImporterMetaArr( JCI()->importer->get_ID(), array(
-				'_parser_settings',
-				'csv_delimiter'
-			) );
-			$csv_enclosure = ImporterModel::getImporterMetaArr( JCI()->importer->get_ID(), array(
-				'_parser_settings',
-				'csv_enclosure'
-			) );
-			$csv_enclosure = stripslashes( $csv_enclosure );
+				$csv_delimiter = ImporterModel::getImporterMetaArr( JCI()->importer->get_ID(), array(
+					'_parser_settings',
+					'csv_delimiter'
+				) );
+				$csv_enclosure = ImporterModel::getImporterMetaArr( JCI()->importer->get_ID(), array(
+					'_parser_settings',
+					'csv_enclosure'
+				) );
+				$csv_enclosure = stripslashes( $csv_enclosure );
 
-			if ( empty( $csv_delimiter ) ) {
-				$csv_delimiter = ',';
-			}
-
-			if ( empty( $csv_enclosure ) ) {
-				$csv_enclosure = '"';
-			}
-
-			$file->setDelimiter($csv_delimiter);
-			$file->setEnclosure($csv_enclosure);
-
-			$parser = new \ImportWP\Importer\Parser\CSVParser($file);
-
-		}else{
-			$base = isset($_POST['general_base']) ? $_POST['general_base'] : '';
-			$file = new \ImportWP\Importer\File\XMLFile(JCI()->importer->get_file(), $config);
-			$file->setRecordPath($base);
-			$parser = new \ImportWP\Importer\Parser\XMLParser($file);
-		}
-
-		try {
-			$record = $parser->getRecord( $row - 1 );
-
-			if(is_array($map)){
-
-
-				$group = [];
-
-				// process list of data maps
-				foreach ( $map as $map_row ) {
-
-					$map_val   = stripslashes($map_row['map']);
-					$map_field = $map_row['field'];
-
-					if ( $map_val == "" ) {
-						continue;
-					}
-
-					$group[$map_field] = $map_val;
+				if ( empty( $csv_delimiter ) ) {
+					$csv_delimiter = ',';
 				}
 
-				$results = $record->queryGroup( [ 'fields' => $group]);
-				if(!empty($results)) {
+				if ( empty( $csv_enclosure ) ) {
+					$csv_enclosure = '"';
+				}
+
+				$file->setDelimiter( $csv_delimiter );
+				$file->setEnclosure( $csv_enclosure );
+
+				$parser = new \ImportWP\Importer\Parser\CSVParser( $file );
+
+			} else {
+				$base = isset( $_POST['general_base'] ) ? $_POST['general_base'] : '';
+				$file = new \ImportWP\Importer\File\XMLFile( JCI()->importer->get_file(), $config );
+				$file->setRecordPath( $base );
+				$parser = new \ImportWP\Importer\Parser\XMLParser( $file );
+			}
+
+			try {
+				$record = $parser->getRecord( $row - 1 );
+
+				if ( is_array( $map ) ) {
+
+
+					$group = [];
+
+					// process list of data maps
 					foreach ( $map as $map_row ) {
 
-						$map_val   = stripslashes($map_row['map']);
+						$map_val   = stripslashes( $map_row['map'] );
 						$map_field = $map_row['field'];
 
 						if ( $map_val == "" ) {
 							continue;
 						}
 
-						$result[] = array( $map_val, $results[ $map_field ] );
+						$group[ $map_field ] = $map_val;
 					}
+
+					$results = $record->queryGroup( [ 'fields' => $group ] );
+					if ( ! empty( $results ) ) {
+						foreach ( $map as $map_row ) {
+
+							$map_val   = stripslashes( $map_row['map'] );
+							$map_field = $map_row['field'];
+
+							if ( $map_val == "" ) {
+								continue;
+							}
+
+							$result[] = array( $map_val, $results[ $map_field ] );
+						}
+					}
+
+				} else {
+					$map_field = isset( $_POST['field'] ) ? $_POST['field'] : '';
+					$map_val   = stripslashes( $map );
+
+
+					$results = $record->queryGroup( [ 'fields' => [ $map_field => $map_val ] ] );
+
+					$result[] = array( $map_val, $results[ $map_field ] );
 				}
 
-			}else{
-				$map_field    = isset( $_POST['field'] ) ? $_POST['field'] : '';
-				$map_val = stripslashes($map);
+			} catch ( Exception $e ) {
 
-
-				$results = $record->queryGroup( [ 'fields' => [ $map_field => $map_val]]);
-
-				$result[] = array($map_val, $results[$map_field]);
 			}
-
-		}catch(Exception $e){
-
+		}else{
+			http_response_code(500);
 		}
 
 		echo json_encode( $result );
@@ -317,6 +327,43 @@ class JC_Importer_Ajax {
 		$result = JCI()->importer->get_total_rows();
 
 		echo json_encode( $result );
+		die();
+	}
+
+	public function process(){
+
+		set_time_limit(0);
+
+		$importer_id = $_POST['id'];
+		JCI()->importer = new JC_Importer_Core( $importer_id );
+
+		$config_file = JCI()->get_tmp_config_path($importer_id);
+		$config = new \ImportWP\Importer\Config\Config( $config_file );
+		if( $config->get('processed') !== true ) {
+
+			$file = JCI()->importer->get_file();
+			if(JCI()->importer->get_template_type() === 'xml'){
+
+				// generate node list
+				$file = new \ImportWP\Importer\File\XMLFile( JCI()->importer->get_file(), $config );
+				$file->get_node_list();
+
+				// generate indices for current basepath
+				$base = JCI()->importer->addon_settings['import_base'];
+				$file = new \ImportWP\Importer\File\XMLFile( JCI()->importer->get_file(), $config );
+				$file->setRecordPath($base);
+				$file->getRecordCount();
+
+				$config->set('processed', true);
+
+			}else{
+				$file = new \ImportWP\Importer\File\CSVFile( JCI()->importer->get_file(), $config );
+				$file->getRecordCount();
+				$config->set('processed', true);
+			}
+		}
+
+		wp_send_json_success();
 		die();
 	}
 }

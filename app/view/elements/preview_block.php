@@ -70,6 +70,10 @@ $jci_template_type = $jcimporter->importer->template_type;
                                 $.each(response, function (index, value) {
                                     obj.find('.preview-text').text('Preview: ' + value[1]);
                                 });
+                            },
+                            error: function(e){
+                                obj.find('.preview-text').text('Preview:');
+                                iwp.onError(e);
                             }
                         });
                     } else {
@@ -122,6 +126,10 @@ $jci_template_type = $jcimporter->importer->template_type;
                                         }
                                     })
                                 });
+                            },
+                            error: function(e){
+                                $('.preview-text').text('Preview:');
+                                iwp.onError(e);
                             }
                         });
                     }else{
@@ -144,7 +152,13 @@ $jci_template_type = $jcimporter->importer->template_type;
                 });
 				<?php endif; ?>
                 $('#preview-record').val($('#jc-importer_start-line').val());
-                $('#preview-record').trigger('change');
+
+                $(document).ready(function(){
+                    window.iwp.onProcessComplete.add(function(){
+                        console.log('load preview');
+                        $('#preview-record').trigger('change');
+                    });
+                });
             });
         </script>
     </div>
