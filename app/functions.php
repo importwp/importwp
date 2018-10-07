@@ -307,6 +307,26 @@ function iwp_output_pagination( $current = 1, $max_results, $per_page, $max_show
 	<?php endif;
 }
 
+function iwp_return_bytes($val) {
+	$val = trim($val);
+	$last = strtolower($val[strlen($val)-1]);
+	$val = intval($val);
+	switch($last) {
+		// The 'G' modifier is available since PHP 5.1.0
+		case 'g':
+			$val *= (1024 * 1024 * 1024); //1073741824
+			break;
+		case 'm':
+			$val *= (1024 * 1024); //1048576
+			break;
+		case 'k':
+			$val *= 1024;
+			break;
+	}
+
+	return $val;
+}
+
 /**
  * Fallback for pre WP 4.7 systems that dont have wp_doing_ajax function
  */

@@ -740,6 +740,41 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
                                 });
                             });
                         });
+
+                        /**
+                         * Limit file upload to server limit
+                         */
+                        jQuery(function ($) {
+                            var upload_limit = parseInt('<?php echo iwp_return_bytes( ini_get('upload_max_filesize') ); ?>');
+                            var human_upload_limit = '<?php echo ini_get('upload_max_filesize'); ?>';
+                            var $file_uploads = $('.jci-page-wrapper input[type="file"]');
+                            if($file_uploads.length > 0){
+
+                                $file_uploads.each(function(){
+
+                                    var $file_upload = $(this);
+                                    $file_upload.on('change', function () {
+
+                                        var $parent = $file_upload.closest('.input');
+                                        if (this.files[0].size > upload_limit) {
+
+                                            $parent.addClass('form-error');
+                                            if($parent.find('.validation_msg').length === 0){
+                                                $file_upload.after('<div class="validation_msg"><p></p></div>')
+                                            }
+                                            $parent.find('.validation_msg p').text('↑ Uploaded file is larger than your server allows: '+human_upload_limit);
+                                            this.value = "";
+                                        }else{
+
+                                            $parent.removeClass('form-error');
+                                            if($parent.find('.validation_msg').length > 0){
+                                                $parent.find('.validation_msg').remove();
+                                            }
+                                        }
+                                    });
+                                });
+                            }
+                        });
                     </script>
 				<?php endif; ?>
 
