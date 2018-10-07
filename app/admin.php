@@ -87,7 +87,7 @@ class JC_Importer_Admin {
 	public function admin_enqueue_styles() {
 
 		$screen = get_current_screen();
-		if($screen->id !== 'toplevel_page_jci-importers'){
+		if($screen->id !== 'toplevel_page_jci-importers' && $screen->id !== 'importwp_page_jci-settings'){
 			return;
 		}
 
