@@ -114,30 +114,32 @@ class JC_Page_Template extends JC_Importer_Template {
 			return;
 		}
 
-		foreach ( $this->_field_groups['page']['map'] as &$field ) {
+		if(isset($_GET['import']) && isset($_GET['action'])) {
+			foreach ( $this->_field_groups['page']['map'] as &$field ) {
 
 
-			if ( $field['field'] == 'post_author' ) {
+				if ( $field['field'] == 'post_author' ) {
 
-				/**
-				 * Populate authors dropdown
-				 */
-				$field['options'] = jci_get_user_list();
-			} elseif ( $field['field'] == 'post_parent' ) {
+					/**
+					 * Populate authors dropdown
+					 */
+					$field['options'] = jci_get_user_list();
+				} elseif ( $field['field'] == 'post_parent' ) {
 
-				/**
-				 * Populate parent pages
-				 */
-				$field['options'] = jci_get_post_list( 'page' );
-			} elseif ( $field['field'] == '_wp_page_template' ) {
+					/**
+					 * Populate parent pages
+					 */
+					$field['options'] = jci_get_post_list( 'page' );
+				} elseif ( $field['field'] == '_wp_page_template' ) {
 
-				/**
-				 * Populate page templates
-				 */
-				$templates                = array( 'default' => 'Default Template' );
-				$templates                = array_merge( $templates, wp_get_theme()->get_page_templates() );
-				$field['options']         = $templates;
-				$field['options_default'] = 'default';
+					/**
+					 * Populate page templates
+					 */
+					$templates                = array( 'default' => 'Default Template' );
+					$templates                = array_merge( $templates, wp_get_theme()->get_page_templates() );
+					$field['options']         = $templates;
+					$field['options_default'] = 'default';
+				}
 			}
 		}
 	}

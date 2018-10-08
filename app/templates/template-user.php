@@ -81,20 +81,21 @@ class JC_User_Template extends JC_Importer_Template {
 		}
 
 		// output role select
-		global $wp_roles;
-		$test_roles = array();
+		if(isset($_GET['import']) && isset($_GET['action'])) {
+			global $wp_roles;
+			$test_roles = array();
 
-		foreach ( $wp_roles->roles as $role => $role_arr ) {
-			$test_roles[ $role ] = $role_arr['name'];
-		}
+			foreach ( $wp_roles->roles as $role => $role_arr ) {
+				$test_roles[ $role ] = $role_arr['name'];
+			}
 
-		foreach ( $this->_field_groups['user']['map'] as &$field ) {
+			foreach ( $this->_field_groups['user']['map'] as &$field ) {
 
-			if ( $field['field'] == 'role' ) {
-				$field['options'] = $test_roles;
+				if ( $field['field'] == 'role' ) {
+					$field['options'] = $test_roles;
+				}
 			}
 		}
-
 	}
 
 	/**

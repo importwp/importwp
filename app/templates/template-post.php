@@ -105,24 +105,26 @@ class JC_Post_Template extends JC_Importer_Template {
 			return;
 		}
 
-		foreach ( $this->_field_groups['post']['map'] as &$field ) {
+		if(isset($_GET['import']) && isset($_GET['action'])){
+			foreach ( $this->_field_groups['post']['map'] as &$field ) {
 
 
-			if ( $field['field'] == 'post_author' ) {
+				if ( $field['field'] == 'post_author' ) {
 
-				/**
-				 * Populate authors dropdown
-				 */
-				$field['options'] = jci_get_user_list();
+					/**
+					 * Populate authors dropdown
+					 */
+					$field['options'] = jci_get_user_list();
 
-			} elseif ( $field['field'] == 'post_parent' ) {
+				} elseif ( $field['field'] == 'post_parent' ) {
 
-				/**
-				 * Populate parent posts pages
-				 */
-				$field['options'] = jci_get_post_list( $this->_field_groups['post']['import_type_name'] );
+					/**
+					 * Populate parent posts pages
+					 */
+					$field['options'] = jci_get_post_list( $this->_field_groups['post']['import_type_name'] );
+				}
 			}
-		}
+        }
 	}
 
 	/**
