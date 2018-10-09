@@ -47,6 +47,8 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 	public function exists( \ImportWP\Importer\ParsedData $data ) {
 
+		IWP_Debug::timer('PostMapper::exists_start');
+
 		$unique_fields = $this->template->_unique;
 		$default_group = $data->getData('default');
 		$template_group_id = $this->template->get_template_group_id();
@@ -102,6 +104,8 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 		$query = new WP_Query( $query_args );
 
+		IWP_Debug::timer('PostMapper::exists_end');
+
 		if ( $query->post_count == 1 ) {
 			$this->ID = $query->posts[0];
 			return true;
@@ -111,6 +115,10 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 	}
 
 	public function insert( \ImportWP\Importer\ParsedData $data ) {
+
+		IWP_Debug::timer('PostMapper::insert_start');
+
+		wp_defer_term_counting( true );
 
 		// clear log
 		$this->clearLog();
@@ -145,7 +153,9 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			$post['post_status'] = $post_status;
 		}
 
+		IWP_Debug::timer('PostMapper::pre_wp_insert_post');
 		$this->ID = wp_insert_post( $post, true );
+		IWP_Debug::timer('PostMapper::post_wp_insert_post');
 
 		// check to see if is error
 		if ( ! is_wp_error( $this->ID ) ) {
@@ -160,8 +170,11 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 				}
 			}
 
+			IWP_Debug::timer('PostMapper::insert_tax');
 			$this->processTaxonomies($data);
+			IWP_Debug::timer('PostMapper::insert_attachment');
 			$this->processAttachments($data);
+			IWP_Debug::timer('PostMapper::insert_log');
 
 			$fields['ID'] = $this->ID;
 			$this->logImport($fields, 'insert', 'post');
@@ -173,10 +186,18 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 		clean_post_cache($this->ID);
 
+		wp_defer_comment_counting( false );
+
+		IWP_Debug::timer('PostMapper::insert_end');
+
 		return $this->ID;
 	}
 
 	public function update( \ImportWP\Importer\ParsedData $data ) {
+
+		IWP_Debug::timer('PostMapper::update_start');
+
+		wp_defer_comment_counting( true );
 
 		// clear log
 		$this->clearLog();
@@ -243,8 +264,11 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			}
 		}
 
+		IWP_Debug::timer('PostMapper::update_tax');
 		$this->processTaxonomies($data);
+		IWP_Debug::timer('PostMapper::update_attachment');
 		$this->processAttachments($data);
+		IWP_Debug::timer('PostMapper::update_log');
 
 		$fields['ID'] = $this->ID;
 		$this->logImport($fields, 'update', 'post');
@@ -252,6 +276,10 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 		$data->update( $fields );
 
 		clean_post_cache($this->ID);
+
+		wp_defer_comment_counting( false );
+
+		IWP_Debug::timer('PostMapper::update_end');
 
 		return $this->ID;
 

@@ -235,6 +235,10 @@ class JC_Importer_Core {
 			return $this->do_error( [ 'message' => 'No Status file found.' ] );
 		}
 
+		if(defined('IWP_DEBUG') && IWP_DEBUG === true){
+			IWP_Debug::$_debug = true;
+		}
+
 		if ( $status ) {
 
 			switch ( $status['status'] ) {
@@ -512,12 +516,18 @@ class JC_Importer_Core {
 
 	public function run_import( $row = null, $session = false, $per_row = 1 ) {
 
+		IWP_Debug::timer('run_import::start');
+
 		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_complete', array($this, 'on_record_complete'));
 		\ImportWP\Importer\EventHandler::instance()->listen('importer.before_mapper', array($this, 'on_before_mapper'));
 		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_exception', array($this, 'on_record_exception'));
 		\ImportWP\Importer\EventHandler::instance()->listen('importer.record_imported', array($this, 'on_record_imported'));
 
+		IWP_Debug::timer('run_import::register_listeners');
+
 		do_action( 'jci/before_import' );
+
+		IWP_Debug::timer('run_import::before_import');
 
 		$groups = $this->get_template_groups();
 
@@ -699,7 +709,7 @@ class JC_Importer_Core {
 			return;
 		}
 
-		IWP_Debug::timer_log( $this->get_version() . '-' . $this->get_last_import_row() );
+		IWP_Debug::timer_log( $this->get_ID() . '-' . $this->get_version() . '-' . $this->get_last_import_row() );
 
 		$status           = IWP_Status::read_file( $this->get_ID(), $this->get_version() );
 		$status['status'] = 'timeout';
