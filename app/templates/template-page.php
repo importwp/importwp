@@ -124,12 +124,6 @@ class JC_Page_Template extends JC_Importer_Template {
 					 * Populate authors dropdown
 					 */
 					$field['options'] = jci_get_user_list();
-				} elseif ( $field['field'] == 'post_parent' ) {
-
-					/**
-					 * Populate parent pages
-					 */
-					$field['options'] = jci_get_post_list( 'page' );
 				} elseif ( $field['field'] == '_wp_page_template' ) {
 
 					/**
@@ -309,13 +303,13 @@ class JC_Page_Template extends JC_Importer_Template {
                     $.fn.jci_enableField('enable_menu_order', 'page-menu_order');
                     $.fn.jci_enableField('enable_post_password', 'page-post_password');
                     $.fn.jci_enableField('enable_post_date', 'page-post_date');
+                    $.fn.jci_enableField('enable_post_parent', 'page-post_parent');
 
                     // show select for post_author
                     $.fn.jci_enableField('enable_post_author', '#jc-importer_author_field_type');
                     $.fn.jci_enableField('enable_post_parent', '#jc-importer_parent_field_type');
 
                     // optional selects
-                    $.fn.jci_enableSelectField('enable_post_parent', 'page-post_parent');
                     $.fn.jci_enableSelectField('enable_post_status', 'page-post_status');
                     $.fn.jci_enableSelectField('enable_post_author', 'page-post_author');
                     $.fn.jci_enableSelectField('enable_comment_status', 'page-comment_status');

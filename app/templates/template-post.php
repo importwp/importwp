@@ -98,6 +98,7 @@ class JC_Post_Template extends JC_Importer_Template {
 		add_action( sprintf( 'jci/log_%s_content', $this->_name ), array( $this, 'log_post_content' ), 10, 2 );
 
 		add_action( 'jci/before_import', array( $this, 'before_import' ) );
+		add_action( 'jci/after_import', array( $this, 'after_import' ) );
 
 		// Quick Fix: Skip if we are in an ajax request
 		// TODO: Switch this to an ajax search / select instead so we dont have to list all.
@@ -116,12 +117,6 @@ class JC_Post_Template extends JC_Importer_Template {
 					 */
 					$field['options'] = jci_get_user_list();
 
-				} elseif ( $field['field'] == 'post_parent' ) {
-
-					/**
-					 * Populate parent posts pages
-					 */
-					$field['options'] = jci_get_post_list( $this->_field_groups['post']['import_type_name'] );
 				}
 			}
         }
@@ -134,6 +129,9 @@ class JC_Post_Template extends JC_Importer_Template {
 	 */
 	public function before_import() {
 
+	    // disable term counting for this insert/update
+		wp_defer_term_counting( true );
+
 		$_jci_ref_post_parent = ImporterModel::getImporterMetaArr( JCI()->importer->get_ID(), array(
 			'_template_settings',
 			'_jci_ref_post_parent'
@@ -144,6 +142,11 @@ class JC_Post_Template extends JC_Importer_Template {
 		}
 
 		add_filter( 'jci/importer/get_groups', array( $this, 'add_reference_fields' ), 999 );
+	}
+
+	public function after_import() {
+		// disable comment counting for this insert/update
+		wp_defer_comment_counting( false );
 	}
 
 	public function field_settings( $id ) {
@@ -284,13 +287,13 @@ class JC_Post_Template extends JC_Importer_Template {
                     $.fn.jci_enableField('enable_menu_order', 'post-menu_order');
                     $.fn.jci_enableField('enable_post_password', 'post-post_password');
                     $.fn.jci_enableField('enable_post_date', 'post-post_date');
+                    $.fn.jci_enableField('enable_post_parent', 'post-post_parent');
 
                     // show select for post_author
                     $.fn.jci_enableField('enable_post_author', '#jc-importer_author_field_type');
                     $.fn.jci_enableField('enable_post_parent', '#jc-importer_parent_field_type');
 
                     // optional selects
-                    $.fn.jci_enableSelectField('enable_post_parent', 'post-post_parent');
                     $.fn.jci_enableSelectField('enable_post_status', 'post-post_status');
                     $.fn.jci_enableSelectField('enable_post_author', 'post-post_author');
                     $.fn.jci_enableSelectField('enable_comment_status', 'post-comment_status');

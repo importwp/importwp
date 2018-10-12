@@ -3,7 +3,7 @@
 **Tags:** import, wordpress xml importer, wordpress csv importer, xml, csv  
 **Requires at least:** 4.0    
 **Tested up to:** 4.9  
-**Stable tag:** 1.0.2  
+**Stable tag:** 1.0.3  
 **License:** GPLv3    
 **License URI:** http://www.gnu.org/licenses/gpl.html    
 **Donate link:** https://www.importwp.com/  
@@ -66,6 +66,13 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 ## Changelog ##
+
+### 1.0.3 - 09/10/2018 ###
+
+* FIX - Reduce memory load by streaming file indices.
+* FIX - Speed up Post importer for larger files.
+* FIX - Add Processing notification when file is added/updated.
+* FIX - Remove templates fetching dropdown option values to edit importer screen only.
 
 ### 1.0.1 - 28/09/2018 ###
 

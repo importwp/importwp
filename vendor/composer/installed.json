@@ -1,13 +1,12 @@
 [
     {
         "name": "jclabs/importwp",
-        "version": "dev-dev",
-        "version_normalized": "dev-dev",
-        "dist": {
-            "type": "path",
-            "url": "/importwp-importer",
-            "reference": "ab967f2a699d33bd95bbb742cf2281461defaef5",
-            "shasum": null
+        "version": "dev-master",
+        "version_normalized": "9999999-dev",
+        "source": {
+            "type": "git",
+            "url": "https://bitbucket.org/jcollings89/importwp-importer.git",
+            "reference": "b0995cc3447bbfaf1669c9a58add44e6b2ff776e"
         },
         "require": {
             "php": ">=5.2.4"
@@ -16,8 +15,9 @@
             "phpunit/phpunit": ">=5.7",
             "prewk/xml-faker": "*"
         },
+        "time": "2018-10-09T15:54:08+00:00",
         "type": "project",
-        "installation-source": "dist",
+        "installation-source": "source",
         "autoload": {
             "psr-4": {
                 "ImportWP\\": "src/"
@@ -29,9 +29,6 @@
                 "email": "james@jclabs.co.uk"
             }
         ],
-        "description": "CSV and XML Importer",
-        "transport-options": {
-            "symlink": false
-        }
+        "description": "CSV and XML Importer"
     }
 ]

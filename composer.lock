@@ -4,16 +4,15 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "df00f728dee6522b491ed86d2198ef3c",
+    "content-hash": "0f9063dd6d30685bc5448f3fd9265074",
     "packages": [
         {
             "name": "jclabs/importwp",
-            "version": "dev-dev",
-            "dist": {
-                "type": "path",
-                "url": "/importwp-importer",
-                "reference": "ab967f2a699d33bd95bbb742cf2281461defaef5",
-                "shasum": null
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://bitbucket.org/jcollings89/importwp-importer.git",
+                "reference": "b0995cc3447bbfaf1669c9a58add44e6b2ff776e"
             },
             "require": {
                 "php": ">=5.2.4"
@@ -35,9 +34,7 @@
                 }
             ],
             "description": "CSV and XML Importer",
-            "transport-options": {
-                "symlink": false
-            }
+            "time": "2018-10-09T15:54:08+00:00"
         }
     ],
     "packages-dev": [],

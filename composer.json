@@ -10,15 +10,12 @@
   ],
   "repositories": [
     {
-      "type": "path",
-      "url": "/importwp-importer",
-      "options": {
-        "symlink": false
-      }
+      "type": "git",
+      "url": "https://bitbucket.org/jcollings89/importwp-importer.git"
     }
   ],
   "require": {
-    "jclabs/importwp": "@master"
+    "jclabs/importwp": "dev-master"
   },
   "require-dev": {}
 }
