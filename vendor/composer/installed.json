@@ -6,7 +6,7 @@
         "source": {
             "type": "git",
             "url": "https://bitbucket.org/jcollings89/importwp-importer.git",
-            "reference": "b0995cc3447bbfaf1669c9a58add44e6b2ff776e"
+            "reference": "c473d5ad344b255686c4dd8bc1274968a1920600"
         },
         "require": {
             "php": ">=5.2.4"
@@ -15,7 +15,7 @@
             "phpunit/phpunit": ">=5.7",
             "prewk/xml-faker": "*"
         },
-        "time": "2018-10-09T15:54:08+00:00",
+        "time": "2018-10-13T18:54:39+00:00",
         "type": "project",
         "installation-source": "source",
         "autoload": {

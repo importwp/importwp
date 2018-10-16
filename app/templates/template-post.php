@@ -131,6 +131,7 @@ class JC_Post_Template extends JC_Importer_Template {
 
 	    // disable term counting for this insert/update
 		wp_defer_term_counting( true );
+		wp_defer_comment_counting( false );
 
 		$_jci_ref_post_parent = ImporterModel::getImporterMetaArr( JCI()->importer->get_ID(), array(
 			'_template_settings',
@@ -146,7 +147,7 @@ class JC_Post_Template extends JC_Importer_Template {
 
 	public function after_import() {
 		// disable comment counting for this insert/update
-		wp_defer_comment_counting( false );
+//		wp_defer_comment_counting( false );
 	}
 
 	public function field_settings( $id ) {

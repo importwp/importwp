@@ -31,6 +31,7 @@ class IWP_Debug {
 
 		self::$_timings[] = [
 			'time'  => microtime( true ),
+			'memory' => memory_get_usage(true),
 			'name'  => $str,
 			'group' => $group,
 		];
@@ -86,6 +87,7 @@ class IWP_Debug {
 						echo sprintf( " %f\n", $timing['time'] - $last_time );
 					}
 					$last_time = $timing['time'];
+					echo self::convert($timing['memory']). "\n";
 
 					echo $timing['name'];
 					if ( ! empty( $timing['group'] ) ) {
@@ -98,6 +100,12 @@ class IWP_Debug {
 		}
 
 		return ob_get_clean();
+	}
+
+	public static function convert($size)
+	{
+		$unit=array('b','kb','mb','gb','tb','pb');
+		return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
 	}
 
 }

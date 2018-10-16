@@ -3,7 +3,7 @@ Contributors: jcollings
 Tags: import, wordpress xml importer, wordpress csv importer, xml, csv
 Requires at least: 4.0  
 Tested up to: 4.9
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -66,6 +66,11 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 == Changelog ==
+
+= 1.0.4 - 16/10/2018 =
+
+* ADD - Add aria-label to inputs.
+* ADD - Add file index cache based on amount of rows chosen
 
 = 1.0.3 - 09/10/2018 =
 

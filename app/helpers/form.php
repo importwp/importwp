@@ -276,7 +276,7 @@ class JCI_FormHelper {
 
 		$id = self::get_id( self::$prefix . $name );
 
-		$output .= '<input type="' . $type . '" name="' . self::$prefix . $name . '" id="' . $id . '" value="' . $value . '" ' . $data_str . ' />';
+		$output .= '<input aria-label="'.esc_attr(strip_tags($label)).'" type="' . $type . '" name="' . self::$prefix . $name . '" id="' . $id . '" value="' . $value . '" ' . $data_str . ' />';
 
 		if ( $after ) {
 			$output .= $after;
@@ -349,7 +349,7 @@ class JCI_FormHelper {
 			$output .= self::get_label( $label );
 		}
 
-		$output .= '<input type="file" name="' . self::$prefix . $name . '" id="' . self::$prefix . $name . '" />';
+		$output .= '<input aria-label="'.esc_attr(strip_tags($label)).'" type="file" name="' . self::$prefix . $name . '" id="' . self::$prefix . $name . '" />';
 
 		if ( $error ) {
 			$output .= $error;
@@ -395,7 +395,7 @@ class JCI_FormHelper {
 			$output .= self::get_label( $label );
 		}
 
-		$output .= '<textarea name="' . self::$prefix . $name . '" id="' . self::$prefix . $name . '" >' . $value . '</textarea>';
+		$output .= '<textarea  aria-label="'.esc_attr(strip_tags($label)).'" name="' . self::$prefix . $name . '" id="' . self::$prefix . $name . '" >' . $value . '</textarea>';
 
 		if ( $error ) {
 			$output .= $error;
@@ -509,7 +509,7 @@ class JCI_FormHelper {
 			$output .= self::get_label( $label, $tooltip );
 		}
 
-		$output .= '<select name="' . self::$prefix . $name . '" id="' . self::get_id( self::$prefix . $name ) . '">';
+		$output .= '<select aria-label="'.esc_attr(strip_tags($label)).'" name="' . self::$prefix . $name . '" id="' . self::get_id( self::$prefix . $name ) . '">';
 
 		if ( $empty ) {
 			$empty_val = $empty === true ? '' : $empty;
@@ -558,7 +558,7 @@ class JCI_FormHelper {
 
 		$output = '<div class="' . implode( ' ', $classes ) . '" >';
 
-		$output .= '<input type="radio" name="' . self::$prefix . $name . '" value="' . $value . '" ' . $checked . ' />';
+		$output .= '<input aria-label="'.esc_attr(strip_tags($label)).'" type="radio" name="' . self::$prefix . $name . '" value="' . $value . '" ' . $checked . ' />';
 
 		if ( $label !== false ) {
 			$output .= self::get_label( $label );
@@ -598,9 +598,9 @@ class JCI_FormHelper {
 
 		$output = '<div class="' . implode( ' ', $classes ) . '" >';
 		if ( $checked ) {
-			$output .= '<input type="checkbox" name="' . self::$prefix . $name . '" value="1" id="' . self::$prefix . $name . '" checked="checked" />';
+			$output .= '<input aria-label="'.esc_attr(strip_tags($label)).'" type="checkbox" name="' . self::$prefix . $name . '" value="1" id="' . self::$prefix . $name . '" checked="checked" />';
 		} else {
-			$output .= '<input type="checkbox" name="' . self::$prefix . $name . '" value="1" id="' . self::$prefix . $name . '" />';
+			$output .= '<input aria-label="'.esc_attr(strip_tags($label)).'" type="checkbox" name="' . self::$prefix . $name . '" value="1" id="' . self::$prefix . $name . '" />';
 		}
 
 		if ( $label !== false ) {
@@ -638,7 +638,7 @@ class JCI_FormHelper {
 		$id = self::get_id( self::$prefix . $name );
 
 		$output = '<div class="input submit">';
-		$output .= '<input type="submit" name="' . self::$prefix . $name . '" value="' . $value . '" class="' . $args_class . '" id="' . $id . '-' . strtolower( $value ) . '" />';
+		$output .= '<input aria-label="'.esc_attr(strip_tags($value)).'" type="submit" name="' . self::$prefix . $name . '" value="' . $value . '" class="' . $args_class . '" id="' . $id . '-' . strtolower( $value ) . '" />';
 		$output .= '</div>';
 
 		return $output;

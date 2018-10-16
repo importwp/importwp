@@ -534,6 +534,7 @@ class JC_Importer_Core {
 		$config_file = JCI()->get_tmp_dir() . DIRECTORY_SEPARATOR . sprintf('config-%d-%d.json', $this->get_ID(), $this->get_version());
 		$config_setup = !file_exists($config_file) ? true : false;
 		$config = new \ImportWP\Importer\Config\Config($config_file);
+		$config->setIndexCacheSize($per_row);
 
 		if($config_setup === true || !$config->get('fields')) {
 
