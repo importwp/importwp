@@ -118,8 +118,6 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 		IWP_Debug::timer('PostMapper::insert_start');
 
-		wp_defer_term_counting( true );
-
 		// clear log
 		$this->clearLog();
 
@@ -186,8 +184,6 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 		clean_post_cache($this->ID);
 
-		wp_defer_comment_counting( false );
-
 		IWP_Debug::timer('PostMapper::insert_end');
 
 		return $this->ID;
@@ -196,8 +192,6 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 	public function update( \ImportWP\Importer\ParsedData $data ) {
 
 		IWP_Debug::timer('PostMapper::update_start');
-
-		wp_defer_comment_counting( true );
 
 		// clear log
 		$this->clearLog();
@@ -276,8 +270,6 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 		$data->update( $fields );
 
 		clean_post_cache($this->ID);
-
-		wp_defer_comment_counting( false );
 
 		IWP_Debug::timer('PostMapper::update_end');
 
