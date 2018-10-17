@@ -53,13 +53,14 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 
 	public function insert( \ImportWP\Importer\ParsedData $data ) {
 
+		$this->method = 'insert';
+
 		// clear log
 		$this->clearLog();
 
 		// check permissions
-		$this->checkPermissions('insert');
-
 		$fields = $data->getData('default');
+		$fields = $this->checkPermissions('insert', $fields);
 
 		$this->ID        = false;
 		$args          = array();
@@ -120,13 +121,15 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 
 	public function update( \ImportWP\Importer\ParsedData $data ) {
 
+		$this->method = 'update';
+
 		// clear log
 		$this->clearLog();
 
 		// check permissions
-		$this->checkPermissions('update');
-
 		$fields = $data->getData('default');
+		$fields = $this->checkPermissions('update', $fields);
+
 		$all_fields = $fields;
 
 		$args          = array();
@@ -174,6 +177,9 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 	}
 
 	public function delete( \ImportWP\Importer\ParsedData $data ) {
+
+		$this->method = 'delete';
+
 		// TODO: Implement delete() method.
 	}
 
@@ -187,6 +193,14 @@ class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInter
 		if ( $old_value == $value ) {
 			return;
 		}
+
+		$data = $this->checkPermissions($this->method, array($key => $value));
+		if(!isset($data[$key])){
+			return;
+		}
+
+		// set to new value in-case it has been changed
+		$value = $data[$key];
 
 		$this->changed_field_count ++;
 		$this->changed_fields[] = $key;

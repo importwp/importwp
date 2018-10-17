@@ -25,6 +25,8 @@ class IWP_Field_Parser {
 				return serialize(explode(',', $field[2]));
 			case 'strtotime':
 				return strtotime($field[2]);
+			case 'date':
+				return date('Y-m-d H:i:s', strtotime($field[2]));
 		}
 
 		return '';

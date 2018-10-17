@@ -50,7 +50,6 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 		IWP_Debug::timer('PostMapper::exists_start');
 
 		$unique_fields = $this->template->_unique;
-		$default_group = $data->getData('default');
 		$template_group_id = $this->template->get_template_group_id();
 		$post_type     = $this->template->_field_groups[$template_group_id]['import_type_name'];
 		$post_status   = $this->template->_field_groups[$template_group_id]['post_status'];
@@ -68,24 +67,25 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 		foreach ( $unique_fields as $field ) {
 
-			if ( in_array( $field, $this->_post_fields ) ) {
+			// check all groups for a unique value
+			$unique_value = $data->getValue($field, '*');
+			if ( ! empty( $unique_value ) ) {
+				$has_unique_field = true;
 
-				if ( array_key_exists( $field, $this->_query_vars ) ) {
+				if ( in_array( $field, $this->_post_fields, true ) ) {
 
-					if ( ! empty( $default_group[ $field ] ) ) {
-						$query_args[ $this->_query_vars[ $field ] ] = $default_group[ $field ];
-						$has_unique_field                           = true;
+					if ( array_key_exists( $field, $this->_query_vars ) ) {
+						$query_args[ $this->_query_vars[ $field ] ] = $unique_value;
+					} else {
+						$query_args[ $field ] = $unique_value;
 					}
 
 				} else {
-					$query_args[ $field ] = $default_group[ $field ];
+					$meta_args[] = array(
+						'key'   => $field,
+						'value' => $unique_value
+					);
 				}
-
-			} else {
-				$meta_args[] = array(
-					'key'   => $field,
-					'value' => $default_group[ $field ]
-				);
 			}
 		}
 
@@ -95,11 +95,6 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 		if ( ! empty( $meta_args ) ) {
 			$query_args['meta_query'] = $meta_args;
-		}
-
-		if(sizeof($query_args) === 3){
-			// TODO: No unique reference field, throw error
-			return false;
 		}
 
 		$query = new WP_Query( $query_args );
@@ -116,15 +111,17 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 	public function insert( \ImportWP\Importer\ParsedData $data ) {
 
+		$this->method = 'insert';
+
 		IWP_Debug::timer('PostMapper::insert_start');
 
 		// clear log
 		$this->clearLog();
 
 		// check permissions
-		$this->checkPermissions('insert');
-
 		$fields      = $data->getData('default');
+		$fields = $this->checkPermissions('insert', $fields);
+
 		$template_group_id = $this->template->get_template_group_id();
 		$post_type   = $this->template->_field_groups[$template_group_id]['import_type_name'];
 		$post_status = $this->template->_field_groups[$template_group_id]['post_status'];
@@ -191,16 +188,18 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 	public function update( \ImportWP\Importer\ParsedData $data ) {
 
+		$this->method = 'update';
+
 		IWP_Debug::timer('PostMapper::update_start');
 
 		// clear log
 		$this->clearLog();
 
 		// check permissions
-		$this->checkPermissions('update');
-		$template_group_id = $this->template->get_template_group_id();
-
 		$fields    = $data->getData('default');
+		$fields = $this->checkPermissions('update', $fields);
+
+		$template_group_id = $this->template->get_template_group_id();
 		$post_type = $this->template->_field_groups[$template_group_id]['import_type_name'];
 
 		$post                      = array();
@@ -278,6 +277,8 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 	}
 
 	public function delete( \ImportWP\Importer\ParsedData $data ) {
+
+		$this->method = 'delete';
 		// TODO: Implement delete() method.
 	}
 
@@ -294,7 +295,7 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 		foreach ( $fields as $id => $value ) {
 
-			if ( in_array( $id, $this->_post_fields ) ) {
+			if ( in_array( $id, $this->_post_fields, true ) ) {
 
 				// post field
 				$post[ $id ] = $value;
@@ -319,6 +320,14 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 		if ( $old_value === $value ) {
 			return;
 		}
+
+		$data = $this->checkPermissions($this->method, array($key => $value));
+		if(!isset($data[$key])){
+			return;
+		}
+
+		// set to new value in-case it has been changed
+		$value = $data[$key];
 
 		$this->changed_field_count ++;
 		$this->changed_fields[] = $key;

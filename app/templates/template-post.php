@@ -91,6 +91,7 @@ class JC_Post_Template extends JC_Importer_Template {
 
 	public function __construct() {
 		parent::__construct();
+
 		add_action( 'jci/after_template_fields', array( $this, 'field_settings' ) );
 		add_action( 'jci/save_template', array( $this, 'save_template' ) );
 

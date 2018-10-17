@@ -15,9 +15,14 @@ class JC_Importer_Template {
 	 * List of identifier fields
 	 * @var array $_unique
 	 */
-	public $_unique;
+	public $_unique = array();
 
 	public function __construct() {
+
+		add_action( 'jci/before_' . $this->get_name() . '_row_save', array(
+			$this,
+			'alter_template_unique_fields'
+		), 1, 0 );
 
 		// before record gets imported
 		if ( method_exists( $this, 'before_template_save' ) ) {
@@ -116,5 +121,10 @@ class JC_Importer_Template {
 
 		reset( $this->_field_groups );
 		return key( $this->_field_groups );
+	}
+
+	final public function alter_template_unique_fields(){
+		$this->_unique = apply_filters('iwp/template_unique_fields', $this->_unique);
+		$this->_unique = apply_filters(sprintf('iwp/template_%s_unique_fields', $this->get_name()), $this->_unique);
 	}
 }

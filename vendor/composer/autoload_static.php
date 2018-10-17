@@ -20,11 +20,39 @@ class ComposerStaticInit07fe68136279d2ca5bf7b64640befc1f
         ),
     );
 
+    public static $classMap = array (
+        'ImportWP\\Importer' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer.php',
+        'ImportWP\\Importer\\ConfigInterface' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/ConfigInterface.php',
+        'ImportWP\\Importer\\Config\\Config' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/Config/Config.php',
+        'ImportWP\\Importer\\DataParser' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/DataParser.php',
+        'ImportWP\\Importer\\EventHandler' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/EventHandler.php',
+        'ImportWP\\Importer\\Exception\\MapperException' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/Exception/MapperException.php',
+        'ImportWP\\Importer\\Exception\\ParserException' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/Exception/ParserException.php',
+        'ImportWP\\Importer\\FileInterface' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/FileInterface.php',
+        'ImportWP\\Importer\\File\\AbstractFile' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/File/AbstractFile.php',
+        'ImportWP\\Importer\\File\\AbstractIndexedFile' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/File/AbstractIndexedFile.php',
+        'ImportWP\\Importer\\File\\CSVFile' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/File/CSVFile.php',
+        'ImportWP\\Importer\\File\\XMLFile' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/File/XMLFile.php',
+        'ImportWP\\Importer\\IndexedFileInterface' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/IndexedFileInterface.php',
+        'ImportWP\\Importer\\MapperInterface' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/MapperInterface.php',
+        'ImportWP\\Importer\\ParsedData' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/ParsedData.php',
+        'ImportWP\\Importer\\ParserInterface' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/ParserInterface.php',
+        'ImportWP\\Importer\\Parser\\AbstractParser' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/Parser/AbstractParser.php',
+        'ImportWP\\Importer\\Parser\\CSVParser' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/Parser/CSVParser.php',
+        'ImportWP\\Importer\\Parser\\XMLParser' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/Parser/XMLParser.php',
+        'ImportWP\\Importer\\PreviewInterface' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/PreviewInterface.php',
+        'ImportWP\\Importer\\Preview\\CSVPreview' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/Preview/CSVPreview.php',
+        'ImportWP\\Importer\\Preview\\XMLNodePreview' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/Preview/XMLNodePreview.php',
+        'ImportWP\\Importer\\Preview\\XMLPreview' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/Preview/XMLPreview.php',
+        'ImportWP\\Importer\\TemplateInterface' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/TemplateInterface.php',
+    );
+
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit07fe68136279d2ca5bf7b64640befc1f::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit07fe68136279d2ca5bf7b64640befc1f::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit07fe68136279d2ca5bf7b64640befc1f::$classMap;
 
         }, null, ClassLoader::class);
     }

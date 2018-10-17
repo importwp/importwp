@@ -73,13 +73,14 @@ class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 	public function insert( \ImportWP\Importer\ParsedData $data ) {
 
+		$this->method = 'insert';
+
 		// clear log
 		$this->clearLog();
 
 		// check permissions
-		$this->checkPermissions('insert');
-
 		$fields = $data->getData('default');
+		$fields = $this->checkPermissions('insert', $fields);
 
 		if ( ! isset( $fields['user_login'] ) || empty( $fields['user_login'] ) ) {
 			throw new \ImportWP\Importer\Exception\MapperException( "No username present" );
@@ -118,13 +119,14 @@ class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 	public function update( \ImportWP\Importer\ParsedData $data ) {
 
+		$this->method = 'update';
+
 		// clear log
 		$this->clearLog();
 
 		// check permissions
-		$this->checkPermissions('update');
-
 		$fields = $data->getData('default');
+		$fields = $this->checkPermissions('update', $fields);
 
 		$fields['ID'] = $this->ID;
 		$result       = wp_update_user( $fields );
@@ -150,6 +152,9 @@ class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 	}
 
 	public function delete( \ImportWP\Importer\ParsedData $data ) {
+
+		$this->method = 'delete';
+
 		// TODO: Implement delete() method.
 	}
 
@@ -166,6 +171,15 @@ class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 	}
 
 	public function update_custom_field( $user_id, $meta_key, $meta_value, $unique = false ) {
+
+		$data = $this->checkPermissions($this->method, array($meta_key => $meta_value));
+		if(!isset($data[$meta_key])){
+			return;
+		}
+
+		// set to new value in-case it has been changed
+		$meta_value = $data[$meta_key];
+
 		$old_meta_version = get_user_meta( $user_id, $meta_key, true );
 		if ( $old_meta_version ) {
 			update_user_meta( $user_id, $meta_key, $meta_value, $old_meta_version );

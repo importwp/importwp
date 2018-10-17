@@ -20,6 +20,11 @@ class AbstractMapper {
 	 */
 	private $errors = array();
 
+	/**
+	 * @var string $method Current method (insert|update|delete)
+	 */
+	protected $method;
+
 	private $log = array();
 
 	/**
@@ -75,12 +80,14 @@ class AbstractMapper {
 
 	/**
 	 * Check relevant permissions for action
-	 * @param $method
 	 *
-	 * @return bool
+	 * @param string $method
+	 * @param array $data
+	 *
+	 * @return array
 	 * @throws \ImportWP\Importer\Exception\MapperException
 	 */
-	protected function checkPermissions($method){
+	protected function checkPermissions($method, $data){
 
 		if ( $method === 'insert' && ( ! isset( $this->permissions['create'] ) || intval( $this->permissions['create'] ) !== 1 ) ) {
 			throw new \ImportWP\Importer\Exception\MapperException( "No Enough Permissions to Insert Record");
@@ -94,7 +101,9 @@ class AbstractMapper {
 			throw new \ImportWP\Importer\Exception\MapperException( "No Enough Permissions to Delete Record");
 		}
 
-		return true;
+		$data = apply_filters('iwp/import_mapper_permissions', $data, $method);
+
+		return $data;
 	}
 
 }

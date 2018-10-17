@@ -15,7 +15,8 @@ class IWP_Debug {
 	 */
 	static $_debug = false;
 
-	static $_timings = [];
+	static $_timing = [];
+	static $_start = -1;
 
 	/**
 	 * Add checkpoint for timer
@@ -29,12 +30,32 @@ class IWP_Debug {
 			return;
 		}
 
-		self::$_timings[] = [
+		if(self::$_start < 0){
+			self::$_start = microtime(true);
+		}
+
+		$curr_timing = [
 			'time'  => microtime( true ),
 			'memory' => memory_get_usage(true),
 			'name'  => $str,
 			'group' => $group,
 		];
+
+		if(!empty(self::$_timing)){
+
+			// output time from previous section to current section
+			$contents = self::$_timing['name'] . ", ";
+			$contents .= self::$_timing['group'] . ", ";
+			$contents .= sprintf( " %f, ", $curr_timing['time'] - self::$_timing['time'] );
+			$contents .= self::convert(self::$_timing['memory']);
+			$contents .= "\n";
+
+			file_put_contents( JCI()->get_tmp_dir() . DIRECTORY_SEPARATOR . 'debug-' . JCI()->importer->get_ID() . '-' . JCI()->importer->get_version()  . '.txt', $contents, FILE_APPEND );
+
+			self::$_timing = [];
+		}
+
+		self::$_timing = $curr_timing;
 	}
 
 	/**
@@ -48,58 +69,25 @@ class IWP_Debug {
 			return;
 		}
 
-		if ( ! empty( $prefix ) ) {
-			$prefix .= '-';
+		$contents = "";
+
+		if(!empty(self::$_timing)){
+
+			// output time from previous section to current section
+			$contents .= self::$_timing['name'] . ", ";
+			$contents .= self::$_timing['group'] . ", ";
+			$contents .= sprintf( " %f, ", microtime( true ) - self::$_timing['time'] );
+			$contents .= self::convert(self::$_timing['memory']);
+			$contents .= "\n";
+
+			file_put_contents( JCI()->get_tmp_dir() . DIRECTORY_SEPARATOR . 'debug-' . JCI()->importer->get_ID() . '-' . JCI()->importer->get_version()  . '.txt', $contents, FILE_APPEND );
+
+			self::$_timing = [];
 		}
 
-		$total        = '';
-		$timing_count = count( self::$_timings );
-		if ( $timing_count > 1 ) {
+		$contents .= "Total: " . round( microtime( true ) - self::$_start, 2 ) . "\n";
 
-			$total = round( self::$_timings[ $timing_count - 1 ]['time'] - self::$_timings[0]['time'], 2 ) . '-';
-		}
-
-		$contents = self::output_timings();
-		file_put_contents( JCI()->get_tmp_dir() . DIRECTORY_SEPARATOR . 'debug-' . $prefix . $total . time() . '.txt', $contents, FILE_APPEND );
-	}
-
-	/**
-	 * Display list of timings
-	 *
-	 * If debug true display all timings, otherwise display $_debug group name if not false.
-	 *
-	 * @return string
-	 */
-	private static function output_timings() {
-
-		ob_start();
-
-		if ( ! empty( self::$_timings ) ) {
-			$last_time = false;
-			foreach ( self::$_timings as $timing ) {
-
-				if (
-					self::$_debug === true
-					|| self::$_debug === $timing['group']
-				) {
-
-					if ( $last_time !== false ) {
-						echo sprintf( " %f\n", $timing['time'] - $last_time );
-					}
-					$last_time = $timing['time'];
-					echo self::convert($timing['memory']). "\n";
-
-					echo $timing['name'];
-					if ( ! empty( $timing['group'] ) ) {
-						echo " - " . $timing['group'];
-					}
-
-					echo "\n";
-				}
-			}
-		}
-
-		return ob_get_clean();
+		file_put_contents( JCI()->get_tmp_dir() . DIRECTORY_SEPARATOR . 'debug-' . JCI()->importer->get_ID() . '-' . JCI()->importer->get_version()  . '.txt', $contents, FILE_APPEND );
 	}
 
 	public static function convert($size)
