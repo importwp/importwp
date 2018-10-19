@@ -5,7 +5,7 @@
  * Description: Wordpress CSV/XML Importer Plugin, Easily import users, posts, custom post types and taxonomies from XML or CSV files
  * Author: James Collings <james@jclabs.co.uk>
  * Author URI: http://www.jamescollings.co.uk
- * Version: 1.0.4
+ * Version: 1.0.5-alpha.1
  *
  * @package ImportWP
  * @author James Collings <james@jclabs.co.uk>
@@ -77,7 +77,7 @@ class JC_Importer {
 	 *
 	 * @var string
 	 */
-	protected $version = '1.0.4';
+	protected $version = '1.0.5-alpha.1';
 	/**
 	 * Plugin base directory
 	 *
@@ -155,7 +155,9 @@ class JC_Importer {
 	public function init() {
 
 		require_once $this->plugin_dir . 'app/libs/class-iwp-debug.php';
-
+		if(defined('IWP_DEBUG') && IWP_DEBUG === true){
+			IWP_Debug::$_debug = true;
+		}
 
 		do_action( 'jci/before_init' );
 

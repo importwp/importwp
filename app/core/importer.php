@@ -235,10 +235,6 @@ class JC_Importer_Core {
 			return $this->do_error( [ 'message' => 'No Status file found.' ] );
 		}
 
-		if(defined('IWP_DEBUG') && IWP_DEBUG === true){
-			IWP_Debug::$_debug = true;
-		}
-
 		if ( $status ) {
 
 			switch ( $status['status'] ) {
@@ -282,6 +278,8 @@ class JC_Importer_Core {
 
 		IWP_Debug::timer( "Calculated Start / End Points", "core" );
 		$this->_running = true;
+
+		throw new Error("Something Bad Happened!");
 
 		// Import Records
 		for ( $i = 0; $i < $rows; $i ++ ) {
@@ -697,10 +695,14 @@ class JC_Importer_Core {
 
 		$error = error_get_last();
 		if ( $error && $error['type'] === E_ERROR ) {
+
+			IWP_Debug::log('Error: ' . $error['message'], 'IWP_Importer');
+
 			$status_arr = IWP_Status::read_file( $this->get_ID(), $this->get_version() );
 			$status_arr['status'] = 'error';
 			$status_arr['message'] = $error['message'];
 			IWP_Status::write_file( $status_arr );
+			IWP_Status::reset_handle();
 
 			return $this->do_error( $status_arr );
 		}
@@ -715,6 +717,7 @@ class JC_Importer_Core {
 		$status           = IWP_Status::read_file( $this->get_ID(), $this->get_version() );
 		$status['status'] = 'timeout';
 		IWP_Status::write_file( $status, $this->get_ID(), $this->get_version() );
+		IWP_Status::reset_handle();
 
 		return $this->do_success( $status );
 	}

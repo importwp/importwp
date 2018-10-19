@@ -37,11 +37,13 @@ if ( ! $jcimporter->importer->get_template() ) {
 
 // check for incomplete import and show message to resume
 $import_complete = true;
-
 $status = IWP_Status::read_file();
 if($status !== false){
 
 	switch($status['status']){
+        case 'error':
+	        echo '<div id="message" class="error_msg error updated below-h2"><p><strong>Last Import ran threw the following error: </strong><br />'.$status['message'].'.</p></div>';
+	        break;
 		case 'timeout':
 		case 'running':
 		case 'started':

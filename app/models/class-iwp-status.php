@@ -25,13 +25,16 @@ class IWP_Status {
 			return $data;
 		}
 
+
 		$status_file = self::get_file_path( $importer_id, $version );
 		if ( ! file_exists( $status_file ) ) {
 			return false;
 		}
 
+
 		$fh     = self::get_file_handle( $importer_id, $version );
 		$status = fread( $fh, filesize( $status_file ) );
+
 		$status = json_decode( $status, true );
 
 		return $status;

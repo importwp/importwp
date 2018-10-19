@@ -18,6 +18,21 @@ class IWP_Debug {
 	static $_timing = [];
 	static $_start = -1;
 
+	static function log($str, $prefix = ''){
+
+		if ( self::$_debug === false ) {
+			return;
+		}
+
+		$prefix_str = '';
+		if(!empty($prefix)){
+			$prefix_str = $prefix . ' - ';
+		}
+
+		$contents = date('Y-m-d H:i:s') . " - " . $prefix_str .  $str . "\n";
+		file_put_contents( JCI()->get_tmp_dir() . DIRECTORY_SEPARATOR . 'log.txt', $contents, FILE_APPEND );
+	}
+
 	/**
 	 * Add checkpoint for timer
 	 *
