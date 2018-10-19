@@ -279,8 +279,6 @@ class JC_Importer_Core {
 		IWP_Debug::timer( "Calculated Start / End Points", "core" );
 		$this->_running = true;
 
-		throw new Error("Something Bad Happened!");
-
 		// Import Records
 		for ( $i = 0; $i < $rows; $i ++ ) {
 			IWP_Debug::timer( "Importing Chunk", "core" );
