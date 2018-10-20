@@ -11,7 +11,7 @@ class JC_Page_Template extends JC_Importer_Template {
 			'import_type'      => 'post',
 			'import_type_name' => 'page',
 			'field_type'       => 'single',
-			'post_status'      => 'publish',
+			'post_status'      => 'any',
 			'group'            => 'page',
 			'unique'           => array( 'post_name' ),
 			'key'              => array( 'ID', 'post_name' ),

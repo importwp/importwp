@@ -19,9 +19,9 @@ class IWP_Status {
 		return isset( $data['status'] ) && $data['status'] === $status ? true : false;
 	}
 
-	static function read_file( $importer_id = null, $version = null ) {
+	static function read_file( $importer_id = null, $version = null , $skip_cache = false) {
 
-		if ( ( $data = self::read_cache( $importer_id, $version ) ) !== false ) {
+		if ( ( ( $data = self::read_cache( $importer_id, $version ) ) !== false ) && $skip_cache !== true ) {
 			return $data;
 		}
 

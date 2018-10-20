@@ -43,6 +43,8 @@ class JC_Importer_Core {
 	protected $version = 0;
 	protected $object_delete = - 1;
 
+	private $log_prefix = 'IWP_Importer';
+
 	public function __construct( $id = 0 ) {
 
 		if ( intval( $id ) > 0 ) {
@@ -268,6 +270,8 @@ class JC_Importer_Core {
 		}
 		$per_row = $this->get_record_import_count();
 
+		IWP_Debug::log(sprintf('Importer #%d Started.', $this->get_ID()), $this->log_prefix);
+
 		if ( isset( $status['status'] ) && $status['status'] == 'timeout' ) {
 			$start_row        = intval( $status['last_record'] ) + 1;
 			$status['status'] = 'running';
@@ -283,6 +287,7 @@ class JC_Importer_Core {
 		for ( $i = 0; $i < $rows; $i ++ ) {
 			IWP_Debug::timer( "Importing Chunk", "core" );
 			$start = $start_row + ( $i * $per_row );
+			IWP_Debug::log(sprintf('Importer #%d importing rows %d-%d.', $this->get_ID(), $start, $start+$per_row), $this->log_prefix);
 			$this->run_import( $start, false, $per_row );
 			IWP_Debug::timer( "Imported Chunk", "core" );
 
@@ -299,10 +304,12 @@ class JC_Importer_Core {
 		IWP_Status::write_file( $status, $this->get_ID(), $this->get_version() );
 
 		IWP_Debug::timer( "Deleting Files", "core" );
+		IWP_Debug::log(sprintf('Importer #%d Deleting Files.', $this->get_ID()), $this->log_prefix);
 
 		// TODO: Delete Records
 		$this->on_import_complete();
 
+		IWP_Debug::log(sprintf('Importer #%d Deleted Files.', $this->get_ID()), $this->log_prefix);
 		IWP_Debug::timer( "Deleted Files", "core" );
 
 
@@ -315,6 +322,8 @@ class JC_Importer_Core {
 
 		// display timer log
 		IWP_Debug::timer_log( $this->get_version() . '-' . $this->get_last_import_row() );
+
+		IWP_Debug::log(sprintf('Importer #%d Complete.', $this->get_ID()), $this->log_prefix);
 
 		return $this->do_success( $status );
 	}
@@ -451,6 +460,8 @@ class JC_Importer_Core {
 			'error'      => $error,
 			'time'        => time()
 		) );
+
+		IWP_Debug::log(sprintf('Importer #%d Imported row #%d.', $this->get_ID(),(JCI()->importer->start_line + $counter) -1), $this->log_prefix);
 	}
 
 	public function on_before_mapper(\ImportWP\Importer $importer, \ImportWP\Importer\ParsedData $data){
@@ -694,7 +705,7 @@ class JC_Importer_Core {
 		$error = error_get_last();
 		if ( $error && $error['type'] === E_ERROR ) {
 
-			IWP_Debug::log('Error: ' . $error['message'], 'IWP_Importer');
+			IWP_Debug::log('Error: ' . $error['message'], $this->log_prefix);
 
 			$status_arr = IWP_Status::read_file( $this->get_ID(), $this->get_version() );
 			$status_arr['status'] = 'error';
@@ -716,6 +727,8 @@ class JC_Importer_Core {
 		$status['status'] = 'timeout';
 		IWP_Status::write_file( $status, $this->get_ID(), $this->get_version() );
 		IWP_Status::reset_handle();
+
+		IWP_Debug::log(sprintf('Importer #%d Timeout at row: %d', $this->get_ID(), $status['last_record']), $this->log_prefix);
 
 		return $this->do_success( $status );
 	}

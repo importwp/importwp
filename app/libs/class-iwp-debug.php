@@ -17,6 +17,7 @@ class IWP_Debug {
 
 	static $_timing = [];
 	static $_start = -1;
+	static $_debug_session = false;
 
 	static function log($str, $prefix = ''){
 
@@ -29,7 +30,11 @@ class IWP_Debug {
 			$prefix_str = $prefix . ' - ';
 		}
 
-		$contents = date('Y-m-d H:i:s') . " - " . $prefix_str .  $str . "\n";
+		if(self::$_debug_session === false){
+			self::$_debug_session = wp_generate_password(8, false);
+		}
+
+		$contents = date('Y-m-d H:i:s') . ' - ' . self::$_debug_session . " - " . $prefix_str .  $str . "\n";
 		file_put_contents( JCI()->get_tmp_dir() . DIRECTORY_SEPARATOR . 'log.txt', $contents, FILE_APPEND );
 	}
 

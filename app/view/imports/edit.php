@@ -48,8 +48,12 @@ if($status !== false){
 		case 'running':
 		case 'started':
 		case 'deleting':
-		echo '<div id="message" class="error_msg warn updated below-h2"><p>Do you want to continue your last import? <a href="admin.php?page=jci-importers&import=' . $id . '&action=logs&continue=1">Click here</a>.</p></div>';
-		$import_complete = false;
+
+		$cron_enabled_meta = get_post_meta( $id, '_jci_cron_enabled', true);
+		if($cron_enabled_meta !== 'yes'){
+			echo '<div id="message" class="error_msg warn updated below-h2"><p>Do you want to continue your last import? <a href="admin.php?page=jci-importers&import=' . $id . '&action=logs&continue=1">Click here</a>.</p></div>';
+			$import_complete = false;
+        }
 			break;
 		case 'complete':
 			break;
