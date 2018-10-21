@@ -513,6 +513,8 @@ class JC_Importer_Core {
 		$template_field_group = $this->template->get_template_group_id();
 		$recordIndex          = $importer->getParser()->getRecordIndex();
 
+		do_action( 'jci/after_' . $this->template->get_name() . '_row_save', $data->getData(), $recordIndex );
+
 		// Call row save after group save
 		do_action( 'iwp_after_row_save', $this->template, $data, $importer );
 

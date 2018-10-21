@@ -61,6 +61,8 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			'fields'      => 'ids',
 			'cache_results' => false,
 			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'no_found_rows' => true,
 		);
 
 		$has_unique_field = false;
@@ -223,6 +225,8 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 				'posts_per_page' => 1,
 				'cache_results' => false,
 				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'no_found_rows' => true,
 			) );
 			if ( $query->found_posts == 1 ) {
 				$old_post = $query->post;
