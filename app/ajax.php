@@ -293,6 +293,10 @@ class JC_Importer_Ajax {
 					// process list of data maps
 					foreach ( $map as $map_row ) {
 
+						if(!isset($map_row['map']) || !isset($map_row['field'])){
+							continue;
+						}
+
 						$map_val   = stripslashes( $map_row['map'] );
 						$map_field = $map_row['field'];
 
@@ -306,6 +310,10 @@ class JC_Importer_Ajax {
 					$results = $record->queryGroup( [ 'fields' => $group ] );
 					if ( ! empty( $results ) ) {
 						foreach ( $map as $map_row ) {
+
+							if(!isset($map_row['map']) || !isset($map_row['field'])){
+								continue;
+							}
 
 							$map_val   = stripslashes( $map_row['map'] );
 							$map_field = $map_row['field'];
@@ -327,16 +335,14 @@ class JC_Importer_Ajax {
 
 					$result[] = array( $map_val, $results[ $map_field ] );
 				}
-
 			} catch ( Exception $e ) {
-
+				wp_send_json_error($e->getMessage());
 			}
 		}else{
 			http_response_code(500);
 		}
 
-		echo json_encode( $result );
-		die();
+		wp_send_json_success($result);
 	}
 
 	/**

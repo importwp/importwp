@@ -289,7 +289,7 @@ class JC_Importer_Core {
 		for ( $i = 0; $i < $rows; $i ++ ) {
 			IWP_Debug::timer( "Importing Chunk", "core" );
 			$start = $start_row + ( $i * $per_row );
-			IWP_Debug::log(sprintf('Importer #%d importing rows %d-%d.', $this->get_ID(), $start, $start+$per_row), $this->log_prefix);
+			IWP_Debug::log(sprintf('Importer #%d importing rows %d-%d.', $this->get_ID(), $start, ($start+$per_row)-1), $this->log_prefix);
 			$this->run_import( $start, false, $per_row );
 			IWP_Debug::timer( "Imported Chunk", "core" );
 
@@ -415,6 +415,8 @@ class JC_Importer_Core {
 		$meta = get_post_meta( $this->get_ID(), sprintf( '_total_rows_%d', $this->get_version() ), true );
 		if ( $skip_cache === true){ // || $this->total_rows === - 1 ) {
 
+			IWP_Debug::log(sprintf('Importer #%d Indexing Starting', $this->get_ID()), $this->log_prefix);
+
 			$config_file = JCI()->get_tmp_config_path($this->get_ID());
 			if(true === $is_live){
 				$config_file = JCI()->get_tmp_dir() . DIRECTORY_SEPARATOR . sprintf('config-%d-%d.json', $this->get_ID(), $this->get_version());
@@ -431,6 +433,8 @@ class JC_Importer_Core {
 				$this->total_rows = $file->getRecordCount();
 			}
 			update_post_meta( $this->get_ID(), sprintf( '_total_rows_%d', $this->get_version() ), $this->total_rows );
+
+			IWP_Debug::log(sprintf('Importer #%d Indexing Complete, Found %d Records', $this->get_ID(), $this->total_rows), $this->log_prefix);
 		} else {
 			$this->total_rows = intval( $meta );
 		}
@@ -462,8 +466,6 @@ class JC_Importer_Core {
 			'error'      => $error,
 			'time'        => time()
 		) );
-
-		IWP_Debug::log(sprintf('Importer #%d Imported row #%d.', $this->get_ID(),(JCI()->importer->start_line + $counter) -1), $this->log_prefix);
 	}
 
 	public function on_before_mapper(\ImportWP\Importer $importer, \ImportWP\Importer\ParsedData $data){
@@ -481,7 +483,14 @@ class JC_Importer_Core {
 		$data->replace($updated_data);
 	}
 
-	public function on_record_exception(\ImportWP\Importer $importer, $error_msg){
+	public function on_record_exception(\ImportWP\Importer $importer, Exception $e){
+
+		if($e instanceof \ImportWP\Importer\Exception\FileException){
+			return $this->display_error($e->getMessage());
+
+		}
+
+		$error_msg = $e->getMessage();
 		$recordIndex = $importer->getParser()->getRecordIndex();
 		ImportLog::insert(JCI()->importer->get_ID(), $recordIndex, array(
 			'_jci_status' => 'E',
@@ -708,16 +717,7 @@ class JC_Importer_Core {
 
 		$error = error_get_last();
 		if ( $error && $error['type'] === E_ERROR ) {
-
-			IWP_Debug::log('Error: ' . $error['message'], $this->log_prefix);
-
-			$status_arr = IWP_Status::read_file( $this->get_ID(), $this->get_version() );
-			$status_arr['status'] = 'error';
-			$status_arr['message'] = $error['message'];
-			IWP_Status::write_file( $status_arr );
-			IWP_Status::reset_handle();
-
-			return $this->do_error( $status_arr );
+			$this->display_error($error['message']);
 		}
 
 		// output timer log to file
@@ -732,9 +732,25 @@ class JC_Importer_Core {
 		IWP_Status::write_file( $status, $this->get_ID(), $this->get_version() );
 		IWP_Status::reset_handle();
 
-		IWP_Debug::log(sprintf('Importer #%d Timeout at row: %d', $this->get_ID(), $status['last_record']), $this->log_prefix);
+		$last_record = isset($status['last_record']) ? $status['last_record'] : -1;
+
+		IWP_Debug::log(sprintf('Importer #%d Timeout at row: %d', $this->get_ID(), $last_record), $this->log_prefix);
 
 		return $this->do_success( $status );
+	}
+
+	private function display_error($message){
+		IWP_Debug::log('Error: ' . $message, $this->log_prefix);
+
+		$status_arr = IWP_Status::read_file( $this->get_ID(), $this->get_version() );
+		$status_arr['status'] = 'error';
+		$status_arr['message'] = $message;
+		IWP_Status::write_file( $status_arr );
+		IWP_Status::reset_handle();
+
+		$this->_running = false;
+
+		return $this->do_error( $status_arr );
 	}
 
 	public function get_last_import_row() {

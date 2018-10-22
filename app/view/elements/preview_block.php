@@ -39,6 +39,7 @@ $jci_template_type = $jcimporter->importer->template_type;
                     var val = $(this).val();
                     var obj = $(this).parent();
                     var field = $(this).data('jci-field');
+                    var row = $('#preview-record').val();
                     if (field === undefined) {
                         field = '';
                     }
@@ -50,11 +51,11 @@ $jci_template_type = $jcimporter->importer->template_type;
                                 id: ajax_object.id,
                                 field: field,
 								<?php if($jci_template_type == 'xml'): ?>map: val,
-                                row: $('#preview-record').val(),
+                                row: row,
                                 general_base: $('#jc-importer_parser_settings-import_base').val(),
                                 group_base: $('input[id^="jc-importer_parser_settings-group-"]').val()
 								<?php else: ?>map: val,
-                                row: $('#preview-record').val()
+                                row: row
 								<?php endif; ?>
                             },
                             dataType: 'json',
@@ -67,11 +68,17 @@ $jci_template_type = $jcimporter->importer->template_type;
                                 clearLoading();
                             },
                             success: function (response) {
-                                $.each(response, function (index, value) {
-                                    obj.find('.preview-text').text('Preview: ' + value[1]);
-                                });
+                                if(response.success === true){
+                                    $.each(response.data, function (index, value) {
+                                        obj.find('.preview-text').text('Preview: ' + value[1]);
+                                    });
+                                }else{
+                                    iwp.onError("Unable to fetch preview for record #"+row+": " + response.data);
+                                }
+
                             },
                             error: function(e){
+                                console.log(e);
                                 obj.find('.preview-text').text('Preview:');
                                 iwp.onError(e);
                             }
@@ -83,6 +90,7 @@ $jci_template_type = $jcimporter->importer->template_type;
                 // change all inputs
                 function refreshPreview() {
                     var nodes = [];
+                    var row = $('#preview-record').val();
                     var mappings = [];
                     $('.xml-drop input').each(function () {
                         var input_val = $(this).val();
@@ -102,11 +110,11 @@ $jci_template_type = $jcimporter->importer->template_type;
                                 action: 'jc_preview_record',
                                 id: ajax_object.id,
 								<?php if($jci_template_type == 'xml'): ?>map: mappings,
-                                row: $('#preview-record').val(),
+                                row: row,
                                 general_base: $('#jc-importer_parser_settings-import_base').val(),
                                 group_base: $('input[id^="jc-importer_parser_settings-group-"]').val()
 								<?php else: ?>map: mappings,
-                                row: $('#preview-record').val()
+                                row: row
 								<?php endif; ?>
                             },
                             dataType: 'json',
@@ -119,13 +127,17 @@ $jci_template_type = $jcimporter->importer->template_type;
                                 clearLoading();
                             },
                             success: function (response) {
-                                $.each(response, function (index, value) {
-                                    $('.xml-drop input').each(function () {
-                                        if ($(this).val() == value[0]) {
-                                            $(this).parent().find('.preview-text').text('Preview: ' + value[1]);
-                                        }
-                                    })
-                                });
+                                if(response.success === true){
+                                    $.each(response.data, function (index, value) {
+                                        $('.xml-drop input').each(function () {
+                                            if ($(this).val() == value[0]) {
+                                                $(this).parent().find('.preview-text').text('Preview: ' + value[1]);
+                                            }
+                                        })
+                                    });
+                                }else{
+                                    iwp.onError("Unable to fetch preview for record #"+row+": " + response.data);
+                                }
                             },
                             error: function(e){
                                 $('.preview-text').text('Preview:');
