@@ -19,12 +19,14 @@ $debug_info = array(
 	'File Upload' => array(
 		'Post max size'       => ini_get( 'post_max_size' ),
 		'Upload max filesize' => ini_get( 'upload_max_filesize' ),
-		'Remote Fetch'        => $remote_fetch
+		'Remote Fetch'        => $remote_fetch,
 
-		//				'Upload directory' => wpdf_get_uploads_dir(),
-		//				'Upload directory writable' => true === is_writable( wpdf_get_uploads_dir() ) ? 'yes' : 'no',
+        'Temp directory' => JCI()->get_tmp_dir(),
+        'Temp directory writable' => true === is_writable( JCI()->get_tmp_dir() ) ? 'Yes' : 'No',
 	),
 );
+
+$debug_info = apply_filters('iwp/debug_info', $debug_info);
 ?>
 <?php foreach ( $debug_info as $section => $section_data ) : ?>
     <div class="postbox ">
