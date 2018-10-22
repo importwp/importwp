@@ -13,6 +13,7 @@ $permissions_general  = $jcimporter->importer->get_permissions();
 $taxonomies           = $jcimporter->importer->get_taxonomies();
 $taxonomy_permissions = $jcimporter->importer->get_taxonomies_permissions();
 $attachments          = $jcimporter->importer->get_attachments();
+$template_unique_field = $jcimporter->importer->get_template_unique_field();
 $total_rows = 0;//$jcimporter->importer->get_total_rows();
 $last_import_row = $jcimporter->importer->get_last_import_row();
 ?>
@@ -123,6 +124,11 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 								'options' => array( 'csv' => 'CSV', 'xml' => 'XML' ),
 								'default' => $template_type,
 								'tooltip' => JCI()->text()->get( 'import.settings.template_type' )
+							) );
+							echo JCI_FormHelper::text( 'template-unique-field', array(
+								'label'   => 'Unique Field',
+								'default' => $template_unique_field,
+								'tooltip' => JCI()->text()->get( 'template.default.template_unique+field' )
 							) );
 
 							// core fields

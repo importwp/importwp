@@ -124,6 +124,13 @@ class JC_Importer_Template {
 	}
 
 	final public function alter_template_unique_fields(){
+
+		// Allow user to overwrite unique field without using filter.
+		$unique_field = JCI()->importer->get_template_unique_field();
+		if(!empty($unique_field)){
+			$this->_unique = explode(',', $unique_field);
+		}
+
 		$this->_unique = apply_filters('iwp/template_unique_fields', $this->_unique);
 		$this->_unique = apply_filters(sprintf('iwp/template_%s_unique_fields', $this->get_name()), $this->_unique);
 	}

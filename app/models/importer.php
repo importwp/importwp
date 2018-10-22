@@ -254,10 +254,11 @@ class ImporterModel {
 		$meta['_field_addons']   = isset( $data['addon_fields'] ) ? $data['addon_fields'] : array();
 		$meta['_setting_addons'] = isset( $data['addon_settings'] ) ? $data['addon_settings'] : array();
 
-		$settings                        = get_post_meta( $post_id, '_import_settings', true );
-		$settings['start_line']          = isset( $data['settings']['start_line'] ) ? $data['settings']['start_line'] : 1;
-		$settings['row_count']           = isset( $data['settings']['row_count'] ) ? $data['settings']['row_count'] : 0;
-		$settings['record_import_count'] = isset( $data['settings']['record_import_count'] ) ? $data['settings']['record_import_count'] : 10;
+		$settings                           = get_post_meta( $post_id, '_import_settings', true );
+		$settings['start_line']             = isset( $data['settings']['start_line'] ) ? $data['settings']['start_line'] : 1;
+		$settings['row_count']              = isset( $data['settings']['row_count'] ) ? $data['settings']['row_count'] : 0;
+		$settings['record_import_count']    = isset( $data['settings']['record_import_count'] ) ? $data['settings']['record_import_count'] : 10;
+		$settings['template_unique_field']  = isset( $data['settings']['template_unique_field'] ) ? $data['settings']['template_unique_field'] : '';
 
 		if ( isset( $data['settings']['template_type'] ) && in_array( $data['settings']['template_type'], array(
 				'csv',
@@ -446,6 +447,9 @@ class ImporterModel {
 				break;
 			case 'permissions':
 				$settings = isset( $settings['permissions'] ) ? $settings['permissions'] : array();
+				break;
+			case 'template_unique_field':
+				$settings = isset( $settings['template_unique_field'] ) ? $settings['template_unique_field'] : '';
 				break;
 		}
 

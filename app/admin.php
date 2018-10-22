@@ -481,6 +481,9 @@ class JC_Importer_Admin {
 			if ( isset( $_POST['jc-importer_record-import-count'] ) ) {
 				$settings['record_import_count'] = $_POST['jc-importer_record-import-count'];
 			}
+			if ( isset( $_POST['jc-importer_template-unique-field'] ) ) {
+				$settings['template_unique_field'] = $_POST['jc-importer_template-unique-field'];
+			}
 
 			$settings = apply_filters( 'jci/process_edit_form', $settings );
 

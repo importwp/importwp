@@ -42,6 +42,7 @@ class JC_Importer_Core {
 	protected $name = '';
 	protected $version = 0;
 	protected $object_delete = - 1;
+	protected $template_unique_field = '';
 
 	private $log_prefix = 'IWP_Importer';
 
@@ -74,6 +75,7 @@ class JC_Importer_Core {
 			$this->start_line          = ImporterModel::getImportSettings( $id, 'start_line' );
 			$this->row_count           = ImporterModel::getImportSettings( $id, 'row_count' );
 			$this->record_import_count = ImporterModel::getImportSettings( $id, 'record_import_count' );
+			$this->template_unique_field = ImporterModel::getImportSettings( $id, 'template_unique_field' );
 
 			// todo: throw error if template returns false, e.g. doesnt exist.
 			if ( ! $this->template ) {
@@ -800,6 +802,10 @@ class JC_Importer_Core {
 
 	public function get_object_delete() {
 		return $this->object_delete;
+	}
+
+	public function get_template_unique_field(){
+		return $this->template_unique_field;
 	}
 
 	/**

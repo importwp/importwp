@@ -45,6 +45,8 @@ class IWP_Text {
 			'import.settings.csv_enclosure'            => __( 'The character which is wrapper around the CSV record elements.', 'iwp' ),
 			// Import XML Settings
 			'import.settings.xml_base_node'            => __( 'This Record Base is the path to the XML records that you want to import.', 'iwp' ),
+			// General Template
+			'template.default.template_unique+field'   => __( 'Unique field name to check for existing records, leave black to use template default', 'iwp' ),
 			// Default post template fields
 			'template.default.post_title'              => __( 'Name of the %s.', 'iwp' ),
 			'template.default.post_name'               => __( 'The slug is the user friendly and URL valid name of the %s.', 'iwp' ),
