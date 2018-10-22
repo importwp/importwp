@@ -12,9 +12,13 @@
             "source": {
                 "type": "git",
                 "url": "https://bitbucket.org/jcollings89/importwp-importer.git",
-                "reference": "6547e9274e3d276f0f84f4155b81901365c43803"
+                "reference": "f4ad7534f64f60c558579d3558eea444122c64b2"
             },
             "require": {
+                "ext-curl": "*",
+                "ext-ftp": "*",
+                "ext-json": "*",
+                "ext-mbstring": "*",
                 "php": ">=5.2.4"
             },
             "require-dev": {
@@ -34,7 +38,7 @@
                 }
             ],
             "description": "CSV and XML Importer",
-            "time": "2018-10-17T13:39:46+00:00"
+            "time": "2018-10-22T23:03:40+00:00"
         }
     ],
     "packages-dev": [],

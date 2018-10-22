@@ -11,6 +11,7 @@ return array(
     'ImportWP\\Importer\\Config\\Config' => $vendorDir . '/jclabs/importwp/src/Importer/Config/Config.php',
     'ImportWP\\Importer\\DataParser' => $vendorDir . '/jclabs/importwp/src/Importer/DataParser.php',
     'ImportWP\\Importer\\EventHandler' => $vendorDir . '/jclabs/importwp/src/Importer/EventHandler.php',
+    'ImportWP\\Importer\\Exception\\FileException' => $vendorDir . '/jclabs/importwp/src/Importer/Exception/FileException.php',
     'ImportWP\\Importer\\Exception\\MapperException' => $vendorDir . '/jclabs/importwp/src/Importer/Exception/MapperException.php',
     'ImportWP\\Importer\\Exception\\ParserException' => $vendorDir . '/jclabs/importwp/src/Importer/Exception/ParserException.php',
     'ImportWP\\Importer\\FileInterface' => $vendorDir . '/jclabs/importwp/src/Importer/FileInterface.php',

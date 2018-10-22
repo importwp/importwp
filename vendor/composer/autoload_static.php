@@ -26,6 +26,7 @@ class ComposerStaticInit07fe68136279d2ca5bf7b64640befc1f
         'ImportWP\\Importer\\Config\\Config' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/Config/Config.php',
         'ImportWP\\Importer\\DataParser' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/DataParser.php',
         'ImportWP\\Importer\\EventHandler' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/EventHandler.php',
+        'ImportWP\\Importer\\Exception\\FileException' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/Exception/FileException.php',
         'ImportWP\\Importer\\Exception\\MapperException' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/Exception/MapperException.php',
         'ImportWP\\Importer\\Exception\\ParserException' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/Exception/ParserException.php',
         'ImportWP\\Importer\\FileInterface' => __DIR__ . '/..' . '/jclabs/importwp/src/Importer/FileInterface.php',
