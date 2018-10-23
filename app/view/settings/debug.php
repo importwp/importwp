@@ -15,6 +15,7 @@ $debug_info = array(
 		'Max execution time' => ini_get( 'max_execution_time' ),
 		'Max input time'     => ini_get( 'max_input_time' ),
         'Memory Limit'       => ini_get('memory_limit'),
+        'DISABLE_WP_CRON'   => defined('DISABLE_WP_CRON') && DISABLE_WP_CRON === true ? 'Yes' : 'No',
 	),
 	'File Upload' => array(
 		'Post max size'       => ini_get( 'post_max_size' ),
