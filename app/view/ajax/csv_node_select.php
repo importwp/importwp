@@ -101,7 +101,7 @@
                     $('#jci-preview-selection').text('Loading...');
                 },
                 success: function (response) {
-                    $.each(response, function (index, value) {
+                    $.each(response.data, function (index, value) {
                         $('#jci-preview-selection').text('Preview: ' + value[1]);
                     });
                 }
