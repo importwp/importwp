@@ -3,7 +3,7 @@ Contributors: jcollings
 Tags: import, wordpress xml importer, wordpress csv importer, xml, csv
 Requires at least: 4.0  
 Tested up to: 4.9
-Stable tag: 1.0.5-alpha.4
+Stable tag: 1.0.5
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -66,6 +66,13 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 == Changelog ==
+
+= 1.0.5 - 23/10/2018 =
+
+* ADD - unique template field, set which field is used to identify a record
+* FIX - Multiple bugs fixed.
+* ADD - new filter 'iwp/import_mapper_permissions' to block fields from being modified
+* ADD - new filter 'iwp/template_unique_fields' to override the templates unique reference field
 
 = 1.0.4 - 16/10/2018 =
 
