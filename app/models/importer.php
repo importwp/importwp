@@ -322,7 +322,7 @@ class ImporterModel {
 				$base = isset($_POST['jc-importer_parser_settings']) && isset($_POST['jc-importer_parser_settings']['import_base']) ? $_POST['jc-importer_parser_settings']['import_base'] : '';
 				$file = new \ImportWP\Importer\File\XMLFile($filepath, $config);
 				$file->setRecordPath($base);
-				$row_count = $file->getRecordCount();
+				$row_count = !empty($base) ? $file->getRecordCount() : 0;
 			}
 
 			if ( $settings['start_line'] > $row_count ) {

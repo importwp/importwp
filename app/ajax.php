@@ -128,6 +128,10 @@ class JC_Importer_Ajax {
 				$xml_file = new \ImportWP\Importer\File\XMLFile( $file, $config );
 				$xml = new \ImportWP\Importer\Preview\XMLPreview( $xml_file, $base_node );
 
+				if(empty($base_node)){
+					echo "<div class=\"error_msg warn error below-h2\"><p>No Record Base specified, Make sure you have set the xml record base path first!</p></div>";
+				}
+
 				require_once $this->_config->get_plugin_dir() . 'app/view/ajax/xml_node_select.php';
 				break;
 			case 'csv':
