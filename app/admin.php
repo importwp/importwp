@@ -270,9 +270,10 @@ class JC_Importer_Admin {
 			exit();
 		} elseif ( $action == 'update-db' && ! isset( $_GET['result'] ) ) {
 
-			require_once $jcimporter->get_plugin_dir() . '/app/models/schema.php';
-			$schema = new JCI_DB_Schema( $jcimporter );
-			$schema->db_migration();
+			// TODO: Rollback migrations / decrease version number as otherwise this does nothing.
+			require_once $jcimporter->get_plugin_dir() . '/libs/class-iwp-migrations.php';
+			$migrations = new IWP_Migrations();
+			$migrations->migrate();
 
 			wp_redirect( add_query_arg( array( 'result' => 1 ) ) );
 			exit();

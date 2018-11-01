@@ -1,21 +1,53 @@
 <?php
+class IWP_Migrations{
 
-class JCI_DB_Schema {
+	private $_version = 0;
+	private $_migrations = array();
 
-	private $config = null;
+	public function __construct() {
 
-	public function __construct( &$config ) {
-		$this->config = $config;
+		$this->_migrations[] = array($this, 'migration_01');
+		$this->_migrations[] = array($this, 'migration_02');
+		// $this->_migrations[] = array($this, 'migration_03');
+
+		$this->_version = count($this->_migrations);
 	}
 
-	/**
-	 * Install Importer Tables in db
-	 */
-	public function install() {
+	public function install(){
+
+		//run through schema migrations only
+		$this->migrate(false);
+	}
+
+	public function migrate($migrate_data = true){
+
+		$verion_key = 'iwp_db_version';
+		$version = intval( get_site_option( 'iwp_db_version', get_site_option( 'jci_db_version', 0 ) ) );
+
+		if($version < count($this->_migrations)){
+
+			require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+
+			for($i = 0; $i < count($this->_migrations); $i++){
+
+				$migration_version = $i+1;
+				if($version < $migration_version){
+
+					set_time_limit(0);
+
+					// Run migration
+					call_user_func($this->_migrations[$i], $migrate_data);
+
+					// Flag as migrated
+					update_site_option($verion_key, $migration_version);
+				}
+			}
+		}
+	}
+
+	public function get_charset(){
 
 		global $wpdb;
-
-		$wpdb->show_errors();
 		$charset_collate = "";
 
 		if ( ! empty( $wpdb->charset ) ) {
@@ -24,73 +56,15 @@ class JCI_DB_Schema {
 		if ( ! empty( $wpdb->collate ) ) {
 			$charset_collate .= " COLLATE $wpdb->collate";
 		}
-
-		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-
-		$sql = "CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "importer_log` (
-			  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-			  `importer_name` varchar(255) DEFAULT NULL,
-			  `object_id` int(11) DEFAULT NULL,
-			  `template` varchar(255) DEFAULT NULL,
-			  `type` varchar(255) DEFAULT NULL,
-			  `file` varchar(255) DEFAULT NULL,
-			  `version` int(11) DEFAULT NULL,
-			  `row` int(11) DEFAULT NULL,
-			  `src` text,
-			  `value` text,
-			  `created` datetime DEFAULT NULL,
-			  `import_settings` TEXT NULL,
-			  `mapped_fields` TEXT NULL,
-			  `attachments` TEXT NULL,
-			  `taxonomies` TEXT NULL,
-			  `parser_settings` TEXT NULL,
-			  `template_settings` TEXT NULL,
-			  PRIMARY KEY (`id`)
-			) $charset_collate; ";
-
-		dbDelta( $sql );
-
-		$sql = "CREATE TABLE IF NOT EXISTS `" . $wpdb->prefix . "importer_files`(  
-			  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-			  `importer_id` INT(11),
-			  `author_id` INT(11),
-			  `mime_type` VARCHAR(255),
-			  `name` VARCHAR(255),
-			  `src` VARCHAR(255),
-			  `created` DATETIME,
-			  PRIMARY KEY (`id`)
-			) $charset_collate;";
-
-		dbDelta( $sql );
+		return $charset_collate;
 	}
 
-	/**
-	 * Upgrade Existing Databases
-	 *
-	 * @param  int $old_version
-	 */
-	public function upgrade( $old_version ) {
+	public function migration_01($migrate_data = true){
 
 		global $wpdb;
+		$charset_collate = $this->get_charset();
 
-		$charset_collate = "";
-
-		if ( ! empty( $wpdb->charset ) ) {
-			$charset_collate = "DEFAULT CHARACTER SET $wpdb->charset";
-		}
-		if ( ! empty( $wpdb->collate ) ) {
-			$charset_collate .= " COLLATE $wpdb->collate";
-		}
-
-		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-
-		$migrate_versions = array();
-
-		switch ( $old_version ) {
-			case 0:
-			case 1:
-				// db version 2
-				$sql = "CREATE TABLE `" . $wpdb->prefix . "importer_log` (
+		$sql = "CREATE TABLE `" . $wpdb->prefix . "importer_log` (
 					  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 					  `importer_name` varchar(255) DEFAULT NULL,
 					  `object_id` int(11) DEFAULT NULL,
@@ -111,9 +85,9 @@ class JCI_DB_Schema {
 					  PRIMARY KEY (`id`)
 					) $charset_collate; ";
 
-				dbDelta( $sql );
+		dbDelta( $sql );
 
-				$sql = "CREATE TABLE `" . $wpdb->prefix . "importer_files`(  
+		$sql = "CREATE TABLE `" . $wpdb->prefix . "importer_files`(  
 					  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 					  `importer_id` INT(11),
 					  `author_id` INT(11),
@@ -123,43 +97,19 @@ class JCI_DB_Schema {
 					  `created` DATETIME,
 					  PRIMARY KEY (`id`)
 					) $charset_collate;";
-				dbDelta( $sql );
-
-				$migrate_versions[] = 2;
-				break;
-		}
-
-		if ( ! empty( $migrate_versions ) ) {
-			add_option( 'jci_db_migrate', serialize( $migrate_versions ) );
-		}
+		dbDelta( $sql );
 	}
 
-	public function db_migration() {
+	public function migration_02($migrate_data = true){
 
-		$migrate_versions = maybe_unserialize( get_option( 'jci_db_migrate', false ) );
-
-		if ( is_array( $migrate_versions ) ) {
-			foreach ( $migrate_versions as $version ) {
-
-				switch ( $version ) {
-					case 2:
-						$this->migrate_ver_2_data();
-						break;
-				}
-			}
+		if(!$migrate_data){
+			return;
 		}
-
-		delete_option( 'jci_db_migrate' );
-	}
-
-	private function migrate_ver_2_data() {
-
-		set_time_limit( 0 );
 
 		global $wpdb;
 
 		// return list of importer file links
-		$importer_file_ids = $this->get_migrate_2_importer_file_ids();
+		$importer_file_ids = $this->migration_02_get_importer_file_ids();
 
 		// get ids of all importers and fetch all their import files
 		$importers = $wpdb->get_col( "SELECT id FROM " . $wpdb->posts . " WHERE post_type = 'jc-imports'" );
@@ -236,15 +186,13 @@ class JCI_DB_Schema {
 				}
 			}
 		}
-
-		return true;
 	}
 
 	/**
 	 * Fetch list of current importer_file id's
 	 * @return array
 	 */
-	private function get_migrate_2_importer_file_ids() {
+	private function migration_02_get_importer_file_ids() {
 		global $wpdb;
 
 		$transient = get_transient( 'jci_db_import_file_ids' );
@@ -267,5 +215,20 @@ class JCI_DB_Schema {
 		} else {
 			return $transient;
 		}
+	}
+
+	/**
+	 * Migration 03
+	 * Refactor logs table, so duplication of data.
+	 *
+	 * @since 1.1.0
+	 */
+	public function migration_03($migrate_data = true){
+
+		global $wpdb;
+
+		// TODO: Create new Tables (_importer_logs , _importer_log_data)
+		// TODO: Migrate existing logs into new format
+		// TODO: Delete old table
 	}
 }

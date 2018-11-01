@@ -127,7 +127,6 @@ class JC_Importer {
 		$this->text = new IWP_Text();
 
 		add_action( 'init', array( $this, 'init' ) );
-		add_action( 'plugins_loaded', array( $this, 'db_update_check' ) );
 
 		// activation.
 		register_activation_hook( __FILE__, array( $this, 'activation' ) );
@@ -249,32 +248,17 @@ class JC_Importer {
 
 		if ( is_admin() ) {
 
+			require_once 'libs/class-iwp-migrations.php';
+			$migrations = new IWP_Migrations();
+
 			if ( get_option( 'Activated_Plugin' ) === 'jcimporter' ) {
 
-				// scaffold log table.
-				require_once 'app/models/schema.php';
-				$schema = new JCI_DB_Schema( $this );
-				$schema->install();
+				$migrations->install();
 				delete_option( 'Activated_Plugin' );
+
+			}else{
+				$migrations->migrate();
 			}
-
-			$this->db_update_check();
-		}
-	}
-
-	/**
-	 * Check if database requires an upgrade
-	 */
-	public function db_update_check() {
-
-		$curr_db = intval( get_site_option( 'jci_db_version' ) );
-		if ( is_admin() && $curr_db < $this->db_version ) {
-
-			require_once 'app/models/schema.php';
-			$schema = new JCI_DB_Schema( $this );
-			$schema->upgrade( $curr_db );
-
-			update_site_option( 'jci_db_version', $this->db_version );
 		}
 	}
 

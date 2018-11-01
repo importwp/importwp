@@ -70,9 +70,10 @@ class ImportWP_Unit_Tests_Bootstrap {
 	}
 
 	function install_jci_db() {
-		require_once $this->plugin_dir . '/app/models/schema.php';
-		$schema = new JCI_DB_Schema( $GLOBALS['jcimporter'] );
-		$schema->install();
+
+		require_once $this->plugin_dir . '/libs/class-iwp-migrations.php';
+		$migrations = new IWP_Migrations();
+		$migrations->install();
 	}
 
 	/**
