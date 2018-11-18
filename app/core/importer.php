@@ -46,6 +46,13 @@ class JC_Importer_Core {
 
 	private $log_prefix = 'IWP_Importer';
 
+	/**
+	 * JC_Importer_Core constructor.
+	 *
+	 * TODO: Stop loading all data, load only when required.
+	 *
+	 * @param int $id
+	 */
 	public function __construct( $id = 0 ) {
 
 		if ( intval( $id ) > 0 ) {

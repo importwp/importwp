@@ -4,6 +4,7 @@
  */
 global $jcimporter;
 $name                 = $jcimporter->importer->get_name();
+$template = $jcimporter->importer->get_template();
 $template_type        = $jcimporter->importer->get_template_type();
 $template_groups      = $jcimporter->importer->get_template_groups();
 $start_line           = $jcimporter->importer->get_start_line();
@@ -315,20 +316,31 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 								// output addon group fields
 								do_action( "jci/output_{$template_type}_group_settings", $id, $group_id );
 
-								foreach ( $group['fields'] as $key => $value ) {
-									$title   = $group['titles'][ $key ];
-									$tooltip = $group['tooltips'][ $key ];
-									echo JCI_FormHelper::text( 'field[' . $group_id . '][' . $key . ']', array(
-										'label'   => $title,
-										'tooltip' => $tooltip,
-										'default' => esc_attr($value),
-										'class'   => 'xml-drop jci-group',
-										'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
-										'data'    => array(
-											'jci-field' => $key,
-										)
-									) );
-								}
+								if(method_exists($template, 'get_template_version')){
+
+									/**
+									 * @var IWP_Base_Template $template
+									 */
+									$template->display_fields();
+
+                                }else{
+									foreach ( $group['fields'] as $key => $value ) {
+										$title   = $group['titles'][ $key ];
+										$tooltip = $group['tooltips'][ $key ];
+										echo JCI_FormHelper::text( 'field[' . $group_id . '][' . $key . ']', array(
+											'label'   => $title,
+											'tooltip' => $tooltip,
+											'default' => esc_attr($value),
+											'class'   => 'xml-drop jci-group',
+											'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
+											'data'    => array(
+												'jci-field' => $key,
+											)
+										) );
+									}
+                                }
+
+
 
 								?>
                             </div>
