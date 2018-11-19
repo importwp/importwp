@@ -26,6 +26,8 @@ class IWP_Base_Template extends JC_Importer_Template{
 	 */
 	protected $_template_version;
 
+	private $_virtual_fields = [];
+
 	public function __construct($group, $import_type, $import_type_name, $settings = array()) {
 
 		$this->_group = $group;
@@ -98,10 +100,14 @@ class IWP_Base_Template extends JC_Importer_Template{
 	 * @return array
 	 */
 	public function remove_virtual_fields($data){
+
+	    $this->_virtual_fields = [];
+
 		$virtual_fields = $this->get_virtual_fields();
 		if(!empty($virtual_fields)){
 			foreach($virtual_fields as $field){
 				if(isset($data[$field['field']])){
+				    $this->_virtual_fields[$field['field']] = $data[$field['field']];
 					unset($data[$field['field']]);
 				}
 			}
@@ -306,6 +312,9 @@ class IWP_Base_Template extends JC_Importer_Template{
 				case 'default':
 				default:
 					$this->display_field($key, $value);
+					if(isset($this->_fields[$key]['after'])){
+                        call_user_func_array($this->_fields[$key]['after'], array($key));
+                    }
 					break;
 			}
 		}
@@ -325,20 +334,28 @@ class IWP_Base_Template extends JC_Importer_Template{
 		) );
 	}
 
-	private function get_field_tooltip($key){
+	protected function get_field_tooltip($key){
 		return isset($this->_fields[$key]['tooltip']) ? $this->_fields[$key]['tooltip'] : sprintf( JCI()->text()->get( sprintf( 'template.default.%s', $key ) ), $this->_import_type_name );
 	}
 
-	private function get_field_title($key){
+	protected function get_field_title($key){
 		return isset($this->_fields[$key]['title']) ? $this->_fields[$key]['title'] : $key;
 	}
 
-	private function get_field_type($key){
+	protected function get_field_type($key){
 		return isset($this->_fields[$key]['type']) ? $this->_fields[$key]['type'] : 'default';
 	}
 
-	private function get_field_value($key, $default = ''){
+	protected function get_field_value($key, $default = ''){
 		$fields = ImporterModel::getImporterMeta( JCI()->importer->get_ID(), 'fields' );
 		return isset($fields[$this->_group][$key]) ? $fields[$this->_group][$key] : $default;
+    }
+
+    protected function get_group(){
+	    return $this->_group;
+    }
+
+    protected function get_virtual_field($key){
+	    return isset($this->_virtual_fields[$key]) ? $this->_virtual_fields[$key] : false;
     }
 }
