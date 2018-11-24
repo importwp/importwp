@@ -28,6 +28,9 @@ class IWP_Base_Template extends JC_Importer_Template{
 
 	private $_virtual_fields = [];
 
+	private $_repeater_fields = [];
+	private $_repeater_values = [];
+
 	public function __construct($group, $import_type, $import_type_name, $settings = array()) {
 
 		$this->_group = $group;
@@ -52,7 +55,35 @@ class IWP_Base_Template extends JC_Importer_Template{
 		parent::__construct();
 
 		add_filter( 'jci/before_' . $this->get_name() . '_group_save', array( $this, 'remove_virtual_fields' ), 100, 1 );
-		add_action( 'iwp_after_row_save', array( $this, 'process_attachment_fields' ), 5, 3 );
+		add_action( 'iwp_after_row_save', array( $this, 'after_row_import' ), 5, 3 );
+		add_action('jci/before_import', array( $this, 'iwp_before_import'));
+	}
+
+	public function iwp_before_import(){
+		add_filter('jci/importer/get_groups', array($this, 'importer_get_groups'));
+	}
+
+	public function importer_get_groups($groups){
+
+		if(!empty($this->_repeater_fields)){
+			foreach($this->_repeater_fields as $repeater_key => $repeater_field){
+
+				// Add group row count
+				$groups[$this->get_group()]['fields'][sprintf('_iwpr_%s', $repeater_key)] = count($groups[$this->get_group()]['fields'][$repeater_key]['iwp_repeater_index']);
+
+				foreach($groups[$this->get_group()]['fields'][$repeater_key]['iwp_repeater_index'] as $index => $index_value){
+
+					foreach($repeater_field['fields'] as $field){
+						$field_key = sprintf('_iwpr_%s_%d_%s',$repeater_field['key'], $index, $field['key']);
+						$groups[$this->get_group()]['fields'][$field_key] = $groups[$this->get_group()]['fields'][$repeater_key][$field['key']][$index];
+					}
+				}
+
+				unset($groups[$this->get_group()]['fields'][$repeater_key]);
+			}
+		}
+
+		return $groups;
 	}
 
 	protected function register_basic_field($label, $key, $args = array()){
@@ -80,6 +111,12 @@ class IWP_Base_Template extends JC_Importer_Template{
 		$this->register_basic_field($label, $key, $args);
 	}
 
+	protected function register_hidden_field($label, $key, $args = array()){
+
+		$args['hidden'] = true;
+		$this->register_virtual_field($label, $key, $args);
+	}
+
 	/**
 	 * Register an attachment field
 	 *
@@ -92,6 +129,28 @@ class IWP_Base_Template extends JC_Importer_Template{
 		$this->register_basic_field($label, $key, $args);
 	}
 
+	protected function register_repeater_field($label, $key, $fields, $args = array()){
+	    $this->register_basic_field($label, $key, array('type' => 'repeater'));
+	    $this->_repeater_fields[$key] = array(
+	    	'label' => $label,
+	    	'key' => $key,
+	    	'process_callback' => isset($args['process_callback']) ? $args['process_callback'] : null,
+	    	'process_callback_after' => isset($args['process_callback_after']) ? $args['process_callback_after'] : null,
+	    	'fields' => $fields
+	    );
+	}
+
+	protected function register_repeater_sub_field($label, $key, $args = array()){
+        return array(
+            'label' => $label,
+            'key' => $key,
+            'default' => isset($args['default']) ? $args['default'] : '',
+            'tooltip' => isset($args['tooltip']) ? $args['tooltip'] : '',
+            'type' => isset($args['type']) ? $args['type'] : 'text',
+            'options' => isset($args['options']) ? $args['options'] : array(),
+        );
+    }
+
 	/**
 	 * Remove all virtual fields before the data is mapped
 	 *
@@ -101,8 +160,8 @@ class IWP_Base_Template extends JC_Importer_Template{
 	 */
 	public function remove_virtual_fields($data){
 
+		// Remove Virtual Fields
 	    $this->_virtual_fields = [];
-
 		$virtual_fields = $this->get_virtual_fields();
 		if(!empty($virtual_fields)){
 			foreach($virtual_fields as $field){
@@ -113,7 +172,22 @@ class IWP_Base_Template extends JC_Importer_Template{
 			}
 		}
 
+		$this->process_repeater_fields($data);
+		$this->process_repeater_callback('process_callback');
+
 		return $data;
+	}
+
+	/**
+	 * @param JC_Importer_Template $template
+	 * @param \ImportWP\Importer\ParsedData $data
+	 * @param \ImportWP\Importer $importer
+	 */
+	public function after_row_import($template, $data, $importer){
+
+		$this->process_repeater_callback('process_callback_after', $data->getData());
+
+		$this->process_attachment_fields($template, $data, $importer);
 	}
 
 	/**
@@ -208,6 +282,52 @@ class IWP_Base_Template extends JC_Importer_Template{
     }
 
 	/**
+	 * @param array $data
+	 */
+    protected function process_repeater_fields(&$data){
+
+    	// TODO: Loop through repeater groups and format data
+	    $this->_repeater_values = array();
+	    foreach($this->_repeater_fields as $repeater_id => $repeater_field){
+
+	    	$this->_repeater_values[$repeater_id] = array();
+
+	    	foreach($data as $data_key => $data_value) {
+	    		$matches = false;
+			    if ( preg_match( '/^_iwpr_' . $repeater_id . '_([0-9]+)_([a-zA-Z_-]+)$/', $data_key, $matches ) === 1 ){
+
+			    	if(!isset($this->_repeater_values[$repeater_id][$matches[1]])){
+					    $this->_repeater_values[$repeater_id][$matches[1]] = array();
+				    }
+
+				    $this->_repeater_values[$repeater_id][$matches[1]][$matches[2]] = $data_value;
+			    }
+            }
+	    }
+
+	    // Remove Repeater Fields (field prefix: _iwpr_)
+	    foreach(array_keys($data) as $k){
+	    	if(strpos($k, '_iwpr_') === 0){
+	    		unset($data[$k]);
+		    }
+	    }
+    }
+
+    private function process_repeater_callback($callback = 'process_callback', $data = array()){
+
+	    foreach($this->_repeater_fields as $repeater_id => $repeater_field){
+
+		    // If repeater has a callback trigger it
+		    if($repeater_field[$callback] != null){
+			    foreach($this->_repeater_values[$repeater_id] as $row){
+				    call_user_func_array($repeater_field[$callback], array($row, $data));
+			    }
+		    }
+	    }
+
+    }
+
+	/**
 	 * Filter registered virtual fields
 	 *
 	 * @return array
@@ -235,86 +355,16 @@ class IWP_Base_Template extends JC_Importer_Template{
 
 		foreach ( $group['fields'] as $key => $value ) {
 			switch($this->get_field_type($key)){
+                case 'repeater':
+                	$repeater = $this->get_repeater_field($key);
+	                include JCI()->get_plugin_dir() . 'views/fields/repeater.php';
+                    break;
 				case 'attachment':
-				    ?>
-                    <div class="iwp-attachment__wrapper">
-                    <?php
-					$this->display_field($key, $value);
-					?>
-					<div class="iwp-attachment__settings">
-						<?php
-						echo JCI_FormHelper::checkbox('field[' . $this->_group . ']['.$key.'_attachment_feature_first]', array(
-							'label' => 'Set first image as featured image',
-							'checked' => $this->get_field_value($key.'_attachment_feature_first', 0)
-						));
-						?>
-						<?php echo JCI_FormHelper::select('field[' . $this->_group . ']['.$key.'_attachment_download]',
-							array(
-								'options' => array('ftp' => 'FTP', 'url' => 'Remote URL', 'local' => 'Local Filesystem'),
-								'label'   => 'Download',
-								'default' => $this->get_field_value($key.'_attachment_download', 'url'),
-								'class'   => 'iwp__attachment-type iwp__show-attachment'
-							)); ?>
-                        <?php
-                        $return_value = isset($this->_fields[$key]['attachment_value']) ? $this->_fields[$key]['attachment_value'] : array('single' => 'Single Value', 'csv' => 'Comma separated values');
-                        if(is_array($return_value)):
-                            echo JCI_FormHelper::select('field[' . $this->_group . ']['.$key.'_attachment_value]', array(
-                                'options' => $return_value,
-                                'label'   => 'Value',
-                                'default' => $this->get_field_value($key.'_attachment_value', 'single'),
-                                'class'   => 'iwpcf__field-values iwpcf__show-attachment'
-                            ));
-                        else:
-                            echo JCI_FormHelper::hidden('field[' . $this->_group . ']['.$key.'_attachment_value]', array('value' => $return_value));
-                        endif;
-                        ?>
-						<?php
-						$return_value = isset($this->_fields[$key]['attachment_return_value']) ? $this->_fields[$key]['attachment_return_value'] : array('url' => 'Url', 'id' => 'ID');
-                        if(is_array($return_value)):
-                            echo JCI_FormHelper::select('field[' . $this->_group . ']['.$key.'_attachment_return]', array(
-                                'options' => array('url' => 'Url', 'id' => 'ID'),
-                                'label'   => 'Return Value',
-                                'default' => $this->get_field_value($key.'_attachment_return', 'url'),
-                                'class'   => 'iwpcf__return-type iwpcf__show-attachment'
-                            ));
-                        else:
-                            echo JCI_FormHelper::hidden('field[' . $this->_group . ']['.$key.'_attachment_return]', array('value' => $return_value));
-                        endif;
-                        ?>
-						<div class="iwp__attachment iwp-attachment--ftp iwp__show-attachment iwp__show-attachment-url iwp__show-attachment-local iwp__show-attachment-ftp">
-							<?php echo JCI_FormHelper::text('field[' . $this->_group . ']['.$key.'_attachment_base_url]',
-								array(
-									'label'   => 'Base Url',
-									'default' => $this->get_field_value($key.'_attachment_base_url')
-								)); ?>
-						</div>
-						<div class="iwp__attachment iwp-attachment--ftp iwp__show-attachment iwp__show-attachment-ftp">
-							<?php echo JCI_FormHelper::text('field[' . $this->_group . ']['.$key.'_attachment_ftp_server]',
-								array(
-									'label'   => 'FTP Server',
-									'default' => $this->get_field_value($key.'_attachment_ftp_server')
-								)); ?>
-							<?php echo JCI_FormHelper::text('field[' . $this->_group . ']['.$key.'_attachment_ftp_user]',
-								array(
-									'label'   => 'FTP User',
-									'default' => $this->get_field_value($key.'_attachment_ftp_user')
-								)); ?>
-							<?php echo JCI_FormHelper::text('field[' . $this->_group . ']['.$key.'_attachment_ftp_pass]',
-								array(
-									'label'   => 'FTP Pass',
-									'default' => $this->get_field_value($key.'_attachment_ftp_pass')
-								)); ?>
-						</div>
-					</div>
-                    </div>
-					<?php
+				    include JCI()->get_plugin_dir() . 'views/fields/attachment.php';
 					break;
 				case 'default':
 				default:
 					$this->display_field($key, $value);
-					if(isset($this->_fields[$key]['after'])){
-                        call_user_func_array($this->_fields[$key]['after'], array($key));
-                    }
 					break;
 			}
 		}
@@ -332,30 +382,37 @@ class IWP_Base_Template extends JC_Importer_Template{
 				'jci-field' => $key,
 			)
 		) );
+		if(isset($this->_fields[$key]['after'])){
+			call_user_func_array($this->_fields[$key]['after'], array($key));
+		}
 	}
 
-	protected function get_field_tooltip($key){
+	public function get_field_tooltip($key){
 		return isset($this->_fields[$key]['tooltip']) ? $this->_fields[$key]['tooltip'] : sprintf( JCI()->text()->get( sprintf( 'template.default.%s', $key ) ), $this->_import_type_name );
 	}
 
-	protected function get_field_title($key){
+	public function get_field_title($key){
 		return isset($this->_fields[$key]['title']) ? $this->_fields[$key]['title'] : $key;
 	}
 
-	protected function get_field_type($key){
+	public function get_field_type($key){
 		return isset($this->_fields[$key]['type']) ? $this->_fields[$key]['type'] : 'default';
 	}
 
-	protected function get_field_value($key, $default = ''){
+	public function get_field_value($key, $default = ''){
 		$fields = ImporterModel::getImporterMeta( JCI()->importer->get_ID(), 'fields' );
 		return isset($fields[$this->_group][$key]) ? $fields[$this->_group][$key] : $default;
     }
 
-    protected function get_group(){
+    public function get_group(){
 	    return $this->_group;
     }
 
-    protected function get_virtual_field($key){
+    public function get_virtual_field($key){
 	    return isset($this->_virtual_fields[$key]) ? $this->_virtual_fields[$key] : false;
+    }
+
+    public function get_repeater_field($key){
+		return isset($this->_repeater_fields[$key]) ? $this->_repeater_fields[$key] : array();
     }
 }
