@@ -30,6 +30,7 @@ class IWP_Base_Template extends JC_Importer_Template{
 
 	private $_repeater_fields = [];
 	private $_repeater_values = [];
+	private $_sections = [];
 
 	public function __construct($group, $import_type, $import_type_name, $settings = array()) {
 
@@ -86,11 +87,19 @@ class IWP_Base_Template extends JC_Importer_Template{
 		return $groups;
 	}
 
+	protected function register_section($label, $key){
+        $this->_sections[$key] = array(
+            'label' => $label,
+            'key' => $key
+        );
+    }
+
 	protected function register_basic_field($label, $key, $args = array()){
 
 		$field = $args;
 		$field['title'] = $label;
 		$field['field'] = $key;
+		$field['section'] = isset($args['section']) ? $args['section'] : 'default';
 
 		// Backwards compatibility
 		$this->_field_groups[$this->_group]['map'][] = $field;
@@ -130,12 +139,16 @@ class IWP_Base_Template extends JC_Importer_Template{
 	}
 
 	protected function register_repeater_field($label, $key, $fields, $args = array()){
-	    $this->register_basic_field($label, $key, array('type' => 'repeater'));
+	    $this->register_basic_field($label, $key, array(
+            'type' => 'repeater',
+            'section' => isset($args['section']) ? $args['section'] : 'default',
+        ));
 	    $this->_repeater_fields[$key] = array(
 	    	'label' => $label,
 	    	'key' => $key,
 	    	'process_callback' => isset($args['process_callback']) ? $args['process_callback'] : null,
 	    	'process_callback_after' => isset($args['process_callback_after']) ? $args['process_callback_after'] : null,
+	    	'section' => isset($args['section']) ? $args['section'] : 'default',
 	    	'fields' => $fields
 	    );
 	}
@@ -349,11 +362,16 @@ class IWP_Base_Template extends JC_Importer_Template{
 		return $this->_template_version;
 	}
 
-	public function display_fields(){
+	public function display_fields($section = 'default'){
 		$groups = JCI()->importer->get_template_groups();
 		$group = $groups[$this->_group];
 
 		foreach ( $group['fields'] as $key => $value ) {
+
+		    if($this->get_field_section($key) !== $section){
+		        continue;
+            }
+
 			switch($this->get_field_type($key)){
                 case 'repeater':
                 	$repeater = $this->get_repeater_field($key);
@@ -370,21 +388,56 @@ class IWP_Base_Template extends JC_Importer_Template{
 		}
 	}
 
+	public function display_sections(){
+	    foreach(array_keys($this->_sections) as $section){
+	        $this->display_section($section);
+        }
+    }
+
+	public function display_section($section){
+	    echo sprintf('<div class="jci-group-fields jci-group-section" data-section-id="%s">', $section);
+	    $this->display_fields($section);
+	    echo '</div>';
+    }
+
 	public function display_field($key, $value, $settings = array()){
+
+		echo '<div class="iwp-field">';
 
 		echo JCI_FormHelper::text( 'field[' . $this->_group . '][' . $key . ']', array(
 			'label'   => $this->get_field_title($key),
 			'tooltip' => $this->get_field_tooltip($key),
 			'default' => esc_attr($value),
-			'class'   => 'xml-drop jci-group',
+			'class'   => 'xml-drop jci-group field__input field__input--'.$key,
 			'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
 			'data'    => array(
 				'jci-field' => $key,
 			)
 		) );
+
+		$options = isset($this->_fields[$key]['options']) ? $this->_fields[$key]['options'] : false;
+		if($options && !empty($options)){
+
+			echo '<div class="iwp__sub-fields">';
+			echo JCI_FormHelper::checkbox('field[' . $this->_group . '][enable_' . $key . ']', array(
+				'label' => 'Enable Text Field',
+				'checked' => $this->get_field_value('enable_'.$key) === '1'
+			));
+			echo '</div>';
+			?>
+			<script type="text/javascript">
+                jQuery(document).ready(function ($) {
+                    $.fn.jci_enableSelectField('enable_<?php echo $key; ?>', '<?php echo $this->get_group(); ?>-<?php echo $key; ?>');
+                });
+			</script>
+			<?php
+		}
+
 		if(isset($this->_fields[$key]['after'])){
 			call_user_func_array($this->_fields[$key]['after'], array($key));
 		}
+
+		echo '</div>';
 	}
 
 	public function get_field_tooltip($key){
@@ -398,6 +451,10 @@ class IWP_Base_Template extends JC_Importer_Template{
 	public function get_field_type($key){
 		return isset($this->_fields[$key]['type']) ? $this->_fields[$key]['type'] : 'default';
 	}
+
+	public function get_field_section($key){
+		return isset($this->_fields[$key]['section']) ? $this->_fields[$key]['section'] : 'default';
+    }
 
 	public function get_field_value($key, $default = ''){
 		$fields = ImporterModel::getImporterMeta( JCI()->importer->get_ID(), 'fields' );

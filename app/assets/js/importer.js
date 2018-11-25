@@ -269,7 +269,7 @@ jQuery(function ($) {
      */
     $.fn.jci_enableField = function (trigger_str, target_str) {
 
-        var trigger_elem = $('input[name="jc-importer_template_settings[' + trigger_str + ']"]');
+        var trigger_elem = $('input[name$="[' + trigger_str + ']"]');
         var target_elem = $('#jc-importer_field-' + target_str);
 
         // check to see if a selector was specified not a form field
@@ -298,7 +298,7 @@ jQuery(function ($) {
      */
     $.fn.jci_enableSelectField = function (trigger_str, target_str) {
 
-        var trigger_elem = $('input[name="jc-importer_template_settings[' + trigger_str + ']"]');
+        var trigger_elem = $('input[name$="[' + trigger_str + ']"]');
         var target_elem_input = $('input#jc-importer_field-' + target_str);
         var target_elem_select = $('select#jc-importer_field-' + target_str);
 

@@ -346,6 +346,11 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
                             </div>
 
 							<?php
+
+							if(method_exists($template, 'get_template_version')){
+							    $template->display_sections();
+							}
+
 							/**
 							 * Display template settings
 							 */

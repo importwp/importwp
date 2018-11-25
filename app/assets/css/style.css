@@ -286,6 +286,12 @@
 .iwp-attachment__settings, .iwp__sub-fields {
   padding-left: 130px; }
 
+.iwp-field {
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+  margin-top: 10px;
+  padding-bottom: 10px; }
+
 .jci-left {
   float: left; }
 
