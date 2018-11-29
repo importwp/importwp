@@ -737,6 +737,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
                             $('.multi-rows').each(function (index) {
 
                                 var _parent = $(this);
+                                var indexed = _parent.hasClass('multi-rows--indexed');
 
                                 // add new row
                                 $(this).on('click', '.add-row', function () {
@@ -745,6 +746,16 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
                                     var clone = repeating.clone();
                                     $('input[type=text]', clone).val('');
                                     clone.insertAfter(repeating);
+
+                                    // re-index
+                                    if(indexed){
+                                        var currentIndex = _parent.data('iwp-index');
+                                        currentIndex++;
+                                        _parent.data('iwp-index', currentIndex);
+                                        clone.find("input").each(function() {
+                                            this.name = this.name.replace(/\[(\w+)_\d+_(\w+)\]$/, '[$1_' + currentIndex + '_$2]');
+                                        });
+                                    }
 
                                     // Re initialize tooltips
                                     clone.find('.iwp-field__tooltip').each(function () {

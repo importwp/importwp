@@ -8,13 +8,18 @@
  * @var array $repeater
  */
 
-$field_base = 'field[' . $this->_group . ']['.$key.']';
-$field_key = sprintf('field_%s_%s', $this->get_group(), $key);
-$values = $this->get_field_value($key);
+$values = $this->get_repeater_values($key);
+
+$repeater_index = 0;
+if(count($values)) {
+	foreach ( array_keys( $values ) as $row_i ) {
+		$repeater_index = $row_i > $repeater_index ? $row_i : $repeater_index;
+	}
+}
 ?>
 <div>
 
-	<div id="test-taxonomies" class="taxonomies multi-rows">
+	<div class="taxonomies multi-rows multi-rows--indexed" data-iwp-index="<?php echo $repeater_index; ?>">
 
 		<table class="iwp-table" cellspacing="0" cellpadding="0">
 			<thead class="iwp-table__header">
@@ -25,27 +30,24 @@ $values = $this->get_field_value($key);
 			</thead>
 			<tbody class="iwp-table__body">
 
-				<?php if(!empty($values['iwp_repeater_index'])): ?>
-                    <?php foreach($values['iwp_repeater_index'] as $i => $index): ?>
+				<?php if(!empty($values)): ?>
+                    <?php foreach($values as $i => $row_data): ?>
 					<tr class="taxonomy multi-row">
 						<td>
 
 							<?php
 
-							echo JCI_FormHelper::hidden( $field_base . "[iwp_repeater_index][]", array(
-								'default' => 1
-							) );
-
 							foreach($repeater['fields'] as $field){
 
-								echo JCI_FormHelper::text( $field_base . sprintf("[%s][]",  $field['key']), array(
+								$field_name = sprintf('_iwpr_%s_%d_%s', $key, $i, $field['key']);
+								echo JCI_FormHelper::text( 'field[' . $this->_group . ']['.$field_name.']', array(
 									'label'   => $field['label'],
 									'tooltip' => $field['tooltip'],
-									'default' => $values[$field['key']][$i],
+									'default' => $this->get_field_value($field_name),
 									'class'   => 'xml-drop jci-group',
 									'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
 									'data'    => array(
-										'jci-field' => $field_key . sprintf('_%s_%d', $field['key'], $i),
+										'jci-field' => $field_name,
 									)
 								) );
 							}
@@ -66,18 +68,15 @@ $values = $this->get_field_value($key);
 						<?php
 						foreach($repeater['fields'] as $field){
 
-							echo JCI_FormHelper::hidden( $field_base . "[iwp_repeater_index][]", array(
-								'default' => 1
-							) );
-
-							echo JCI_FormHelper::text( $field_base . sprintf("[%s][]",  $field['key']), array(
+							$field_name = sprintf('_iwpr_%s_%d_%s', $key, 0, $field['key']);
+							echo JCI_FormHelper::text( 'field[' . $this->_group . ']['.$field_name.']', array(
 								'label'   => $field['label'],
 								'tooltip' => $field['tooltip'],
 								'default' => esc_attr($value),
 								'class'   => 'xml-drop jci-group',
 								'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
 								'data'    => array(
-									'jci-field' => $key,
+									'jci-field' => $field_name,
 								)
 							) );
 						}

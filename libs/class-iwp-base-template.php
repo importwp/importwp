@@ -69,18 +69,14 @@ class IWP_Base_Template extends JC_Importer_Template{
 		if(!empty($this->_repeater_fields)){
 			foreach($this->_repeater_fields as $repeater_key => $repeater_field){
 
-				// Add group row count
-				$groups[$this->get_group()]['fields'][sprintf('_iwpr_%s', $repeater_key)] = count($groups[$this->get_group()]['fields'][$repeater_key]['iwp_repeater_index']);
-
-				foreach($groups[$this->get_group()]['fields'][$repeater_key]['iwp_repeater_index'] as $index => $index_value){
-
-					foreach($repeater_field['fields'] as $field){
-						$field_key = sprintf('_iwpr_%s_%d_%s',$repeater_field['key'], $index, $field['key']);
-						$groups[$this->get_group()]['fields'][$field_key] = $groups[$this->get_group()]['fields'][$repeater_key][$field['key']][$index];
-					}
-				}
-
-				unset($groups[$this->get_group()]['fields'][$repeater_key]);
+			    $repeater_values = $this->get_repeater_values($repeater_key);
+				$groups[$this->get_group()]['fields'][sprintf('_iwpr_%s', $repeater_key)] = count($repeater_values);
+				foreach($repeater_values as $index => $field){
+				    foreach($field as $field_k => $field_v){
+					    $field_key = sprintf('_iwpr_%s_%d_%s',$repeater_key, $index, $field_k);
+					    $groups[$this->get_group()]['fields'][$field_key] = $field_v;
+                    }
+                }
 			}
 		}
 
@@ -471,5 +467,22 @@ class IWP_Base_Template extends JC_Importer_Template{
 
     public function get_repeater_field($key){
 		return isset($this->_repeater_fields[$key]) ? $this->_repeater_fields[$key] : array();
+    }
+
+    public function get_repeater_values($key){
+	    $fields = ImporterModel::getImporterMeta( JCI()->importer->get_ID(), 'fields' );
+	    $result = array();
+	    foreach($fields[$this->get_group()] as $k => $v){
+	        $matches = [];
+	        if(preg_match('/_iwpr_'.$key.'_(\d+)_(\w+)/', $k, $matches) === 1){
+	            if(!isset($result[$matches[1]])){
+	                $result[$matches[1]] = array();
+                }
+
+	            $result[$matches[1]][$matches[2]] = $v;
+            }
+        }
+
+	    return $result;
     }
 }
