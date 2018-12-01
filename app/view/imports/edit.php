@@ -877,13 +877,14 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
                                     $field_wrapper.append('<div class="iwp__sub-fields"><label><input type="checkbox" class="iwp-option-toggle" /> Enable Text Field</label></div>');
 
-
+                                    var $checkbox = $field_wrapper.find('.iwp-option-toggle');
                                     if(options.hasOwnProperty($field_input.val())){
-
-                                        var $checkbox = $field_wrapper.find('.iwp-option-toggle');
                                         $checkbox.prop('checked', false);
-                                        $checkbox.trigger('change');
+                                    }else{
+                                        $checkbox.prop('checked', true);
                                     }
+
+                                    $checkbox.trigger('change');
                                 });
                             });
 

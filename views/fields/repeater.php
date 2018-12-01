@@ -39,16 +39,21 @@ if(count($values)) {
 
 							foreach($repeater['fields'] as $field){
 
+								$options = isset($field['options']) && !empty($field['options']) ? $field['options'] : false;
 								$field_name = sprintf('_iwpr_%s_%d_%s', $key, $i, $field['key']);
 								echo JCI_FormHelper::text( 'field[' . $this->_group . ']['.$field_name.']', array(
 									'label'   => $field['label'],
 									'tooltip' => $field['tooltip'],
 									'default' => $this->get_field_value($field_name),
-									'class'   => 'xml-drop jci-group',
+									'class'   => 'xml-drop jci-group field__input field__input--' . $field_name,
 									'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
 									'data'    => array(
 										'jci-field' => $field_name,
-									)
+									),
+									'wrapper_data' => array(
+										'iwp-options' => esc_attr(json_encode($options)),
+										'iwp-name' => 'field[' . $this->_group . ']['.$field_name.']'
+									),
 								) );
 							}
 							?>
@@ -68,16 +73,21 @@ if(count($values)) {
 						<?php
 						foreach($repeater['fields'] as $field){
 
+							$options = isset($field['options']) && !empty($field['options']) ? $field['options'] : false;
 							$field_name = sprintf('_iwpr_%s_%d_%s', $key, 0, $field['key']);
 							echo JCI_FormHelper::text( 'field[' . $this->_group . ']['.$field_name.']', array(
 								'label'   => $field['label'],
 								'tooltip' => $field['tooltip'],
 								'default' => esc_attr($value),
-								'class'   => 'xml-drop jci-group',
+								'class'   => 'xml-drop jci-group field__input field__input--' . $field_name,
 								'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
 								'data'    => array(
 									'jci-field' => $field_name,
-								)
+								),
+								'wrapper_data' => array(
+									'iwp-options' => esc_attr(json_encode($options)),
+									'iwp-name' => 'field[' . $this->_group . ']['.$field_name.']'
+								),
 							) );
 						}
 						?>

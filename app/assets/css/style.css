@@ -292,6 +292,9 @@
   margin-top: 10px;
   padding-bottom: 10px; }
 
+.iwp-field [data-iwp-type="select"] > .jci-import-edit {
+  display: none !important; }
+
 .jci-left {
   float: left; }
 
