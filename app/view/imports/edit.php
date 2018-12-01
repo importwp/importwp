@@ -815,6 +815,83 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
                                 });
                             }
                         });
+
+                        /**
+                         * Toggle display of dropdown field options
+                         */
+                        (function($){
+
+                            var clone_element = function($element, type){
+                                var $output = $('<'+type+'/>');
+                                var attrs = ['name', 'id', 'data-jci-field', 'aria-label'];
+
+                                for(var i = 0; i < attrs.length; i++){
+                                    $output.attr(attrs[i], $element.attr(attrs[i]));
+                                }
+
+                                $output.val($element.val());
+
+                                return $output;
+                            };
+
+                            var switch_input = function($field_wrapper, $field, type){
+
+                                var options = $field_wrapper.data('iwp-options');
+
+                                // get all attributes and data from existing element
+                                var $element = clone_element($field, type);
+
+                                if(type === 'select') {
+                                    $.each(options, function (k, v) {
+                                        $element.append('<option value=' + k + '>' + v + '</option>');
+                                    });
+                                }else{
+                                    $element.attr('type', 'text');
+                                }
+
+                                $field_wrapper.attr('data-iwp-type', type);
+
+                                $field_wrapper.find('[name="'+$field.attr('name')+'"]').replaceWith($element);
+                            };
+
+                            $('body').on('change', '.iwp-option-toggle', function(){
+
+                                var $field_wrapper = $(this).parents('.field__input');
+                                var field_name = $field_wrapper.data('iwp-name');
+                                var $field_input = $field_wrapper.find('[name="jc-importer_'+field_name+'"]');
+
+                                if(!$(this).is(':checked')){
+                                    switch_input($field_wrapper, $field_input, 'select');
+                                }else{
+                                    switch_input($field_wrapper, $field_input, 'input');
+                                }
+                            });
+
+                            $(document).ready(function(){
+                                $('.field__input[data-iwp-options!="false"]').each(function(){
+
+                                    var $field_wrapper = $(this);
+                                    var field_name = $field_wrapper.data('iwp-name');
+                                    var $field_input = $field_wrapper.find('input[name="jc-importer_'+field_name+'"]');
+                                    var options = $field_wrapper.data('iwp-options');
+
+                                    $field_wrapper.append('<div class="iwp__sub-fields"><label><input type="checkbox" class="iwp-option-toggle" /> Enable Text Field</label></div>');
+
+
+                                    if(options.hasOwnProperty($field_input.val())){
+
+                                        var $checkbox = $field_wrapper.find('.iwp-option-toggle');
+                                        $checkbox.prop('checked', false);
+                                        $checkbox.trigger('change');
+                                    }
+                                });
+                            });
+
+                        })(jQuery);
+                        jQuery(function($){
+
+
+                        });
                     </script>
 				<?php endif; ?>
 

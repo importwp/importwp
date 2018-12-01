@@ -398,6 +398,8 @@ class IWP_Base_Template extends JC_Importer_Template{
 
 	public function display_field($key, $value, $settings = array()){
 
+		$options = isset($this->_fields[$key]['options']) ? $this->_fields[$key]['options'] : false;
+
 		echo '<div class="iwp-field">';
 
 		echo JCI_FormHelper::text( 'field[' . $this->_group . '][' . $key . ']', array(
@@ -406,13 +408,16 @@ class IWP_Base_Template extends JC_Importer_Template{
 			'default' => esc_attr($value),
 			'class'   => 'xml-drop jci-group field__input field__input--'.$key,
 			'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
+			'wrapper_data' => array(
+                'iwp-options' => esc_attr(json_encode($options)),
+                'iwp-name' => 'field[' . $this->_group . '][' . $key . ']'
+            ),
 			'data'    => array(
 				'jci-field' => $key,
 			)
 		) );
 
-		$options = isset($this->_fields[$key]['options']) ? $this->_fields[$key]['options'] : false;
-		if($options && !empty($options)){
+		/*if($options && !empty($options)){
 
 			echo '<div class="iwp__sub-fields">';
 			echo JCI_FormHelper::checkbox('field[' . $this->_group . '][enable_' . $key . ']', array(
@@ -427,7 +432,7 @@ class IWP_Base_Template extends JC_Importer_Template{
                 });
 			</script>
 			<?php
-		}
+		}*/
 
 		if(isset($this->_fields[$key]['after'])){
 			call_user_func_array($this->_fields[$key]['after'], array($key));

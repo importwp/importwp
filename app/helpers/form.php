@@ -233,12 +233,20 @@ class JCI_FormHelper {
 		$after    = null;
 		$data     = array();
 		$tooltip  = '';
+		$wrapper_data = array();
 		extract( $args );
 
 		$data_str = '';
 		if ( is_array( $data ) && ! empty( $data ) ) {
 			foreach ( $data as $dk => $dv ) {
 				$data_str .= ' data-' . $dk . '="' . $dv . '"';
+			}
+		}
+
+		$wrapper_data_str = '';
+		if ( is_array( $wrapper_data ) && ! empty( $wrapper_data ) ) {
+			foreach ( $wrapper_data as $dk => $dv ) {
+				$wrapper_data_str .= ' data-' . $dk . '="' . $dv . '"';
 			}
 		}
 
@@ -268,7 +276,7 @@ class JCI_FormHelper {
 			$classes[] = 'form-required';
 		}
 
-		$output = '<div class="' . implode( ' ', $classes ) . '" />';
+		$output = '<div class="' . implode( ' ', $classes ) . '" '.$wrapper_data_str.' />';
 
 		if ( $label !== false ) {
 			$output .= self::get_label( $label, $tooltip );
