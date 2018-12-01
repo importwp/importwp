@@ -32,6 +32,8 @@ class IWP_Base_Template extends JC_Importer_Template{
 	private $_repeater_values = [];
 	private $_sections = [];
 
+	private $_enable_fields = [];
+
 	public function __construct($group, $import_type, $import_type_name, $settings = array()) {
 
 		$this->_group = $group;
@@ -58,6 +60,13 @@ class IWP_Base_Template extends JC_Importer_Template{
 		add_filter( 'jci/before_' . $this->get_name() . '_group_save', array( $this, 'remove_virtual_fields' ), 100, 1 );
 		add_action( 'iwp_after_row_save', array( $this, 'after_row_import' ), 5, 3 );
 		add_action('jci/before_import', array( $this, 'iwp_before_import'));
+
+		add_filter('iwp/js/iwp_settings', array( $this, 'iwp_settings'));
+	}
+
+	public function iwp_settings($settings){
+		$settings['enable_fields'] = $this->_enable_fields;
+		return $settings;
 	}
 
 	public function iwp_before_import(){
@@ -160,6 +169,21 @@ class IWP_Base_Template extends JC_Importer_Template{
         );
     }
 
+    public function register_enable_toggle($label, $key, $section = 'default', $fields = array()){
+		$args = array(
+			'type' => 'checkbox',
+			'label' => $label,
+			'section' => $section,
+		);
+
+		if(!isset($this->_enable_fields[$key])){
+			$this->_enable_fields[$key] = array();
+		}
+	    $this->_enable_fields[$key] = array_merge($this->_enable_fields[$key], $fields);
+
+		$this->register_virtual_field($label, $key, $args);
+    }
+
 	/**
 	 * Remove all virtual fields before the data is mapped
 	 *
@@ -168,6 +192,19 @@ class IWP_Base_Template extends JC_Importer_Template{
 	 * @return array
 	 */
 	public function remove_virtual_fields($data){
+
+		// remove fields that are not enabled
+		if(!empty($this->_enable_fields)){
+			foreach($this->_enable_fields as $enable_field => $fields){
+				if( isset($data[$enable_field]) && $data[$enable_field] !== '1' && !empty($fields) ){
+					foreach($fields as $field_key){
+						if(isset($data[$field_key])){
+							unset($data[$field_key]);
+						}
+					}
+				}
+			}
+		}
 
 		// Remove Virtual Fields
 	    $this->_virtual_fields = [];
@@ -369,6 +406,9 @@ class IWP_Base_Template extends JC_Importer_Template{
             }
 
 			switch($this->get_field_type($key)){
+				case 'checkbox':
+					include JCI()->get_plugin_dir() . 'views/fields/checkbox.php';
+					break;
                 case 'repeater':
                 	$repeater = $this->get_repeater_field($key);
 	                include JCI()->get_plugin_dir() . 'views/fields/repeater.php';
@@ -397,48 +437,7 @@ class IWP_Base_Template extends JC_Importer_Template{
     }
 
 	public function display_field($key, $value, $settings = array()){
-
-		$options = isset($this->_fields[$key]['options']) ? $this->_fields[$key]['options'] : false;
-
-		echo '<div class="iwp-field">';
-
-		echo JCI_FormHelper::text( 'field[' . $this->_group . '][' . $key . ']', array(
-			'label'   => $this->get_field_title($key),
-			'tooltip' => $this->get_field_tooltip($key),
-			'default' => esc_attr($value),
-			'class'   => 'xml-drop jci-group field__input field__input--'.$key,
-			'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
-			'wrapper_data' => array(
-                'iwp-options' => esc_attr(json_encode($options)),
-                'iwp-name' => 'field[' . $this->_group . '][' . $key . ']'
-            ),
-			'data'    => array(
-				'jci-field' => $key,
-			)
-		) );
-
-		/*if($options && !empty($options)){
-
-			echo '<div class="iwp__sub-fields">';
-			echo JCI_FormHelper::checkbox('field[' . $this->_group . '][enable_' . $key . ']', array(
-				'label' => 'Enable Text Field',
-				'checked' => $this->get_field_value('enable_'.$key) === '1'
-			));
-			echo '</div>';
-			?>
-			<script type="text/javascript">
-                jQuery(document).ready(function ($) {
-                    $.fn.jci_enableSelectField('enable_<?php echo $key; ?>', '<?php echo $this->get_group(); ?>-<?php echo $key; ?>');
-                });
-			</script>
-			<?php
-		}*/
-
-		if(isset($this->_fields[$key]['after'])){
-			call_user_func_array($this->_fields[$key]['after'], array($key));
-		}
-
-		echo '</div>';
+		include JCI()->get_plugin_dir() . 'views/fields/text.php';
 	}
 
 	public function get_field_tooltip($key){

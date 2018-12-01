@@ -889,10 +889,45 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
                             });
 
                         })(jQuery);
-                        jQuery(function($){
 
+                        /**
+                         * Enable  / Disable groups of fields
+                         */
+                        (function($, window, settings){
 
-                        });
+                            var setup = {};
+
+                            window.iwp.onProcessComplete.add(function(){
+
+                                $.each(settings.enable_fields, function(enable_field, field_list){
+
+                                    var $enable_field = $('[name$="['+enable_field+']"]');
+                                    if($enable_field.length > 0) {
+
+                                        setup[$enable_field.attr('name')] = field_list;
+
+                                        $enable_field.on('change', function () {
+
+                                            var $checkbox = $(this);
+                                            $.each(setup[$(this).attr('name')], function(i, item){
+
+                                                var $parent = $('[name$="['+item+']"]').parents('.iwp-field');
+                                                if($checkbox.is(':checked')){
+                                                    $parent.show();
+                                                }else{
+                                                    $parent.hide();
+                                                }
+                                            });
+
+                                        });
+
+                                        $enable_field.trigger('change');
+                                    }
+                                })
+                            });
+
+                        })(jQuery, window, iwp_settings);
+
                     </script>
 				<?php endif; ?>
 

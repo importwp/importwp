@@ -117,7 +117,7 @@ class JC_Importer_Admin {
 					if(true === $processed){
 						$settings['processed'] = 'yes';
 					}
-					wp_localize_script('importer-edit', 'iwp_settings', $settings);
+					wp_localize_script('importer-edit', 'iwp_settings', apply_filters('iwp/js/iwp_settings', $settings));
 					break;
 			}
 		}
