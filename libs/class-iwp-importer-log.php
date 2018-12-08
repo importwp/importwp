@@ -5,7 +5,7 @@
  *
  * Log data imported using ImportWP
  */
-class ImportLog {
+class IWP_Importer_Log {
 
 	/**
 	 * Config Instance
@@ -40,8 +40,8 @@ class ImportLog {
 			$start_row = 1;
 		}
 
-		$template = ImporterModel::getImportSettings( $import_id );
-		$importer = ImporterModel::getImporter( $import_id );
+		$template = IWP_Importer_Settings::getImportSettings( $import_id );
+		$importer = IWP_Importer_Settings::getImporter( $import_id );
 		$version  = $jcimporter->importer->get_version();
 
 		// copy version settings (previously stored in post meta) to first row only

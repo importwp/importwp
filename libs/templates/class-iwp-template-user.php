@@ -1,6 +1,6 @@
 <?php
 
-class JC_User_Template extends JC_Importer_Template {
+class IWP_Template_User extends IWP_Template {
 
 	public $_name = 'user';
 	public $_unique = array( 'user_email' );
@@ -147,27 +147,27 @@ class JC_User_Template extends JC_Importer_Template {
 			global $jcimporter;
 			$importer_id = $jcimporter->importer->ID;
 
-			$enable_user_nicename = ImporterModel::getImporterMetaArr( $importer_id, array(
+			$enable_user_nicename = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array(
 				'_template_settings',
 				'enable_user_nicename'
 			) );
-			$enable_display_name  = ImporterModel::getImporterMetaArr( $importer_id, array(
+			$enable_display_name  = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array(
 				'_template_settings',
 				'enable_display_name'
 			) );
-			$enable_nickname      = ImporterModel::getImporterMetaArr( $importer_id, array(
+			$enable_nickname      = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array(
 				'_template_settings',
 				'enable_nickname'
 			) );
-			$enable_description   = ImporterModel::getImporterMetaArr( $importer_id, array(
+			$enable_description   = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array(
 				'_template_settings',
 				'enable_description'
 			) );
-			$enable_pass          = ImporterModel::getImporterMetaArr( $importer_id, array(
+			$enable_pass          = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array(
 				'_template_settings',
 				'enable_pass'
 			) );
-			$enable_role          = ImporterModel::getImporterMetaArr( $importer_id, array(
+			$enable_role          = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array(
 				'_template_settings',
 				'enable_role'
 			) );
@@ -193,7 +193,7 @@ class JC_User_Template extends JC_Importer_Template {
 			}
 
 			// generate password
-			$generate_pass = ImporterModel::getImporterMetaArr( $importer_id, array(
+			$generate_pass = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array(
 				'_template_settings',
 				'generate_pass'
 			) );
@@ -214,42 +214,42 @@ class JC_User_Template extends JC_Importer_Template {
 	 */
 	public function field_settings( $id ) {
 
-		$template = ImporterModel::getImportSettings( $id, 'template' );
+		$template = IWP_Importer_Settings::getImportSettings( $id, 'template' );
 		if ( $template == $this->_name ) {
 
-			$enable_pass          = ImporterModel::getImporterMetaArr( $id, array(
+			$enable_pass          = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 				'_template_settings',
 				'enable_pass'
 			) );
-			$enable_user_nicename = ImporterModel::getImporterMetaArr( $id, array(
+			$enable_user_nicename = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 				'_template_settings',
 				'enable_user_nicename'
 			) );
-			$enable_display_name  = ImporterModel::getImporterMetaArr( $id, array(
+			$enable_display_name  = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 				'_template_settings',
 				'enable_display_name'
 			) );
-			$enable_nickname      = ImporterModel::getImporterMetaArr( $id, array(
+			$enable_nickname      = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 				'_template_settings',
 				'enable_nickname'
 			) );
-			$enable_description   = ImporterModel::getImporterMetaArr( $id, array(
+			$enable_description   = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 				'_template_settings',
 				'enable_description'
 			) );
-			$generate_pass        = ImporterModel::getImporterMetaArr( $id, array(
+			$generate_pass        = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 				'_template_settings',
 				'generate_pass'
 			) );
-			$notify_pass          = ImporterModel::getImporterMetaArr( $id, array(
+			$notify_pass          = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 				'_template_settings',
 				'notify_pass'
 			) );
-			$notify_reg           = ImporterModel::getImporterMetaArr( $id, array(
+			$notify_reg           = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 				'_template_settings',
 				'notify_reg'
 			) );
-			$enable_role          = ImporterModel::getImporterMetaArr( $id, array(
+			$enable_role          = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 				'_template_settings',
 				'enable_role'
 			) );
@@ -257,23 +257,23 @@ class JC_User_Template extends JC_Importer_Template {
             <div class="jci-group-settings jci-group-section" data-section-id="settings">
                 <h4>Fields</h4>
 				<?php
-				echo JCI_FormHelper::checkbox( 'template_settings[enable_user_nicename]', array(
+				echo IWP_FormBuilder::checkbox( 'template_settings[enable_user_nicename]', array(
 					'label'   => 'Enable Nice Name Field',
 					'checked' => $enable_user_nicename
 				) );
-				echo JCI_FormHelper::checkbox( 'template_settings[enable_display_name]', array(
+				echo IWP_FormBuilder::checkbox( 'template_settings[enable_display_name]', array(
 					'label'   => 'Enable Display Name Field',
 					'checked' => $enable_display_name
 				) );
-				echo JCI_FormHelper::checkbox( 'template_settings[enable_nickname]', array(
+				echo IWP_FormBuilder::checkbox( 'template_settings[enable_nickname]', array(
 					'label'   => 'Enable Nickname Field',
 					'checked' => $enable_nickname
 				) );
-				echo JCI_FormHelper::checkbox( 'template_settings[enable_description]', array(
+				echo IWP_FormBuilder::checkbox( 'template_settings[enable_description]', array(
 					'label'   => 'Enable Description Field',
 					'checked' => $enable_description
 				) );
-				echo JCI_FormHelper::checkbox( 'template_settings[enable_role]', array(
+				echo IWP_FormBuilder::checkbox( 'template_settings[enable_role]', array(
 					'label'   => 'Enable Role Field',
 					'checked' => $enable_role
 				) );
@@ -281,11 +281,11 @@ class JC_User_Template extends JC_Importer_Template {
 
                 <h4>Passwords:</h4>
 				<?php
-				echo JCI_FormHelper::checkbox( 'template_settings[enable_pass]', array(
+				echo IWP_FormBuilder::checkbox( 'template_settings[enable_pass]', array(
 					'label'   => 'Enable Password Field',
 					'checked' => $enable_pass
 				) );
-				echo JCI_FormHelper::checkbox( 'template_settings[generate_pass]', array(
+				echo IWP_FormBuilder::checkbox( 'template_settings[generate_pass]', array(
 					'label'   => 'Generate Password',
 					'checked' => $generate_pass
 				) );
@@ -294,7 +294,7 @@ class JC_User_Template extends JC_Importer_Template {
                 <h4>Notifications:</h4>
 				<?php
 				//echo JCI_FormHelper::checkbox('template_settings[notify_pass]', array('label' => 'Send new Password', 'checked' => $notify_pass));
-				echo JCI_FormHelper::checkbox( 'template_settings[notify_reg]', array(
+				echo IWP_FormBuilder::checkbox( 'template_settings[notify_reg]', array(
 					'label'   => 'Send User Registration',
 					'checked' => $notify_reg
 				) );
@@ -330,7 +330,7 @@ class JC_User_Template extends JC_Importer_Template {
 	 */
 	public function save_template( $id ) {
 
-		$template = ImporterModel::getImportSettings( $id, 'template' );
+		$template = IWP_Importer_Settings::getImportSettings( $id, 'template' );
 		if ( $template == $this->_name ) {
 
 			// get template settings
@@ -345,24 +345,24 @@ class JC_User_Template extends JC_Importer_Template {
 			$notify_reg           = isset( $_POST['jc-importer_template_settings']['notify_reg'] ) ? $_POST['jc-importer_template_settings']['notify_reg'] : 0;
 
 			// update template settings
-			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'enable_pass' ), $enable_pass );
-			ImporterModel::setImporterMeta( $id, array(
+			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'enable_pass' ), $enable_pass );
+			IWP_Importer_Settings::setImporterMeta( $id, array(
 				'_template_settings',
 				'enable_user_nicename'
 			), $enable_user_nicename );
-			ImporterModel::setImporterMeta( $id, array(
+			IWP_Importer_Settings::setImporterMeta( $id, array(
 				'_template_settings',
 				'enable_display_name'
 			), $enable_display_name );
-			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'enable_nickname' ), $enable_nickname );
-			ImporterModel::setImporterMeta( $id, array(
+			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'enable_nickname' ), $enable_nickname );
+			IWP_Importer_Settings::setImporterMeta( $id, array(
 				'_template_settings',
 				'enable_description'
 			), $enable_description );
-			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'generate_pass' ), $generate_pass );
-			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'notify_pass' ), $notify_pass );
-			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'notify_reg' ), $notify_reg );
-			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'enable_role' ), $enable_role );
+			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'generate_pass' ), $generate_pass );
+			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'notify_pass' ), $notify_pass );
+			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'notify_reg' ), $notify_reg );
+			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'enable_role' ), $enable_role );
 		}
 	}
 
@@ -374,7 +374,7 @@ class JC_User_Template extends JC_Importer_Template {
 		global $jcimporter;
 		$importer_id = $jcimporter->importer->ID;
 
-		$notify_reg = ImporterModel::getImporterMetaArr( $importer_id, array( '_template_settings', 'notify_reg' ) );
+		$notify_reg = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array( '_template_settings', 'notify_reg' ) );
 
 		if ( $notify_reg == 1 ) {
 
@@ -439,7 +439,7 @@ class JC_User_Template extends JC_Importer_Template {
 
 add_filter( 'jci/register_template', 'register_user_template', 10, 1 );
 function register_user_template( $templates = array() ) {
-	$templates['user'] = 'JC_User_Template';
+	$templates['user'] = 'IWP_Template_User';
 
 	return $templates;
 }

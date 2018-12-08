@@ -16,7 +16,7 @@ class AttachmentTest extends WP_UnitTestCase {
 		                                    'post_status' => 'publish'
 		) );
 
-		$attachment = new JCI_Attachment();
+		$attachment = new IWP_Attachment();
 		$post_id = $attachment->wp_insert_attachment($parent_id, $this->importer->get_plugin_dir() . '/tests/data/data-pages.xml');
 
 		$post = get_post($post_id);

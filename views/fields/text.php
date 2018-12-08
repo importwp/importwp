@@ -2,14 +2,14 @@
 /**
  * @var string $key
  * @var string $value
- * @var IWP_Base_Template $this
+ * @var IWP_Template_Base $this
  */
 
 $options = isset($this->_fields[$key]['options']) ? $this->_fields[$key]['options'] : false;
 
 echo '<div class="iwp-field">';
 
-echo JCI_FormHelper::text( 'field[' . $this->_group . '][' . $key . ']', array(
+echo IWP_FormBuilder::text( 'field[' . $this->_group . '][' . $key . ']', array(
 	'label'   => $this->get_field_title($key),
 	'tooltip' => $this->get_field_tooltip($key),
 	'default' => esc_attr($value),

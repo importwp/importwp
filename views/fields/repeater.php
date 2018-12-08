@@ -4,7 +4,7 @@
  *
  * @var string $key
  * @var string $value
- * @var IWP_Base_Template $this
+ * @var IWP_Template_Base $this
  * @var array $repeater
  */
 
@@ -41,7 +41,7 @@ if(count($values)) {
 
 								$options = isset($field['options']) && !empty($field['options']) ? $field['options'] : false;
 								$field_name = sprintf('_iwpr_%s_%d_%s', $key, $i, $field['key']);
-								echo JCI_FormHelper::text( 'field[' . $this->_group . ']['.$field_name.']', array(
+								echo IWP_FormBuilder::text( 'field[' . $this->_group . '][' . $field_name . ']', array(
 									'label'   => $field['label'],
 									'tooltip' => $field['tooltip'],
 									'default' => $this->get_field_value($field_name),
@@ -75,7 +75,7 @@ if(count($values)) {
 
 							$options = isset($field['options']) && !empty($field['options']) ? $field['options'] : false;
 							$field_name = sprintf('_iwpr_%s_%d_%s', $key, 0, $field['key']);
-							echo JCI_FormHelper::text( 'field[' . $this->_group . ']['.$field_name.']', array(
+							echo IWP_FormBuilder::text( 'field[' . $this->_group . '][' . $field_name . ']', array(
 								'label'   => $field['label'],
 								'tooltip' => $field['tooltip'],
 								'default' => esc_attr($value),

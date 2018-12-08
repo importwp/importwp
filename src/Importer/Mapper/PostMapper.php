@@ -497,7 +497,7 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 		switch ( $attachments['type'] ) {
 			case 'local':
-				$this->attachment_class = new JCI_Local_Attachments();
+				$this->attachment_class = new IWP_Attachment_Local();
 				$base_path              = $attachments['local']['base_path'];
 				if ( ! $this->attachment_class->set_local_dir( $base_path ) ) {
 					return false;
@@ -506,7 +506,7 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 				break;
 			case 'url':
 				// setup curl
-				$this->attachment_class = new JCI_CURL_Attachments();
+				$this->attachment_class = new IWP_Attachment_CURL();
 				return true;
 				break;
 			case 'ftp':
@@ -518,7 +518,7 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 				if ( empty( $server ) ) {
 					return false;
 				}
-				$this->attachment_class = new JCI_FTP_Attachments( $server, $user, $pass );
+				$this->attachment_class = new IWP_Attachment_FTP( $server, $user, $pass );
 				if ( $this->attachment_class->is_connected() ) {
 					return true;
 				}

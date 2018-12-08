@@ -1,5 +1,5 @@
 <?php
-$template = ImporterModel::getImportSettings( $importer_id, 'template' );
+$template = IWP_Importer_Settings::getImportSettings( $importer_id, 'template' );
 $columns  = apply_filters( "jci/log_{$template}_columns", array() );
 
 // print_r($columns);

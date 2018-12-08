@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Class ImportWP_Premium
  */
-class ImportWP_Premium {
+class IWP_Premium {
 
 	/**
 	 * Custom field class name
@@ -192,7 +192,7 @@ class ImportWP_Premium {
 	}
 
 	function display_post_datasource_option() {
-		echo JCI_FormHelper::radio( 'import_type', array(
+		echo IWP_FormBuilder::radio( 'import_type', array(
 			'label' => '<strong>Push Request</strong> - Receive file sent from remote source',
 			'value' => 'post',
 			'class' => 'toggle-fields'
@@ -228,4 +228,4 @@ class ImportWP_Premium {
 	}
 }
 
-new ImportWP_Premium();
+new IWP_Premium();

@@ -34,12 +34,12 @@ class UserImporterTest extends WP_UnitTestCase {
 			)
 		) );
 
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'generate_pass' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'generate_pass' ), 1 );
 
 		/**
 		 * Test: Check if one record is returned
 		 */
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$import_data              = $this->importer->importer->run_import( 1 );
 		$this->assertEquals( 1, count( $import_data ) );
@@ -55,7 +55,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		/**
 		 * Test: Check if one record is returned
 		 */
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$import_data              = $this->importer->importer->run_import( 7 );
 		$this->assertEquals( 1, count( $import_data ) );
@@ -70,13 +70,13 @@ class UserImporterTest extends WP_UnitTestCase {
 		/**
 		 * Test: Check if row doesn't exist false is returned
 		 */
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->assertEquals( false, $this->importer->importer->run_import( 8 ) );
 
 		/**
 		 * Test: Check if import was successful, with correct response
 		 */
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$this->importer->importer->increase_version();
 
@@ -100,7 +100,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		/**
 		 * Test: Check to see if row return error status if no user_login is present
 		 */
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$this->importer->importer->increase_version();
 		$test                     = $this->importer->importer->run_import( 1 );
@@ -130,7 +130,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		/**
 		 * Test: Check to see if row return error status if no user_email is present
 		 */
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$test                     = $this->importer->importer->run_import( 1 );
 		$test                     = array_shift( $test );
@@ -168,12 +168,12 @@ class UserImporterTest extends WP_UnitTestCase {
 			)
 		) );
 
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'generate_pass' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'generate_pass' ), 1 );
 
 		/**
 		 * Test: Check if one record is returned
 		 */
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$import_data              = $this->importer->importer->run_import( 1 );
@@ -191,7 +191,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		/**
 		 * Test: Check if one record is returned
 		 */
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$import_data              = $this->importer->importer->run_import( 7 );
 		$this->assertEquals( 1, count( $import_data ) );
@@ -206,14 +206,14 @@ class UserImporterTest extends WP_UnitTestCase {
 		/**
 		 * Test: Check if row doesn't exist false is returned
 		 */
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$this->assertEquals( false, $this->importer->importer->run_import( 8 ) );
 
 		/**
 		 * Test: Check if import was successful, with correct response
 		 */
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$test                     = $this->importer->importer->run_import();
 		$this->assertEquals( 7, count( $test ) );
@@ -240,7 +240,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		/**
 		 * Test: Check to see if row return error status if no user_login is present
 		 */
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$test                     = $this->importer->importer->run_import( 1 );
 		$test                     = array_shift( $test );
@@ -274,7 +274,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		/**
 		 * Test: Check to see if row return error status if no user_email is present
 		 */
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$test                     = $this->importer->importer->run_import( 1 );
 		$test                     = array_shift( $test );
@@ -308,7 +308,7 @@ class UserImporterTest extends WP_UnitTestCase {
 			)
 		) );
 
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$test                     = $this->importer->importer->run_import( 1 );
@@ -331,9 +331,9 @@ class UserImporterTest extends WP_UnitTestCase {
 			)
 		) );
 
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'generate_pass' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'generate_pass' ), 1 );
 
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 
 		$this->importer->importer 	= new JC_Importer_Core( $post_id );
 		$test                     	= $this->importer->importer->run_import( 1 );
@@ -369,9 +369,9 @@ class UserImporterTest extends WP_UnitTestCase {
 			)
 		) );
 
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_pass' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'enable_pass' ), 1 );
 
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 
 		$this->importer->importer 	= new JC_Importer_Core( $post_id );
 		$test                     	= $this->importer->importer->run_import( 1 );
@@ -409,13 +409,13 @@ class UserImporterTest extends WP_UnitTestCase {
 			)
 		) );
 
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_user_nicename' ), 1 );
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_display_name' ), 1 );
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_nickname' ), 1 );
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_description' ), 1 );
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_pass' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'enable_user_nicename' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'enable_display_name' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'enable_nickname' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'enable_description' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'enable_pass' ), 1 );
 
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 
 		$this->importer->importer 	= new JC_Importer_Core( $post_id );
 		$test                     	= $this->importer->importer->run_import( 1 );
@@ -446,10 +446,10 @@ class UserImporterTest extends WP_UnitTestCase {
 			)
 		) );
 
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'notify_reg' ), 1 );
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'generate_pass' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'notify_reg' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'generate_pass' ), 1 );
 
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 
 		$this->importer->importer 	= new JC_Importer_Core( $post_id );
 		$test                     	= $this->importer->importer->run_import( 1 );

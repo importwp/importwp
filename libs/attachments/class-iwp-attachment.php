@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Handle WordPress attachments
  */
-class JCI_Attachment {
+class IWP_Attachment {
 
 	/**
 	 * Class Errors
@@ -129,14 +129,14 @@ class JCI_Attachment {
 
 		if ( isset( $args['importer-file'] ) && true === $args['importer-file'] ) {
 
-			$file_id = ImporterModel::insertImporterFile( $post_id, $file );
+			$file_id = IWP_Importer_Settings::insertImporterFile( $post_id, $file );
 			if ( intval( $file_id ) > 0 ) {
 
 				// if file uploaded, increase version number.
 				$version  = get_post_meta( $post_id, '_import_version', true );
-				$last_row = ImportLog::get_last_row( $post_id, $version );
+				$last_row = IWP_Importer_Log::get_last_row( $post_id, $version );
 				if ( $last_row > 0 ) {
-					ImporterModel::setImportVersion( $post_id, $version + 1 );
+					IWP_Importer_Settings::setImportVersion( $post_id, $version + 1 );
 				}
 
 				return $file_id;

@@ -3,7 +3,7 @@
 /**
  * Get Importer Settings
  */
-class ImporterModel {
+class IWP_Importer_Settings {
 
 	/**
 	 * Config Instance
@@ -292,9 +292,9 @@ class ImporterModel {
 		 * @global JC_Importer $jcimporter
 		 */
 		global $jcimporter;
-		$template_type = ImporterModel::getImportSettings( $post_id, 'template_type' );
+		$template_type = IWP_Importer_Settings::getImportSettings( $post_id, 'template_type' );
 
-		$importer_settings = ImporterModel::getImportSettings( $post_id );
+		$importer_settings = IWP_Importer_Settings::getImportSettings( $post_id );
 
 		// set specific import_type settings
 		$settings = apply_filters( "jci/importer_save", $settings, $importer_settings['import_type'], $data );

@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Class JCI_CURL_Attachments
  */
-class JCI_CURL_Attachments extends JCI_Attachment {
+class IWP_Attachment_CURL extends IWP_Attachment {
 
 	/**
 	 * Fetch Image from url
@@ -74,5 +74,3 @@ class JCI_CURL_Attachments extends JCI_Attachment {
 		return file_put_contents( $dest, file_get_contents( $src ) );
 	}
 }
-
-require_once 'class-jci-attachment.php';

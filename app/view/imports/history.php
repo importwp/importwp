@@ -34,7 +34,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 			<?php if ( ! $log ): ?>
 
 				<?php
-				$rows = ImportLog::get_importer_logs( $importer_id );
+				$rows = IWP_Importer_Log::get_importer_logs( $importer_id );
 				?>
 
                 <div id="postbox-container-2" class="postbox-container">
@@ -90,9 +90,9 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
 					<?php
 					$page     = isset( $_GET['iwp_page'] ) && intval( $_GET['iwp_page'] ) > 0 ? intval( $_GET['iwp_page'] ) : 1;
-					$total    = ImportLog::get_importer_log_count( $importer_id, $log );
+					$total    = IWP_Importer_Log::get_importer_log_count( $importer_id, $log );
 					$per_page = 100;
-					$rows     = ImportLog::get_importer_log( $importer_id, $log, 'ASC', $per_page, $page );
+					$rows     = IWP_Importer_Log::get_importer_log( $importer_id, $log, 'ASC', $per_page, $page );
 					?>
 
 					<?php iwp_output_pagination( $page, $total, $per_page ); ?>

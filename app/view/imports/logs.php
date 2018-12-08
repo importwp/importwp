@@ -80,7 +80,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 							if ( isset( $_GET['continue'] ) ):
 
 								// TODO: add pagination to continue logs
-								$rows = ImportLog::get_importer_log( $importer_id, JCI()->importer->get_version() );
+								$rows = IWP_Importer_Log::get_importer_log( $importer_id, JCI()->importer->get_version() );
 
 								if ( $rows ) {
 									foreach ( $rows as $r ) {

@@ -27,7 +27,7 @@ class JC_Importer_Core {
 	protected $import_type; // post|user|table|virtual
 	protected $template_type;
 	/**
-	 * @var JC_Importer_Template
+	 * @var IWP_Template
 	 */
 	protected $template;
 	protected $template_name;
@@ -63,26 +63,26 @@ class JC_Importer_Core {
 			}
 
 			// clear ImporterModel Cache
-			ImporterModel::clearImportSettings();
+			IWP_Importer_Settings::clearImportSettings();
 
-			$importer = ImporterModel::getImporter( $id );
+			$importer = IWP_Importer_Settings::getImporter( $id );
 			if ( ! $importer->have_posts() ) {
 				return false;
 			}
 
 			$this->ID                  = $id;
 			$this->name                = get_the_title( $this->ID );
-			$this->file                = ImporterModel::getImportSettings( $id, 'import_file' );
-			$this->permissions         = ImporterModel::getImportSettings( $id, 'permissions' );
-			$this->attachments         = ImporterModel::getImporterMeta( $id, 'attachments' );
-			$this->template_type       = ImporterModel::getImportSettings( $id, 'template_type' );
-			$this->import_type         = ImporterModel::getImportSettings( $id, 'import_type' );
-			$this->template_name       = ImporterModel::getImportSettings( $id, 'template' );
+			$this->file                = IWP_Importer_Settings::getImportSettings( $id, 'import_file' );
+			$this->permissions         = IWP_Importer_Settings::getImportSettings( $id, 'permissions' );
+			$this->attachments         = IWP_Importer_Settings::getImporterMeta( $id, 'attachments' );
+			$this->template_type       = IWP_Importer_Settings::getImportSettings( $id, 'template_type' );
+			$this->import_type         = IWP_Importer_Settings::getImportSettings( $id, 'import_type' );
+			$this->template_name       = IWP_Importer_Settings::getImportSettings( $id, 'template' );
 			$this->template            = get_import_template( $this->template_name );
-			$this->start_line          = ImporterModel::getImportSettings( $id, 'start_line' );
-			$this->row_count           = ImporterModel::getImportSettings( $id, 'row_count' );
-			$this->record_import_count = ImporterModel::getImportSettings( $id, 'record_import_count' );
-			$this->template_unique_field = ImporterModel::getImportSettings( $id, 'template_unique_field' );
+			$this->start_line          = IWP_Importer_Settings::getImportSettings( $id, 'start_line' );
+			$this->row_count           = IWP_Importer_Settings::getImportSettings( $id, 'row_count' );
+			$this->record_import_count = IWP_Importer_Settings::getImportSettings( $id, 'record_import_count' );
+			$this->template_unique_field = IWP_Importer_Settings::getImportSettings( $id, 'template_unique_field' );
 
 			// todo: throw error if template returns false, e.g. doesnt exist.
 			if ( ! $this->template ) {
@@ -92,7 +92,7 @@ class JC_Importer_Core {
 			do_action( 'jci/importer_template_loaded', $this );
 
 			// load taxonomies
-			$taxonomies = ImporterModel::getImporterMeta( $id, 'taxonomies' );
+			$taxonomies = IWP_Importer_Settings::getImporterMeta( $id, 'taxonomies' );
 			foreach ( $taxonomies as $group_id => $tax_arr ) {
 
 				if ( ! isset( $tax_arr['tax'] ) ) {
@@ -111,7 +111,7 @@ class JC_Importer_Core {
 			}
 
 			// load template fields
-			$fields = ImporterModel::getImporterMeta( $id, 'fields' );
+			$fields = IWP_Importer_Settings::getImporterMeta( $id, 'fields' );
 			foreach ( $this->template->_field_groups as $group => $data ) {
 
 				// backwards comp
@@ -159,7 +159,7 @@ class JC_Importer_Core {
 			}
 
 			// get last imported record for latest version
-			$last_row = ImportLog::get_last_row( $this->ID, $this->version );
+			$last_row = IWP_Importer_Log::get_last_row( $this->ID, $this->version );
 			if ( intval( $last_row ) > 0 ) {
 				$this->last_import_row = intval( $last_row );
 			} else {
@@ -499,7 +499,7 @@ class JC_Importer_Core {
 
 		$error_msg = $e->getMessage();
 		$recordIndex = $importer->getParser()->getRecordIndex();
-		ImportLog::insert(JCI()->importer->get_ID(), $recordIndex, array(
+		IWP_Importer_Log::insert(JCI()->importer->get_ID(), $recordIndex, array(
 			'_jci_status' => 'E',
 			'_jci_msg' => $error_msg
 		));
@@ -538,7 +538,7 @@ class JC_Importer_Core {
 
 		$output = array('_jci_status' => 'S');
 
-		ImportLog::insert(JCI()->importer->get_ID(), $recordIndex, array_merge($output, $data->getLog()));
+		IWP_Importer_Log::insert(JCI()->importer->get_ID(), $recordIndex, array_merge($output, $data->getLog()));
 	}
 
 	public function run_import( $row = null, $session = false, $per_row = 1 ) {
@@ -624,11 +624,11 @@ class JC_Importer_Core {
 
 		}else{
 
-			$csv_delimiter = ImporterModel::getImporterMetaArr( $this->ID, array(
+			$csv_delimiter = IWP_Importer_Settings::getImporterMetaArr( $this->ID, array(
 				'_parser_settings',
 				'csv_delimiter'
 			) );
-			$csv_enclosure = ImporterModel::getImporterMetaArr( $this->ID, array(
+			$csv_enclosure = IWP_Importer_Settings::getImporterMetaArr( $this->ID, array(
 				'_parser_settings',
 				'csv_enclosure'
 			) );

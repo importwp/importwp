@@ -6,7 +6,15 @@ module.exports = function(grunt) {
         copy: {
             main: {
                 files: [
-                    {expand: true, src: ['app/**', '!app/assets/scss/**', 'src/**', 'vendor/**', '!vendor/jclabs/importwp/tests/**', '!vendor/jclabs/importwp/vendor/**'], dest: 'build/'},
+                    {expand: true, src: [
+                        'app/**',
+                        '!app/assets/scss/**',
+                        'src/**',
+                        'vendor/**',
+                        'libs/**',
+                        'views/**',
+                        '!vendor/jclabs/importwp/tests/**',
+                        '!vendor/jclabs/importwp/vendor/**'], dest: 'build/'},
                     {expand: false, src: ['readme.txt'], dest: 'build/readme.txt'},
                     {expand: false, src: ['LICENSE.md'], dest: 'build/LICENSE.txt'},
                     {expand: false, src: ['jc-importer.php'], dest: 'build/jc-importer.php'},

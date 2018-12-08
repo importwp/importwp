@@ -1,6 +1,6 @@
 <?php
 
-class JCI_FormHelper {
+class IWP_FormBuilder {
 
 	static $validation = array();
 	static $errors = array();
@@ -690,7 +690,7 @@ class FormValidator {
 	}
 
 	static function match( $string, $field ) {
-		if ( $string == $_POST[ JCI_FormHelper::get_prefix() . $field ] ) {
+		if ( $string == $_POST[ IWP_FormBuilder::get_prefix() . $field ] ) {
 			return true;
 		}
 

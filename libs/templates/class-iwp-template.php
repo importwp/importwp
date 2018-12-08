@@ -6,7 +6,7 @@
  * All templates extend this class, initializing core template hooks
  * @since v0.0.1
  */
-class JC_Importer_Template {
+class IWP_Template {
 
 	public $_name = '';
 	public $_field_groups = array();

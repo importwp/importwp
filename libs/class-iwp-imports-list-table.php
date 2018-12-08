@@ -35,7 +35,7 @@ class IWP_Imports_List_Table extends WP_List_Table {
 		global $_wp_column_headers;
 
 		$screen    = get_current_screen();
-		$importers = ImporterModel::getImporters();
+		$importers = IWP_Importer_Settings::getImporters();
 
 		$this->set_pagination_args( array(
 			'total_items' => $importers->found_posts,
@@ -104,7 +104,7 @@ class IWP_Imports_List_Table extends WP_List_Table {
 							$links[] = '<span class="edit"><a href="' . $link . '" aria-label="View">Edit</a></span>';
 
 							$run_url = admin_url(sprintf('admin.php?page=jci-importers&import=%d&action=logs', $item->ID ));
-							if( in_array( ImporterModel::getImportSettings($item->ID, 'import_type'), array('local', 'remote') ) ){
+							if( in_array( IWP_Importer_Settings::getImportSettings($item->ID, 'import_type'), array('local', 'remote') ) ){
 								$run_url = admin_url(sprintf('admin.php?page=jci-importers&import=%d&action=fetch', $item->ID) );
 							}else{
 								$importer = new JC_Importer_Core($item->ID);
@@ -127,10 +127,10 @@ class IWP_Imports_List_Table extends WP_List_Table {
 							echo '</td>';
 							break;
 						case 'col_import_template':
-							echo sprintf( '<td>%s</td>', ImporterModel::getImportSettings( $item->ID, 'template' ) );
+							echo sprintf( '<td>%s</td>', IWP_Importer_Settings::getImportSettings( $item->ID, 'template' ) );
 							break;
 						case 'col_import_type':
-							echo sprintf( '<td>%s</td>', ImporterModel::getImportSettings( $item->ID, 'template_type' ) );
+							echo sprintf( '<td>%s</td>', IWP_Importer_Settings::getImportSettings( $item->ID, 'template_type' ) );
 							break;
 						case 'col_import_last_ran':
 							echo sprintf( '<td>%s</td>', isset( $this->_last_ran[ $item->ID ] ) ? date( 'H:i:s \<\b\r \/\> ' . get_option( 'date_format' ), strtotime( $this->_last_ran[ $item->ID ] ) ) : 'N/A' );
@@ -148,7 +148,7 @@ class IWP_Imports_List_Table extends WP_List_Table {
 				echo '</tr>';
 
 				// Reset importer data so next record is not loaded from cache
-				ImporterModel::clearImportSettings();
+				IWP_Importer_Settings::clearImportSettings();
 
 			endforeach;
 		}

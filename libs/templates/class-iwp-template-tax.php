@@ -1,6 +1,6 @@
 <?php
 
-class JC_Tax_Template extends JC_Importer_Template {
+class IWP_Template_Tax extends IWP_Template {
 
 	public $_name = 'taxonomy';
 	public $_unique = array( 'name' );
@@ -90,7 +90,7 @@ class JC_Tax_Template extends JC_Importer_Template {
 		 */
 		if ( $this->enable_parent && ! empty( $data['parent'] ) ) {
 
-			$post_parent_type = ImporterModel::getImporterMetaArr( $id, array(
+			$post_parent_type = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 				'_template_settings',
 				'_field_type',
 				'parent_type'
@@ -134,22 +134,22 @@ class JC_Tax_Template extends JC_Importer_Template {
 
 	public function field_settings( $id ) {
 
-		$template = ImporterModel::getImportSettings( $id, 'template' );
+		$template = IWP_Importer_Settings::getImportSettings( $id, 'template' );
 		if ( $template == $this->_name ) {
 
-			$enable_id     = ImporterModel::getImporterMetaArr( $id, array(
+			$enable_id     = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 				'_template_settings',
 				'enable_id'
 			) );
-			$enable_slug   = ImporterModel::getImporterMetaArr( $id, array(
+			$enable_slug   = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 				'_template_settings',
 				'enable_slug'
 			) );
-			$enable_parent = ImporterModel::getImporterMetaArr( $id, array(
+			$enable_parent = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 				'_template_settings',
 				'enable_parent'
 			) );
-			$enable_alias  = ImporterModel::getImporterMetaArr( $id, array(
+			$enable_alias  = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 				'_template_settings',
 				'enable_alias'
 			) );
@@ -157,7 +157,7 @@ class JC_Tax_Template extends JC_Importer_Template {
 			/**
 			 * Field Type: Template Settings
 			 */
-			$field_types = ImporterModel::getImporterMetaArr( $id, array(
+			$field_types = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 				'_template_settings',
 				'_field_type'
 			) );
@@ -168,18 +168,18 @@ class JC_Tax_Template extends JC_Importer_Template {
                 <div id="jci_taxonomy_enable_fields">
                     <h4>Fields:</h4>
 					<?php
-					echo JCI_FormHelper::checkbox( 'template_settings[enable_id]', array(
+					echo IWP_FormBuilder::checkbox( 'template_settings[enable_id]', array(
 						'label'   => 'Enable Id Field',
 						'checked' => $enable_id
 					) );
-					echo JCI_FormHelper::checkbox( 'template_settings[enable_slug]', array(
+					echo IWP_FormBuilder::checkbox( 'template_settings[enable_slug]', array(
 						'label'   => 'Enable Slug Field',
 						'checked' => $enable_slug
 					) );
-					echo JCI_FormHelper::checkbox( 'template_settings[enable_parent]', array(
+					echo IWP_FormBuilder::checkbox( 'template_settings[enable_parent]', array(
 						'label'   => 'Enable Parent Field',
 						'checked' => $enable_parent,
-						'after'   => JCI_FormHelper::select( 'parent_type', array(
+						'after'   => IWP_FormBuilder::select( 'parent_type', array(
 							'label'   => ', Using the Value',
 							'default' => $parent_type,
 							'options' => array(
@@ -189,7 +189,7 @@ class JC_Tax_Template extends JC_Importer_Template {
 							)
 						) )
 					) );
-					echo JCI_FormHelper::checkbox( 'template_settings[enable_alias]', array(
+					echo IWP_FormBuilder::checkbox( 'template_settings[enable_alias]', array(
 						'label'   => 'Enable Alias Field',
 						'checked' => $enable_alias
 					) );
@@ -221,19 +221,19 @@ class JC_Tax_Template extends JC_Importer_Template {
 		global $jcimporter;
 		$id = $jcimporter->importer->ID;
 
-		$this->enable_id     = ImporterModel::getImporterMetaArr( $id, array(
+		$this->enable_id     = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 			'_template_settings',
 			'enable_id'
 		) );
-		$this->enable_slug   = ImporterModel::getImporterMetaArr( $id, array(
+		$this->enable_slug   = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 			'_template_settings',
 			'enable_slug'
 		) );
-		$this->enable_parent = ImporterModel::getImporterMetaArr( $id, array(
+		$this->enable_parent = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 			'_template_settings',
 			'enable_parent'
 		) );
-		$this->enable_alias  = ImporterModel::getImporterMetaArr( $id, array(
+		$this->enable_alias  = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 			'_template_settings',
 			'enable_alias'
 		) );
@@ -241,7 +241,7 @@ class JC_Tax_Template extends JC_Importer_Template {
 
 	public function save_template( $id ) {
 
-		$template = ImporterModel::getImportSettings( $id, 'template' );
+		$template = IWP_Importer_Settings::getImportSettings( $id, 'template' );
 		if ( $template == $this->_name ) {
 
 			// get template settings
@@ -251,15 +251,15 @@ class JC_Tax_Template extends JC_Importer_Template {
 			$enable_alias  = isset( $_POST['jc-importer_template_settings']['enable_alias'] ) ? $_POST['jc-importer_template_settings']['enable_alias'] : 0;
 
 			// update template settings
-			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'enable_id' ), $enable_id );
-			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'enable_slug' ), $enable_slug );
-			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'enable_parent' ), $enable_parent );
-			ImporterModel::setImporterMeta( $id, array( '_template_settings', 'enable_alias' ), $enable_alias );
+			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'enable_id' ), $enable_id );
+			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'enable_slug' ), $enable_slug );
+			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'enable_parent' ), $enable_parent );
+			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'enable_alias' ), $enable_alias );
 
 
 			// save field type if parent_type enabled
 			$parent_type = $enable_parent ? $_POST['jc-importer_parent_type'] : false;
-			ImporterModel::setImporterMeta( $id, array(
+			IWP_Importer_Settings::setImporterMeta( $id, array(
 				'_template_settings',
 				'_field_type',
 				'parent_type'
@@ -330,7 +330,7 @@ class JC_Tax_Template extends JC_Importer_Template {
 
 add_filter( 'jci/register_template', 'register_tax_template', 10, 1 );
 function register_tax_template( $templates = array() ) {
-	$templates['taxonomy'] = 'JC_Tax_Template';
+	$templates['taxonomy'] = 'IWP_Template_Tax';
 
 	return $templates;
 }

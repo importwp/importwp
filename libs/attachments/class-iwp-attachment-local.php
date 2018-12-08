@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class JCI_Local_Attachments extends JCI_Attachment {
+class IWP_Attachment_Local extends IWP_Attachment {
 
 	/**
 	 * Local directory to search for files

@@ -5,7 +5,7 @@
  * Description: Wordpress CSV/XML Importer Plugin, Easily import users, posts, custom post types and taxonomies from XML or CSV files
  * Author: James Collings <james@jclabs.co.uk>
  * Author URI: http://www.jamescollings.co.uk
- * Version: 1.0.5
+ * Version: 1.1.0-dev
  *
  * @package ImportWP
  * @author James Collings <james@jclabs.co.uk>
@@ -25,33 +25,32 @@ require_once __DIR__ . '/src/Importer/Mapper/TaxMapper.php';
 require_once __DIR__ . '/app/core/exceptions.php';
 
 // libs.
-require_once __DIR__ . '/app/libs/xmloutput.php';
-require_once __DIR__ . '/app/libs/class-importwp-premium.php';
+require_once __DIR__ . '/libs/class-iwp-premium.php';
 
 // attachments.
-require_once __DIR__ . '/app/attachment/class-jci-attachment.php';
-require_once __DIR__ . '/app/attachment/class-jci-ftp-attachments.php';
-require_once __DIR__ . '/app/attachment/class-jci-curl-attachments.php';
-require_once __DIR__ . '/app/attachment/class-jci-upload-attachments.php';
-require_once __DIR__ . '/app/attachment/class-jci-string-attachments.php';
-require_once __DIR__ . '/app/attachment/class-jci-local-attachments.php';
+require_once __DIR__ . '/libs/attachments/class-iwp-attachment.php';
+require_once __DIR__ . '/libs/attachments/class-iwp-attachment-ftp.php';
+require_once __DIR__ . '/libs/attachments/class-iwp-attachment-curl.php';
+require_once __DIR__ . '/libs/attachments/class-iwp-attachment-upload.php';
+require_once __DIR__ . '/libs/attachments/class-iwp-attachment-string.php';
+require_once __DIR__ . '/libs/attachments/class-iwp-attachment-local.php';
 
 // parsers.
-require_once __DIR__ . '/app/parsers/class-iwp-field-parser.php';
-require_once __DIR__ . '/app/parsers/class-iwp-csv-field-parser.php';
-require_once __DIR__ . '/app/parsers/class-iwp-xml-field-parser.php';
-require_once __DIR__ . '/app/parsers/class-iwp-csv-parser.php';
-require_once __DIR__ . '/app/parsers/class-iwp-xml-parser.php';
+require_once __DIR__ . '/libs/parsers/class-iwp-field-parser.php';
+require_once __DIR__ . '/libs/parsers/class-iwp-csv-field-parser.php';
+require_once __DIR__ . '/libs/parsers/class-iwp-xml-field-parser.php';
+require_once __DIR__ . '/libs/parsers/class-iwp-csv-parser.php';
+require_once __DIR__ . '/libs/parsers/class-iwp-xml-parser.php';
 
 // templates.
-require_once __DIR__ . '/app/templates/template.php';
-require_once __DIR__ . '/libs/class-iwp-base-template.php';
-require_once __DIR__ . '/app/templates/template-user.php';
-require_once __DIR__ . '/app/templates/template-post.php';
-require_once __DIR__ . '/app/templates/template-page.php';
-require_once __DIR__ . '/app/templates/template-tax.php';
+require_once __DIR__ . '/libs/templates/class-iwp-template.php';
+require_once __DIR__ . '/libs/templates/class-iwp-template-base.php';
+require_once __DIR__ . '/libs/templates/class-iwp-template-user.php';
+require_once __DIR__ . '/libs/templates/class-iwp-template-post.php';
+require_once __DIR__ . '/libs/templates/class-iwp-template-page.php';
+require_once __DIR__ . '/libs/templates/class-iwp-template-tax.php';
 
-require_once __DIR__ . '/app/helpers/form.php';
+require_once __DIR__ . '/libs/class-iwp-form-builder.php';
 require_once __DIR__ . '/app/functions.php';
 
 /**
@@ -78,7 +77,7 @@ class JC_Importer {
 	 *
 	 * @var string
 	 */
-	protected $version = '1.0.5';
+	protected $version = '1.1.0-dev';
 	/**
 	 * Plugin base directory
 	 *
@@ -124,7 +123,7 @@ class JC_Importer {
 		$this->plugin_dir = plugin_dir_path( __FILE__ );
 		$this->plugin_url = plugins_url( '/', __FILE__ );
 
-		require_once $this->plugin_dir . 'app/libs/class-iwp-text.php';
+		require_once __DIR__ . '/libs/class-iwp-text.php';
 		$this->text = new IWP_Text();
 
 		add_action( 'init', array( $this, 'init' ) );
@@ -154,7 +153,7 @@ class JC_Importer {
 	 */
 	public function init() {
 
-		require_once $this->plugin_dir . 'app/libs/class-iwp-debug.php';
+		require_once __DIR__ . '/libs/class-iwp-debug.php';
 		if(defined('IWP_DEBUG') && IWP_DEBUG === true){
 			IWP_Debug::$_debug = true;
 		}
@@ -167,12 +166,12 @@ class JC_Importer {
 		$this->templates = apply_filters( 'jci/register_template', $this->templates );
 
 		// load importer.
-		require_once $this->plugin_dir . 'app/core/importer.php';
+		require_once __DIR__ . '/app/core/importer.php';
 
 		// core models.
-		require_once $this->plugin_dir . 'app/models/importer.php';
-		require_once $this->plugin_dir . 'app/models/log.php';
-		require_once $this->plugin_dir . 'app/models/class-iwp-status.php';
+		require_once __DIR__ . '/libs/class-iwp-importer-settings.php';
+		require_once __DIR__ . '/libs/class-iwp-importer-log.php';
+		require_once __DIR__ . '/libs/class-iwp-status.php';
 
 		if ( is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
 
@@ -182,18 +181,18 @@ class JC_Importer {
 				$this->importer = new JC_Importer_Core( $importer_id );
 			}
 
-			require_once $this->plugin_dir . 'app/libs/class-iwp-imports-list-table.php';
+			require_once __DIR__ . '/libs/class-iwp-imports-list-table.php';
 
-			require_once $this->plugin_dir . 'app/admin.php';
+			require_once __DIR__ . '/app/admin.php';
 			new JC_Importer_Admin( $this );
 
-			require_once $this->plugin_dir . 'app/ajax.php';
+			require_once __DIR__ . '/app/ajax.php';
 			new JC_Importer_Ajax( $this );
 		}
 
-		ImporterModel::init( $this );
-		ImportLog::init( $this );
-		JCI_FormHelper::init( $this );
+		IWP_Importer_Settings::init( $this );
+		IWP_Importer_Log::init( $this );
+		IWP_FormBuilder::init( $this );
 
 		// plugin loaded.
 		do_action( 'jci/init' );

@@ -2,7 +2,7 @@
 <h2>ImportWP</h2>
 
 <?php
-echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
+echo IWP_FormBuilder::create( 'CreateImporter', array( 'type' => 'file' ) );
 ?>
 
 <div id="poststuff">
@@ -24,7 +24,7 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 							echo '<h4 class="title">1. What are you importing?</h4>';
 
 							// core fields
-							echo JCI_FormHelper::select( 'template', array(
+							echo IWP_FormBuilder::select( 'template', array(
 								'options' => get_template_list( false ),
 								'label'   => 'Import Template',
 								'empty'   => 'Choose a template',
@@ -39,7 +39,7 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 							echo '<h4 class="title">2. Where is the data being imported from?</h4>';
 
 							// upload file
-							echo JCI_FormHelper::radio( 'import_type', array(
+							echo IWP_FormBuilder::radio( 'import_type', array(
 								'label'   => '<strong>Uploaded File</strong> - Upload a file from your computer',
 								'value'   => 'upload',
 								'class'   => 'toggle-fields',
@@ -48,14 +48,14 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 
 
 							// get file from url
-							echo JCI_FormHelper::radio( 'import_type', array(
+							echo IWP_FormBuilder::radio( 'import_type', array(
 								'label' => '<strong>Remote File</strong> - Download your file from a website or url',
 								'value' => 'remote',
 								'class' => 'toggle-fields'
 							) );
 
 							// local file
-							echo JCI_FormHelper::radio( 'import_type', array(
+							echo IWP_FormBuilder::radio( 'import_type', array(
 								'label' => '<strong>Local File</strong> - Get file from within a local folder',
 								'value' => 'local',
 								'class' => 'toggle-fields'
@@ -72,17 +72,17 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 
 							echo '<div class="hidden show-upload toggle-field">';
 							echo '<p>Choose the file below that you would like to import</p>';
-							echo JCI_FormHelper::file( 'import_file', array( 'label' => 'Import File' ) );
+							echo IWP_FormBuilder::file( 'import_file', array( 'label' => 'Import File' ) );
 							echo '</div>';
 
 							echo '<div class="hidden show-remote toggle-field">';
 							echo '<p>Enter the url of the remote file you would like to import</p>';
-							echo JCI_FormHelper::text( 'remote_url', array( 'label' => 'URL' ) );
+							echo IWP_FormBuilder::text( 'remote_url', array( 'label' => 'URL' ) );
 							echo '</div>';
 
 							echo '<div class="hidden show-local toggle-field">';
 							echo '<p>Enter the local path the file you would like to import</p>';
-							echo JCI_FormHelper::text( 'local_url', array( 'label' => 'Local Path' ) );
+							echo IWP_FormBuilder::text( 'local_url', array( 'label' => 'Local Path' ) );
 							echo '</div>';
 
 							do_action( 'jci/output_datasource_section' );
@@ -111,7 +111,7 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
 
 						do_action( 'jci/after_import_settings' );
 
-						echo JCI_FormHelper::Submit( 'update', array(
+						echo IWP_FormBuilder::Submit( 'update', array(
 							'class' => 'button button-primary button-large',
 							'value' => 'Continue'
 						) );
@@ -128,7 +128,7 @@ echo JCI_FormHelper::create( 'CreateImporter', array( 'type' => 'file' ) );
         </div>
     </div>
 	<?php
-	echo JCI_FormHelper::end();
+	echo IWP_FormBuilder::end();
 	?>
     <script type="text/javascript">
         jQuery(function ($) {

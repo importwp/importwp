@@ -34,8 +34,8 @@ class IWP_CSV_Parser{
 	 */
 	public function output_general_settings( $id ) {
 
-		$csv_delimiter = ImporterModel::getImporterMetaArr( $id, array( '_parser_settings', 'csv_delimiter' ) );
-		$csv_enclosure = ImporterModel::getImporterMetaArr( $id, array( '_parser_settings', 'csv_enclosure' ) );
+		$csv_delimiter = IWP_Importer_Settings::getImporterMetaArr( $id, array( '_parser_settings', 'csv_delimiter' ) );
+		$csv_enclosure = IWP_Importer_Settings::getImporterMetaArr( $id, array( '_parser_settings', 'csv_enclosure' ) );
 		$csv_enclosure = htmlspecialchars( stripslashes( $csv_enclosure ) );
 
 		if ( empty( $csv_delimiter ) ) {
@@ -46,13 +46,13 @@ class IWP_CSV_Parser{
 			$csv_enclosure = $this->default_csv_enclosure;
 		}
 
-		echo JCI_FormHelper::text( 'parser_settings[csv_delimiter]', array(
+		echo IWP_FormBuilder::text( 'parser_settings[csv_delimiter]', array(
 			'label'   => 'Delimiter',
 			'default' => $csv_delimiter,
 			'class'   => 'jc-importer_csv-delimiter',
 			'tooltip' => JCI()->text()->get( 'import.settings.csv_delimiter' )
 		) );
-		echo JCI_FormHelper::text( 'parser_settings[csv_enclosure]', array(
+		echo IWP_FormBuilder::text( 'parser_settings[csv_enclosure]', array(
 			'label'   => 'Enclosure',
 			'default' => $csv_enclosure,
 			'class'   => 'jc-importer_csv-enclosure',
@@ -71,11 +71,11 @@ class IWP_CSV_Parser{
 	 */
 	public function load_settings( $settings, $id ) {
 
-		$settings['csv_delimiter'] = ImporterModel::getImporterMetaArr( $id, array(
+		$settings['csv_delimiter'] = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 			'_parser_settings',
 			'csv_delimiter'
 		) );
-		$settings['csv_enclosure'] = ImporterModel::getImporterMetaArr( $id, array(
+		$settings['csv_enclosure'] = IWP_Importer_Settings::getImporterMetaArr( $id, array(
 			'_parser_settings',
 			'csv_enclosure'
 		) );
@@ -107,7 +107,7 @@ class IWP_CSV_Parser{
 				'csv_enclosure' => $enclosure
 			);
 
-			ImporterModel::setImporterMeta( $id, '_parser_settings', $result );
+			IWP_Importer_Settings::setImporterMeta( $id, '_parser_settings', $result );
 		}
 	}
 

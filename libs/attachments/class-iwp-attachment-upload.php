@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Class JCI_Upload_Attachments
  */
-class JCI_Upload_Attachments extends JCI_Attachment {
+class IWP_Attachment_Upload extends IWP_Attachment {
 
 	/**
 	 * Attach uploaded file to post
@@ -84,5 +84,3 @@ class JCI_Upload_Attachments extends JCI_Attachment {
 		return false;
 	}
 }
-
-require_once 'class-jci-attachment.php';

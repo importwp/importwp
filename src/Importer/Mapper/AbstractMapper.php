@@ -28,13 +28,13 @@ class AbstractMapper {
 	private $log = array();
 
 	/**
-	 * @var JC_Importer_Template $template
+	 * @var IWP_Template $template
 	 */
 	protected $template;
 
 	protected $permissions;
 
-	public function __construct( JC_Importer_Template $template, $permissions ) {
+	public function __construct( IWP_Template $template, $permissions ) {
 		$this->template    = $template;
 		$this->permissions = $permissions;
 	}

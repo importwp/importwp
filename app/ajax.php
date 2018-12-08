@@ -91,7 +91,7 @@ class JC_Importer_Ajax {
 		$importer_id = intval( $_POST['id'] );
 		$base_node   = $_POST['base'];
 
-		$file = ImporterModel::getImportSettings( $importer_id, 'import_file' );
+		$file = IWP_Importer_Settings::getImportSettings( $importer_id, 'import_file' );
 
 		$config_file = JCI()->get_tmp_config_path($importer_id);
 		$config = new \ImportWP\Importer\Config\Config($config_file);
@@ -123,7 +123,7 @@ class JC_Importer_Ajax {
 			case 'xml':
 
 				$base_node = isset( $_GET['base'] ) ? $_GET['base'] : '';
-				$file      = ImporterModel::getImportSettings( $post_id, 'import_file' );
+				$file      = IWP_Importer_Settings::getImportSettings( $post_id, 'import_file' );
 
 				$xml_file = new \ImportWP\Importer\File\XMLFile( $file, $config );
 				$xml = new \ImportWP\Importer\Preview\XMLPreview( $xml_file, $base_node );
@@ -135,18 +135,18 @@ class JC_Importer_Ajax {
 				require_once $this->_config->get_plugin_dir() . 'app/view/ajax/xml_node_select.php';
 				break;
 			case 'csv':
-				$settings = ImporterModel::getImportSettings( $post_id );
-				$file     = ImporterModel::getImportSettings( $post_id, 'import_file' );
+				$settings = IWP_Importer_Settings::getImportSettings( $post_id );
+				$file     = IWP_Importer_Settings::getImportSettings( $post_id, 'import_file' );
 				// $file = $settings['import_file'];
 				$fh      = fopen( $file, 'r' );
 				$counter = 0;
 				$records = array();
 
-				$csv_delimiter = ImporterModel::getImporterMetaArr( $post_id, array(
+				$csv_delimiter = IWP_Importer_Settings::getImporterMetaArr( $post_id, array(
 					'_parser_settings',
 					'csv_delimiter'
 				) );
-				$csv_enclosure = ImporterModel::getImporterMetaArr( $post_id, array(
+				$csv_enclosure = IWP_Importer_Settings::getImporterMetaArr( $post_id, array(
 					'_parser_settings',
 					'csv_enclosure'
 				) );
@@ -204,7 +204,7 @@ class JC_Importer_Ajax {
 		$nodes             = array(); // array of nodes
 
 		// 
-		$file = ImporterModel::getImportSettings( $post_id, 'import_file' );
+		$file = IWP_Importer_Settings::getImportSettings( $post_id, 'import_file' );
 
 		$config_file = JCI()->get_tmp_config_path($post_id);
 		$config = new \ImportWP\Importer\Config\Config($config_file);
@@ -256,11 +256,11 @@ class JC_Importer_Ajax {
 
 				$file = new \ImportWP\Importer\File\CSVFile( JCI()->importer->get_file(), $config );
 
-				$csv_delimiter = ImporterModel::getImporterMetaArr( JCI()->importer->get_ID(), array(
+				$csv_delimiter = IWP_Importer_Settings::getImporterMetaArr( JCI()->importer->get_ID(), array(
 					'_parser_settings',
 					'csv_delimiter'
 				) );
-				$csv_enclosure = ImporterModel::getImporterMetaArr( JCI()->importer->get_ID(), array(
+				$csv_enclosure = IWP_Importer_Settings::getImporterMetaArr( JCI()->importer->get_ID(), array(
 					'_parser_settings',
 					'csv_enclosure'
 				) );

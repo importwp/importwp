@@ -33,18 +33,18 @@ class PostImporterTest extends WP_UnitTestCase {
 		) );
 
 		// setup taxonomies
-		ImporterModel::setImporterMeta( $post_id, array( '_taxonomies', 'post' ), array(
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_taxonomies', 'post' ), array(
 			'tax'         => array( 'post_tag' ),
 			'term'        => array( '{6}' ),
 			'permissions' => array( 'create' )
 		) );
 
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_post_status' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'enable_post_status' ), 1 );
 
 		/**
 		 * Test: Check if one record is returned
 		 */
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$import_data              = $this->importer->importer->run_import( 1 );
 		$this->assertEquals( 1, count( $import_data ) );
@@ -87,18 +87,18 @@ class PostImporterTest extends WP_UnitTestCase {
 		) );
 
 		// setup taxonomies
-		ImporterModel::setImporterMeta( $post_id, array( '_taxonomies', 'post' ), array(
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_taxonomies', 'post' ), array(
 			'tax'         => array( 'category', 'post_tag' ),
 			'term'        => array( '{/categories[1]/category}', '{/tags[1]}' ),
 			'permissions' => array( 'overwrite', 'overwrite' )
 		) );
 
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_post_status' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'enable_post_status' ), 1 );
 
 		/**
 		 * Test: Check if one record is returned
 		 */
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->importer->importer = new JC_Importer_Core( $post_id );
 		$import_data              = $this->importer->importer->run_import( 1 );
 		$this->assertEquals( 1, count( $import_data ) );
@@ -155,7 +155,7 @@ class PostImporterTest extends WP_UnitTestCase {
 			)
 		) );
 
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 
 		$this->importer->importer 	= new JC_Importer_Core( $post_id );
 		$test                     	= $this->importer->importer->run_import( 1 );
@@ -208,11 +208,11 @@ class PostImporterTest extends WP_UnitTestCase {
 			)
 		) );
 
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_menu_order' ), 1 );
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_post_password' ), 1 );
-		ImporterModel::setImporterMeta( $post_id, array( '_template_settings', 'enable_post_date' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'enable_menu_order' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'enable_post_password' ), 1 );
+		IWP_Importer_Settings::setImporterMeta( $post_id, array( '_template_settings', 'enable_post_date' ), 1 );
 
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 
 		$this->importer->importer 	= new JC_Importer_Core( $post_id );
 		$test                     	= $this->importer->importer->run_import( 1 );
@@ -261,7 +261,7 @@ class PostImporterTest extends WP_UnitTestCase {
 			)
 		));
 
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->importer->importer 	= new JC_Importer_Core( $post_id );
 		$import_data              	= $this->importer->importer->run_import( 1 );
 		$import_data 				= array_shift($import_data);
@@ -296,18 +296,18 @@ class PostImporterTest extends WP_UnitTestCase {
 			)
 		));
 
-		ImporterModel::setImporterMeta( $post_id, array(
+		IWP_Importer_Settings::setImporterMeta( $post_id, array(
 					'_template_settings',
 					'enable_post_parent'
 				), 1 );
 
-		ImporterModel::setImporterMeta( $post_id, array(
+		IWP_Importer_Settings::setImporterMeta( $post_id, array(
 				'_template_settings',
 				'_field_type',
 				'post_parent'
 			), 'name' );
 
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->importer->importer 	= new JC_Importer_Core( $post_id );
 		$import_data              	= $this->importer->importer->run_import( 1 );
 		$import_data 				= array_shift($import_data);
@@ -342,18 +342,18 @@ class PostImporterTest extends WP_UnitTestCase {
 			)
 		));
 
-		ImporterModel::setImporterMeta( $post_id, array(
+		IWP_Importer_Settings::setImporterMeta( $post_id, array(
 					'_template_settings',
 					'enable_post_parent'
 				), 1 );
 
-		ImporterModel::setImporterMeta( $post_id, array(
+		IWP_Importer_Settings::setImporterMeta( $post_id, array(
 				'_template_settings',
 				'_field_type',
 				'post_parent'
 			), 'slug' );
 
-		ImporterModel::clearImportSettings();
+		IWP_Importer_Settings::clearImportSettings();
 		$this->importer->importer 	= new JC_Importer_Core( $post_id );
 		$import_data              	= $this->importer->importer->run_import( 1 );
 		$import_data 				= array_shift($import_data);

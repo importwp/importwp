@@ -1,56 +1,57 @@
 <?php
-class IWP_Base_Template extends JC_Importer_Template{
+class IWP_Template_Base extends IWP_Template{
 
 	/**
 	 * @var string $_group
 	 */
-	private $_group;
+	protected $_group;
 
 	/**
 	 * @var string $_import_type Template Map (post, tax, user)
 	 */
-	private $_import_type;
+	protected $_import_type;
 
 	/**
 	 * @var string $_import_type_name
 	 */
-	private $_import_type_name;
+	protected $_import_type_name;
 
 	/**
 	 * @var array $_fields List of template fields
 	 */
-	private $_fields = [];
+	protected $_fields = [];
+
+	/**
+	 * @var array $_settings
+	 */
+	protected $_settings = [];
 
 	/**
 	 * @var int $_template_version
 	 */
 	protected $_template_version;
 
-	private $_virtual_fields = [];
+	protected $_virtual_fields = [];
 
-	private $_repeater_fields = [];
-	private $_repeater_values = [];
-	private $_sections = [];
+	protected $_repeater_fields = [];
+	protected $_repeater_values = [];
+	protected $_sections = [];
 
-	private $_enable_fields = [];
+	protected $_enable_fields = [];
 
-	public function __construct($group, $import_type, $import_type_name, $settings = array()) {
-
-		$this->_group = $group;
-		$this->_import_type = $import_type;
-		$this->_import_type_name = $import_type_name;
+	public function __construct() {
 
 		$this->_field_groups = array(
-			$group => array(
-				'import_type' => $import_type,
-				'import_type_name' => $import_type_name,
+			$this->_group => array(
+				'import_type' => $this->_import_type,
+				'import_type_name' => $this->_import_type_name,
 				'field_type' => 'single',
-				'post_status' => isset($settings['post_status']) ? $settings['post_status'] : 'any',
-				'group' => $group,
-				'key' => isset($settings['key']) ? $settings['key'] : array(),
+				'post_status' => isset($this->_settings['post_status']) ? $this->_settings['post_status'] : 'any',
+				'group' => $this->_group,
+				'key' => isset($this->_settings['key']) ? $this->_settings['key'] : array(),
 				'relationship' => array(),
-				'attachments' => isset($settings['attachments']) ? $settings['attachments'] : 0,
-				'taxonomies' => isset($settings['taxonomies']) ? $settings['taxonomies'] : 0,
+				'attachments' => isset($this->_settings['attachments']) ? $this->_settings['attachments'] : 0,
+				'taxonomies' => isset($this->_settings['taxonomies']) ? $this->_settings['taxonomies'] : 0,
 				'map' => array()
 			)
 		);
@@ -225,7 +226,7 @@ class IWP_Base_Template extends JC_Importer_Template{
 	}
 
 	/**
-	 * @param JC_Importer_Template $template
+	 * @param IWP_Template $template
 	 * @param \ImportWP\Importer\ParsedData $data
 	 * @param \ImportWP\Importer $importer
 	 */
@@ -237,7 +238,7 @@ class IWP_Base_Template extends JC_Importer_Template{
 	}
 
 	/**
-	 * @param JC_Importer_Template $template
+	 * @param IWP_Template $template
 	 * @param \ImportWP\Importer\ParsedData $data
 	 * @param \ImportWP\Importer $importer
 	 */
@@ -288,17 +289,17 @@ class IWP_Base_Template extends JC_Importer_Template{
 			        $class               = null;
 			        switch ( $attachment_download ) {
 				        case 'local':
-					        $class           = new JCI_Local_Attachments();
+					        $class           = new IWP_Attachment_Local();
 					        $class->set_local_dir( '' );
 					        break;
 				        case 'url':
-					        $class            = new JCI_CURL_Attachments();
+					        $class            = new IWP_Attachment_CURL();
 					        break;
 				        case 'ftp':
 					        $ftp_server = $attachment_ftp_server;
 					        $ftp_user   = $attachment_ftp_user;
 					        $ftp_pass   = $attachment_ftp_pass;
-					        $class      = new JCI_FTP_Attachments( $ftp_server, $ftp_user, $ftp_pass );
+					        $class      = new IWP_Attachment_FTP( $ftp_server, $ftp_user, $ftp_pass );
 					        break;
 			        }
 
@@ -457,7 +458,7 @@ class IWP_Base_Template extends JC_Importer_Template{
     }
 
 	public function get_field_value($key, $default = ''){
-		$fields = ImporterModel::getImporterMeta( JCI()->importer->get_ID(), 'fields' );
+		$fields = IWP_Importer_Settings::getImporterMeta( JCI()->importer->get_ID(), 'fields' );
 		return isset($fields[$this->_group][$key]) ? $fields[$this->_group][$key] : $default;
     }
 
@@ -474,7 +475,7 @@ class IWP_Base_Template extends JC_Importer_Template{
     }
 
     public function get_repeater_values($key){
-	    $fields = ImporterModel::getImporterMeta( JCI()->importer->get_ID(), 'fields' );
+	    $fields = IWP_Importer_Settings::getImporterMeta( JCI()->importer->get_ID(), 'fields' );
 	    $result = array();
 	    foreach($fields[$this->get_group()] as $k => $v){
 	        $matches = [];
@@ -488,5 +489,13 @@ class IWP_Base_Template extends JC_Importer_Template{
         }
 
 	    return $result;
+    }
+
+    public function get_import_type_name(){
+		return $this->_import_type_name;
+    }
+
+    public function get_import_type(){
+		return $this->_import_type;
     }
 }

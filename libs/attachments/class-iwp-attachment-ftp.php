@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Class JCI_FTP_Attachments
  */
-class JCI_FTP_Attachments extends JCI_Attachment {
+class IWP_Attachment_FTP extends IWP_Attachment {
 
 	/**
 	 * FTP Connection
@@ -121,5 +121,3 @@ class JCI_FTP_Attachments extends JCI_Attachment {
 		return false;
 	}
 }
-
-require_once 'class-jci-attachment.php';

@@ -35,8 +35,8 @@ class IWP_XML_Parser {
 	 */
 	public function output_general_settings( $id ) {
 
-		$import_base = ImporterModel::getImporterMetaArr( $id, array( '_parser_settings', 'import_base' ) );
-		echo JCI_FormHelper::text( 'parser_settings[import_base]', array(
+		$import_base = IWP_Importer_Settings::getImporterMetaArr( $id, array( '_parser_settings', 'import_base' ) );
+		echo IWP_FormBuilder::text( 'parser_settings[import_base]', array(
 			'label'   => 'Record Base',
 			'default' => $import_base,
 			'after'   => ' <a href="#" class="base-node-select base button button-small button-iwp">Select</a>',
@@ -51,16 +51,16 @@ class IWP_XML_Parser {
 	 */
 	public function output_group_settings( $id, $group ) {
 
-		$import_base = ImporterModel::getImporterMetaArr( $id, array( '_parser_settings', 'group_base', $group ) );
+		$import_base = IWP_Importer_Settings::getImporterMetaArr( $id, array( '_parser_settings', 'group_base', $group ) );
 
-		$importer_version = ImporterModel::getImporterMetaArr($id, array('_import_settings', 'version'));
+		$importer_version = IWP_Importer_Settings::getImporterMetaArr($id, array('_import_settings', 'version'));
 		if(version_compare($importer_version, '0.6.0', '>=') || empty($import_base)){
-			echo JCI_FormHelper::hidden("parser_settings[group][{$group}][base]", array(
+			echo IWP_FormBuilder::hidden("parser_settings[group][{$group}][base]", array(
 				'default' => $import_base,
 				'class'   => 'jc-importer_general-group',
 			));
 		}else {
-			echo JCI_FormHelper::text( "parser_settings[group][{$group}][base]", array(
+			echo IWP_FormBuilder::text( "parser_settings[group][{$group}][base]", array(
 				'label'   => 'Record Base',
 				'default' => $import_base,
 				'after'   => ' <a href="#" class="base-node-select group button button-small button-iwp">Select</a>',
@@ -79,8 +79,8 @@ class IWP_XML_Parser {
 	 */
 	public function load_settings( $settings, $id ) {
 
-		$settings['import_base'] = ImporterModel::getImporterMetaArr( $id, array( '_parser_settings', 'import_base' ) );
-		$settings['group_base']  = ImporterModel::getImporterMetaArr( $id, array( '_parser_settings', 'group_base' ) );
+		$settings['import_base'] = IWP_Importer_Settings::getImporterMetaArr( $id, array( '_parser_settings', 'import_base' ) );
+		$settings['group_base']  = IWP_Importer_Settings::getImporterMetaArr( $id, array( '_parser_settings', 'group_base' ) );
 
 		return $settings;
 	}
@@ -110,7 +110,7 @@ class IWP_XML_Parser {
 				'group_base'  => $groups
 			);
 
-			ImporterModel::setImporterMeta( $id, '_parser_settings', $result );
+			IWP_Importer_Settings::setImporterMeta( $id, '_parser_settings', $result );
 		}
 	}
 }

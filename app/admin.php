@@ -173,7 +173,7 @@ class JC_Importer_Admin {
 
 	public function process_forms() {
 
-		JCI_FormHelper::init( $this->config->forms );
+		IWP_FormBuilder::init( $this->config->forms );
 		if ( isset( $_POST['jc-importer_form_action'] ) ) {
 
 			switch ( $_POST['jc-importer_form_action'] ) {
@@ -205,20 +205,20 @@ class JC_Importer_Admin {
 
 			if ( $jcimporter->importer->get_import_type() == 'remote' ) {
 				// fetch remote file
-				$remote_settings = ImporterModel::getImportSettings( $importer, 'remote' );
+				$remote_settings = IWP_Importer_Settings::getImportSettings( $importer, 'remote' );
 				$url             = $remote_settings['remote_url'];
 				$dest            = basename( $url );
-				$attach          = new JCI_CURL_Attachments();
+				$attach          = new IWP_Attachment_CURL();
 				$result          = $attach->attach_remote_file( $importer, $url, $dest, array(
 					'importer-file' => true,
 					'unique'        => true
 				) );
 			} elseif ( $jcimporter->importer->get_import_type() == 'local' ) {
 				// fetch local file
-				$local_settings = ImporterModel::getImportSettings( $importer, 'local' );
+				$local_settings = IWP_Importer_Settings::getImportSettings( $importer, 'local' );
 				$url            = $local_settings['local_url'];
 				$dest           = basename( $url );
-				$attach         = new JCI_Local_Attachments();
+				$attach         = new IWP_Attachment_Local();
 				$result         = $attach->attach_remote_file( $importer, $url, $dest, array(
 					'importer-file' => true,
 					'unique'        => true
@@ -226,10 +226,10 @@ class JC_Importer_Admin {
 			}
 
 			// update settings with new file
-			ImporterModel::setImporterMeta( $importer, array( '_import_settings', 'import_file' ), $result['id'] );
+			IWP_Importer_Settings::setImporterMeta( $importer, array( '_import_settings', 'import_file' ), $result['id'] );
 
 			// reload importer settings
-			ImporterModel::clearImportSettings();
+			IWP_Importer_Settings::clearImportSettings();
 
 			// redirect to importer run page
 			JCI()->importer->increase_version();
@@ -265,7 +265,7 @@ class JC_Importer_Admin {
 		if ( $action == 'clear-logs' && ! isset( $_GET['result'] ) ) {
 
 			// clear importer logs older than one day	
-			ImportLog::clearLogs();
+			IWP_Importer_Log::clearLogs();
 			wp_redirect( add_query_arg( array( 'result' => 1 ) ) );
 			exit();
 		} elseif ( $action == 'update-db' && ! isset( $_GET['result'] ) ) {
@@ -294,15 +294,15 @@ class JC_Importer_Admin {
 
 		$errors = array();
 
-		JCI_FormHelper::process_form( 'CreateImporter' );
-		if ( JCI_FormHelper::is_complete() ) {
+		IWP_FormBuilder::process_form( 'CreateImporter' );
+		if ( IWP_FormBuilder::is_complete() ) {
 
 			// general importer fields
 //			$name     = $_POST['jc-importer_name'];
 			$name     = '';
 			$template = $_POST['jc-importer_template'];
 
-			$post_id = ImporterModel::insertImporter( 0, array( 'name' => $name ) );
+			$post_id = IWP_Importer_Settings::insertImporter( 0, array( 'name' => $name ) );
 			$general = array();
 
 			// @todo: fix upload so no file is uploaded unless it is the correct type, currently file is uploaded then removed.
@@ -315,7 +315,7 @@ class JC_Importer_Admin {
 				case 'upload':
 
 					// upload
-					$attach = new JCI_Upload_Attachments();
+					$attach = new IWP_Attachment_Upload();
 					$result = $attach->attach_upload( $post_id, $_FILES['jc-importer_import_file'], array( 'importer-file' => true ) );
 
 					$result['attachment'] = $attach;
@@ -327,7 +327,7 @@ class JC_Importer_Admin {
 					// download
 					$src                   = $_POST['jc-importer_remote_url'];
 					$dest                  = basename( $src );
-					$attach                = new JCI_CURL_Attachments();
+					$attach                = new IWP_Attachment_CURL();
 					$result                = $attach->attach_remote_file( $post_id, $src, $dest, array( 'importer-file' => true ) );
 					$general['remote_url'] = $src;
 					$file_error_field      = 'remote_url';
@@ -338,7 +338,7 @@ class JC_Importer_Admin {
 
 					$src                  = wp_normalize_path( $_POST['jc-importer_local_url'] );
 					$dest                 = basename( $src );
-					$attach               = new JCI_Local_Attachments();
+					$attach               = new IWP_Attachment_Local();
 					$result               = $attach->attach_remote_file( $post_id, $src, $dest, array( 'importer-file' => true ) );
 					$general['local_url'] = $src;
 					$file_error_field     = 'local_url';
@@ -367,7 +367,7 @@ class JC_Importer_Admin {
 			}
 
 			if ( ! empty( $errors ) ) {
-				JCI_FormHelper::$errors[ $file_error_field ] = array_pop( $errors );
+				IWP_FormBuilder::$errors[ $file_error_field ] = array_pop( $errors );
 				wp_delete_post( $post_id, true );
 
 				return;
@@ -386,7 +386,7 @@ class JC_Importer_Admin {
 				$template_type = $result['type'];
 
 
-				$post_id = ImporterModel::insertImporter( $post_id, array(
+				$post_id = IWP_Importer_Settings::insertImporter( $post_id, array(
 					'name'     => sprintf( "Import %s from %s on %s ", apply_filters( 'jci/importer/template_name', $template ), $template_type, date( get_site_option( 'date_format' ) ) ),
 					'settings' => array(
 						'import_type'   => $import_type,
@@ -411,17 +411,17 @@ class JC_Importer_Admin {
 	 */
 	public function process_import_edit_from() {
 
-		JCI_FormHelper::process_form( 'EditImporter' );
-		if ( JCI_FormHelper::is_complete() ) {
+		IWP_FormBuilder::process_form( 'EditImporter' );
+		if ( IWP_FormBuilder::is_complete() ) {
 
 			$id = intval( $_POST['jc-importer_import_id'] );
 
 			// uploading a new file
 			if ( isset( $_POST['jc-importer_upload_file'] ) && ! empty( $_POST['jc-importer_upload_file'] ) ) {
 
-				$attach = new JCI_Upload_Attachments();
+				$attach = new IWP_Attachment_Upload();
 				$result = $attach->attach_upload( $id, $_FILES['jc-importer_import_file'], array( 'importer-file' => true ) );
-				ImporterModel::setImportFile( $id, $result );
+				IWP_Importer_Settings::setImportFile( $id, $result );
 
 				// increase version number
 				// $version = get_post_meta( $id, '_import_version', true );
@@ -448,7 +448,7 @@ class JC_Importer_Admin {
 				if ( ! empty( $_POST['jc-importer_remote_url'] ) ) {
 
 					// save remote url
-					ImporterModel::setImporterMeta( $id, array(
+					IWP_Importer_Settings::setImporterMeta( $id, array(
 						'_import_settings',
 						'general',
 						'remote_url'
@@ -462,7 +462,7 @@ class JC_Importer_Admin {
 				if ( ! empty( $_POST['jc-importer_local_url'] ) ) {
 
 					// save local url
-					ImporterModel::setImporterMeta( $id, array(
+					IWP_Importer_Settings::setImporterMeta( $id, array(
 						'_import_settings',
 						'general',
 						'local_url'
@@ -494,7 +494,7 @@ class JC_Importer_Admin {
 
 			// load parser settings
 
-			$template_type   = ImporterModel::getImportSettings( $id, 'template_type' );
+			$template_type   = IWP_Importer_Settings::getImportSettings( $id, 'template_type' );
 
 			// select file to use for import
 			$selected_import_id = intval( $_POST['jc-importer_file_select'] );
@@ -502,9 +502,9 @@ class JC_Importer_Admin {
 
 				// increase version number
 				$version  = get_post_meta( $id, '_import_version', true );
-				$last_row = ImportLog::get_last_row( $id, $version );
+				$last_row = IWP_Importer_Log::get_last_row( $id, $version );
 				if ( $last_row > 0 ) {
-					ImporterModel::setImportVersion( $id, $version + 1 );
+					IWP_Importer_Settings::setImportVersion( $id, $version + 1 );
 				}
 
 				$settings['import_file'] = $selected_import_id;
@@ -512,7 +512,7 @@ class JC_Importer_Admin {
 
 			$importer_name = isset( $_POST['jc-importer_name'] ) && ! empty( $_POST['jc-importer_name'] ) ? $_POST['jc-importer_name'] : false;
 
-			$result = ImporterModel::update( $id, array(
+			$result = IWP_Importer_Settings::update( $id, array(
 				'name'        => $importer_name,
 				'fields'      => $fields,
 				'attachments' => $attachments,

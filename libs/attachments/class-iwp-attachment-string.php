@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Class JCI_String_Attachments
  */
-class JCI_String_Attachments extends JCI_Attachment {
+class IWP_Attachment_String extends IWP_Attachment {
 
 	/**
 	 * Save string into file
@@ -57,5 +57,3 @@ class JCI_String_Attachments extends JCI_Attachment {
 		return false;
 	}
 }
-
-require_once 'class-jci-attachment.php';

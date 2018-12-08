@@ -46,7 +46,7 @@ function create_xml_importer( $post_id = null, $template = '', $file = '', $fiel
 		'template_type' => 'xml'
 	) );
 
-	ImporterModel::setImporterMeta( $post_id, '_parser_settings', $parser_settings );
+	IWP_Importer_Settings::setImporterMeta( $post_id, '_parser_settings', $parser_settings );
 
 	return $post_id;
 
@@ -77,12 +77,12 @@ function create_importer( $post_id = null, $args = array() ) {
 
 	// init importer
 	if ( is_null( $post_id ) ) {
-		$post_id = ImporterModel::insertImporter( 0, array( 'name' => $name ) );
+		$post_id = IWP_Importer_Settings::insertImporter( 0, array( 'name' => $name ) );
 	}
 
 	// attach file
 	if ( isset( $file ) && ! empty( $file ) ) {
-		$attachment = new JCI_Attachment();
+		$attachment = new IWP_Attachment();
 		$file       = $attachment->attach_local_file( $file );
 		$attach_id  = $attachment->wp_insert_attachment( $post_id, $file, array( 'importer-file' => true ) );
 
@@ -104,7 +104,7 @@ function create_importer( $post_id = null, $args = array() ) {
 		$settings['import_file'] = $result['id'];
 	}
 
-	$post_id = ImporterModel::insertImporter( $post_id, array(
+	$post_id = IWP_Importer_Settings::insertImporter( $post_id, array(
 		'name'     => $name,
 		'settings' => $settings,
 		'fields'   => $fields,

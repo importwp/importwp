@@ -64,10 +64,10 @@ if($status !== false){
 ?>
 
 <?php
-echo JCI_FormHelper::create( 'EditImporter', array( 'type' => 'file' ) );
+echo IWP_FormBuilder::create( 'EditImporter', array( 'type' => 'file' ) );
 
 // hidden fields
-echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
+echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
 ?>
 
 <div id="poststuff" class="<?php echo $template_type; ?>-import jci-edit-screen">
@@ -99,34 +99,34 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
 							do_action( 'jci/before_import_settings' );
 
-							echo JCI_FormHelper::text( 'name', array(
+							echo IWP_FormBuilder::text( 'name', array(
 								'label'   => 'Importer Name',
 								'default' => $name,
 								'tooltip' => JCI()->text()->get( 'import.settings.name' )
 							) );
 
-							echo JCI_FormHelper::text( 'start-line', array(
+							echo IWP_FormBuilder::text( 'start-line', array(
 								'label'   => 'Start Row',
 								'default' => $start_line,
 								'tooltip' => JCI()->text()->get( 'import.settings.start_line' )
 							) );
-							echo JCI_FormHelper::text( 'row-count', array(
+							echo IWP_FormBuilder::text( 'row-count', array(
 								'label'   => 'Max Rows',
 								'default' => $row_count,
 								'tooltip' => JCI()->text()->get( 'import.settings.row_count' )
 							) );
-							echo JCI_FormHelper::text( 'record-import-count', array(
+							echo IWP_FormBuilder::text( 'record-import-count', array(
 								'label'   => 'Records per Import',
 								'default' => $record_import_count,
 								'tooltip' => JCI()->text()->get( 'import.settings.record_import_count' )
 							) );
-							echo JCI_FormHelper::select( 'template_type', array(
+							echo IWP_FormBuilder::select( 'template_type', array(
 								'label'   => 'Template Type',
 								'options' => array( 'csv' => 'CSV', 'xml' => 'XML' ),
 								'default' => $template_type,
 								'tooltip' => JCI()->text()->get( 'import.settings.template_type' )
 							) );
-							echo JCI_FormHelper::text( 'template-unique-field', array(
+							echo IWP_FormBuilder::text( 'template-unique-field', array(
 								'label'   => 'Unique Field',
 								'default' => $template_unique_field,
 								'tooltip' => JCI()->text()->get( 'template.default.template_unique+field' )
@@ -143,9 +143,9 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
                             <div class="jci-group-remote jci-group-section" data-section-id="Remote">
                                 <div class="remote">
 									<?php
-									$remote_settings = ImporterModel::getImportSettings( $id, 'remote' );
+									$remote_settings = IWP_Importer_Settings::getImportSettings( $id, 'remote' );
 									$url             = $remote_settings['remote_url'];
-									echo JCI_FormHelper::text( 'remote_url', array(
+									echo IWP_FormBuilder::text( 'remote_url', array(
 										'label'   => 'Remote Url',
 										'default' => $url,
 										'tooltip' => JCI()->text()->get( 'import.remote.remote_url' )
@@ -169,9 +169,9 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
                             <div class="jci-group-local jci-group-section" data-section-id="Local Path">
                                 <div class="local">
 									<?php
-									$remote_settings = ImporterModel::getImportSettings( $id, 'local' );
+									$remote_settings = IWP_Importer_Settings::getImportSettings( $id, 'local' );
 									$url             = $remote_settings['local_url'];
-									echo JCI_FormHelper::text( 'local_url', array(
+									echo IWP_FormBuilder::text( 'local_url', array(
 										'label'   => 'Local Path',
 										'default' => $url,
 										'tooltip' => JCI()->text()->get( 'import.local.local_url' )
@@ -195,17 +195,17 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 								$perm_update = isset( $permissions_general['update'] ) && $permissions_general['update'] == 1 ? 1 : 0;
 								$perm_delete = isset( $permissions_general['delete'] ) && $permissions_general['delete'] == 1 ? 1 : 0;
 
-								echo JCI_FormHelper::checkbox( 'permissions[create]', array(
+								echo IWP_FormBuilder::checkbox( 'permissions[create]', array(
 									'label'   => 'Create',
 									'default' => 1,
 									'checked' => $perm_create
 								) );
-								echo JCI_FormHelper::checkbox( 'permissions[update]', array(
+								echo IWP_FormBuilder::checkbox( 'permissions[update]', array(
 									'label'   => 'Update',
 									'default' => 1,
 									'checked' => $perm_update
 								) );
-								echo JCI_FormHelper::checkbox( 'permissions[delete]', array(
+								echo IWP_FormBuilder::checkbox( 'permissions[delete]', array(
 									'label'   => 'Delete',
 									'default' => 1,
 									'checked' => $perm_delete
@@ -220,7 +220,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 								<?php
 
 								$current_import_file = basename( $jcimporter->importer->get_file() );
-								$files               = ImporterModel::getImporterFiles( $id );
+								$files               = IWP_Importer_Settings::getImporterFiles( $id );
 
 								echo '<ul>';
 
@@ -228,7 +228,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
 									foreach ( $files as $file ) {
 										$import_file = basename( $file->src );
-										echo '<li>' . JCI_FormHelper::radio( 'file_select', array(
+										echo '<li>' . IWP_FormBuilder::radio( 'file_select', array(
 												'value'   => $file->id,
 												'label'   => $import_file . ' (' . date( get_site_option( 'date_format' ), strtotime( $file->created ) ) . ' at ' . date( get_site_option( 'time_format' ), strtotime( $file->created ) ) . ')',
 												'checked' => $import_file == $current_import_file ? true : false
@@ -239,8 +239,8 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 								echo '</ul>';
 
 								// file upload
-								echo JCI_FormHelper::file( 'import_file', array( 'label' => 'Import File' ) );
-								echo JCI_FormHelper::Submit( 'upload_file', array(
+								echo IWP_FormBuilder::file( 'import_file', array( 'label' => 'Import File' ) );
+								echo IWP_FormBuilder::Submit( 'upload_file', array(
 									'class' => 'button',
 									'value' => 'Upload File'
 								) );
@@ -254,11 +254,11 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
                     <div class="form-actions">
 
 						<?php
-						echo JCI_FormHelper::Submit( 'btn-save', array(
+						echo IWP_FormBuilder::Submit( 'btn-save', array(
 							'class' => 'button-primary button',
 							'value' => 'Save All'
 						) );
-						echo JCI_FormHelper::Submit( 'btn-continue', array(
+						echo IWP_FormBuilder::Submit( 'btn-continue', array(
 							'class' => 'button-secondary button',
 							'value' => 'Save & Run'
 						) );
@@ -319,7 +319,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 								if(method_exists($template, 'get_template_version')){
 
 									/**
-									 * @var IWP_Base_Template $template
+									 * @var IWP_Template_Base $template
 									 */
 									$template->display_fields();
 
@@ -327,7 +327,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 									foreach ( $group['fields'] as $key => $value ) {
 										$title   = $group['titles'][ $key ];
 										$tooltip = $group['tooltips'][ $key ];
-										echo JCI_FormHelper::text( 'field[' . $group_id . '][' . $key . ']', array(
+										echo IWP_FormBuilder::text( 'field[' . $group_id . '][' . $key . ']', array(
 											'label'   => $title,
 											'tooltip' => $tooltip,
 											'default' => esc_attr($value),
@@ -393,13 +393,13 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
                                                         <tr class="taxonomy multi-row">
                                                             <td>
-																<?php echo JCI_FormHelper::select( 'taxonomies[' . $group_id . '][tax][]', array(
+																<?php echo IWP_FormBuilder::select( 'taxonomies[' . $group_id . '][tax][]', array(
 																	'label'   => 'Tax',
 																	'default' => $tax,
 																	'options' => $post_taxonomies,
 																	'tooltip' => JCI()->text()->get( 'template.default.taxonomy_tax' )
 																) ); ?>
-																<?php echo JCI_FormHelper::text( 'taxonomies[' . $group_id . '][term][]', array(
+																<?php echo IWP_FormBuilder::text( 'taxonomies[' . $group_id . '][term][]', array(
 																	'label'   => 'Term',
 																	'default' => $term,
 																	'class'   => 'xml-drop jci-group',
@@ -408,7 +408,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 																) ); ?>
 																<?php
 																// $permissions = isset($taxonomies[$group_id]['permissions'][$key]) && !empty($taxonomies[$group_id]['permissions'][$key]) ? $taxonomies[$group_id]['permissions'][$key] : 'overwrite';
-																echo JCI_FormHelper::select( 'taxonomies[' . $group_id . '][permissions][]', array(
+																echo IWP_FormBuilder::select( 'taxonomies[' . $group_id . '][permissions][]', array(
 																	'label'   => 'Permissions',
 																	'default' => $taxonomy_permissions[ $group_id ][ $tax ],
 																	'options' => array(
@@ -433,13 +433,13 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
                                                     <tr class="taxonomy multi-row">
                                                         <td>
-															<?php echo JCI_FormHelper::select( 'taxonomies[' . $group_id . '][tax][]', array(
+															<?php echo IWP_FormBuilder::select( 'taxonomies[' . $group_id . '][tax][]', array(
 																'label'   => 'Tax',
 																'default' => '',
 																'options' => $post_taxonomies,
 																'tooltip' => JCI()->text()->get( 'template.default.taxonomy_tax' )
 															) ); ?>
-															<?php echo JCI_FormHelper::text( 'taxonomies[' . $group_id . '][term][]', array(
+															<?php echo IWP_FormBuilder::text( 'taxonomies[' . $group_id . '][term][]', array(
 																'label'   => 'Term',
 																'default' => '',
 																'class'   => 'xml-drop jci-group',
@@ -447,7 +447,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 																'tooltip' => JCI()->text()->get( 'template.default.taxonomy_term' )
 															) ); ?>
 															<?php
-															echo JCI_FormHelper::select( 'taxonomies[' . $group_id . '][permissions][]', array(
+															echo IWP_FormBuilder::select( 'taxonomies[' . $group_id . '][permissions][]', array(
 																'label'   => 'Permissions',
 																'default' => '',
 																'options' => array(
@@ -498,7 +498,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 													<?php foreach ( $attachments[ $group_id ]['location'] as $key => $val ): ?>
                                                         <tr class="attachment multi-row">
                                                             <td>
-																<?php echo JCI_FormHelper::text( 'attachment[' . $group_id . '][location][]', array(
+																<?php echo IWP_FormBuilder::text( 'attachment[' . $group_id . '][location][]', array(
 																	'label'   => 'Location',
 																	'default' => $val,
 																	'class'   => 'xml-drop jci-group',
@@ -507,7 +507,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 																) ); ?>
 																<?php
 																$permissions = isset( $attachments[ $group_id ]['permissions'][ $key ] ) && ! empty( $attachments[ $group_id ]['permissions'][ $key ] ) ? $attachments[ $group_id ]['permissions'][ $key ] : 'overwrite';
-																echo JCI_FormHelper::select( 'attachment[' . $group_id . '][permissions][]', array(
+																echo IWP_FormBuilder::select( 'attachment[' . $group_id . '][permissions][]', array(
 																	'label'   => 'Permissions',
 																	'default' => $permissions,
 																	'options' => array(
@@ -519,7 +519,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 																) );
 
 																$featured_image = isset( $attachments[ $group_id ]['featured_image'][ $key ] ) && ! empty( $attachments[ $group_id ]['featured_image'][ $key ] ) ? $attachments[ $group_id ]['featured_image'][ $key ] : 0;
-																echo JCI_FormHelper::checkbox( "attachment[$group_id][featured_image][]", array(
+																echo IWP_FormBuilder::checkbox( "attachment[$group_id][featured_image][]", array(
 																	'label'   => 'Set as Featured Image',
 																	'checked' => $featured_image
 																) );
@@ -537,7 +537,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 												<?php else: ?>
                                                     <tr class="attachment multi-row">
                                                         <td>
-															<?php echo JCI_FormHelper::text( 'attachment[' . $group_id . '][location][]', array(
+															<?php echo IWP_FormBuilder::text( 'attachment[' . $group_id . '][location][]', array(
 																'label'   => 'Location',
 																'default' => '',
 																'class'   => 'xml-drop jci-group',
@@ -545,7 +545,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 																'tooltip' => JCI()->text()->get( 'template.default.attachment_location' ),
 															) ); ?>
 															<?php
-															echo JCI_FormHelper::select( 'attachment[' . $group_id . '][permissions][]', array(
+															echo IWP_FormBuilder::select( 'attachment[' . $group_id . '][permissions][]', array(
 																'label'   => 'Permissions',
 																'default' => '',
 																'options' => array(
@@ -555,7 +555,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 																),
 																'tooltip' => JCI()->text()->get( 'template.default.attachment_permissions' ),
 															) );
-															echo JCI_FormHelper::checkbox( "attachment[$group_id][featured_image][]", array(
+															echo IWP_FormBuilder::checkbox( "attachment[$group_id][featured_image][]", array(
 																'label'   => 'Set as Featured Image',
 																'checked' => 0
 															) );
@@ -584,7 +584,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
                                                 <td>
 													<?php
 													$attachment_type = isset( $attachments[ $group_id ]['type'] ) && ! empty( $attachments[ $group_id ]['type'] ) ? $attachments[ $group_id ]['type'] : '';
-													echo JCI_FormHelper::select( 'attachment[' . $group_id . '][type]', array(
+													echo IWP_FormBuilder::select( 'attachment[' . $group_id . '][type]', array(
 														'label'   => 'Download',
 														'options' => array(
 															'ftp'   => 'Ftp',
@@ -599,7 +599,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
 													<?php
 													$ftp_server = isset( $attachments[ $group_id ]['ftp']['server'] ) && ! empty( $attachments[ $group_id ]['ftp']['server'] ) ? $attachments[ $group_id ]['ftp']['server'] : '';
-													echo JCI_FormHelper::text( 'attachment[' . $group_id . '][ftp][server]', array(
+													echo IWP_FormBuilder::text( 'attachment[' . $group_id . '][ftp][server]', array(
 														'label'   => 'FTP Server',
 														'default' => $ftp_server,
 														'class'   => 'ftp-field input-toggle',
@@ -608,7 +608,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 													?>
 													<?php
 													$ftp_user = isset( $attachments[ $group_id ]['ftp']['user'] ) && ! empty( $attachments[ $group_id ]['ftp']['user'] ) ? $attachments[ $group_id ]['ftp']['user'] : '';
-													echo JCI_FormHelper::text( 'attachment[' . $group_id . '][ftp][user]', array(
+													echo IWP_FormBuilder::text( 'attachment[' . $group_id . '][ftp][user]', array(
 														'label'   => 'Username',
 														'default' => $ftp_user,
 														'class'   => 'ftp-field input-toggle',
@@ -617,7 +617,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 													?>
 													<?php
 													$ftp_pass = isset( $attachments[ $group_id ]['ftp']['pass'] ) && ! empty( $attachments[ $group_id ]['ftp']['pass'] ) ? $attachments[ $group_id ]['ftp']['pass'] : '';
-													echo JCI_FormHelper::password( 'attachment[' . $group_id . '][ftp][pass]', array(
+													echo IWP_FormBuilder::password( 'attachment[' . $group_id . '][ftp][pass]', array(
 														'label'   => 'Password',
 														'default' => $ftp_pass,
 														'class'   => 'ftp-field input-toggle',
@@ -626,7 +626,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 													?>
 													<?php
 													$local_base_path = isset( $attachments[ $group_id ]['local']['base_path'] ) && ! empty( $attachments[ $group_id ]['local']['base_path'] ) ? $attachments[ $group_id ]['local']['base_path'] : '';
-													echo JCI_FormHelper::text( 'attachment[' . $group_id . '][local][base_path]', array(
+													echo IWP_FormBuilder::text( 'attachment[' . $group_id . '][local][base_path]', array(
 														'label'   => 'Local Base Path',
 														'default' => $local_base_path,
 														'class'   => 'local-field input-toggle',
@@ -646,11 +646,11 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
                         <div class="form-actions">
 							<?php
-							echo JCI_FormHelper::Submit( 'btn-save', array(
+							echo IWP_FormBuilder::Submit( 'btn-save', array(
 								'class' => 'button-primary button',
 								'value' => 'Save All'
 							) );
-							echo JCI_FormHelper::Submit( 'btn-continue', array(
+							echo IWP_FormBuilder::Submit( 'btn-continue', array(
 								'class' => 'button-secondary button',
 								'value' => 'Save & Run'
 							) );
@@ -936,7 +936,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
         </div>
     </div>
 	<?php
-	echo JCI_FormHelper::end();
+	echo IWP_FormBuilder::end();
 	?>
     <div class="field-option" style="display:none;">
 		<?php
@@ -954,7 +954,7 @@ echo JCI_FormHelper::hidden( 'import_id', array( 'value' => $id ) );
 
 				$default = isset( $group[ $key ]['field_options_default'] ) ? $group[ $key ]['field_options_default'] : '';
 
-				echo JCI_FormHelper::select( 'field[' . $group_id . '][' . $key . ']', array(
+				echo IWP_FormBuilder::select( 'field[' . $group_id . '][' . $key . ']', array(
 					'label'   => false,
 					'id'      => "{$group_id}-{$key}-options",
 					'default' => $group['field_options_default'][ $key ],
