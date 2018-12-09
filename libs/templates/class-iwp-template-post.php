@@ -139,7 +139,7 @@ class IWP_Template_Post extends IWP_Template_Base {
 				'class'   => 'xml-drop jci-group field__input field__input--'.$key,
 				'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
 				'wrapper_data' => array(
-					'iwp-options' => false,
+					'iwp-options' => 'false',
 					'iwp-name' => 'field[' . $this->get_group() . '][' . $key . ']'
 				),
 				'data'    => array(
@@ -185,22 +185,6 @@ class IWP_Template_Post extends IWP_Template_Base {
         $enable_post_date =  $this->get_field_value('enable_post_date');
         $enable_comment_status =  $this->get_field_value('enable_comment_status');
         $enable_ping_status =  $this->get_field_value('enable_ping_status');
-
-		/**
-		 * Clear unenabled fields
-		 */
-		if ( $enable_id !== '1' ) {
-			unset( $data['ID'] );
-		}
-		if ( $enable_menu_order !== '1' ) {
-			unset( $data['menu_order'] );
-		}
-		if ( $enable_post_password !== '1' ) {
-			unset( $data['post_password'] );
-		}
-		if ( $enable_post_date !== '1' ) {
-			unset( $data['post_date'] );
-		}
 
 		/**
 		 * Check to see if post_parent

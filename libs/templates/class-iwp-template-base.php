@@ -185,6 +185,13 @@ class IWP_Template_Base extends IWP_Template{
 		$this->register_virtual_field($label, $key, $args);
     }
 
+    public function register_checkbox($label, $key, $section = 'default'){
+	    $this->register_virtual_field($label, $key, array(
+	    	'type' => 'checkbox',
+		    'section' => $section
+	    ));
+    }
+
 	/**
 	 * Remove all virtual fields before the data is mapped
 	 *

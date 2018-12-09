@@ -1,101 +1,76 @@
 <?php
 
-class IWP_Template_User extends IWP_Template {
+class IWP_Template_User extends IWP_Template_Base {
 
 	public $_name = 'user';
+
 	public $_unique = array( 'user_email' );
 
-	public $_field_groups = array(
+	protected $_group = 'user';
 
-		'user' => array(
-			'import_type'      => 'user',
-			'import_type_name' => 'user',
-			'field_type'       => 'single',
-			'group'            => 'user', // for backwards compatability
-			'key'              => array(),
-			'unique'           => array( 'user_email' ),
-			'relationship'     => array(),
-			'map'              => array(
-				array(
-					'title' => 'Username',
-					'field' => 'user_login'
-				),
-				array(
-					'title' => 'Email',
-					'field' => 'user_email'
-				),
-				array(
-					'title' => 'First Name',
-					'field' => 'first_name'
-				),
-				array(
-					'title' => 'Last Name',
-					'field' => 'last_name'
-				),
-				array(
-					'title' => 'Website',
-					'field' => 'user_url'
-				),
-				array(
-					'title' => 'Password',
-					'field' => 'user_pass'
-				),
-				array(
-					'title' => 'Role',
-					'field' => 'role',
-				),
-				array(
-					'title' => 'Nice Name',
-					'field' => 'user_nicename',
-				),
-				array(
-					'title' => 'Display Name',
-					'field' => 'display_name',
-				),
-				array(
-					'title' => 'Nickname',
-					'field' => 'nickname',
-				),
-				array(
-					'title' => 'Description',
-					'field' => 'description',
-				),
+	protected $_import_type = 'user';
 
-			)
-		)
+	protected $_import_type_name = 'user';
+
+	protected $_settings = array(
+		'unique' => array( 'user_email' ),
 	);
 
 	public function __construct() {
+
 		parent::__construct();
-		add_action( 'jci/after_template_fields', array( $this, 'field_settings' ) );
-		add_action( 'jci/save_template', array( $this, 'save_template' ) );
-		add_action( 'jci/after_user_insert', array( $this, 'after_user_insert' ), 10, 2 );
+
+		$this->register_basic_field('Username', 'user_login');
+		$this->register_basic_field('Email', 'user_email');
+		$this->register_basic_field('First Name', 'first_name');
+		$this->register_basic_field('Last Name', 'last_name');
+		$this->register_basic_field('Website', 'user_url');
+		$this->register_basic_field('Password', 'user_pass');
+
+		global $wp_roles;
+		$roles = array();
+		foreach ( $wp_roles->roles as $role => $role_arr ) {
+			$roles[ $role ] = $role_arr['name'];
+		}
+		$this->register_basic_field('Role', 'role', array(
+			'options' => $roles
+        ));
+
+		$this->register_basic_field('Nice Name', 'user_nicename');
+		$this->register_basic_field('Display Name', 'display_name');
+		$this->register_basic_field('Nickname', 'nickname');
+		$this->register_basic_field('Description', 'description');
+
+		// Settings Tab
+		$this->register_section('Settings', 'settings');
+		$this->register_enable_toggle('Enable Nice Name Field', 'enable_user_nicename', 'settings', array(
+			'user_nicename',
+		));
+		$this->register_enable_toggle('Enable Display Name Field', 'enable_display_name', 'settings', array(
+			'display_name',
+		));
+		$this->register_enable_toggle('Enable Nickname Field', 'enable_user_nicename', 'settings', array(
+			'nickname',
+		));
+		$this->register_enable_toggle('Enable Description Field', 'enable_description', 'settings', array(
+			'description',
+		));
+		$this->register_enable_toggle('Enable Role Field', 'enable_role', 'settings', array(
+			'role',
+		));
+		$this->register_enable_toggle('Enable Password Field', 'enable_pass', 'settings', array(
+			'user_pass',
+		));
+		$this->register_checkbox('Generate Password', 'generate_pass', 'settings');
+		$this->register_checkbox('Send User Registration', 'notify_reg', 'settings');
+
+		add_action( 'jci/after_user_insert', array( $this, 'after_user_insert' ), 10, 1 );
 
 		add_filter( 'jci/log_user_columns', array( $this, 'log_user_columns' ) );
 		add_action( 'jci/log_user_content', array( $this, 'log_user_content' ), 10, 2 );
 
-		// Quick Fix: Skip if we are in an ajax request
-		// TODO: Switch this to an ajax search / select instead so we dont have to list all.
-		if ( true === wp_doing_ajax() ) {
-			return;
-		}
-
-		// output role select
-		if(isset($_GET['import']) && isset($_GET['action'])) {
-			global $wp_roles;
-			$test_roles = array();
-
-			foreach ( $wp_roles->roles as $role => $role_arr ) {
-				$test_roles[ $role ] = $role_arr['name'];
-			}
-
-			foreach ( $this->_field_groups['user']['map'] as &$field ) {
-
-				if ( $field['field'] == 'role' ) {
-					$field['options'] = $test_roles;
-				}
-			}
-		}
+		// Run after base template has removed virtual fields
+		add_filter( 'jci/before_' . $this->get_name() . '_group_save', array( $this, 'override_user_pass' ), 110, 1 );
 	}
 
 	/**
@@ -113,7 +88,6 @@ class IWP_Template_User extends IWP_Template {
 
 		if ( empty( $data['user_login'] ) ) {
 			throw new \ImportWP\Importer\Exception\MapperException( "No Username Found" );
-
 		}
 
 		if ( empty( $data['user_email'] ) ) {
@@ -133,252 +107,25 @@ class IWP_Template_User extends IWP_Template {
 	 * Hooked Filter: jci/before_{$template_name}_group_save
 	 *
 	 * @param  array $data
-	 * @param  string $group_id template group name
 	 *
 	 * @return array
 	 */
-	public function before_group_save( $data, $group_id ) {
+	public function override_user_pass( $data ) {
 
-		if ( $group_id == 'user' ) {
+		$generate_pass = $this->get_field_value('generate_pass');
 
-			/**
-			 * @global JC_Importer $jcimporter
-			 */
-			global $jcimporter;
-			$importer_id = $jcimporter->importer->ID;
-
-			$enable_user_nicename = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array(
-				'_template_settings',
-				'enable_user_nicename'
-			) );
-			$enable_display_name  = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array(
-				'_template_settings',
-				'enable_display_name'
-			) );
-			$enable_nickname      = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array(
-				'_template_settings',
-				'enable_nickname'
-			) );
-			$enable_description   = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array(
-				'_template_settings',
-				'enable_description'
-			) );
-			$enable_pass          = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array(
-				'_template_settings',
-				'enable_pass'
-			) );
-			$enable_role          = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array(
-				'_template_settings',
-				'enable_role'
-			) );
-
-			if ( $enable_user_nicename == 0 ) {
-				unset( $data['user_nicename'] );
-			}
-
-			if ( $enable_display_name == 0 ) {
-				unset( $data['display_name'] );
-			}
-
-			if ( $enable_nickname == 0 ) {
-				unset( $data['nickname'] );
-			}
-
-			if ( $enable_description == 0 ) {
-				unset( $data['description'] );
-			}
-
-			if ( $enable_pass == 0 ) {
-				unset( $data['user_pass'] );
-			}
-
-			// generate password
-			$generate_pass = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array(
-				'_template_settings',
-				'generate_pass'
-			) );
-			if ( $generate_pass == 1 && ( ! isset( $data['user_pass'] ) || empty( $data['user_pass'] ) ) ) {
-				$data['user_pass'] = wp_generate_password( 10 );
-			}
+		// generate password
+		if ( $generate_pass === '1' && ( ! isset( $data['user_pass'] ) || empty( $data['user_pass'] ) ) ) {
+			$data['user_pass'] = wp_generate_password( 10 );
 		}
 
 		return $data;
 	}
 
-	/**
-	 * Display template settings
-	 *
-	 * @param  int $id
-	 *
-	 * @return void
-	 */
-	public function field_settings( $id ) {
+	public function after_user_insert( $user_id ) {
 
-		$template = IWP_Importer_Settings::getImportSettings( $id, 'template' );
-		if ( $template == $this->_name ) {
-
-			$enable_pass          = IWP_Importer_Settings::getImporterMetaArr( $id, array(
-				'_template_settings',
-				'enable_pass'
-			) );
-			$enable_user_nicename = IWP_Importer_Settings::getImporterMetaArr( $id, array(
-				'_template_settings',
-				'enable_user_nicename'
-			) );
-			$enable_display_name  = IWP_Importer_Settings::getImporterMetaArr( $id, array(
-				'_template_settings',
-				'enable_display_name'
-			) );
-			$enable_nickname      = IWP_Importer_Settings::getImporterMetaArr( $id, array(
-				'_template_settings',
-				'enable_nickname'
-			) );
-			$enable_description   = IWP_Importer_Settings::getImporterMetaArr( $id, array(
-				'_template_settings',
-				'enable_description'
-			) );
-			$generate_pass        = IWP_Importer_Settings::getImporterMetaArr( $id, array(
-				'_template_settings',
-				'generate_pass'
-			) );
-			$notify_pass          = IWP_Importer_Settings::getImporterMetaArr( $id, array(
-				'_template_settings',
-				'notify_pass'
-			) );
-			$notify_reg           = IWP_Importer_Settings::getImporterMetaArr( $id, array(
-				'_template_settings',
-				'notify_reg'
-			) );
-			$enable_role          = IWP_Importer_Settings::getImporterMetaArr( $id, array(
-				'_template_settings',
-				'enable_role'
-			) );
-			?>
-            <div class="jci-group-settings jci-group-section" data-section-id="settings">
-                <h4>Fields</h4>
-				<?php
-				echo IWP_FormBuilder::checkbox( 'template_settings[enable_user_nicename]', array(
-					'label'   => 'Enable Nice Name Field',
-					'checked' => $enable_user_nicename
-				) );
-				echo IWP_FormBuilder::checkbox( 'template_settings[enable_display_name]', array(
-					'label'   => 'Enable Display Name Field',
-					'checked' => $enable_display_name
-				) );
-				echo IWP_FormBuilder::checkbox( 'template_settings[enable_nickname]', array(
-					'label'   => 'Enable Nickname Field',
-					'checked' => $enable_nickname
-				) );
-				echo IWP_FormBuilder::checkbox( 'template_settings[enable_description]', array(
-					'label'   => 'Enable Description Field',
-					'checked' => $enable_description
-				) );
-				echo IWP_FormBuilder::checkbox( 'template_settings[enable_role]', array(
-					'label'   => 'Enable Role Field',
-					'checked' => $enable_role
-				) );
-				?>
-
-                <h4>Passwords:</h4>
-				<?php
-				echo IWP_FormBuilder::checkbox( 'template_settings[enable_pass]', array(
-					'label'   => 'Enable Password Field',
-					'checked' => $enable_pass
-				) );
-				echo IWP_FormBuilder::checkbox( 'template_settings[generate_pass]', array(
-					'label'   => 'Generate Password',
-					'checked' => $generate_pass
-				) );
-				?>
-
-                <h4>Notifications:</h4>
-				<?php
-				//echo JCI_FormHelper::checkbox('template_settings[notify_pass]', array('label' => 'Send new Password', 'checked' => $notify_pass));
-				echo IWP_FormBuilder::checkbox( 'template_settings[notify_reg]', array(
-					'label'   => 'Send User Registration',
-					'checked' => $notify_reg
-				) );
-				?>
-            </div>
-
-            <script type="text/javascript">
-
-                jQuery(document).ready(function ($) {
-
-                    // show/hide input fields
-                    $.fn.jci_enableField('enable_pass', 'user-user_pass');
-                    $.fn.jci_enableField('enable_user_nicename', 'user-user_nicename');
-                    $.fn.jci_enableField('enable_display_name', 'user-display_name');
-                    $.fn.jci_enableField('enable_nickname', 'user-nickname');
-                    $.fn.jci_enableField('enable_description', 'user-description');
-
-                    // optional selects
-                    $.fn.jci_enableSelectField('enable_role', 'user-role');
-                });
-
-            </script>
-			<?php
-		}
-	}
-
-	/**
-	 * Save template fields
-	 *
-	 * @param  int $id
-	 *
-	 * @return void
-	 */
-	public function save_template( $id ) {
-
-		$template = IWP_Importer_Settings::getImportSettings( $id, 'template' );
-		if ( $template == $this->_name ) {
-
-			// get template settings
-			$enable_pass          = isset( $_POST['jc-importer_template_settings']['enable_pass'] ) ? $_POST['jc-importer_template_settings']['enable_pass'] : 0;
-			$enable_role          = isset( $_POST['jc-importer_template_settings']['enable_role'] ) ? $_POST['jc-importer_template_settings']['enable_role'] : 0;
-			$enable_user_nicename = isset( $_POST['jc-importer_template_settings']['enable_user_nicename'] ) ? $_POST['jc-importer_template_settings']['enable_user_nicename'] : 0;
-			$enable_display_name  = isset( $_POST['jc-importer_template_settings']['enable_display_name'] ) ? $_POST['jc-importer_template_settings']['enable_display_name'] : 0;
-			$enable_nickname      = isset( $_POST['jc-importer_template_settings']['enable_nickname'] ) ? $_POST['jc-importer_template_settings']['enable_nickname'] : 0;
-			$enable_description   = isset( $_POST['jc-importer_template_settings']['enable_description'] ) ? $_POST['jc-importer_template_settings']['enable_description'] : 0;
-			$generate_pass        = isset( $_POST['jc-importer_template_settings']['generate_pass'] ) ? $_POST['jc-importer_template_settings']['generate_pass'] : 0;
-			$notify_pass          = isset( $_POST['jc-importer_template_settings']['notify_pass'] ) ? $_POST['jc-importer_template_settings']['notify_pass'] : 0;
-			$notify_reg           = isset( $_POST['jc-importer_template_settings']['notify_reg'] ) ? $_POST['jc-importer_template_settings']['notify_reg'] : 0;
-
-			// update template settings
-			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'enable_pass' ), $enable_pass );
-			IWP_Importer_Settings::setImporterMeta( $id, array(
-				'_template_settings',
-				'enable_user_nicename'
-			), $enable_user_nicename );
-			IWP_Importer_Settings::setImporterMeta( $id, array(
-				'_template_settings',
-				'enable_display_name'
-			), $enable_display_name );
-			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'enable_nickname' ), $enable_nickname );
-			IWP_Importer_Settings::setImporterMeta( $id, array(
-				'_template_settings',
-				'enable_description'
-			), $enable_description );
-			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'generate_pass' ), $generate_pass );
-			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'notify_pass' ), $notify_pass );
-			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'notify_reg' ), $notify_reg );
-			IWP_Importer_Settings::setImporterMeta( $id, array( '_template_settings', 'enable_role' ), $enable_role );
-		}
-	}
-
-	public function after_user_insert( $user_id, $fields ) {
-
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$importer_id = $jcimporter->importer->ID;
-
-		$notify_reg = IWP_Importer_Settings::getImporterMetaArr( $importer_id, array( '_template_settings', 'notify_reg' ) );
-
-		if ( $notify_reg == 1 ) {
-
-//			$pass = isset( $fields['user_pass'] ) ? $fields['user_pass'] : '';
+		$notify_reg = $this->get_field_value('notify_reg');
+		if ( $notify_reg === '1' ) {
             wp_new_user_notification($user_id, null, 'user');
 		}
 	}
@@ -413,22 +160,22 @@ class IWP_Template_User extends IWP_Template {
 
 		switch ( $column ) {
 			case 'user_id':
-				echo $data['user']['ID'];
+				echo $data[$this->get_group()]['ID'];
 				break;
 			case 'username':
-				echo $data['user']['user_login'];
+				echo $data[$this->get_group()]['user_login'];
 				break;
 			case 'name':
-				echo $data['user']['first_name'] . ' ' . $data['user']['last_name'];
+				echo $data[$this->get_group()]['first_name'] . ' ' . $data[$this->get_group()]['last_name'];
 				break;
 			case 'email':
-				echo $data['user']['user_email'];
+				echo $data[$this->get_group()]['user_email'];
 				break;
 			case 'method':
 
-				if ( $data['user']['_jci_type'] == 'I' ) {
+				if ( $data[$this->get_group()]['_jci_type'] == 'I' ) {
 					echo 'Inserted';
-				} elseif ( $data['user']['_jci_type'] == 'U' ) {
+				} elseif ( $data[$this->get_group()]['_jci_type'] == 'U' ) {
 					echo 'Updated';
 				}
 				break;
