@@ -2,7 +2,7 @@
 **Contributors:** [jcollings](https://profiles.wordpress.org/jcollings)  
 **Tags:** import, wordpress xml importer, wordpress csv importer, xml, csv  
 **Requires at least:** 4.0    
-**Tested up to:** 4.9  
+**Tested up to:** 5  
 **Stable tag:** 1.1.0-dev  
 **License:** GPLv3    
 **License URI:** http://www.gnu.org/licenses/gpl.html    

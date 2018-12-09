@@ -4,7 +4,7 @@
  *
  * @var string $key
  * @var string $value
- * @var IWP_Template_Base $this
+ * @var IWP_Template $this
  */
 ?>
 <div class="iwp-attachment__wrapper">

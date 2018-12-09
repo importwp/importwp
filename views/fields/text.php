@@ -2,8 +2,12 @@
 /**
  * @var string $key
  * @var string $value
- * @var IWP_Template_Base $this
+ * @var IWP_Template $this
  */
+
+if(isset($this->_fields[$key]['before'])){
+	call_user_func_array($this->_fields[$key]['before'], array($key));
+}
 
 $options = isset($this->_fields[$key]['options']) ? $this->_fields[$key]['options'] : false;
 

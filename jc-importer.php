@@ -44,7 +44,6 @@ require_once __DIR__ . '/libs/parsers/class-iwp-xml-parser.php';
 
 // templates.
 require_once __DIR__ . '/libs/templates/class-iwp-template.php';
-require_once __DIR__ . '/libs/templates/class-iwp-template-base.php';
 require_once __DIR__ . '/libs/templates/class-iwp-template-user.php';
 require_once __DIR__ . '/libs/templates/class-iwp-template-post.php';
 require_once __DIR__ . '/libs/templates/class-iwp-template-page.php';

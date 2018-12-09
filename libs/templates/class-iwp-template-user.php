@@ -1,6 +1,6 @@
 <?php
 
-class IWP_Template_User extends IWP_Template_Base {
+class IWP_Template_User extends IWP_Template {
 
 	public $_name = 'user';
 
@@ -20,6 +20,16 @@ class IWP_Template_User extends IWP_Template_Base {
 
 		parent::__construct();
 
+		add_action( 'jci/after_user_insert', array( $this, 'after_user_insert' ), 10, 1 );
+
+		add_filter( 'jci/log_user_columns', array( $this, 'log_user_columns' ) );
+		add_action( 'jci/log_user_content', array( $this, 'log_user_content' ), 10, 2 );
+
+		// Run after base template has removed virtual fields
+		add_filter( 'jci/before_' . $this->get_name() . '_group_save', array( $this, 'override_user_pass' ), 110, 1 );
+	}
+
+	public function register_fields(){
 		$this->register_basic_field('Username', 'user_login');
 		$this->register_basic_field('Email', 'user_email');
 		$this->register_basic_field('First Name', 'first_name');
@@ -34,7 +44,7 @@ class IWP_Template_User extends IWP_Template_Base {
 		}
 		$this->register_basic_field('Role', 'role', array(
 			'options' => $roles
-        ));
+		));
 
 		$this->register_basic_field('Nice Name', 'user_nicename');
 		$this->register_basic_field('Display Name', 'display_name');
@@ -63,14 +73,6 @@ class IWP_Template_User extends IWP_Template_Base {
 		));
 		$this->register_checkbox('Generate Password', 'generate_pass', 'settings');
 		$this->register_checkbox('Send User Registration', 'notify_reg', 'settings');
-
-		add_action( 'jci/after_user_insert', array( $this, 'after_user_insert' ), 10, 1 );
-
-		add_filter( 'jci/log_user_columns', array( $this, 'log_user_columns' ) );
-		add_action( 'jci/log_user_content', array( $this, 'log_user_content' ), 10, 2 );
-
-		// Run after base template has removed virtual fields
-		add_filter( 'jci/before_' . $this->get_name() . '_group_save', array( $this, 'override_user_pass' ), 110, 1 );
 	}
 
 	/**

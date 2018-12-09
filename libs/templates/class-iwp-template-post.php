@@ -1,6 +1,6 @@
 <?php
 
-class IWP_Template_Post extends IWP_Template_Base {
+class IWP_Template_Post extends IWP_Template {
 
 	public $_name = 'post';
 
@@ -24,6 +24,16 @@ class IWP_Template_Post extends IWP_Template_Base {
 
 		parent::__construct();
 
+		add_filter( sprintf( 'jci/log_%s_columns', $this->_name ), array( $this, 'log_columns' ) );
+		add_action( sprintf( 'jci/log_%s_content', $this->_name ), array( $this, 'log_content' ), 10, 2 );
+
+		add_action( 'jci/before_import', array( $this, 'before_import' ) );
+
+		// Run after base template has removed virtual fields
+		add_filter( 'jci/before_' . $this->get_name() . '_group_save', array( $this, 'override_post_status' ), 110, 1 );
+	}
+
+	public function register_fields() {
 		$this->register_basic_field('ID', 'ID');
 		$this->register_basic_field('Title', 'post_title');
 		$this->register_basic_field('Content', 'post_content');
@@ -39,25 +49,25 @@ class IWP_Template_Post extends IWP_Template_Base {
 				'trash'   => 'Trash'
 			),
 			'options_default' => 'publish'
-        ));
+		));
 		$this->register_basic_field('Author', 'post_author', array(
-            'options' => jci_get_user_list(),
-            'after' => array( $this, 'after_post_author')
-        ));
+			'options' => jci_get_user_list(),
+			'after' => array( $this, 'after_post_author')
+		));
 		$this->register_basic_field('Parent', 'post_parent', array(
 			'after' => array( $this, 'after_post_parent')
-        ));
+		));
 		$this->register_basic_field('Order', 'menu_order');
 		$this->register_basic_field('Password', 'post_password');
 		$this->register_basic_field('Date', 'post_date');
 		$this->register_basic_field('Allow Comments', 'comment_status', array(
 			'options'         => array( 0 => 'Disabled', 1 => 'Enabled' ),
 			'options_default' => 0
-        ));
+		));
 		$this->register_basic_field('Allow Pingbacks', 'ping_status', array(
 			'options'         => array( 'closed' => 'Closed', 'open' => 'Open' ),
 			'options_default' => 'closed'
-        ));
+		));
 
 		// Settings Tab
 		$this->register_section('Settings', 'settings');
@@ -88,14 +98,6 @@ class IWP_Template_Post extends IWP_Template_Base {
 		$this->register_enable_toggle('Enable Ping Field', 'enable_ping_status', 'settings', array(
 			'ping_status',
 		));
-
-		add_filter( sprintf( 'jci/log_%s_columns', $this->_name ), array( $this, 'log_columns' ) );
-		add_action( sprintf( 'jci/log_%s_content', $this->_name ), array( $this, 'log_content' ), 10, 2 );
-
-		add_action( 'jci/before_import', array( $this, 'before_import' ) );
-
-		// Run after base template has removed virtual fields
-		add_filter( 'jci/before_' . $this->get_name() . '_group_save', array( $this, 'override_post_status' ), 110, 1 );
 	}
 
 	public function after_post_author($field_id){

@@ -12,8 +12,9 @@ class IWP_Template_Page extends IWP_Template_Post {
 
 	protected $_import_type_name = 'page';
 
-	public function __construct() {
-		parent::__construct();
+	public function register_fields() {
+
+		parent::register_fields();
 
         $templates                = array( 'default' => 'Default Template' );
         $templates                = array_merge( $templates, wp_get_theme()->get_page_templates() );

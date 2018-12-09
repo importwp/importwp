@@ -1,6 +1,6 @@
 <?php
 
-class IWP_Template_Tax extends IWP_Template_Base {
+class IWP_Template_Tax extends IWP_Template {
 
 	public $_name = 'taxonomy';
 
@@ -19,7 +19,14 @@ class IWP_Template_Tax extends IWP_Template_Base {
 	);
 
 	public function __construct() {
+
+		add_filter( 'jci/log_taxonomy_columns', array( $this, 'log_taxonomy_columns' ) );
+		add_action( 'jci/log_taxonomy_content', array( $this, 'log_taxonomy_content' ), 10, 2 );
+
 		parent::__construct();
+	}
+
+	public function register_fields() {
 
 		$this->register_basic_field('ID', 'term_id');
 		$this->register_basic_field('Taxonomy', 'taxonomy');
@@ -27,7 +34,7 @@ class IWP_Template_Tax extends IWP_Template_Base {
 		$this->register_basic_field('Slug', 'slug');
 		$this->register_basic_field('Parent', 'parent', array(
 			'after' => array( $this, 'after_parent')
-        ));
+		));
 		$this->register_basic_field('Description', 'description');
 		$this->register_basic_field('Alias Of', 'alias_of');
 
@@ -44,18 +51,9 @@ class IWP_Template_Tax extends IWP_Template_Base {
 		$this->register_enable_toggle('Enable Alias Field', 'enable_alias', 'settings', array(
 			'alias_of',
 		));
-
-		add_filter( 'jci/log_taxonomy_columns', array( $this, 'log_taxonomy_columns' ) );
-		add_action( 'jci/log_taxonomy_content', array( $this, 'log_taxonomy_content' ), 10, 2 );
 	}
 
 	public function before_group_save( $data, $group_id ) {
-
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$id = $jcimporter->importer->ID;
 
 		$enable_parent =  $this->get_field_value('enable_parent');
 
