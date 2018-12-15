@@ -663,4 +663,22 @@ abstract class IWP_Template {
 	public function get_import_type(){
 		return $this->_import_type;
 	}
+
+	/**
+	 * Return list of registerd fields
+	 *
+	 * @param string $section Restrict fields by section
+	 *
+	 * @return array
+	 */
+	public function get_fields($section = null){
+
+		if(!is_null($section)){
+			return array_filter($this->_fields, function($field) use($section){
+				return isset($field['section']) && $field['section'] === $section;
+			});
+		}
+
+		return $this->_fields;
+	}
 }
