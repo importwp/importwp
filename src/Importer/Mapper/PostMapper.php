@@ -444,6 +444,8 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 
 		foreach($attachments['location'] as $key => $src){
 
+			$src = trim($src);
+
 			if(empty($src)){
 				continue;
 			}

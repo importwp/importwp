@@ -54,7 +54,11 @@ class IWP_Attachment_CURL extends IWP_Attachment {
 
 		curl_setopt( $ch, CURLOPT_FILE, $fp );
 		curl_setopt( $ch, CURLOPT_HEADER, 0 );
+		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true);
 		$result = curl_exec( $ch );
+		if(curl_error($ch)){
+			$this->_errors[] = curl_error($ch);
+		}
 		curl_close( $ch );
 		fclose( $fp );
 
