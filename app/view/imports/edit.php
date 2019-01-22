@@ -518,11 +518,15 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
 																	'tooltip' => JCI()->text()->get( 'template.default.attachment_permissions' ),
 																) );
 
-																$featured_image = isset( $attachments[ $group_id ]['featured_image'][ $key ] ) && ! empty( $attachments[ $group_id ]['featured_image'][ $key ] ) ? $attachments[ $group_id ]['featured_image'][ $key ] : 0;
-																echo IWP_FormBuilder::checkbox( "attachment[$group_id][featured_image][]", array(
-																	'label'   => 'Set as Featured Image',
-																	'checked' => $featured_image
-																) );
+																$featured_image = isset( $attachments[ $group_id ]['featured_image'][ $key ] ) && ! empty( $attachments[ $group_id ]['featured_image'][ $key ] ) ? $attachments[ $group_id ]['featured_image'][ $key ] : '0';
+																echo IWP_FormBuilder::select("attachment[$group_id][featured_image][]", array(
+																	'label'   => 'Is Featured Image',
+                                                                    'default' => intval($featured_image),
+                                                                    'options' => array(
+                                                                        '1' => 'Yes',
+                                                                        '0' => 'No'
+                                                                    )
+                                                                ));
 																?>
                                                             </td>
                                                             <td>
