@@ -3,7 +3,7 @@
 **Tags:** import, wordpress xml importer, wordpress csv importer, xml, csv  
 **Requires at least:** 4.0    
 **Tested up to:** 5.0  
-**Stable tag:** 1.1.0  
+**Stable tag:** 1.1.1  
 **License:** GPLv3    
 **License URI:** http://www.gnu.org/licenses/gpl.html    
 **Donate link:** https://www.importwp.com/  
@@ -66,6 +66,12 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 ## Changelog ##
+
+### 1.1.1 - 22/01/2019 ###
+
+* FIX - Remove whitespace before importing remote attachments.
+* FIX - Attachment Preview.
+* FIX - Preview Error when importer has been first created.
 
 ### 1.1.0 - 16/01/2019 ###
 
