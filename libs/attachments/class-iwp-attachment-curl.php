@@ -49,6 +49,8 @@ class IWP_Attachment_CURL extends IWP_Attachment {
 	 */
 	private function fetch_curl_image( $src = '', $dest = '' ) {
 
+		$src = trim($src);
+
 		$ch = curl_init( $src );
 		$fp = fopen( $dest, 'wb' );
 
