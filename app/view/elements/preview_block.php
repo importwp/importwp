@@ -17,7 +17,10 @@ $jci_template_type = $jcimporter->importer->template_type;
                                                                                                            class="button button-iwp"
                                                                                                            title="View Next Record">&raquo;</a>
         <script type="text/javascript">
-            jQuery(function ($) {
+            (function($, window){
+
+                var preview_enabled = false;
+
                 var preview_record = $('#preview-record');
                 var min_record = 1;
                 $('#prev-record').click(function () {
@@ -36,6 +39,11 @@ $jci_template_type = $jcimporter->importer->template_type;
                 });
                 // new record preview
                 $(document).on('change', '.xml-drop input', function () {
+
+                    if(preview_enabled === false){
+                        return;
+                    }
+
                     var val = $(this).val();
                     var obj = $(this).parent();
                     var field = $(this).data('jci-field');
@@ -50,13 +58,13 @@ $jci_template_type = $jcimporter->importer->template_type;
                                 action: 'jc_preview_record',
                                 id: ajax_object.id,
                                 field: field,
-								<?php if($jci_template_type == 'xml'): ?>map: val,
+					            <?php if($jci_template_type == 'xml'): ?>map: val,
                                 row: row,
                                 general_base: $('#jc-importer_parser_settings-import_base').val(),
                                 group_base: $('input[id^="jc-importer_parser_settings-group-"]').val()
-								<?php else: ?>map: val,
+					            <?php else: ?>map: val,
                                 row: row
-								<?php endif; ?>
+					            <?php endif; ?>
                             },
                             dataType: 'json',
                             type: "POST",
@@ -109,13 +117,13 @@ $jci_template_type = $jcimporter->importer->template_type;
                             data: {
                                 action: 'jc_preview_record',
                                 id: ajax_object.id,
-								<?php if($jci_template_type == 'xml'): ?>map: mappings,
+					            <?php if($jci_template_type == 'xml'): ?>map: mappings,
                                 row: row,
                                 general_base: $('#jc-importer_parser_settings-import_base').val(),
                                 group_base: $('input[id^="jc-importer_parser_settings-group-"]').val()
-								<?php else: ?>map: mappings,
+					            <?php else: ?>map: mappings,
                                 row: row
-								<?php endif; ?>
+					            <?php endif; ?>
                             },
                             dataType: 'json',
                             type: "POST",
@@ -159,17 +167,20 @@ $jci_template_type = $jcimporter->importer->template_type;
                 $('#preview-record').change('change', function () {
                     refreshPreview();
                 });
-				<?php if($jci_template_type == 'xml'): ?>$('#jc-importer_parser_settings-import_base, input[id^="jc-importer_parser_settings-group-"]').on('change', function () {
+	            <?php if($jci_template_type == 'xml'): ?>$('#jc-importer_parser_settings-import_base, input[id^="jc-importer_parser_settings-group-"]').on('change', function () {
                     refreshPreview();
                 });
-				<?php endif; ?>
+	            <?php endif; ?>
                 $('#preview-record').val($('#jc-importer_start-line').val());
 
                 window.iwp.onProcessComplete.add(function(){
                     console.log('load preview');
+                    preview_enabled = true;
                     $('#preview-record').trigger('change');
                 });
-            });
+
+
+            })(jQuery, window);
         </script>
     </div>
 </div>

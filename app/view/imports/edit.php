@@ -495,7 +495,9 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
 
 												<?php if ( isset( $attachments[ $group_id ]['location'] ) && ! empty( $attachments[ $group_id ]['location'] ) ): ?>
 
-													<?php foreach ( $attachments[ $group_id ]['location'] as $key => $val ): ?>
+													<?php
+                                                    $attachment_counter = 0;
+                                                    foreach ( $attachments[ $group_id ]['location'] as $key => $val ): $attachment_counter++; ?>
                                                         <tr class="attachment multi-row">
                                                             <td>
 																<?php echo IWP_FormBuilder::text( 'attachment[' . $group_id . '][location][]', array(
@@ -504,6 +506,12 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
 																	'class'   => 'xml-drop jci-group',
 																	'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
 																	'tooltip' => JCI()->text()->get( 'template.default.attachment_location' ),
+																	'wrapper_data' => array(
+																		'iwp-name' => 'attachment[' . $group_id . '][location][]'
+																	),
+																	'data'    => array(
+																		'jci-field' => sprintf('attachment_location_%d', $attachment_counter),
+																	)
 																) ); ?>
 																<?php
 																$permissions = isset( $attachments[ $group_id ]['permissions'][ $key ] ) && ! empty( $attachments[ $group_id ]['permissions'][ $key ] ) ? $attachments[ $group_id ]['permissions'][ $key ] : 'overwrite';
@@ -547,6 +555,9 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
 																'class'   => 'xml-drop jci-group',
 																'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
 																'tooltip' => JCI()->text()->get( 'template.default.attachment_location' ),
+																'wrapper_data' => array(
+																	'iwp-name' => 'attachment[' . $group_id . '][location][]'
+																)
 															) ); ?>
 															<?php
 															echo IWP_FormBuilder::select( 'attachment[' . $group_id . '][permissions][]', array(
@@ -559,10 +570,14 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
 																),
 																'tooltip' => JCI()->text()->get( 'template.default.attachment_permissions' ),
 															) );
-															echo IWP_FormBuilder::checkbox( "attachment[$group_id][featured_image][]", array(
-																'label'   => 'Set as Featured Image',
-																'checked' => 0
-															) );
+															echo IWP_FormBuilder::select("attachment[$group_id][featured_image][]", array(
+																'label'   => 'Is Featured Image',
+																'default' => 0,
+																'options' => array(
+																	'1' => 'Yes',
+																	'0' => 'No'
+																)
+															));
 															?>
                                                         </td>
                                                         <td>
