@@ -1,4 +1,4 @@
-var currentNode = new Array();
+var currentNode = [];
 var nodeOffset = '';
 var jci_element = null;
 
@@ -30,9 +30,6 @@ jQuery(document).ready(function ($) {
             nodeOffset = base[base.length - 1];
         }
 
-        // get xml
-        // $.post(ajax_object.ajax_url, data, function (xml) {
-
             // traverse($('#treeView li'), xml.firstChild);
 
             // this – is an &mdash;
@@ -44,8 +41,6 @@ jQuery(document).ready(function ($) {
                     $(this).text('–').parent('li').find(' > ul').children().show();
             });
 
-            var isDragging = false;
-
             var xpath = '';
 
             $('.xml-draggable').click(function () {
@@ -55,129 +50,9 @@ jQuery(document).ready(function ($) {
                 tb_remove();
             });
 
-        // }, 'xml');
-
-        var currentChildNodes = {};
-        var currentChildNodeCount = {};
-/*
-        function traverse(node, tree) {
-            var children = $(tree).children();
-            var attrs = tree.attributes;
-
-            output = '';
-            for (var i = 0; i < attrs.length; i++) {
-                output = output + ' <span class="xml-attr xml-draggable" data-xpath="' + htmlEscape(createXPathFromElement(tree)) + '/@' + attrs[i].name + '">' + attrs[i].name + '=&quot;' + attrs[i].value + '&quot;</span>';
-            }
-
-            if (children.length) {
-
-                currentNode.push(tree.nodeName);
-                currentChildNodes = {};
-                currentChildNodeCount = {};
-
-                // parse child names
-                for (var i = 0; i < children.length; i++) {
-                    child = children[i].nodeName;
-
-                    if (currentChildNodes[child] != undefined) {
-                        currentChildNodes[child] = currentChildNodes[child] + 1;
-                    } else {
-                        currentChildNodes[child] = 1;
-                    }
-                }
-                node.append('&lt;' + '<span class="xml-elem xml-draggable" data-xpath="' + htmlEscape(createXPathFromElement(tree)) + '">' + tree.nodeName + '</span>' + output + '&gt;');
-
-                var ul = $("<ul>").appendTo(node)
-
-                children.each(function () {
-                    var li = $('<li>').appendTo(ul)
-                    traverse(li, this);
-                });
-
-                node.append('&nbsp;&nbsp;&nbsp;&nbsp;' + '&lt;\/' + '<span class="xml-elem xml-draggable" data-xpath="' + htmlEscape(createXPathFromElement(tree)) + '">' + tree.nodeName + '</span>' + '&gt;')
-                currentNode.pop();
-
-            } else {
-                node_open = '<span class="xml-node xml-draggable" data-xpath="' + htmlEscape(createXPathFromElement(tree)) + '">';
-
-                node_close = '</span>';
-                node.append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + node_open + '&lt;' + tree.nodeName + node_close + output + node_open + '&gt;' + $(tree).text() + '&lt;\/' + tree.nodeName + '&gt;' + node_close)
-            }
-        }
-*/
     };
 
 });
-
-/*function htmlEscape(str) {
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-}
-
-function htmlUnescape(value) {
-    return String(value)
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&amp;/g, '&');
-}
-
-function generateXpath(field) {
-
-    if (currentNode.length) {
-        if (field.length)
-            field = '/' + field;
-
-        return '/' + currentNode.join('/') + field;
-    } else {
-        return field;
-    }
-}
-
-function getPathTo(element) {
-    if (element.id !== '')
-        return ''; // 'id("'+element.id+'")';
-
-    var ix = 0;
-    var siblings = element.parentNode.childNodes;
-
-    for (var i = 0; i < siblings.length; i++) {
-        var sibling = siblings[i];
-        if (sibling === element)
-            return getPathTo(element.parentNode) + '/' + element.tagName + '[' + (ix + 1) + ']';
-        if (sibling.nodeType === 1 && sibling.tagName === element.tagName)
-            ix++;
-    }
-}
-
-function createXPathFromElement(elm) {
-    var allNodes = document.getElementsByTagName('*');
-    for (segs = []; elm && elm.nodeType == 1; elm = elm.parentNode) {
-        for (i = 1, sib = elm.previousSibling; sib; sib = sib.previousSibling) {
-            if (sib.localName == elm.localName)
-                i++;
-        }
-        
-        // remove base node from selection : console.log(elm.localName);
-        if (elm.localName != nodeOffset) {
-            segs.unshift(elm.localName + '[' + i + ']');
-        }
-
-    }
-
-    return segs.length ? '/' + segs.join('/') : '';
-};
-
-function lookupElementByXPath(path) {
-    var evaluator = new XPathEvaluator();
-    var result = evaluator.evaluate(path, document.documentElement, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-    return  result.singleNodeValue;
-}*/
 
 /**
  * Base Node Selector
@@ -186,8 +61,6 @@ jQuery(function ($) {
 
     // handle on click event
     $('#jc-importer_parser_settings-import_base').click(function () {
-
-        var _this = $(this);
 
         var data = {
             action: 'jc_base_node',

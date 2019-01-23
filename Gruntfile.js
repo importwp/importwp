@@ -64,7 +64,7 @@ module.exports = function(grunt) {
                 tasks: ['sass:dev']
             },
             js: {
-                files: 'resources/js/**/*.js',
+                files: ['resources/js/**/*.js', '!resources/js/**/*.min.js'],
                 tasks: ['uglify']
             }
         },
@@ -105,7 +105,6 @@ module.exports = function(grunt) {
                 files: {
                     'resources/js/importer.min.js': ['resources/js/importer.js'],
                     'resources/js/edit.min.js': ['resources/js/edit.js'],
-                    'resources/js/main.min.js': ['resources/js/main.js'],
                     'resources/js/jquery-tipTip.min.js': ['resources/js/jquery-tipTip.js']
                 }
             }
