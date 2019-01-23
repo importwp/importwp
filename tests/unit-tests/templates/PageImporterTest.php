@@ -41,7 +41,7 @@ class PageImporterTest extends WP_UnitTestCase {
 		 * Test: Check if one record is returned
 		 */
 		IWP_Importer_Settings::clearImportSettings();
-		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$this->importer->importer = new IWP_Importer( $post_id );
 		$import_data              = $this->importer->importer->run_import( 1 );
 		$this->assertEquals( 1, count( $import_data ) );
 
@@ -89,7 +89,7 @@ class PageImporterTest extends WP_UnitTestCase {
 
 		IWP_Importer_Settings::clearImportSettings();
 
-		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$this->importer->importer 	= new IWP_Importer( $post_id );
 		$test                     	= $this->importer->importer->run_import( 1 );
 		$test 						= array_shift($test);
 
@@ -150,7 +150,7 @@ class PageImporterTest extends WP_UnitTestCase {
 
 		IWP_Importer_Settings::clearImportSettings();
 
-		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$this->importer->importer 	= new IWP_Importer( $post_id );
 		$test                     	= $this->importer->importer->run_import( 1 );
 		$test 						= array_shift($test);
 
@@ -199,7 +199,7 @@ class PageImporterTest extends WP_UnitTestCase {
 		));
 
 		IWP_Importer_Settings::clearImportSettings();
-		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$this->importer->importer 	= new IWP_Importer( $post_id );
 		$import_data              	= $this->importer->importer->run_import( 1 );
 		$import_data 				= array_shift($import_data);
 
@@ -245,7 +245,7 @@ class PageImporterTest extends WP_UnitTestCase {
 			), 'name' );
 
 		IWP_Importer_Settings::clearImportSettings();
-		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$this->importer->importer 	= new IWP_Importer( $post_id );
 		$import_data              	= $this->importer->importer->run_import( 1 );
 		$import_data 				= array_shift($import_data);
 
@@ -291,7 +291,7 @@ class PageImporterTest extends WP_UnitTestCase {
 			), 'slug' );
 
 		IWP_Importer_Settings::clearImportSettings();
-		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$this->importer->importer 	= new IWP_Importer( $post_id );
 		$import_data              	= $this->importer->importer->run_import( 1 );
 		$import_data 				= array_shift($import_data);
 

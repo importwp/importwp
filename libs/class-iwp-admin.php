@@ -3,7 +3,7 @@
 /**
  * Core Admin Class
  */
-class JC_Importer_Admin {
+class IWP_Admin {
 
 	/**
 	 * @var JC_Importer
@@ -98,7 +98,7 @@ class JC_Importer_Admin {
 			$ext     = '';
 		}
 
-		wp_enqueue_style( 'jc-importer-style', trailingslashit( $this->config->get_plugin_url() ) . 'app/assets/css/style' . $ext . '.css', array(), $version );
+		wp_enqueue_style( 'jc-importer-style', trailingslashit( $this->config->get_plugin_url() ) . 'resources/css/style' . $ext . '.css', array(), $version );
 
 		if(isset($_GET['action'])){
 			switch($_GET['action']){
@@ -108,7 +108,7 @@ class JC_Importer_Admin {
 					$config_file = JCI()->get_tmp_config_path($importer_id);
 					$config = new \ImportWP\Importer\Config\Config( $config_file );
 
-					wp_enqueue_script('importer-edit', trailingslashit( $this->config->get_plugin_url() ) . 'app/assets/js/edit' . $ext . '.js', array('jquery'), $version);
+					wp_enqueue_script('importer-edit', trailingslashit( $this->config->get_plugin_url() ) . 'resources/js/edit' . $ext . '.js', array('jquery'), $version);
 
 					$settings = array(
 						'processed' => 'no'
@@ -152,23 +152,23 @@ class JC_Importer_Admin {
 	}
 
 	public function admin_imports_view() {
-		require 'view/home.php';
+		require JCI()->get_plugin_dir() . 'resources/views/home.php';
 	}
 
 	public function admin_tools_view() {
-		require 'view/tools.php';
+		require JCI()->get_plugin_dir() . 'resources/views/tools.php';
 	}
 
 	public function admin_addons_view() {
-		require 'view/addons.php';
+		require JCI()->get_plugin_dir() . 'resources/views/addons.php';
 	}
 
 	public function admin_settings_view() {
-		require 'view/settings.php';
+		require JCI()->get_plugin_dir() . 'resources/views/settings.php';
 	}
 
 	public function admin_premium_view() {
-		require 'view/premium.php';
+		require JCI()->get_plugin_dir() . 'resources/views/premium.php';
 	}
 
 	public function process_forms() {
@@ -551,7 +551,7 @@ class JC_Importer_Admin {
 		$importer_id  = intval( $_POST['id'] );
 		$request_type = isset( $_POST['request'] ) ? $_POST['request'] == 'run' : 'check';
 
-		JCI()->importer = new JC_Importer_Core( $importer_id );
+		JCI()->importer = new IWP_Importer( $importer_id );
 		JCI()->importer->run( $request_type );
 	}
 
@@ -577,7 +577,7 @@ class JC_Importer_Admin {
 			$records = 1;
 		}
 
-		$jcimporter->importer = new JC_Importer_Core( $importer_id );
+		$jcimporter->importer = new IWP_Importer( $importer_id );
 
 		// fetch import limit
 		$start_record = $jcimporter->importer->get_start_line();
@@ -605,7 +605,7 @@ class JC_Importer_Admin {
 
 			$data = $jcimporter->importer->run_import( $row, true, 1 );
 			ob_start();
-			require $jcimporter->get_plugin_dir() . 'app/view/imports/log/log_table_record.php';
+			require $jcimporter->get_plugin_dir() . 'resources/views/imports/log/log_table_record.php';
 			$output[] = ob_get_clean();
 		}
 
@@ -631,7 +631,7 @@ class JC_Importer_Admin {
 		$delete      = isset( $_POST['delete'] ) && $_POST['delete'] == 1 ? true : false;
 
 		$mapper               = new JC_BaseMapper();
-		$jcimporter->importer = new JC_Importer_Core( $importer_id );
+		$jcimporter->importer = new IWP_Importer( $importer_id );
 
 
 		if ( ! $delete ) {

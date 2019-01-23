@@ -31,7 +31,7 @@ class UserMapperTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedException JCI_Exception
+	 * @expectedException IWP_Exception
 	 * @group core
 	 * @group mapper
 	 * @group user_mapper

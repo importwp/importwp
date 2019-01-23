@@ -7,12 +7,11 @@ module.exports = function(grunt) {
             main: {
                 files: [
                     {expand: true, src: [
-                        'app/**',
-                        '!app/assets/scss/**',
+                        'resources/**',
+                        '!resources/scss/**',
                         'src/**',
                         'vendor/**',
                         'libs/**',
-                        'views/**',
                         '!vendor/jclabs/importwp/tests/**',
                         '!vendor/jclabs/importwp/vendor/**'], dest: 'build/'},
                     {expand: false, src: ['readme.txt'], dest: 'build/readme.txt'},
@@ -28,7 +27,7 @@ module.exports = function(grunt) {
         clean: {
             build: ["build/*", "!build/.svn/*"],
             tmp: ["build/app/tmp/*"],
-            sass: ['app/assets/css/*']
+            sass: ['resources/css/*']
         },
         phpunit: {
             classes: {
@@ -46,7 +45,7 @@ module.exports = function(grunt) {
                     outputStyle: 'nested'
                 },
                 files: {
-                    'app/assets/css/style.css': 'app/assets/scss/init.scss'
+                    'resources/css/style.css': 'resources/scss/init.scss'
                 }
             },
             min: {
@@ -55,17 +54,17 @@ module.exports = function(grunt) {
                     outputStyle: 'compressed'
                 },
                 files: {
-                    'app/assets/css/style.min.css': 'app/assets/scss/init.scss'
+                    'resources/css/style.min.css': 'resources/scss/init.scss'
                 }
             }
         },
         watch: {
             sass: {
-                files: 'app/assets/scss/**/*.scss',
+                files: 'resources/scss/**/*.scss',
                 tasks: ['sass:dev']
             },
             js: {
-                files: 'app/assets/js/**/*.js',
+                files: 'resources/js/**/*.js',
                 tasks: ['uglify']
             }
         },
@@ -104,10 +103,10 @@ module.exports = function(grunt) {
         uglify: {
             my_target: {
                 files: {
-                    'app/assets/js/importer.min.js': ['app/assets/js/importer.js'],
-                    'app/assets/js/edit.min.js': ['app/assets/js/edit.js'],
-                    'app/assets/js/main.min.js': ['app/assets/js/main.js'],
-                    'app/assets/js/jquery-tipTip.min.js': ['app/assets/js/jquery-tipTip.js']
+                    'resources/js/importer.min.js': ['resources/js/importer.js'],
+                    'resources/js/edit.min.js': ['resources/js/edit.js'],
+                    'resources/js/main.min.js': ['resources/js/main.js'],
+                    'resources/js/jquery-tipTip.min.js': ['resources/js/jquery-tipTip.js']
                 }
             }
         }

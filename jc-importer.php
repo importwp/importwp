@@ -17,12 +17,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // required packages
 require_once __DIR__ . '/vendor/autoload.php';
-require_once __DIR__ . '/src/Importer/Mapper/AbstractMapper.php';
-require_once __DIR__ . '/src/Importer/Mapper/PostMapper.php';
-require_once __DIR__ . '/src/Importer/Mapper/UserMapper.php';
-require_once __DIR__ . '/src/Importer/Mapper/TaxMapper.php';
+require_once __DIR__ . '/libs/mappers/class-iwp-mapper.php';
+require_once __DIR__ . '/libs/mappers/class-iwp-mapper-post.php';
+require_once __DIR__ . '/libs/mappers/class-iwp-mapper-user.php';
+require_once __DIR__ . '/libs/mappers/class-iwp-mapper-tax.php';
 
-require_once __DIR__ . '/app/core/exceptions.php';
+require_once __DIR__ . '/libs/class-iwp-exception.php';
 
 // libs.
 require_once __DIR__ . '/libs/class-iwp-premium.php';
@@ -50,7 +50,7 @@ require_once __DIR__ . '/libs/templates/class-iwp-template-page.php';
 require_once __DIR__ . '/libs/templates/class-iwp-template-tax.php';
 
 require_once __DIR__ . '/libs/class-iwp-form-builder.php';
-require_once __DIR__ . '/app/functions.php';
+require_once __DIR__ . '/libs/functions.php';
 
 /**
  * Class JC_Importer
@@ -68,7 +68,7 @@ class JC_Importer {
 	/**
 	 * Loaded Importer Class
 	 *
-	 * @var JC_Importer_Core
+	 * @var IWP_Importer
 	 */
 	public $importer;
 	/**
@@ -165,7 +165,7 @@ class JC_Importer {
 		$this->templates = apply_filters( 'jci/register_template', $this->templates );
 
 		// load importer.
-		require_once __DIR__ . '/app/core/importer.php';
+		require_once __DIR__ . '/libs/class-iwp-importer.php';
 
 		// core models.
 		require_once __DIR__ . '/libs/class-iwp-importer-settings.php';
@@ -177,16 +177,16 @@ class JC_Importer {
 			// load importer.
 			$importer_id = isset( $_GET['import'] ) && ! empty( $_GET['import'] ) ? intval( $_GET['import'] ) : 0;
 			if ( $importer_id > 0 ) {
-				$this->importer = new JC_Importer_Core( $importer_id );
+				$this->importer = new IWP_Importer( $importer_id );
 			}
 
 			require_once __DIR__ . '/libs/class-iwp-imports-list-table.php';
 
-			require_once __DIR__ . '/app/admin.php';
-			new JC_Importer_Admin( $this );
+			require_once __DIR__ . '/libs/class-iwp-admin.php';
+			new IWP_Admin( $this );
 
-			require_once __DIR__ . '/app/ajax.php';
-			new JC_Importer_Ajax( $this );
+			require_once __DIR__ . '/libs/class-iwp-ajax.php';
+			new IWP_Ajax( $this );
 		}
 
 		IWP_Importer_Settings::init( $this );

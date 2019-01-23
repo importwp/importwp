@@ -18,7 +18,7 @@
 
         <div id="postbox-container-1" class="postbox-container">
 
-			<?php include $this->config->get_plugin_dir() . '/app/view/elements/about_block.php'; ?>
+			<?php include $this->config->get_plugin_dir() . '/resources/views/elements/about_block.php'; ?>
 
         </div>
         <!-- /postbox-container-1 -->

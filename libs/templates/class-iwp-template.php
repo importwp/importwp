@@ -573,14 +573,14 @@ abstract class IWP_Template {
 
 			switch($this->get_field_type($key)){
 				case 'checkbox':
-					include JCI()->get_plugin_dir() . 'views/fields/checkbox.php';
+					include JCI()->get_plugin_dir() . 'resources/views/fields/checkbox.php';
 					break;
 				case 'repeater':
 					$repeater = $this->get_repeater_field($key);
-					include JCI()->get_plugin_dir() . 'views/fields/repeater.php';
+					include JCI()->get_plugin_dir() . 'resources/views/fields/repeater.php';
 					break;
 				case 'attachment':
-					include JCI()->get_plugin_dir() . 'views/fields/attachment.php';
+					include JCI()->get_plugin_dir() . 'resources/views/fields/attachment.php';
 					break;
 				case 'default':
 				default:
@@ -603,7 +603,7 @@ abstract class IWP_Template {
 	}
 
 	public function display_field($key, $value, $settings = array()){
-		include JCI()->get_plugin_dir() . 'views/fields/text.php';
+		include JCI()->get_plugin_dir() . 'resources/views/fields/text.php';
 	}
 
 	public function get_field_tooltip($key){

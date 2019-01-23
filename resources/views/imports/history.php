@@ -116,7 +116,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 									<?php
 									$row  = $r->row;
 									$data = array( unserialize( $r->value ) );
-									require $jcimporter->get_plugin_dir() . 'app/view/imports/log/log_table_record.php';
+									require $jcimporter->get_plugin_dir() . 'resources/views/imports/log/log_table_record.php';
 									?>
 								<?php endforeach; ?>
 							<?php else: ?>
@@ -134,7 +134,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
         <div id="postbox-container-1" class="postbox-container">
 
-			<?php include $this->config->get_plugin_dir() . '/app/view/elements/about_block.php'; ?>
+			<?php include $this->config->get_plugin_dir() . '/resources/views/elements/about_block.php'; ?>
 
         </div>
         <!-- /postbox-container-1 -->

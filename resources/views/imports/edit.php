@@ -77,7 +77,7 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
 
             <div id="jci-about-block" class="postbox-container jci-sidebar">
 
-				<?php include $this->config->get_plugin_dir() . '/app/view/elements/about_block.php'; ?>
+				<?php include $this->config->get_plugin_dir() . '/resources/views/elements/about_block.php'; ?>
 
             </div><!-- /#jci-about-block -->
 
@@ -281,7 +281,7 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
             <div id="jci-preview-block" class="postbox-container jci-sidebar">
 
 				<?php
-                include $this->config->get_plugin_dir() . '/app/view/elements/preview_block.php';
+                include $this->config->get_plugin_dir() . '/resources/views/elements/preview_block.php';
 				?>
 
             </div><!-- /#jci-preview-block -->

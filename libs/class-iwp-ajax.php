@@ -1,6 +1,6 @@
 <?php
 
-class JC_Importer_Ajax {
+class IWP_Ajax {
 
 	private $_config = null;
 
@@ -63,8 +63,8 @@ class JC_Importer_Ajax {
 		if ( isset( $_GET['page'] ) && $_GET['page'] == 'jci-importers' && isset( $_GET['import'] ) && intval( $_GET['import'] ) > 0 ) {
 
 			$post_id = intval( $_GET['import'] );
-			wp_enqueue_script( 'tiptip', trailingslashit( JCI()->get_plugin_url() ) . 'app/assets/js/jquery-tipTip' . $ext . '.js', array(), '1.3' );
-			wp_enqueue_script( 'ajax-importer', trailingslashit( JCI()->get_plugin_url() ) . 'app/assets/js/importer' . $ext . '.js', array(
+			wp_enqueue_script( 'tiptip', trailingslashit( JCI()->get_plugin_url() ) . 'resources/js/jquery-tipTip' . $ext . '.js', array(), '1.3' );
+			wp_enqueue_script( 'ajax-importer', trailingslashit( JCI()->get_plugin_url() ) . 'resources/js/importer' . $ext . '.js', array(
 				'jquery',
 				'tiptip'
 			), $version, false );
@@ -100,7 +100,7 @@ class JC_Importer_Ajax {
 		$xml = new \ImportWP\Importer\Preview\XMLPreview($xml_file, $base_node);
 
 		ob_start();
-		require_once $this->_config->get_plugin_dir() . 'app/view/ajax/xml_node_preview.php';
+		require_once $this->_config->get_plugin_dir() . 'resources/views/ajax/xml_node_preview.php';
 		$contents = ob_get_clean();
 
 		$this->end_request($contents);
@@ -132,7 +132,7 @@ class JC_Importer_Ajax {
 					echo "<div class=\"error_msg warn error below-h2\"><p>No Record Base specified, Make sure you have set the xml record base path first!</p></div>";
 				}
 
-				require_once $this->_config->get_plugin_dir() . 'app/view/ajax/xml_node_select.php';
+				require_once $this->_config->get_plugin_dir() . 'resources/views/ajax/xml_node_select.php';
 				break;
 			case 'csv':
 				$settings = IWP_Importer_Settings::getImportSettings( $post_id );
@@ -177,7 +177,7 @@ class JC_Importer_Ajax {
 					$counter ++;
 				}
 
-				require_once $this->_config->get_plugin_dir() . 'app/view/ajax/csv_node_select.php';
+				require_once $this->_config->get_plugin_dir() . 'resources/views/ajax/csv_node_select.php';
 				break;
 		}
 		die();
@@ -230,7 +230,7 @@ class JC_Importer_Ajax {
 			$nodes = $temp;
 		}
 
-		require_once $this->_config->get_plugin_dir() . 'app/view/ajax/base_node_select.php';
+		require_once $this->_config->get_plugin_dir() . 'resources/views/ajax/base_node_select.php';
 		die();
 	}
 
@@ -245,7 +245,7 @@ class JC_Importer_Ajax {
 		$row         = isset( $_POST['row'] ) && intval( $_POST['row'] ) > 0 ? intval( $_POST['row'] ) : 1;
 
 		// setup importer
-		JCI()->importer    = new JC_Importer_Core( $importer_id );
+		JCI()->importer    = new IWP_Importer( $importer_id );
 		$result            = array();
 
 		$config_file = JCI()->get_tmp_config_path($importer_id);
@@ -355,7 +355,7 @@ class JC_Importer_Ajax {
 	 */
 	public function admin_ajax_record_count() {
 		$importer_id = $_POST['id'];
-		JCI()->importer = new JC_Importer_Core( $importer_id );
+		JCI()->importer = new IWP_Importer( $importer_id );
 
 		if(JCI()->importer->get_template_type() === 'xml'){
 			$base = isset($_POST['general_base']) ? $_POST['general_base'] : '';
@@ -376,7 +376,7 @@ class JC_Importer_Ajax {
 		$this->start_request();
 
 		$importer_id = $_POST['id'];
-		JCI()->importer = new JC_Importer_Core( $importer_id );
+		JCI()->importer = new IWP_Importer( $importer_id );
 
 		$config_file = JCI()->get_tmp_config_path($importer_id);
 		$config = new \ImportWP\Importer\Config\Config( $config_file );

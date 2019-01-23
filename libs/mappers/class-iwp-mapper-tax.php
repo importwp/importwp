@@ -6,7 +6,7 @@
  * Time: 16:09
  */
 
-class TaxMapper extends AbstractMapper implements \ImportWP\Importer\MapperInterface {
+class IWP_Mapper_Tax extends IWP_Mapper implements \ImportWP\Importer\MapperInterface {
 
 	public $changed_field_count = 0;
 	public $changed_fields = array();

@@ -6,7 +6,7 @@
  * Time: 16:09
  */
 
-class UserMapper extends AbstractMapper implements \ImportWP\Importer\MapperInterface {
+class IWP_Mapper_User extends IWP_Mapper implements \ImportWP\Importer\MapperInterface {
 
 	protected $_user_fields = array(
 		'ID',

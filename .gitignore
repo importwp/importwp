@@ -3,5 +3,5 @@ phpunit.xml
 node_modules/
 build/
 /tmp
-/app/assets/js/*.min.js
+/resources/js/*.min.js
 /yarn.lock

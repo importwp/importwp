@@ -6,7 +6,7 @@
  * Time: 17:47
  */
 
-class AbstractMapper {
+class IWP_Mapper {
 
 	/**
 	 * Existing Object Id

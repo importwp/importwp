@@ -5,7 +5,7 @@
  *
  * Class to load importers, parsing settings automatically.
  */
-class JC_Importer_Core {
+class IWP_Importer {
 
 	public $addon_settings = array();
 	/**
@@ -365,11 +365,11 @@ class JC_Importer_Core {
 
 		// load mapper
 		if($this->template_name == 'user') {
-			$mapper = new UserMapper( $this->template, $permissions );
+			$mapper = new IWP_Mapper_User( $this->template, $permissions );
 		}elseif($this->template_name == 'taxonomy'){
-			$mapper = new TaxMapper( $this->template, $permissions );
+			$mapper = new IWP_Mapper_Tax( $this->template, $permissions );
 		}else{
-			$mapper = new PostMapper( $this->template, $permissions );
+			$mapper = new IWP_Mapper_Post( $this->template, $permissions );
 		}
 
 		// loop through all groups
@@ -653,11 +653,11 @@ class JC_Importer_Core {
 
 		// load mapper
 		if($this->template_name == 'user') {
-			$mapper = new UserMapper( $this->template, $permissions );
+			$mapper = new IWP_Mapper_User( $this->template, $permissions );
 		}elseif($this->template_name == 'taxonomy'){
-			$mapper = new TaxMapper( $this->template, $permissions );
+			$mapper = new IWP_Mapper_Tax( $this->template, $permissions );
 		}else{
-			$mapper = new PostMapper( $this->template, $permissions );
+			$mapper = new IWP_Mapper_Post( $this->template, $permissions );
 		}
 
 		$importer = new \ImportWP\Importer($config);

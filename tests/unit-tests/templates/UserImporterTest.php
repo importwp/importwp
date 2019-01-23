@@ -40,7 +40,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		 * Test: Check if one record is returned
 		 */
 		IWP_Importer_Settings::clearImportSettings();
-		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$this->importer->importer = new IWP_Importer( $post_id );
 		$import_data              = $this->importer->importer->run_import( 1 );
 		$this->assertEquals( 1, count( $import_data ) );
 
@@ -56,7 +56,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		 * Test: Check if one record is returned
 		 */
 		IWP_Importer_Settings::clearImportSettings();
-		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$this->importer->importer = new IWP_Importer( $post_id );
 		$import_data              = $this->importer->importer->run_import( 7 );
 		$this->assertEquals( 1, count( $import_data ) );
 		$import_data = array_shift( $import_data );
@@ -77,7 +77,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		 * Test: Check if import was successful, with correct response
 		 */
 		IWP_Importer_Settings::clearImportSettings();
-		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$this->importer->importer = new IWP_Importer( $post_id );
 		$this->importer->importer->increase_version();
 
 		$test                     = $this->importer->importer->run_import();
@@ -101,7 +101,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		 * Test: Check to see if row return error status if no user_login is present
 		 */
 		IWP_Importer_Settings::clearImportSettings();
-		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$this->importer->importer = new IWP_Importer( $post_id );
 		$this->importer->importer->increase_version();
 		$test                     = $this->importer->importer->run_import( 1 );
 		$test                     = array_shift( $test );
@@ -131,7 +131,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		 * Test: Check to see if row return error status if no user_email is present
 		 */
 		IWP_Importer_Settings::clearImportSettings();
-		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$this->importer->importer = new IWP_Importer( $post_id );
 		$test                     = $this->importer->importer->run_import( 1 );
 		$test                     = array_shift( $test );
 		$this->assertArrayHasKey( '_jci_status', $test );
@@ -175,7 +175,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		 */
 		IWP_Importer_Settings::clearImportSettings();
 
-		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$this->importer->importer = new IWP_Importer( $post_id );
 		$import_data              = $this->importer->importer->run_import( 1 );
 		$this->assertEquals( 1, count( $import_data ) );
 
@@ -192,7 +192,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		 * Test: Check if one record is returned
 		 */
 		IWP_Importer_Settings::clearImportSettings();
-		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$this->importer->importer = new IWP_Importer( $post_id );
 		$import_data              = $this->importer->importer->run_import( 7 );
 		$this->assertEquals( 1, count( $import_data ) );
 		$import_data = array_shift( $import_data );
@@ -207,14 +207,14 @@ class UserImporterTest extends WP_UnitTestCase {
 		 * Test: Check if row doesn't exist false is returned
 		 */
 		IWP_Importer_Settings::clearImportSettings();
-		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$this->importer->importer = new IWP_Importer( $post_id );
 		$this->assertEquals( false, $this->importer->importer->run_import( 8 ) );
 
 		/**
 		 * Test: Check if import was successful, with correct response
 		 */
 		IWP_Importer_Settings::clearImportSettings();
-		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$this->importer->importer = new IWP_Importer( $post_id );
 		$test                     = $this->importer->importer->run_import();
 		$this->assertEquals( 7, count( $test ) );
 		foreach ( $test as $response ) {
@@ -241,7 +241,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		 * Test: Check to see if row return error status if no user_login is present
 		 */
 		IWP_Importer_Settings::clearImportSettings();
-		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$this->importer->importer = new IWP_Importer( $post_id );
 		$test                     = $this->importer->importer->run_import( 1 );
 		$test                     = array_shift( $test );
 		$this->assertArrayHasKey( '_jci_status', $test );
@@ -275,7 +275,7 @@ class UserImporterTest extends WP_UnitTestCase {
 		 * Test: Check to see if row return error status if no user_email is present
 		 */
 		IWP_Importer_Settings::clearImportSettings();
-		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$this->importer->importer = new IWP_Importer( $post_id );
 		$test                     = $this->importer->importer->run_import( 1 );
 		$test                     = array_shift( $test );
 
@@ -310,7 +310,7 @@ class UserImporterTest extends WP_UnitTestCase {
 
 		IWP_Importer_Settings::clearImportSettings();
 
-		$this->importer->importer = new JC_Importer_Core( $post_id );
+		$this->importer->importer = new IWP_Importer( $post_id );
 		$test                     = $this->importer->importer->run_import( 1 );
 		$test = array_shift($test);
 
@@ -335,7 +335,7 @@ class UserImporterTest extends WP_UnitTestCase {
 
 		IWP_Importer_Settings::clearImportSettings();
 
-		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$this->importer->importer 	= new IWP_Importer( $post_id );
 		$test                     	= $this->importer->importer->run_import( 1 );
 		$test 						= array_shift($test);
 
@@ -373,7 +373,7 @@ class UserImporterTest extends WP_UnitTestCase {
 
 		IWP_Importer_Settings::clearImportSettings();
 
-		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$this->importer->importer 	= new IWP_Importer( $post_id );
 		$test                     	= $this->importer->importer->run_import( 1 );
 		$test 						= array_shift($test);
 
@@ -417,7 +417,7 @@ class UserImporterTest extends WP_UnitTestCase {
 
 		IWP_Importer_Settings::clearImportSettings();
 
-		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$this->importer->importer 	= new IWP_Importer( $post_id );
 		$test                     	= $this->importer->importer->run_import( 1 );
 		$test 						= array_shift($test);
 		
@@ -451,7 +451,7 @@ class UserImporterTest extends WP_UnitTestCase {
 
 		IWP_Importer_Settings::clearImportSettings();
 
-		$this->importer->importer 	= new JC_Importer_Core( $post_id );
+		$this->importer->importer 	= new IWP_Importer( $post_id );
 		$test                     	= $this->importer->importer->run_import( 1 );
 		$test 						= array_shift($test);
 

@@ -6,7 +6,7 @@
  * Time: 16:09
  */
 
-class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInterface {
+class IWP_Mapper_Post extends IWP_Mapper implements \ImportWP\Importer\MapperInterface {
 
 	public $changed_field_count = 0;
 	public $changed_fields = array();
@@ -468,7 +468,7 @@ class PostMapper extends AbstractMapper implements \ImportWP\Importer\MapperInte
 			try {
 				// unable to connect
 				if ( ! $this->initAttachment( $attachments ) ) {
-					throw new JCI_Exception( "Could Not Connect", JCI_ERR );
+					throw new IWP_Exception( "Could Not Connect", JCI_ERR );
 					return false;
 				}
 
