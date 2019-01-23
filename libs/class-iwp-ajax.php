@@ -63,7 +63,7 @@ class IWP_Ajax {
 		if ( isset( $_GET['page'] ) && $_GET['page'] == 'jci-importers' && isset( $_GET['import'] ) && intval( $_GET['import'] ) > 0 ) {
 
 			$post_id = intval( $_GET['import'] );
-			wp_enqueue_script( 'tiptip', trailingslashit( JCI()->get_plugin_url() ) . 'resources/js/jquery-tipTip' . $ext . '.js', array(), '1.3' );
+			wp_enqueue_script( 'tiptip', trailingslashit( JCI()->get_plugin_url() ) . 'resources/js/vendor/jquery-tipTip' . $ext . '.js', array(), '1.3' );
 			wp_enqueue_script( 'ajax-importer', trailingslashit( JCI()->get_plugin_url() ) . 'resources/js/importer' . $ext . '.js', array(
 				'jquery',
 				'tiptip'

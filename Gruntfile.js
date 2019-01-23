@@ -105,7 +105,7 @@ module.exports = function(grunt) {
                 files: {
                     'resources/js/importer.min.js': ['resources/js/importer.js'],
                     'resources/js/edit.min.js': ['resources/js/edit.js'],
-                    'resources/js/jquery-tipTip.min.js': ['resources/js/jquery-tipTip.js']
+                    'resources/js/vendor/jquery-tipTip.min.js': ['resources/js/vendor/jquery-tipTip.js']
                 }
             }
         }
