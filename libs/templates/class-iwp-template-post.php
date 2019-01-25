@@ -150,6 +150,23 @@ class IWP_Template_Post extends IWP_Template {
 			) );
 			?>
         </div>
+        <script type="text/javascript">
+            (function($, window){
+
+                $('#jc-importer_field-post-post_parent_field_type').on('change', function(){
+                    if($(this).val() === 'column'){
+                        $('.field__input--post_parent_ref').show();
+                    }else{
+                        $('.field__input--post_parent_ref').hide();
+                    }
+                });
+
+                window.iwp.onProcessComplete.add(function(){
+                    $('#jc-importer_field-post-post_parent_field_type').trigger('change');
+                });
+
+            })(jQuery, window);
+        </script>
 		<?php
     }
 
