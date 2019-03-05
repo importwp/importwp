@@ -49,7 +49,6 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                             <tr>
                                 <th scope="col" id="author" class="manage-column column-author" style="width:30px;">ID
                                 </th>
-                                <th>Type</th>
                                 <th>Rows</th>
                                 <th>Date</th>
                                 <th>_</th>
@@ -60,7 +59,6 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 								<?php foreach ( $rows as $row ): ?>
                                     <tr>
                                         <td><?php echo $row->version; ?></td>
-                                        <td><?php echo $row->type; ?></td>
                                         <td><?php echo $row->row_total; ?></td>
                                         <td><?php echo date( 'H:i:s d/m/y', strtotime( $row->created ) ); ?></td>
                                         <td>
@@ -70,7 +68,7 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 								<?php endforeach; ?>
 							<?php else: ?>
                                 <tr>
-                                    <td colspan="5">No Records have been imported</td>
+                                    <td colspan="4">No Records have been imported</td>
                                 </tr>
 							<?php endif; ?>
                             </tbody>

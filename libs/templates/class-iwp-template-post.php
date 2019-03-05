@@ -275,6 +275,18 @@ class IWP_Template_Post extends IWP_Template {
 
 		}
 
+		/**
+		 * If Post Date is enabled try to convert it to a date, otherwise clear it.
+		 */
+		if( $enable_post_date === '1' && !empty( $data['post_date'])){
+		    $time = strtotime($data['post_date']);
+		    if($time) {
+			    $data['post_date'] = date( 'Y-m-d H:i:s', $time );
+		    }else{
+		        $data['post_date'] = '';
+            }
+        }
+
 		// generate slug from title if no slug present
 		if ( empty( $data['post_name'] ) ) {
 			$data['post_name'] = sanitize_title( $data['post_title'] );

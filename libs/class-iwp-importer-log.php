@@ -32,39 +32,21 @@ class IWP_Importer_Log {
 		/**
 		 * @global JC_Importer $jcimporter
 		 */
-		global $wpdb, $jcimporter;
+		global $wpdb;
 
 		// todo: replace this fix with a $_GET key to know the real start of the import
-		$start_row = $jcimporter->importer->get_start_line();
+		$start_row = JCI()->importer->get_start_line();
 		if ( $start_row <= 0 ) {
 			$start_row = 1;
 		}
 
 		$template = IWP_Importer_Settings::getImportSettings( $import_id );
-		$importer = IWP_Importer_Settings::getImporter( $import_id );
-		$version  = $jcimporter->importer->get_version();
-
-		// copy version settings (previously stored in post meta) to first row only
-		if ( $row == 1 || $row == $start_row ) {
-			$import_settings   = get_post_meta( $import_id, '_import_settings', true );
-			$mapped_fields     = get_post_meta( $import_id, '_mapped_fields', true );
-			$attachments       = get_post_meta( $import_id, '_attachments', true );
-			$taxonomies        = get_post_meta( $import_id, '_taxonomies', true );
-			$parser_settings   = get_post_meta( $import_id, '_parser_settings', true );
-			$template_settings = get_post_meta( $import_id, '_template_settings', true );
-		} else {
-			$import_settings   = '';
-			$mapped_fields     = '';
-			$attachments       = '';
-			$taxonomies        = '';
-			$parser_settings   = '';
-			$template_settings = '';
-		}
+		$version  = JCI()->importer->get_version();
 
 		$wpdb->query( $wpdb->prepare( "
-			INSERT INTO `" . $wpdb->prefix . "importer_log` (importer_name, object_id, template,type,file, version, row, src, value, created, import_settings, mapped_fields, attachments, taxonomies, parser_settings, template_settings)
-			VALUES(%s, %d, %s, %s, %s, %d, %d, '', %s, NOW(), %s, %s, %s, %s, %s, %s);",
-			$importer->post->post_name, $import_id, $template['template'], $template['template_type'], $template['import_file'], $version, $row, serialize( $record ), serialize( $import_settings ), serialize( $mapped_fields ), serialize( $attachments ), serialize( $taxonomies ), serialize( $parser_settings ), serialize( $template_settings ) ) );
+			INSERT INTO `" . $wpdb->prefix . "importer_log` ( object_id,file, version, row, value, created)
+			VALUES(%d, %s, %d, %d, %s, NOW());",
+			$import_id, $template['import_file'], $version, $row, serialize( $record ) ) );
 	}
 
 	/**
@@ -118,7 +100,7 @@ class IWP_Importer_Log {
 		global $wpdb;
 		$importer_id = intval( $importer_id );
 
-		return $wpdb->get_results( "SELECT version, type, file,  created, COUNT(row) as row_total FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' GROUP BY version ORDER BY version DESC", OBJECT );
+		return $wpdb->get_results( "SELECT version, file,  created, COUNT(row) as row_total FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' GROUP BY version ORDER BY version DESC", OBJECT );
 	}
 
 	static function get_importer_log( $importer_id, $log, $order = 'DESC', $limit = 10, $page = 1 ) {

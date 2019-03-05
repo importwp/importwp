@@ -8,7 +8,7 @@ class IWP_Migrations{
 
 		$this->_migrations[] = array($this, 'migration_01');
 		$this->_migrations[] = array($this, 'migration_02');
-		// $this->_migrations[] = array($this, 'migration_03');
+		$this->_migrations[] = array($this, 'migration_03');
 
 		$this->_version = count($this->_migrations);
 	}
@@ -226,6 +226,17 @@ class IWP_Migrations{
 	public function migration_03($migrate_data = true){
 
 		global $wpdb;
+		$wpdb->query("ALTER TABLE `" . $wpdb->prefix . "importer_log` 
+		DROP COLUMN importer_name, 
+		DROP COLUMN src, 
+		DROP COLUMN template, 
+		DROP COLUMN type, 
+		DROP COLUMN import_settings,
+		DROP COLUMN mapped_fields,
+		DROP COLUMN attachments,
+		DROP COLUMN taxonomies,
+		DROP COLUMN parser_settings,
+		DROP COLUMN template_settings");
 
 		// TODO: Create new Tables (_importer_logs , _importer_log_data)
 		// TODO: Migrate existing logs into new format
