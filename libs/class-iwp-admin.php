@@ -23,10 +23,6 @@ class IWP_Admin {
 		add_action( 'wp_loaded', array( $this, 'process_forms' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_styles' ) );
 
-		// ajax import
-//		add_action( 'wp_ajax_jc_import_row', array( $this, 'admin_ajax_import_row' ) );
-		add_action( 'wp_ajax_jc_process_delete', array( $this, 'admin_ajax_process_delete' ) );
-
 		// ajax import all at once with status file
 		add_action( 'wp_ajax_jc_import_all', array( $this, 'admin_ajax_import_all_rows' ) );
 
@@ -553,110 +549,6 @@ class IWP_Admin {
 
 		JCI()->importer = new IWP_Importer( $importer_id );
 		JCI()->importer->run( $request_type );
-	}
-
-	/**
-	 * Process Import Ajax
-	 * @return HTML
-	 */
-	public function admin_ajax_import_row() {
-
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-
-		set_time_limit( 0 );
-
-		$current_row = intval( $_POST['row'] );
-		$importer_id = intval( $_POST['id'] );
-		$records     = intval( $_POST['records'] );
-		$output      = array();
-
-		if ( $records == 0 ) {
-			$records = 1;
-		}
-
-		$jcimporter->importer = new IWP_Importer( $importer_id );
-
-		// fetch import limit
-		$start_record = $jcimporter->importer->get_start_line();
-		$last_record  = 0;
-		$max_records  = $jcimporter->importer->get_row_count();
-
-		$total_records = $jcimporter->importer->get_total_rows();
-
-		for ( $i = 0; $i < $records; $i ++ ) {
-
-			$row = $current_row + $i;
-
-			// escape if max record has been met
-			if ( $max_records > 0 ) {
-				$last_record = $start_record + $max_records;
-				if ( $row >= $last_record ) {
-					break;
-				}
-			}
-
-			// stop bulk import passing limit
-			if ( $row > $total_records ) {
-				break;
-			}
-
-			$data = $jcimporter->importer->run_import( $row, true, 1 );
-			ob_start();
-			require $jcimporter->get_plugin_dir() . 'resources/views/imports/log/log_table_record.php';
-			$output[] = ob_get_clean();
-		}
-
-		// reverse array to follow existing import record order
-		$output = array_reverse( $output );
-		foreach ( $output as $x ) {
-			echo $x;
-		}
-		die();
-	}
-
-	/**
-	 * Process Ajax Deletion of missing records from tracked import
-	 * @return json
-	 */
-	public function admin_ajax_process_delete() {
-
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-		$importer_id = intval( $_POST['id'] );
-		$delete      = isset( $_POST['delete'] ) && $_POST['delete'] == 1 ? true : false;
-
-		$mapper               = new JC_BaseMapper();
-		$jcimporter->importer = new IWP_Importer( $importer_id );
-
-
-		if ( ! $delete ) {
-
-			// return info about objects to delete
-			$objects = apply_filters( 'jci/import_removal_check', array(), $importer_id );
-			echo json_encode( array(
-				'status'   => 'S',
-				'response' => array(
-					'total' => count( $objects )
-				),
-				'msg'      => ''
-			) );
-
-		} else {
-
-			$out = $mapper->remove_single_object( $importer_id );
-			echo json_encode( array(
-				'status'   => 'S',
-				'response' => $out,
-				'msg'      => ''
-			) );
-		}
-
-		die();
 	}
 }
 

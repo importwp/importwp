@@ -78,6 +78,10 @@ class IWP_Mapper {
 		$this->log = array();
 	}
 
+	public function getId(){
+		return $this->ID;
+	}
+
 	/**
 	 * Check relevant permissions for action
 	 *
@@ -104,6 +108,20 @@ class IWP_Mapper {
 		$data = apply_filters('iwp/import_mapper_permissions', $data, $method);
 
 		return $data;
+	}
+
+	protected function applyFieldFilters($fields, $field_type){
+
+		if(!empty($fields)){
+			foreach($fields as $key => $value){
+				$raw_value = $value;
+				$value = apply_filters( sprintf( 'iwp/%s_field', $field_type ) , $value, $raw_value, $key, $this );
+				$value = apply_filters( sprintf( 'iwp/%s_field/%s', $field_type, $key ) , $value, $raw_value, $this );
+				$fields[$key] = $value;
+			}
+		}
+
+		return $fields;
 	}
 
 }

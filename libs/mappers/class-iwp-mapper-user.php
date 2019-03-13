@@ -81,6 +81,7 @@ class IWP_Mapper_User extends IWP_Mapper implements \ImportWP\Importer\MapperInt
 		// check permissions
 		$fields = $data->getData('default');
 		$fields = $this->checkPermissions('insert', $fields);
+		$fields = $this->applyFieldFilters($fields, 'user');
 
 		if ( ! isset( $fields['user_login'] ) || empty( $fields['user_login'] ) ) {
 			throw new \ImportWP\Importer\Exception\MapperException( "No username present" );
@@ -127,6 +128,7 @@ class IWP_Mapper_User extends IWP_Mapper implements \ImportWP\Importer\MapperInt
 		// check permissions
 		$fields = $data->getData('default');
 		$fields = $this->checkPermissions('update', $fields);
+		$fields = $this->applyFieldFilters($fields, 'user');
 
 		$fields['ID'] = $this->ID;
 		$result       = wp_update_user( $fields );
@@ -168,6 +170,10 @@ class IWP_Mapper_User extends IWP_Mapper implements \ImportWP\Importer\MapperInt
 		$version     = JCI()->importer->get_version();
 
 		update_user_meta( $this->ID, '_jci_version_' . $importer_id, $version );
+	}
+
+	public function get_custom_field($id, $key, $single = true){
+		return get_user_meta( $id, $key, true );
 	}
 
 	public function update_custom_field( $user_id, $meta_key, $meta_value, $unique = false ) {

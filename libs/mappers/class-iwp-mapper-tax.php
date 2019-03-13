@@ -61,6 +61,7 @@ class IWP_Mapper_Tax extends IWP_Mapper implements \ImportWP\Importer\MapperInte
 		// check permissions
 		$fields = $data->getData('default');
 		$fields = $this->checkPermissions('insert', $fields);
+		$fields = $this->applyFieldFilters($fields, 'tax');
 
 		$this->ID        = false;
 		$args          = array();
@@ -129,6 +130,7 @@ class IWP_Mapper_Tax extends IWP_Mapper implements \ImportWP\Importer\MapperInte
 		// check permissions
 		$fields = $data->getData('default');
 		$fields = $this->checkPermissions('update', $fields);
+		$fields = $this->applyFieldFilters($fields, 'tax');
 
 		$all_fields = $fields;
 
@@ -181,6 +183,10 @@ class IWP_Mapper_Tax extends IWP_Mapper implements \ImportWP\Importer\MapperInte
 		$this->method = 'delete';
 
 		// TODO: Implement delete() method.
+	}
+
+	public function get_custom_field($id, $key, $single = true){
+		return get_term_meta( $id, $key, true );
 	}
 
 	public function update_custom_field( $term, $key, $value, $unique = false ) {

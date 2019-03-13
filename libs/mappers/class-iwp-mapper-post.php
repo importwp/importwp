@@ -123,6 +123,7 @@ class IWP_Mapper_Post extends IWP_Mapper implements \ImportWP\Importer\MapperInt
 		// check permissions
 		$fields      = $data->getData('default');
 		$fields = $this->checkPermissions('insert', $fields);
+		$fields = $this->applyFieldFilters($fields, 'post');
 
 		$template_group_id = $this->template->get_template_group_id();
 		$post_type   = $this->template->_field_groups[$template_group_id]['import_type_name'];
@@ -200,6 +201,7 @@ class IWP_Mapper_Post extends IWP_Mapper implements \ImportWP\Importer\MapperInt
 		// check permissions
 		$fields    = $data->getData('default');
 		$fields = $this->checkPermissions('update', $fields);
+		$fields = $this->applyFieldFilters($fields, 'post');
 
 		$template_group_id = $this->template->get_template_group_id();
 		$post_type = $this->template->_field_groups[$template_group_id]['import_type_name'];
@@ -309,6 +311,10 @@ class IWP_Mapper_Post extends IWP_Mapper implements \ImportWP\Importer\MapperInt
 				$meta[ $id ] = $value;
 			}
 		}
+	}
+
+	public function get_custom_field($id, $key, $single = true){
+		return get_post_meta( $id, $key, true );
 	}
 
 	public function update_custom_field( $post_id, $key, $value, $unique = false ) {
