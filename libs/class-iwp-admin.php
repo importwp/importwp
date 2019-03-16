@@ -100,7 +100,7 @@ class IWP_Admin {
 			switch($_GET['action']){
 				case 'edit':
 
-					$importer_id = $_GET['import'];
+					$importer_id = intval($_GET['import']);
 					$config_file = JCI()->get_tmp_config_path($importer_id);
 					$config = new \ImportWP\Importer\Config\Config( $config_file );
 

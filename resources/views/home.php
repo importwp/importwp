@@ -13,7 +13,7 @@ $action = isset( $_GET['action'] ) && ! empty( $_GET['action'] ) ? $_GET['action
 			require 'settings.php';
 			break;
 		default:
-			$id = isset( $_GET['import'] ) && ! empty( $_GET['import'] ) ? $_GET['import'] : 0;
+			$id = isset( $_GET['import'] ) && ! empty( $_GET['import'] ) ? intval($_GET['import']) : 0;
 			switch ( $action ) {
 				case 'logs':
 					require 'imports/logs.php';

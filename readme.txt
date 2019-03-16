@@ -3,7 +3,7 @@ Contributors: jcollings
 Tags: import, wordpress xml importer, wordpress csv importer, xml, csv
 Requires at least: 4.0  
 Tested up to: 5.0
-Stable tag: 1.1.2-dev
+Stable tag: 1.1.2
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -66,6 +66,12 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 == Changelog ==
+
+= 1.1.2 - 16/03/2019 =
+
+* ADD - store hash of imported attachments to compare against versions
+* ADD - Add iwp/{FIELD_TYPE}_field, iwp/{FIELD_TYPE}/{FIELD_NAME} filters
+* ADD - post date now tries to convert to correct format
 
 = 1.1.1 - 22/01/2019 =
 
