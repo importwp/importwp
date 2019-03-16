@@ -91,8 +91,11 @@ class IWP_Attachment {
 			return false;
 		}
 
-		return $this->wp_insert_attachment( $post_id, $wp_dest, $args );
-
+		$result = $this->wp_insert_attachment( $post_id, $wp_dest, $args );
+		if(intval($result) > 0){
+			$this->store_attachment_hash($result, $src);
+		}
+		return $result;
 	}
 
 	/**
@@ -178,6 +181,13 @@ class IWP_Attachment {
 		return false;
 	}
 
+	public function store_attachment_hash($attachment_id, $src){
+
+		// Store data to relate it to the importer
+		update_post_meta( $attachment_id, '_iwp_attachment_src' , md5($src));
+		update_post_meta( $attachment_id, '_iwp_attachment_importer' , JCI()->importer->get_ID());
+	}
+
 	/**
 	 * Set Post Featured Image
 	 *
@@ -258,10 +268,15 @@ class IWP_Attachment {
             $template_type = $this->get_file_mime($wp_dest);
         }
 
+        $result = $this->wp_insert_attachment( $post_id, $wp_dest, $args );
+		if(intval($result) > 0){
+			$this->store_attachment_hash($result, $src);
+		}
+
 		return array(
 			'dest' => $wp_dest,
 			'type' => $template_type,
-			'id'   => $this->wp_insert_attachment( $post_id, $wp_dest, $args ),
+			'id'   => $result,
 		);
 	}
 
