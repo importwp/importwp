@@ -185,7 +185,6 @@ class IWP_Attachment {
 
 		// Store data to relate it to the importer
 		update_post_meta( $attachment_id, '_iwp_attachment_src' , md5($src));
-		update_post_meta( $attachment_id, '_iwp_attachment_importer' , JCI()->importer->get_ID());
 	}
 
 	/**
