@@ -255,6 +255,7 @@ class IWP_Importer {
 					break;
 				case 'started':
 					$this->get_total_rows(true, true);
+					do_action('iwp/import_started', $this);
 					break;
 				default:
 					if ( 'error' === $status['status'] ) {
@@ -334,6 +335,10 @@ class IWP_Importer {
 
 		IWP_Debug::log(sprintf('Importer #%d Complete.', $this->get_ID()), $this->log_prefix);
 
+		$this->clear_status_files();
+
+		do_action('iwp/import_completed', $this);
+
 		return $this->do_success( $status );
 	}
 
@@ -380,6 +385,22 @@ class IWP_Importer {
 				$mapper->remove_all_objects( JCI()->importer->get_ID(), $version );
 			}
 		}
+	}
+
+	private function clear_status_files(){
+
+		$version = JCI()->importer->get_version();
+		$dh = opendir(JCI()->get_tmp_dir());
+		while($file = readdir($dh)){
+			if ($file !== "." && $file !== "..") {
+				if(1 === preg_match('/^(?:config|status)-'.JCI()->importer->get_ID().'-(\d+)\.json/', $file, $matches)){
+					if(intval($matches[1]) < $version){
+						@unlink(JCI()->get_tmp_dir() . DIRECTORY_SEPARATOR . $file);
+					}
+				}
+			}
+		}
+		closedir($dh);
 	}
 
 	public function get_ID() {

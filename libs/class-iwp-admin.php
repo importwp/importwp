@@ -188,18 +188,13 @@ class IWP_Admin {
 		$importer = isset( $_GET['import'] ) && intval( $_GET['import'] ) > 0 ? intval( $_GET['import'] ) : false;
 		$template = isset( $_GET['template'] ) && intval( $_GET['template'] ) > 0 ? intval( $_GET['template'] ) : false;
 
-		/**
-		 * @global JC_Importer $jcimporter
-		 */
-		global $jcimporter;
-
 		// if remote and fetch do that, else continue
-		if ( $importer && $action == 'fetch' && in_array( $jcimporter->importer->get_import_type(), array(
+		if ( $importer && $action == 'fetch' && in_array( JCI()->importer->get_import_type(), array(
 				'remote',
 				'local'
 			) ) ) {
 
-			if ( $jcimporter->importer->get_import_type() == 'remote' ) {
+			if ( JCI()->importer->get_import_type() == 'remote' ) {
 				// fetch remote file
 				$remote_settings = IWP_Importer_Settings::getImportSettings( $importer, 'remote' );
 				$url             = $remote_settings['remote_url'];
@@ -209,7 +204,10 @@ class IWP_Admin {
 					'importer-file' => true,
 					'unique'        => true
 				) );
-			} elseif ( $jcimporter->importer->get_import_type() == 'local' ) {
+
+				do_action('iwp/importer/file_uploaded', $result, $importer);
+
+			} elseif ( JCI()->importer->get_import_type() == 'local' ) {
 				// fetch local file
 				$local_settings = IWP_Importer_Settings::getImportSettings( $importer, 'local' );
 				$url            = $local_settings['local_url'];
@@ -219,6 +217,8 @@ class IWP_Admin {
 					'importer-file' => true,
 					'unique'        => true
 				) );
+
+				do_action('iwp/importer/file_uploaded', $result, $importer);
 			}
 
 			// update settings with new file
@@ -394,6 +394,8 @@ class IWP_Admin {
 						'version' => JCI()->get_version()
 					),
 				) );
+
+				do_action('iwp/importer/file_uploaded', $result, $post_id);
 
 				wp_redirect( admin_url( 'admin.php?page=jci-importers&import=' . $post_id . '&action=edit&message=0' ) );
 				exit();

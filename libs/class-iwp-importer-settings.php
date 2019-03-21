@@ -561,11 +561,17 @@ class IWP_Importer_Settings {
 		return $wpdb->insert_id;
 	}
 
-	static function getImporterFiles( $importer_id ) {
+	static function getImporterFiles( $importer_id, $order = 'ASC' ) {
 
 		global $wpdb;
 
-		$result = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM `" . $wpdb->prefix . "importer_files` WHERE importer_id=%d", $importer_id ) );
+		if('ASC' === $order){
+			$order = 'ASC';
+		}else{
+			$order = 'DESC';
+		}
+
+		$result = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM `" . $wpdb->prefix . "importer_files` WHERE importer_id=%d ORDER BY created $order", $importer_id ) );
 		if ( $result ) {
 			return $result;
 		}
