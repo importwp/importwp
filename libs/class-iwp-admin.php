@@ -436,6 +436,8 @@ class IWP_Admin {
 					}
 				}
 
+				do_action('iwp/importer/file_uploaded', $result, $id);
+
 				wp_redirect( admin_url( 'admin.php?page=jci-importers&import=' . $id . '&action=edit' ) );
 				exit();
 			}

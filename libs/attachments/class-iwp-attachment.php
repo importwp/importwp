@@ -68,6 +68,8 @@ class IWP_Attachment {
 	 */
 	public function attach_remote_image( $post_id, $src, $dest, $args = array() ) {
 
+		$dest = apply_filters('iwp/attachment/filename', $dest);
+
 		$unique        = isset( $args['unique'] ) && is_bool( $args['unique'] ) ? $args['unique'] : true;
 		$wp_upload_dir = wp_upload_dir();
 		$wp_dest       = $wp_upload_dir['path'] . '/' . $dest;
@@ -221,8 +223,10 @@ class IWP_Attachment {
 	 */
 	public function attach_local_file( $src ) {
 
+		$dest = apply_filters('iwp/attachment/filename', basename($src));
+
 		$wp_upload_dir = wp_upload_dir();
-		$new_file      = $wp_upload_dir['path'] . '/' . basename( $src );
+		$new_file      = $wp_upload_dir['path'] . '/' . $dest;
 
 		if ( copy( $src, $new_file ) ) {
 			return $new_file;
@@ -242,6 +246,8 @@ class IWP_Attachment {
 	 * @return array|bool
 	 */
 	public function attach_remote_file( $post_id, $src, $dest, $args = array() ) {
+
+		$dest = apply_filters('iwp/attachment/filename', $dest);
 
 		$unique            = isset( $args['unique'] ) && is_bool( $args['unique'] ) ? $args['unique'] : true;
 		$wp_upload_dir     = wp_upload_dir();
