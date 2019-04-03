@@ -281,6 +281,11 @@ class IWP_Ajax {
 
 			} else {
 				$base = isset( $_POST['general_base'] ) ? $_POST['general_base'] : '';
+
+				if(empty($base)){
+					return wp_send_json_error("No record base set");
+				}
+
 				$file = new \ImportWP\Importer\File\XMLFile( JCI()->importer->get_file(), $config );
 				$file->setRecordPath( $base );
 				$parser = new \ImportWP\Importer\Parser\XMLParser( $file );

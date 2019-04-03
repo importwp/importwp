@@ -4,7 +4,7 @@
  *
  * @todo ammend to work with multiple groups, currently only works with one
  */
-$jci_template_type = $jcimporter->importer->template_type;
+$jci_template_type = JCI()->importer->get_template_type();
 ?>
 <div id="postimagediv" class="postbox">
     <h3><span>Preview Settings</span><span id="preview-loading" class="spinner"></span></h3>
