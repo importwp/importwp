@@ -6,7 +6,7 @@
             following links.</p>
         <ul>
             <li><a href="https://www.importwp.com/documentation/" target="_blank">Documentation</a></li>
-            <li><a href="https://jclabs.ticksy.com/" target="_blank">Support</a></li>
+            <li><a href="https://support.jclabs.co.uk/" target="_blank">Support</a></li>
             <li><a href="https://www.importwp.com/" target="_blank">About</a></li>
 			<?php if ( ! class_exists( 'ImportWP_Pro' ) ): ?>
                 <li class="iwp-about__upgrade"><i class="iwp-premium">*</i><a
