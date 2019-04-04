@@ -451,6 +451,7 @@ class IWP_Importer {
 			}
 
 			$config = new \ImportWP\Importer\Config\Config($config_file);
+			$config->set('file_encoding', apply_filters('iwp/importer/file_encoding', false, $this->get_ID()));
 			if($this->get_template_type() === 'csv'){
 				$file = new \ImportWP\Importer\File\CSVFile($this->get_file(), $config);
 				$this->total_rows = $file->getRecordCount();
@@ -582,6 +583,7 @@ class IWP_Importer {
 		$config_file = JCI()->get_tmp_dir() . DIRECTORY_SEPARATOR . sprintf('config-%d-%d.json', $this->get_ID(), $this->get_version());
 		$config_setup = !file_exists($config_file) ? true : false;
 		$config = new \ImportWP\Importer\Config\Config($config_file);
+		$config->set('file_encoding', apply_filters('iwp/importer/file_encoding', false, $this->get_ID()));
 		$config->setIndexCacheSize($per_row);
 
 		if($config_setup === true || !$config->get('fields')) {

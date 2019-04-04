@@ -95,6 +95,7 @@ class IWP_Ajax {
 
 		$config_file = JCI()->get_tmp_config_path($importer_id);
 		$config = new \ImportWP\Importer\Config\Config($config_file);
+		$config->set('file_encoding', apply_filters('iwp/importer/file_encoding', false, $importer_id));
 
 		$xml_file = new \ImportWP\Importer\File\XMLFile($file, $config);
 		$xml = new \ImportWP\Importer\Preview\XMLPreview($xml_file, $base_node);
@@ -118,6 +119,7 @@ class IWP_Ajax {
 
 		$config_file = JCI()->get_tmp_config_path($post_id);
 		$config = new \ImportWP\Importer\Config\Config($config_file);
+		$config->set('file_encoding', apply_filters('iwp/importer/file_encoding', false, $post_id));
 
 		switch ( $type ) {
 			case 'xml':
@@ -193,8 +195,8 @@ class IWP_Ajax {
 	 */
 	public function admin_ajax_base_node() {
 
-		$post_id           = $_GET['importer_id'];
-		if(intval($post_id) <= 0){
+		$post_id           = intval($_GET['importer_id']);
+		if($post_id <= 0){
 			http_response_code(404);
 			die();
 		}
@@ -208,6 +210,7 @@ class IWP_Ajax {
 
 		$config_file = JCI()->get_tmp_config_path($post_id);
 		$config = new \ImportWP\Importer\Config\Config($config_file);
+		$config->set('file_encoding', apply_filters('iwp/importer/file_encoding', false, $post_id));
 
 		$xml_file = new \ImportWP\Importer\File\XMLFile( $file, $config );
 		$xml = new \ImportWP\Importer\Preview\XMLPreview( $xml_file, $base_node );
@@ -240,7 +243,7 @@ class IWP_Ajax {
 	 */
 	public function admin_ajax_preview_record() {
 
-		$importer_id = $_POST['id'];
+		$importer_id = intval($_POST['id']);
 		$map         = $_POST['map'];
 		$row         = isset( $_POST['row'] ) && intval( $_POST['row'] ) > 0 ? intval( $_POST['row'] ) : 1;
 
@@ -250,6 +253,8 @@ class IWP_Ajax {
 
 		$config_file = JCI()->get_tmp_config_path($importer_id);
 		$config = new \ImportWP\Importer\Config\Config( $config_file );
+		$config->set('file_encoding', apply_filters('iwp/importer/file_encoding', false, $importer_id));
+
 		if($config->get('processed') === true) {
 
 			if ( JCI()->importer->get_template_type() === 'csv' ) {
@@ -380,11 +385,12 @@ class IWP_Ajax {
 		// enable error handler
 		$this->start_request();
 
-		$importer_id = $_POST['id'];
+		$importer_id = intval($_POST['id']);
 		JCI()->importer = new IWP_Importer( $importer_id );
 
 		$config_file = JCI()->get_tmp_config_path($importer_id);
 		$config = new \ImportWP\Importer\Config\Config( $config_file );
+		$config->set('file_encoding', apply_filters('iwp/importer/file_encoding', false, $importer_id));
 		if( $config->get('processed') !== true ) {
 
 			$file_path = JCI()->importer->get_file();

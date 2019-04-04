@@ -312,6 +312,7 @@ class IWP_Importer_Settings {
 
 			$config_file = JCI()->get_tmp_config_path($post_id); // tempnam(sys_get_temp_dir(), 'config');
 			$config = new \ImportWP\Importer\Config\Config($config_file);
+			$config->set('file_encoding', apply_filters('iwp/importer/file_encoding', false, $post_id));
 
 			if($settings['template_type'] === 'csv'){
 
