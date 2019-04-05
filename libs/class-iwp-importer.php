@@ -454,6 +454,28 @@ class IWP_Importer {
 			$config->set('file_encoding', apply_filters('iwp/importer/file_encoding', false, $this->get_ID()));
 			if($this->get_template_type() === 'csv'){
 				$file = new \ImportWP\Importer\File\CSVFile($this->get_file(), $config);
+
+				$csv_delimiter = IWP_Importer_Settings::getImporterMetaArr( JCI()->importer->get_ID(), array(
+					'_parser_settings',
+					'csv_delimiter'
+				) );
+				$csv_enclosure = IWP_Importer_Settings::getImporterMetaArr( JCI()->importer->get_ID(), array(
+					'_parser_settings',
+					'csv_enclosure'
+				) );
+				$csv_enclosure = stripslashes( $csv_enclosure );
+
+				if ( empty( $csv_delimiter ) ) {
+					$csv_delimiter = ',';
+				}
+
+				if ( empty( $csv_enclosure ) ) {
+					$csv_enclosure = '"';
+				}
+
+				$file->setDelimiter( $csv_delimiter );
+				$file->setEnclosure( $csv_enclosure );
+
 				$this->total_rows = $file->getRecordCount();
 			}else{
 				$base = $this->addon_settings['import_base'];

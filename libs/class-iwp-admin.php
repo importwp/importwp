@@ -426,15 +426,7 @@ class IWP_Admin {
 				// ImporterModel::setImportVersion($id, $version + 1);
 
 				// Delete edit screen config file
-				$config_file = JCI()->get_tmp_config_path($id);
-				if(file_exists($config_file)){
-
-					unlink($config_file);
-					// Find all files that start with this filename
-					foreach(glob($config_file.'*') as $file){
-						unlink($file);
-					}
-				}
+				IWP_Importer_Settings::clear_edit_config($id);
 
 				do_action('iwp/importer/file_uploaded', $result, $id);
 

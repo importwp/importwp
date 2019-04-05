@@ -96,15 +96,20 @@ class IWP_CSV_Parser{
 
 		if ( $parser_type == 'csv' ) {
 
+			$old_settings = IWP_Importer_Settings::getImporterMetaArr($id, '_parser_settings');
+
 			$parser_settings = $_POST['jc-importer_parser_settings'];
 
 			$delimiter = $parser_settings['csv_delimiter'];
 			$enclosure = $parser_settings['csv_enclosure'];
-			$enclosure = addslashes( $enclosure );
+
+			if($old_settings['csv_delimiter'] !== $delimiter || $old_settings['csv_enclosure'] !== $enclosure){
+				IWP_Importer_Settings::clear_edit_config($id);
+			}
 
 			$result = array(
 				'csv_delimiter' => $delimiter,
-				'csv_enclosure' => $enclosure
+				'csv_enclosure' => addslashes( $enclosure )
 			);
 
 			IWP_Importer_Settings::setImporterMeta( $id, '_parser_settings', $result );

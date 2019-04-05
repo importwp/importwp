@@ -410,6 +410,28 @@ class IWP_Ajax {
 
 			}else{
 				$file = new \ImportWP\Importer\File\CSVFile( JCI()->importer->get_file(), $config );
+
+				$csv_delimiter = IWP_Importer_Settings::getImporterMetaArr( JCI()->importer->get_ID(), array(
+					'_parser_settings',
+					'csv_delimiter'
+				) );
+				$csv_enclosure = IWP_Importer_Settings::getImporterMetaArr( JCI()->importer->get_ID(), array(
+					'_parser_settings',
+					'csv_enclosure'
+				) );
+				$csv_enclosure = stripslashes( $csv_enclosure );
+
+				if ( empty( $csv_delimiter ) ) {
+					$csv_delimiter = ',';
+				}
+
+				if ( empty( $csv_enclosure ) ) {
+					$csv_enclosure = '"';
+				}
+
+				$file->setDelimiter( $csv_delimiter );
+				$file->setEnclosure( $csv_enclosure );
+
 				$file->getRecordCount();
 				$config->set('processed', true);
 			}
