@@ -2,8 +2,8 @@
 **Contributors:** [jcollings](https://profiles.wordpress.org/jcollings)  
 **Tags:** import, wordpress xml importer, wordpress csv importer, xml, csv  
 **Requires at least:** 4.0    
-**Tested up to:** 5.0  
-**Stable tag:** 1.1.3-dev.2  
+**Tested up to:** 5.1.1  
+**Stable tag:** 1.1.3  
 **License:** GPLv3    
 **License URI:** http://www.gnu.org/licenses/gpl.html    
 **Donate link:** https://www.importwp.com/  
@@ -66,6 +66,13 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 ## Changelog ##
+
+### 1.1.3 - 08/04/2019 ###
+
+* ADD - iwp/importer/file_uploaded action
+* ADD - set file encoding via filter iwp/importer/file_encoding
+* FIX - Change plugin support link
+* FIX - include delimiter into record size calculations
 
 ### 1.1.2 - 16/03/2019 ###
 
