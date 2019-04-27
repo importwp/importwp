@@ -30,10 +30,22 @@ class IWP_Attachment_CURL extends IWP_Attachment {
 	 */
 	public function fetch_image( $src = '', $dest = '' ) {
 
-		if ( function_exists( 'curl_init' ) ) {
-			return $this->fetch_curl_image( $src, $dest );
-		} elseif ( ini_get( 'allow_url_fopen' ) ) {
-			return $this->fetch_noncurl_image( $src, $dest );
+		$src = trim($src);
+		$response = wp_remote_get( $src, array( 'timeout' => 30 ) );
+		if ( is_wp_error( $response ) ) {
+
+			$this->_errors[] = $response->get_error_message();
+
+		} else {
+
+			if ( is_array( $response ) ) {
+				if ( 200 === $response['response']['code'] ) {
+					file_put_contents( $dest, $response['body'] );
+					return true;
+				} else {
+					$this->_errors[] = "Url returned response code: " . $response['response']['code'];
+				}
+			}
 		}
 
 		return false;
@@ -44,6 +56,8 @@ class IWP_Attachment_CURL extends IWP_Attachment {
 	 *
 	 * @param  string $src Attachment source.
 	 * @param  string $dest Attachment destination.
+	 *
+	 * @deprecated 1.1.4 Using wp_remote_get instead to fetch files
 	 *
 	 * @return bool
 	 */
@@ -72,6 +86,8 @@ class IWP_Attachment_CURL extends IWP_Attachment {
 	 *
 	 * @param  string $src Attachment source.
 	 * @param  string $dest Attachment destination.
+	 *
+	 * @deprecated 1.1.4 Using wp_remote_get instead to fetch files
 	 *
 	 * @return bool
 	 */
