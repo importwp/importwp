@@ -585,9 +585,9 @@ class IWP_Importer_Settings {
 	 *
 	 * This will cause the importer to re-process the file.
 	 *
-	 * @param int $id
+	 * @param integer $id
 	 */
-	public static function clear_edit_config( int $id ) {
+	public static function clear_edit_config( $id ) {
 
 		$config_file = JCI()->get_tmp_config_path($id);
 		if(file_exists($config_file)){
