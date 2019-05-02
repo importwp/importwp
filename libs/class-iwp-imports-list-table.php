@@ -139,7 +139,9 @@ class IWP_Imports_List_Table extends WP_List_Table {
 							echo sprintf( '<td>%s</td>', get_the_date( '', $item->ID ) );
 							break;
 						default:
-							echo '<td>&nbsp;</td>';
+							echo '<td>';
+							do_action("manage_{$this->screen->id}_column", $column_name, $item->ID);
+							echo '</td>';
 							break;
 					endswitch;
 
