@@ -3,7 +3,7 @@
 **Tags:** import, wordpress xml importer, wordpress csv importer, xml, csv  
 **Requires at least:** 4.0    
 **Tested up to:** 5.1.1  
-**Stable tag:** 1.1.3  
+**Stable tag:** 1.1.4  
 **License:** GPLv3    
 **License URI:** http://www.gnu.org/licenses/gpl.html    
 **Donate link:** https://www.importwp.com/  
@@ -66,6 +66,11 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 ## Changelog ##
+
+### 1.1.4 - 07/05/2019 ###
+
+* ADD - Fetch files via wp_remote_get instead of curl or file_get_contents
+* ADD - Display information about custom field imports / errors
 
 ### 1.1.3 - 08/04/2019 ###
 
