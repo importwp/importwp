@@ -858,11 +858,18 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
                                 var options = $field_wrapper.data('iwp-options');
 
                                 // get all attributes and data from existing element
+                                var currentVal = $field.val();
                                 var $element = clone_element($field, type);
 
                                 if(type === 'select') {
                                     $.each(options, function (k, v) {
-                                        $element.append('<option value=' + k + '>' + v + '</option>');
+
+                                        var selected = '';
+                                        if(currentVal === k){
+                                            selected = ' selected="selected"';
+                                        }
+
+                                        $element.append('<option value="' + k + '"'+selected+'>' + v + '</option>');
                                     });
                                 }else{
                                     $element.attr('type', 'text');
