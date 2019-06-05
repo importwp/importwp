@@ -119,13 +119,11 @@ class IWP_FormBuilder {
 					case 0:
 						if ( ! FormValidator::$validation_rule( $validation_field ) ) {
 							self::$errors[ $field_name ] = $validation_message;
-							continue;
 						}
 						break;
 					case 1:
 						if ( ! FormValidator::$validation_rule( $validation_field, $rule['rule'][1] ) ) {
 							self::$errors[ $field_name ] = $validation_message;
-							continue;
 						}
 						break;
 				}
