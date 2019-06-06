@@ -31,7 +31,7 @@ class IWP_Attachment_CURL extends IWP_Attachment {
 	public function fetch_image( $src = '', $dest = '' ) {
 
 		$src = trim($src);
-		$response = wp_remote_get( $src, array( 'timeout' => 30 ) );
+		$response = wp_remote_get( $src, array( 'timeout' => 30, 'sslverify' => false ) );
 		if ( is_wp_error( $response ) ) {
 
 			$this->_errors[] = $response->get_error_message();
