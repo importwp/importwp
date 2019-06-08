@@ -26,6 +26,20 @@
 				'class'   => 'iwp__attachment-type iwp__show-attachment'
 			)); ?>
 		<?php
+		$return_value = isset($this->_fields[$key]['attachment_permission']) ? $this->_fields[$key]['attachment_permission'] : array('all' => 'Download all attachments', 'new' => 'Download new attachments');
+		if(is_array($return_value)) {
+		    $default = isset($this->_fields[$key]['attachment_permission_default']) ? $this->_fields[$key]['attachment_permission_default'] : 'new';
+			echo IWP_FormBuilder::select( 'field[' . $this->_group . '][' . $key . '_attachment_permission]',
+				array(
+					'options' => array( 'all' => 'Download all attachments', 'new' => 'Download new attachments' ),
+					'label'   => 'Permissions',
+					'default' => $this->get_field_value( $key . '_attachment_permission', $default ),
+					'class'   => 'iwp__attachment-type iwp__show-attachment'
+				)
+            );
+		}
+		?>
+		<?php
 		$return_value = isset($this->_fields[$key]['attachment_value']) ? $this->_fields[$key]['attachment_value'] : array('single' => 'Single Value', 'csv' => 'Comma separated values');
 		if(is_array($return_value)):
 			echo IWP_FormBuilder::select( 'field[' . $this->_group . '][' . $key . '_attachment_value]', array(

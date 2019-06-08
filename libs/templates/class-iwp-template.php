@@ -418,6 +418,7 @@ abstract class IWP_Template {
 				$attachment_ftp_user = $this->get_field_value($key.'_attachment_ftp_user');
 				$attachment_ftp_pass = $this->get_field_value($key.'_attachment_ftp_pass');
 				$attachment_feature_first = $this->get_field_value($key.'_attachment_feature_first');
+				$attachment_permission = $this->get_field_value($key.'_attachment_permission');
 
 				$feature = false;
 				if($attachment_feature_first == 1){
@@ -435,10 +436,13 @@ abstract class IWP_Template {
 
 				foreach($values as $row_value){
 
-					global $wpdb;
-					$src_hash = md5($row_value);
-					$query = $wpdb->prepare("SELECT p.ID FROM {$wpdb->postmeta} as pm INNER JOIN {$wpdb->posts} as p ON pm.post_id = p.ID WHERE p.post_type='attachment' AND pm.meta_key='_iwp_attachment_src' AND pm.meta_value=%s ORDER BY p.ID DESC LIMIT 1", [$src_hash]);
-					$attachment_id = intval($wpdb->get_var($query));
+					$attachment_id = 0;
+					if('new' === $attachment_permission) {
+						global $wpdb;
+						$src_hash      = md5( $row_value );
+						$query         = $wpdb->prepare( "SELECT p.ID FROM {$wpdb->postmeta} as pm INNER JOIN {$wpdb->posts} as p ON pm.post_id = p.ID WHERE p.post_type='attachment' AND pm.meta_key='_iwp_attachment_src' AND pm.meta_value=%s ORDER BY p.ID DESC LIMIT 1", [ $src_hash ] );
+						$attachment_id = intval( $wpdb->get_var( $query ) );
+					}
 
 					if($attachment_id <= 0){
 						$row_value = trim($attachment_base_url) . trim($row_value);
