@@ -435,36 +435,46 @@ abstract class IWP_Template {
 
 				foreach($values as $row_value){
 
-					$row_value = trim($attachment_base_url) . trim($row_value);
-					$class               = null;
-					switch ( $attachment_download ) {
-						case 'local':
-							$class           = new IWP_Attachment_Local();
-							$class->set_local_dir( '' );
-							break;
-						case 'url':
-							$class            = new IWP_Attachment_CURL();
-							break;
-						case 'ftp':
-							$ftp_server = $attachment_ftp_server;
-							$ftp_user   = $attachment_ftp_user;
-							$ftp_pass   = $attachment_ftp_pass;
-							$class      = new IWP_Attachment_FTP( $ftp_server, $ftp_user, $ftp_pass );
-							break;
+					global $wpdb;
+					$src_hash = md5($row_value);
+					$query = $wpdb->prepare("SELECT p.ID FROM {$wpdb->postmeta} as pm INNER JOIN {$wpdb->posts} as p ON pm.post_id = p.ID WHERE p.post_type='attachment' AND pm.meta_key='_iwp_attachment_src' AND pm.meta_value=%s ORDER BY p.ID DESC LIMIT 1", [$src_hash]);
+					$attachment_id = intval($wpdb->get_var($query));
+
+					if($attachment_id <= 0){
+						$row_value = trim($attachment_base_url) . trim($row_value);
+						$class               = null;
+						switch ( $attachment_download ) {
+							case 'local':
+								$class           = new IWP_Attachment_Local();
+								$class->set_local_dir( '' );
+								break;
+							case 'url':
+								$class            = new IWP_Attachment_CURL();
+								break;
+							case 'ftp':
+								$ftp_server = $attachment_ftp_server;
+								$ftp_user   = $attachment_ftp_user;
+								$ftp_pass   = $attachment_ftp_pass;
+								$class      = new IWP_Attachment_FTP( $ftp_server, $ftp_user, $ftp_pass );
+								break;
+						}
+
+						$attachment = $class->attach_remote_file( $core_fields['ID'], $row_value,
+							basename( $row_value ), array(
+								'feature'           => $feature,
+								'restrict_filetype' => false
+							) );
+						$value      = '';
+
+						if ( $attachment && intval( $attachment['id'] ) > 0 ) {
+							$attachment_id = intval( $attachment['id'] );
+						}
 					}
 
-					$attachment = $class->attach_remote_file( $core_fields['ID'], $row_value,
-						basename( $row_value ), array(
-							'feature'           => $feature,
-							'restrict_filetype' => false
-						) );
-					$value      = '';
-
-					if ( $attachment && intval( $attachment['id'] ) > 0 ) {
-
+					if($attachment_id > 0){
 						$attachment_data = array(
-							'id' => $attachment['id'],
-							'url' => wp_get_attachment_url( $attachment['id'] )
+							'id' => $attachment_id,
+							'url' => wp_get_attachment_url( $attachment_id )
 						);
 
 						if($field['virtual'] === true) {
