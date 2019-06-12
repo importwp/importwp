@@ -153,7 +153,8 @@ class IWP_Template_Post extends IWP_Template {
         <script type="text/javascript">
             (function($, window){
 
-                $('#jc-importer_field-post-post_parent_field_type').on('change', function(){
+                var post_type = '<?php echo esc_attr($this->_import_type_name); ?>';
+                $('#jc-importer_field-'+post_type+'-post_parent_field_type').on('change', function(){
                     if($(this).val() === 'column'){
                         $('.field__input--post_parent_ref').show();
                     }else{
@@ -162,7 +163,7 @@ class IWP_Template_Post extends IWP_Template {
                 });
 
                 window.iwp.onProcessComplete.add(function(){
-                    $('#jc-importer_field-post-post_parent_field_type').trigger('change');
+                    $('#jc-importer_field-'+post_type+'-post_parent_field_type').trigger('change');
                 });
 
             })(jQuery, window);
