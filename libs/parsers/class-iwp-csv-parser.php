@@ -103,7 +103,7 @@ class IWP_CSV_Parser{
 			$delimiter = $parser_settings['csv_delimiter'];
 			$enclosure = $parser_settings['csv_enclosure'];
 
-			if($old_settings['csv_delimiter'] !== $delimiter || $old_settings['csv_enclosure'] !== $enclosure){
+			if( isset( $old_settings['csv_delimiter'] ) && ( $old_settings['csv_delimiter'] !== $delimiter || $old_settings['csv_enclosure'] !== $enclosure ) ){
 				IWP_Importer_Settings::clear_edit_config($id);
 			}
 
