@@ -364,7 +364,7 @@ class IWP_Ajax {
 	 * @return void
 	 */
 	public function admin_ajax_record_count() {
-		$importer_id = $_POST['id'];
+		$importer_id = intval($_POST['id']);
 		JCI()->importer = new IWP_Importer( $importer_id );
 
 		if(JCI()->importer->get_template_type() === 'xml'){
@@ -372,7 +372,7 @@ class IWP_Ajax {
 			JCI()->importer->addon_settings['import_base'] = $base;
 		}
 
-		$result = JCI()->importer->get_total_rows();
+		$result = JCI()->importer->get_total_rows(true);
 
 		echo json_encode( $result );
 		die();
