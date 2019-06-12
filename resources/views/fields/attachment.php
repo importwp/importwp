@@ -89,5 +89,48 @@
 					'default' => $this->get_field_value($key.'_attachment_ftp_pass')
 				)); ?>
 		</div>
+        <div>
+            <p><strong>Attachment Metadata:</strong></p>
+	        <?php echo IWP_FormBuilder::text( 'field[' . $this->_group . '][' . $key . '_attachment_alt]',
+		        array(
+			        'label'   => 'Alternative Text',
+			        'default' => $this->get_field_value($key.'_attachment_alt'),
+			        'class'   => 'xml-drop',
+			        'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
+			        'data'    => array(
+				        'jci-field' => $key.'_attachment_alt',
+			        )
+		        )); ?>
+	        <?php echo IWP_FormBuilder::text( 'field[' . $this->_group . '][' . $key . '_attachment_title]',
+		        array(
+			        'label'   => 'Title',
+			        'default' => $this->get_field_value($key.'_attachment_title'),
+			        'class'   => 'xml-drop',
+			        'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
+			        'data'    => array(
+				        'jci-field' => $key.'_attachment_title',
+			        )
+		        )); ?>
+	        <?php echo IWP_FormBuilder::text( 'field[' . $this->_group . '][' . $key . '_attachment_caption]',
+		        array(
+			        'label'   => 'Caption',
+			        'default' => $this->get_field_value($key.'_attachment_caption'),
+			        'class'   => 'xml-drop',
+			        'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
+			        'data'    => array(
+				        'jci-field' => $key.'_attachment_caption',
+			        )
+		        )); ?>
+	        <?php echo IWP_FormBuilder::text( 'field[' . $this->_group . '][' . $key . '_attachment_description]',
+		        array(
+			        'label'   => 'Description',
+			        'default' => $this->get_field_value($key.'_attachment_description'),
+			        'class'   => 'xml-drop',
+			        'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
+			        'data'    => array(
+				        'jci-field' => $key.'_attachment_description',
+			        )
+		        )); ?>
+        </div>
 	</div>
 </div>

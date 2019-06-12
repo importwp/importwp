@@ -226,6 +226,26 @@ abstract class IWP_Template {
 			}
 		}
 
+		// Register Extra fields for Attachment Fields
+		foreach($this->_fields as $field_id => $field){
+
+			if ( 'attachment' !== $field['type'] ) {
+				continue;
+			}
+
+			$attachment_sub_fields = array(
+				'_attachment_title',
+				'_attachment_caption',
+				'_attachment_alt',
+				'_attachment_description',
+			);
+
+			foreach($attachment_sub_fields as $sub_field){
+				$field_key = sprintf('_iwpa_%s_%s', $field_id, $sub_field);
+				$groups[$this->get_group()]['fields'][$field_key] = $this->get_field_value($field_id.$sub_field);
+			}
+		}
+
 		return $groups;
 	}
 
@@ -362,6 +382,28 @@ abstract class IWP_Template {
 			}
 		}
 
+		// Remove Attachment Fields
+		foreach($this->_fields as $field_id => $field){
+
+			if ( 'attachment' !== $field['type'] ) {
+				continue;
+			}
+
+			$attachment_sub_fields = array(
+				'_attachment_title',
+				'_attachment_caption',
+				'_attachment_alt',
+				'_attachment_description',
+			);
+
+			foreach($attachment_sub_fields as $sub_field){
+				$field_key = sprintf('_iwpa_%s_%s', $field_id, $sub_field);
+				$this->_virtual_fields[$field_id.$sub_field] = $data[$field_key];
+				unset($data[$field_key]);
+			}
+		}
+
+
 		$this->process_repeater_fields($data);
 		$this->process_repeater_callback('process_callback');
 
@@ -420,6 +462,12 @@ abstract class IWP_Template {
 				$attachment_feature_first = $this->get_field_value($key.'_attachment_feature_first');
 				$attachment_permission = $this->get_field_value($key.'_attachment_permission');
 
+				// metadata
+				$attachment_title = $this->get_virtual_field($key.'_attachment_title');
+				$attachment_caption = $this->get_virtual_field($key.'_attachment_caption');
+				$attachment_alt = $this->get_virtual_field($key.'_attachment_alt');
+				$attachment_description = $this->get_virtual_field($key.'_attachment_description');
+
 				$feature = false;
 				if($attachment_feature_first == 1){
 					$feature = true;
@@ -427,14 +475,26 @@ abstract class IWP_Template {
 
 				$output = array();
 				$values = array();
+				$titles = array();
+				$captions = array();
+				$alts = array();
+				$descriptions = array();
 
 				if($attachment_value === 'csv'){
 					$values = explode(',', $field_value);
+					$titles = explode(',', $attachment_title);
+					$captions = explode(',', $attachment_caption);
+					$alts = explode(',', $attachment_alt);
+					$descriptions = explode(',', $attachment_description);
 				}else{
 					$values[] = $field_value;
+					$titles[] = $attachment_title;
+					$captions[] = $attachment_caption;
+					$alts[] = $attachment_alt;
+					$descriptions[] = $attachment_description;
 				}
 
-				foreach($values as $row_value){
+				foreach($values as $i => $row_value){
 
 					$attachment_id = 0;
 					if('new' === $attachment_permission) {
@@ -476,6 +536,24 @@ abstract class IWP_Template {
 					}
 
 					if($attachment_id > 0){
+
+						// Write attachment data
+						$attachment_metadata = array(
+							'ID' => $attachment_id,
+							'post_content' => isset($descriptions[$i]) ? $descriptions[$i] : '',
+							'post_excerpt' => isset($captions[$i]) ? $captions[$i] : '',
+							'meta_input' => array(
+								'_wp_attachment_image_alt' => isset($alts[$i]) ? $alts[$i] : ''
+							)
+						);
+
+						// A default title is inserted for the attachment based on the file name, no point overwriting it.
+						if ( isset($titles[$i]) && ! empty( $titles[$i] ) ) {
+							$attachment_metadata['post_title'] = $titles[$i];
+						}
+
+						wp_update_post($attachment_metadata);
+
 						$attachment_data = array(
 							'id' => $attachment_id,
 							'url' => wp_get_attachment_url( $attachment_id )
