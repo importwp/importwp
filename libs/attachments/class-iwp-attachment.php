@@ -129,6 +129,11 @@ class IWP_Attachment {
 		$feature = isset( $args['feature'] ) && is_bool( $args['feature'] ) ? $args['feature'] : true;
 		$resize  = isset( $args['resize'] ) && is_bool( $args['resize'] ) ? $args['resize'] : true;
 
+		$title = isset( $args['title'] ) ? $args['title'] : false;
+		$alt = isset( $args['alt'] ) ? $args['alt'] : false;
+		$caption = isset( $args['caption'] ) ? $args['caption'] : false;
+		$description = isset( $args['description'] ) ? $args['description'] : false;
+
 		$wp_filetype   = wp_check_filetype( $file, null );
 		$wp_upload_dir = wp_upload_dir();
 
@@ -154,12 +159,19 @@ class IWP_Attachment {
 			$attachment = array(
 				'guid'           => $wp_upload_dir['url'] . '/' . basename( $file ),
 				'post_mime_type' => $wp_filetype['type'],
-				'post_title'     => preg_replace( '/\.[^.]+$/', '', basename( $file ) ),
-				'post_content'   => '',
+				'post_title'     => !empty($title) ? $title : preg_replace( '/\.[^.]+$/', '', basename( $file ) ),
+				'post_content'   => !empty($description) ? $description : '',
+				'post_excerpt'   => !empty($caption) ? $caption : '',
 				'post_status'    => 'inherit',
 				'post_author'    => get_current_user_id(),
-				'post_parent'    => $post_id,
+				'post_parent'    => $post_id
 			);
+
+			if ( ! empty( $alt ) ) {
+				$attachment['meta_input'] = array(
+					'_wp_attachment_image_alt' => $alt
+				);
+			}
 
 			$attach_id = wp_insert_attachment( $attachment, $file, $post_id );
 		}

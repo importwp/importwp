@@ -514,6 +514,66 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
 																	)
 																) ); ?>
 																<?php
+																$alt = isset( $attachments[ $group_id ]['alt'][ $key ] ) && ! empty( $attachments[ $group_id ]['alt'][ $key ] ) ? $attachments[ $group_id ]['alt'][ $key ] : '';
+                                                                echo IWP_FormBuilder::text( 'attachment[' . $group_id . '][alt][]', array(
+																	'label'   => 'Alternative Text',
+																	'default' => $alt,
+																	'class'   => 'xml-drop jci-group',
+																	'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
+																	'tooltip' => JCI()->text()->get( 'template.default.attachment_alt' ),
+																	'wrapper_data' => array(
+																		'iwp-name' => 'attachment[' . $group_id . '][alt][]'
+																	),
+																	'data'    => array(
+																		'jci-field' => sprintf('attachment_alt_%d', $attachment_counter),
+																	)
+																) ); ?>
+																<?php
+																$title = isset( $attachments[ $group_id ]['title'][ $key ] ) && ! empty( $attachments[ $group_id ]['title'][ $key ] ) ? $attachments[ $group_id ]['title'][ $key ] : '';
+																echo IWP_FormBuilder::text( 'attachment[' . $group_id . '][title][]', array(
+																	'label'   => 'Title',
+																	'default' => $title,
+																	'class'   => 'xml-drop jci-group',
+																	'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
+																	'tooltip' => JCI()->text()->get( 'template.default.attachment_title' ),
+																	'wrapper_data' => array(
+																		'iwp-name' => 'attachment[' . $group_id . '][title][]'
+																	),
+																	'data'    => array(
+																		'jci-field' => sprintf('attachment_title_%d', $attachment_counter),
+																	)
+																) ); ?>
+																<?php
+																$caption = isset( $attachments[ $group_id ]['caption'][ $key ] ) && ! empty( $attachments[ $group_id ]['caption'][ $key ] ) ? $attachments[ $group_id ]['caption'][ $key ] : '';
+																echo IWP_FormBuilder::text( 'attachment[' . $group_id . '][caption][]', array(
+																	'label'   => 'Caption',
+																	'default' => $caption,
+																	'class'   => 'xml-drop jci-group',
+																	'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
+																	'tooltip' => JCI()->text()->get( 'template.default.attachment_caption' ),
+																	'wrapper_data' => array(
+																		'iwp-name' => 'attachment[' . $group_id . '][caption][]'
+																	),
+																	'data'    => array(
+																		'jci-field' => sprintf('attachment_caption_%d', $attachment_counter),
+																	)
+																) ); ?>
+																<?php
+																$description = isset( $attachments[ $group_id ]['description'][ $key ] ) && ! empty( $attachments[ $group_id ]['description'][ $key ] ) ? $attachments[ $group_id ]['description'][ $key ] : '';
+																echo IWP_FormBuilder::text( 'attachment[' . $group_id . '][description][]', array(
+																	'label'   => 'Description',
+																	'default' => $description,
+																	'class'   => 'xml-drop jci-group',
+																	'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
+																	'tooltip' => JCI()->text()->get( 'template.default.attachment_description' ),
+																	'wrapper_data' => array(
+																		'iwp-name' => 'attachment[' . $group_id . '][description][]'
+																	),
+																	'data'    => array(
+																		'jci-field' => sprintf('attachment_description_%d', $attachment_counter),
+																	)
+																) ); ?>
+																<?php
 																$permissions = isset( $attachments[ $group_id ]['permissions'][ $key ] ) && ! empty( $attachments[ $group_id ]['permissions'][ $key ] ) ? $attachments[ $group_id ]['permissions'][ $key ] : 'overwrite';
 																echo IWP_FormBuilder::select( 'attachment[' . $group_id . '][permissions][]', array(
 																	'label'   => 'Permissions',

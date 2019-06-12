@@ -484,7 +484,11 @@ class IWP_Mapper_Post extends IWP_Mapper implements \ImportWP\Importer\MapperInt
 				$result = $this->attachment_class->attach_remote_image( $this->ID, $src, $dest, array(
 					'unique'  => true,
 					'parent'  => $this->ID,
-					'feature' => $feature
+					'feature' => $feature,
+					'title' => isset( $attachments['title'][$key] ) ? $attachments['title'][$key] : false,
+					'alt' => isset( $attachments['alt'][$key] ) ? $attachments['alt'][$key] : false,
+					'caption' => isset( $attachments['caption'][$key] ) ? $attachments['caption'][$key] : false,
+					'description' => isset( $attachments['description'][$key] ) ? $attachments['description'][$key] : false,
 				) );
 				if ( $result ) {
 					$this->appendLog( array(array('status' => 'S', 'msg' => $dest)), 'attachments');
