@@ -11,7 +11,7 @@
 	<?php
 	$this->display_field($key, $value);
 	?>
-	<div class="iwp-attachment__settings">
+	<div class="iwp-attachment__settings iwp-field-toggle-wrapper">
 		<?php
 		echo IWP_FormBuilder::checkbox( 'field[' . $this->_group . '][' . $key . '_attachment_feature_first]', array(
 			'label' => 'Set first image as featured image',
@@ -23,7 +23,7 @@
 				'options' => array('ftp' => 'FTP', 'url' => 'Remote URL', 'local' => 'Local Filesystem'),
 				'label'   => 'Download',
 				'default' => $this->get_field_value($key.'_attachment_download', 'url'),
-				'class'   => 'iwp__attachment-type iwp__show-attachment'
+				'class'   => 'iwp-field-toggle-trigger'
 			)); ?>
 		<?php
 		$return_value = isset($this->_fields[$key]['attachment_permission']) ? $this->_fields[$key]['attachment_permission'] : array('all' => 'Download all attachments', 'new' => 'Download new attachments');
@@ -34,7 +34,7 @@
 					'options' => array( 'all' => 'Download all attachments', 'new' => 'Download new attachments' ),
 					'label'   => 'Permissions',
 					'default' => $this->get_field_value( $key . '_attachment_permission', $default ),
-					'class'   => 'iwp__attachment-type iwp__show-attachment'
+					'class'   => 'iwp__attachment-permission'
 				)
             );
 		}
@@ -46,7 +46,7 @@
 				'options' => $return_value,
 				'label'   => 'Value',
 				'default' => $this->get_field_value($key.'_attachment_value', 'single'),
-				'class'   => 'iwpcf__field-values iwpcf__show-attachment'
+				'class'   => 'iwp__attachment-value'
 			));
 		else:
 			echo IWP_FormBuilder::hidden( 'field[' . $this->_group . '][' . $key . '_attachment_value]', array( 'value' => $return_value));
@@ -65,14 +65,14 @@
 			echo IWP_FormBuilder::hidden( 'field[' . $this->_group . '][' . $key . '_attachment_return]', array( 'value' => $return_value));
 		endif;
 		?>
-		<div class="iwp__attachment iwp-attachment--ftp iwp__show-attachment iwp__show-attachment-url iwp__show-attachment-local iwp__show-attachment-ftp">
+		<div class="iwp-field-toggle-show--url iwp-field-toggle-show--local iwp-field-toggle-show--ftp">
 			<?php echo IWP_FormBuilder::text( 'field[' . $this->_group . '][' . $key . '_attachment_base_url]',
 				array(
 					'label'   => 'Base Url',
 					'default' => $this->get_field_value($key.'_attachment_base_url')
 				)); ?>
 		</div>
-		<div class="iwp__attachment iwp-attachment--ftp iwp__show-attachment iwp__show-attachment-ftp">
+		<div class="iwp-field-toggle-show--ftp">
 			<?php echo IWP_FormBuilder::text( 'field[' . $this->_group . '][' . $key . '_attachment_ftp_server]',
 				array(
 					'label'   => 'FTP Server',

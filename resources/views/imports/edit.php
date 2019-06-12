@@ -602,7 +602,7 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
                                             <tr>
                                                 <td>
 													<?php
-													$attachment_type = isset( $attachments[ $group_id ]['type'] ) && ! empty( $attachments[ $group_id ]['type'] ) ? $attachments[ $group_id ]['type'] : '';
+													$attachment_type = isset( $attachments[ $group_id ]['type'] ) && ! empty( $attachments[ $group_id ]['type'] ) ? $attachments[ $group_id ]['type'] : 'url';
 													echo IWP_FormBuilder::select( 'attachment[' . $group_id . '][type]', array(
 														'label'   => 'Download',
 														'options' => array(
@@ -900,11 +900,17 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
                                     var field_name = $field_wrapper.data('iwp-name');
                                     var $field_input = $field_wrapper.find('input[name="jc-importer_'+field_name+'"]');
                                     var options = $field_wrapper.data('iwp-options');
+                                    var options_default = $field_wrapper.data('iwp-options_default');
+
+                                    // if there is a supplied default value, set it to that if empty
+                                    if ( $field_input.val() === '' && options_default !== false ){
+                                        $field_input.val(options_default);
+                                    }
 
                                     $field_wrapper.append('<div class="iwp__sub-fields"><label><input type="checkbox" class="iwp-option-toggle" /> Enable Text Field</label></div>');
 
                                     var $checkbox = $field_wrapper.find('.iwp-option-toggle');
-                                    if(options.hasOwnProperty($field_input.val())){
+                                    if ( options.hasOwnProperty( $field_input.val() ) ){
                                         $checkbox.prop('checked', false);
                                     }else{
                                         $checkbox.prop('checked', true);
@@ -953,6 +959,34 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
                             });
 
                         })(jQuery, window, iwp_settings);
+
+                        /**
+                         * Attachment fields settings toggle
+                         */
+                        (function ($, window) {
+
+                            // Wrapper: iwp-field-toggle-wrapper
+                            // Trigger: iwp-field-toggle-trigger
+                            // Targets: iwp-field-toggle-show--{value}
+
+                            var $select = $('.iwp-field-toggle-wrapper .iwp-field-toggle-trigger select');
+                            if($select.length === 0){
+                                return;
+                            }
+
+                            $select.on('change', function(){
+
+                                var $wrapper = $select.closest('.iwp-field-toggle-wrapper');
+
+                                $wrapper.find('div[class^="iwp-field-toggle-show--"]').hide();
+                                $wrapper.find('.iwp-field-toggle-show--' + $(this).val()).show();
+                            });
+
+                            window.iwp.onProcessComplete.add(function(){
+                                $select.trigger('change');
+                            });
+
+                        })(jQuery, window);
 
                     </script>
 				<?php endif; ?>

@@ -10,6 +10,7 @@ if(isset($this->_fields[$key]['before'])){
 }
 
 $options = isset($this->_fields[$key]['options']) ? $this->_fields[$key]['options'] : false;
+$options_default = isset($this->_fields[$key]['options_default']) ? $this->_fields[$key]['options_default'] : false;
 
 echo '<div class="iwp-field">';
 
@@ -21,6 +22,7 @@ echo IWP_FormBuilder::text( 'field[' . $this->_group . '][' . $key . ']', array(
 	'after'   => ' <a href="#" class="jci-import-edit button button-small" title="Select Data To Map">Select</a><span class="preview-text"></span>',
 	'wrapper_data' => array(
 		'iwp-options' => esc_attr(json_encode($options)),
+		'iwp-options_default' => esc_attr($options_default),
 		'iwp-name' => 'field[' . $this->_group . '][' . $key . ']'
 	),
 	'data'    => array(
