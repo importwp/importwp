@@ -2,7 +2,7 @@
 Contributors: jcollings  
 Tags: import, wordpress xml importer, wordpress csv importer, xml, csv
 Requires at least: 4.0  
-Tested up to: 5.1.1
+Tested up to: 5.2
 Stable tag: 1.1.4
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
@@ -67,10 +67,13 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 
 == Changelog ==
 
-= 1.1.4 - 07/05/2019 =
+= 1.1.4 - 11/07/2019 =
 
 * ADD - Fetch files via wp_remote_get instead of curl or file_get_contents
 * ADD - Display information about custom field imports / errors
+* FIX - post_parent field for page template displays correctly
+* FIX - default value not being loaded when enabling field
+* FIX - Fetch non cached row count when selecting xml base nodes
 
 = 1.1.3 - 08/04/2019 =
 
