@@ -384,59 +384,78 @@ class IWP_Mapper_Post extends IWP_Mapper implements \ImportWP\Importer\MapperInt
 		}
 	}
 
-	function processTaxonomies(\ImportWP\Importer\ParsedData $data){
+	function processTaxonomies( \ImportWP\Importer\ParsedData $data ){
 
-		$taxonomies = $data->getData('taxonomies');
+		$taxonomies = $data->getData('taxonomies' );
 
-		if(empty($taxonomies)){
+		if ( empty( $taxonomies ) ) {
 			return;
 		}
 
-		$taxonomies_permissions = JCI()->importer->taxonomies_permissions[$this->template->get_template_group_id()];
+		$taxonomies_permissions = JCI()->importer->taxonomies_permissions[ $this->template->get_template_group_id() ];
 		$log = array();
 
-		foreach($taxonomies as $tax  => $term_arr ){
+		foreach ( $taxonomies as $taxonomy_name  => $term_arr ){
 
-			$permission = $taxonomies_permissions[$tax];
+			$fields = array(
+				'taxonomy_name'       => $taxonomy_name,
+				'taxonomy_terms'      => array(),
+				'taxonomy_permission' => $taxonomies_permissions[ $taxonomy_name ]
+			);
 
-			// clear existing taxonomies
-			if ( $permission == 'overwrite' ) {
-				wp_set_object_terms( $this->ID, null, $tax );
-			}
-
-
-			foreach($term_arr  as $term_value ){
+			foreach( $term_arr  as $term_value ) {
 
 				$term_delimiter = apply_filters( 'jci/value_delimiter', ',' );
 				$term_delimiter = apply_filters( 'jci/taxonomy/value_delimiter', $term_delimiter );
 				$terms          = explode( $term_delimiter, $term_value );
 
-				foreach ( $terms as $t ) {
-					$t = trim( $t );
-					if ( empty( $t ) ) {
-						continue;
-					}
-					// skip if already has term
-					if ( $permission == 'append' && has_term( $t, $tax, $this->ID ) ) {
-						continue;
-					}
+				if ( ! empty( $terms ) ) {
+					foreach ( $terms as $term ) {
+						$term = trim( $term );
+						if ( empty( $term ) ) {
+							continue;
+						}
 
-					$log[ $tax ][] = $t;
-
-					if ( term_exists( $t, $tax ) ) {
-						// attach term to post
-						wp_set_object_terms( $this->ID, $t, $tax, true );
-					} else {
-						// add term
-						$term_id = wp_insert_term( $t, $tax );
-						wp_set_object_terms( $this->ID, $term_id, $tax, true );
+						$fields[ 'taxonomy_terms' ][] = $term;
 					}
 				}
+			}
 
+			if ( empty( $fields[ 'taxonomy_name' ] ) ) {
+				continue;
+			}
+
+			$fields = $this->checkPermissions( $this->method, $fields );
+			$fields = $this->applyFieldFilters( $fields, 'taxonomy' );
+
+			// clear existing taxonomies
+			if ( $fields[ 'taxonomy_permission' ] === 'overwrite' ) {
+				wp_set_object_terms( $this->ID, null, $fields[ 'taxonomy_name' ] );
+			}
+
+			if ( ! empty ( $fields[ 'taxonomy_terms' ] ) ) {
+				foreach ( $fields['taxonomy_terms'] as $t ) {
+
+					// skip if already has term
+					if ( $fields['taxonomy_permission'] === 'append' && has_term( $t, $fields['taxonomy_name'], $this->ID ) ) {
+						continue;
+					}
+
+					$log[ $fields['taxonomy_name'] ][] = $t;
+
+					if ( term_exists( $t, $fields['taxonomy_name'] ) ) {
+						// attach term to post
+						wp_set_object_terms( $this->ID, $t, $fields['taxonomy_name'], true );
+					} else {
+						// add term
+						$term_id = wp_insert_term( $t, $fields['taxonomy_name'] );
+						wp_set_object_terms( $this->ID, $term_id, $fields['taxonomy_name'], true );
+					}
+				}
 			}
 		}
 
-		$this->appendLog($log, 'taxonomies');
+		$this->appendLog( $log, 'taxonomies' );
 
 	}
 
@@ -451,22 +470,28 @@ class IWP_Mapper_Post extends IWP_Mapper implements \ImportWP\Importer\MapperInt
 		foreach($attachments['location'] as $key => $src){
 
 			$src = trim($src);
+			$filename = apply_filters( 'jci/attachment_name', basename($src), $key );
+			$fields = array(
+				'attachment_src' => $src,
+				'attachment_filename' => $filename,
+				'attachment_permission' => $attachments['permissions'][ $key ],
+				'attachment_is_featured' => isset( $attachments['featured_image'][ $key ] ) && $attachments['featured_image'][ $key ] == 1 ? true : false,
+				'attachment_title' => isset( $attachments['title'][$key] ) ? $attachments['title'][$key] : false,
+				'attachment_alt' => isset( $attachments['alt'][$key] ) ? $attachments['alt'][$key] : false,
+				'attachment_caption' => isset( $attachments['caption'][$key] ) ? $attachments['caption'][$key] : false,
+				'attachment_description' => isset( $attachments['description'][$key] ) ? $attachments['description'][$key] : false,
+			);
 
-			if(empty($src)){
+			$fields = $this->checkPermissions($this->method, $fields);
+			$fields = $this->applyFieldFilters($fields, 'attachment');
+
+			if(empty($fields['attachment_src'])){
 				continue;
 			}
 
-			$permission = $attachments['permissions'][ $key ];
-
-			$featured = isset( $attachments['featured_image'][ $key ] ) ? $attachments['featured_image'][ $key ] : 0;
-			if ( $featured == 1 ) {
-				$feature = true;
-			} else {
-				$feature = false;
-			}
 			// escape if already has attachment
 			$has_image = has_post_thumbnail( $this->ID );
-			if ( $permission == 'create' && $has_image ) {
+			if ( $fields['attachment_permission'] == 'create' && $has_image ) {
 				continue;
 			}
 
@@ -475,23 +500,20 @@ class IWP_Mapper_Post extends IWP_Mapper implements \ImportWP\Importer\MapperInt
 				// unable to connect
 				if ( ! $this->initAttachment( $attachments ) ) {
 					throw new IWP_Exception( "Could Not Connect", JCI_ERR );
-					return false;
 				}
 
-				$dest = basename( $src );
-				$dest = apply_filters( 'jci/attachment_name', $dest, $key );
 				// download and install attachments
-				$result = $this->attachment_class->attach_remote_image( $this->ID, $src, $dest, array(
+				$result = $this->attachment_class->attach_remote_image( $this->ID, $src, $filename, array(
 					'unique'  => true,
 					'parent'  => $this->ID,
-					'feature' => $feature,
-					'title' => isset( $attachments['title'][$key] ) ? $attachments['title'][$key] : false,
-					'alt' => isset( $attachments['alt'][$key] ) ? $attachments['alt'][$key] : false,
-					'caption' => isset( $attachments['caption'][$key] ) ? $attachments['caption'][$key] : false,
-					'description' => isset( $attachments['description'][$key] ) ? $attachments['description'][$key] : false,
+					'feature' => $fields['attachment_is_featured'],
+					'title' => $fields['attachment_title'],
+					'alt' => $fields['attachment_alt'],
+					'caption' => $fields['attachment_caption'],
+					'description' => $fields['attachment_description'],
 				) );
 				if ( $result ) {
-					$this->appendLog( array(array('status' => 'S', 'msg' => $dest)), 'attachments');
+					$this->appendLog( array(array('status' => 'S', 'msg' => $filename)), 'attachments');
 				} else {
 					$this->appendLog( array(array('status' => 'E', 'msg' => $this->attachment_class->get_error())), 'attachments');
 				}
