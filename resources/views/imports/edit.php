@@ -191,25 +191,20 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
                             <div class="permissions">
                                 <h4>Permissions</h4>
 								<?php
-								$perm_create = isset( $permissions_general['create'] ) && $permissions_general['create'] == 1 ? 1 : 0;
-								$perm_update = isset( $permissions_general['update'] ) && $permissions_general['update'] == 1 ? 1 : 0;
-								$perm_delete = isset( $permissions_general['delete'] ) && $permissions_general['delete'] == 1 ? 1 : 0;
 
-								echo IWP_FormBuilder::checkbox( 'permissions[create]', array(
-									'label'   => 'Create',
-									'default' => 1,
-									'checked' => $perm_create
-								) );
-								echo IWP_FormBuilder::checkbox( 'permissions[update]', array(
-									'label'   => 'Update',
-									'default' => 1,
-									'checked' => $perm_update
-								) );
-								echo IWP_FormBuilder::checkbox( 'permissions[delete]', array(
-									'label'   => 'Delete',
-									'default' => 1,
-									'checked' => $perm_delete
-								) );
+                                $data = array( 'create', 'update', 'delete' );
+
+                                foreach($data as $method){
+	                                $perm = isset( $permissions_general[ $method ] ) && $permissions_general[ $method ] == 1 ? 1 : 0;
+
+	                                echo IWP_FormBuilder::checkbox( 'permissions['.$method.']', array(
+		                                'label'   => ucfirst($method),
+		                                'default' => 1,
+		                                'checked' => $perm
+	                                ) );
+
+	                                do_action('iwp/importer_permissions/' . $method);
+                                }
 								?>
                             </div>
                         </div>
@@ -1029,21 +1024,26 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
                             // Trigger: iwp-field-toggle-trigger
                             // Targets: iwp-field-toggle-show--{value}
 
-                            var $select = $('.iwp-field-toggle-wrapper .iwp-field-toggle-trigger select');
-                            if($select.length === 0){
+                            var $selects = $('.iwp-field-toggle-wrapper .iwp-field-toggle-trigger select');
+                            if($selects.length === 0){
                                 return;
                             }
 
-                            $select.on('change', function(){
+                            $selects.each(function(){
+                                var $select = $(this);
 
-                                var $wrapper = $select.closest('.iwp-field-toggle-wrapper');
+                                $select.on('change', function(){
 
-                                $wrapper.find('div[class^="iwp-field-toggle-show--"]').hide();
-                                $wrapper.find('.iwp-field-toggle-show--' + $(this).val()).show();
+                                    var $wrapper = $select.closest('.iwp-field-toggle-wrapper');
+                                    $wrapper.find('div[class^="iwp-field-toggle-show--"]').hide();
+                                    $wrapper.find('.iwp-field-toggle-show--' + $(this).val()).show();
+                                });
                             });
 
+
+
                             window.iwp.onProcessComplete.add(function(){
-                                $select.trigger('change');
+                                $selects.trigger('change');
                             });
 
                         })(jQuery, window);

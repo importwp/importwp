@@ -371,6 +371,7 @@ class IWP_FormBuilder {
 		$required = false;
 		$label    = $name;
 		$default  = '';
+		$tooltip  = '';
 		extract( $args );
 
 		$value   = self::get_value( $name, $default );
@@ -398,7 +399,7 @@ class IWP_FormBuilder {
 		$output = '<div class="' . implode( ' ', $classes ) . '" />';
 
 		if ( $label !== false ) {
-			$output .= self::get_label( $label );
+			$output .= self::get_label( $label, $tooltip );
 		}
 
 		$output .= '<textarea  aria-label="'.esc_attr(strip_tags($label)).'" name="' . self::$prefix . $name . '" id="' . self::$prefix . $name . '" >' . $value . '</textarea>';

@@ -67,6 +67,10 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 
 ## Changelog ##
 
+### 1.2.0 ###
+
+* ADD - Visual Permission editor to filter fields to be imported per insert/update
+
 ### 1.1.4 - 11/07/2019 ###
 
 * ADD - Fetch files via wp_remote_get instead of curl or file_get_contents
