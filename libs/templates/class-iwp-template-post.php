@@ -336,13 +336,13 @@ class IWP_Template_Post extends IWP_Template {
 
 		switch ( $column ) {
 			case 'post':
-				edit_post_link( $data[$this->get_group()]['post_title'] . ' #' . $data[$this->get_group()]['ID'], '', '', $data[$this->get_group()]['ID'] );
+				edit_post_link( get_the_title($data['post']['ID']) . ' #' . $data['post']['ID'], '', '', $data['post']['ID'] );
 				break;
 			case 'method':
 
-				if ( $data[$this->get_group()]['_jci_type'] == 'I' ) {
+				if ( $data['post']['_jci_type'] == 'I' ) {
 					echo 'Inserted';
-				} elseif ( $data[$this->get_group()]['_jci_type'] == 'U' ) {
+				} elseif ( $data['post']['_jci_type'] == 'U' ) {
 					echo 'Updated';
 				}
 				break;

@@ -229,7 +229,7 @@ abstract class IWP_Template {
 		// Register Extra fields for Attachment Fields
 		foreach($this->_fields as $field_id => $field){
 
-			if ( 'attachment' !== $field['type'] ) {
+			if ( ! isset( $field['type'] ) || 'attachment' !== $field['type'] ) {
 				continue;
 			}
 
@@ -385,7 +385,7 @@ abstract class IWP_Template {
 		// Remove Attachment Fields
 		foreach($this->_fields as $field_id => $field){
 
-			if ( 'attachment' !== $field['type'] ) {
+			if ( ! isset( $field['type'] ) || 'attachment' !== $field['type'] ) {
 				continue;
 			}
 
