@@ -44,7 +44,7 @@ class IWP_Importer_Log {
 		$version  = JCI()->importer->get_version();
 
 		$wpdb->query( $wpdb->prepare( "
-			INSERT INTO `" . $wpdb->prefix . "importer_log` ( object_id,file, version, row, value, created)
+			INSERT INTO `" . $wpdb->prefix . "importer_log` ( `object_id`, `file`, `version`, `row`, `value`, `created`)
 			VALUES(%d, %s, %d, %d, %s, NOW());",
 			$import_id, $template['import_file'], $version, $row, serialize( $record ) ) );
 	}
@@ -60,7 +60,7 @@ class IWP_Importer_Log {
 	static function get_last_row( $import_id, $version ) {
 		global $wpdb;
 		$import_id = intval( $import_id );
-		$row       = $wpdb->get_row( $wpdb->prepare( "SELECT row FROM `" . $wpdb->prefix . "importer_log` WHERE object_id=%d AND version=%d GROUP BY row ORDER BY row DESC LIMIT 1", $import_id, $version ) );
+		$row       = $wpdb->get_row( $wpdb->prepare( "SELECT `row` FROM `" . $wpdb->prefix . "importer_log` WHERE `object_id`=%d AND `version`=%d GROUP BY `row` ORDER BY `row` DESC LIMIT 1", $import_id, $version ) );
 
 		if ( ! $row ) {
 			return 0;
@@ -79,7 +79,7 @@ class IWP_Importer_Log {
 	static function get_current_version( $import_id ) {
 		global $wpdb;
 		$import_id = intval( $import_id );
-		$row       = $wpdb->get_row( $wpdb->prepare( "SELECT version FROM `" . $wpdb->prefix . "importer_log` WHERE object_id=%d GROUP BY version ORDER BY version DESC", $import_id ) );
+		$row       = $wpdb->get_row( $wpdb->prepare( "SELECT `version` FROM `" . $wpdb->prefix . "importer_log` WHERE `object_id`=%d GROUP BY `version` ORDER BY `version` DESC", $import_id ) );
 
 		if ( ! $row ) {
 			return 0;
@@ -100,7 +100,7 @@ class IWP_Importer_Log {
 		global $wpdb;
 		$importer_id = intval( $importer_id );
 
-		return $wpdb->get_results( "SELECT version, file,  created, COUNT(row) as row_total FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' GROUP BY version ORDER BY version DESC", OBJECT );
+		return $wpdb->get_results( "SELECT `version`, `file`,  `created`, COUNT(`row`) as `row_total` FROM `" . $wpdb->prefix . "importer_log` WHERE `object_id`='{$importer_id}' GROUP BY `version` ORDER BY `version` DESC", OBJECT );
 	}
 
 	static function get_importer_log( $importer_id, $log, $order = 'DESC', $limit = 10, $page = 1 ) {
@@ -120,7 +120,7 @@ class IWP_Importer_Log {
 			$limit_str = "LIMIT {$offset}, {$limit}";
 		}
 
-		return $wpdb->get_results( "SELECT * FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' AND version='{$log}' ORDER BY id {$order} {$limit_str}", OBJECT );
+		return $wpdb->get_results( "SELECT * FROM `" . $wpdb->prefix . "importer_log` WHERE `object_id`='{$importer_id}' AND `version`='{$log}' ORDER BY `id` {$order} {$limit_str}", OBJECT );
 	}
 
 	/**
@@ -138,14 +138,14 @@ class IWP_Importer_Log {
 		$importer_id = intval( $importer_id );
 		$log         = intval( $log );
 
-		return $wpdb->get_var( "SELECT COUNT(*) FROM `" . $wpdb->prefix . "importer_log` WHERE object_id='{$importer_id}' AND version='{$log}'" );
+		return $wpdb->get_var( "SELECT COUNT(*) FROM `" . $wpdb->prefix . "importer_log` WHERE `object_id`='{$importer_id}' AND `version`='{$log}'" );
 	}
 
 	static function clearLogs() {
 
 		global $wpdb;
 
-		return $wpdb->query( $wpdb->prepare( "DELETE FROM `" . $wpdb->prefix . "importer_log` WHERE created < %s", date( 'Y-m-d H:i:s', strtotime( '- 1 DAY' ) ) ) );
+		return $wpdb->query( $wpdb->prepare( "DELETE FROM `" . $wpdb->prefix . "importer_log` WHERE `created` < %s", date( 'Y-m-d H:i:s', strtotime( '- 1 DAY' ) ) ) );
 	}
 
 }
