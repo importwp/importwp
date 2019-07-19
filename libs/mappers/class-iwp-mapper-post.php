@@ -317,7 +317,7 @@ class IWP_Mapper_Post extends IWP_Mapper implements \ImportWP\Importer\MapperInt
 		return get_post_meta( $id, $key, true );
 	}
 
-	public function update_custom_field( $post_id, $key, $value, $unique = false ) {
+	public function update_custom_field( $post_id, $key, $value, $unique = false, $skip_permissions = false ) {
 
 		$old_value = get_post_meta( $post_id, $key, true );
 
@@ -331,9 +331,12 @@ class IWP_Mapper_Post extends IWP_Mapper implements \ImportWP\Importer\MapperInt
 			return;
 		}
 
-		$data = $this->checkPermissions($this->method, array($key => $value));
-		if(!isset($data[$key])){
-			return;
+		$data = array($key => $value);
+		if(false === $skip_permissions) {
+			$data = $this->checkPermissions( $this->method, array( $key => $value ) );
+			if ( ! isset( $data[ $key ] ) ) {
+				return;
+			}
 		}
 
 		// set to new value in-case it has been changed

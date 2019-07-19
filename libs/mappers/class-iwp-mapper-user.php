@@ -176,11 +176,14 @@ class IWP_Mapper_User extends IWP_Mapper implements \ImportWP\Importer\MapperInt
 		return get_user_meta( $id, $key, true );
 	}
 
-	public function update_custom_field( $user_id, $meta_key, $meta_value, $unique = false ) {
+	public function update_custom_field( $user_id, $meta_key, $meta_value, $unique = false, $skip_permissions = false ) {
 
-		$data = $this->checkPermissions($this->method, array($meta_key => $meta_value));
-		if(!isset($data[$meta_key])){
-			return;
+		$data = array( $meta_key => $meta_value );
+		if(false === $skip_permissions) {
+			$data = $this->checkPermissions( $this->method, $data );
+			if ( ! isset( $data[ $meta_key ] ) ) {
+				return;
+			}
 		}
 
 		// set to new value in-case it has been changed

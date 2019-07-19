@@ -189,7 +189,7 @@ class IWP_Mapper_Tax extends IWP_Mapper implements \ImportWP\Importer\MapperInte
 		return get_term_meta( $id, $key, true );
 	}
 
-	public function update_custom_field( $term, $key, $value, $unique = false ) {
+	public function update_custom_field( $term, $key, $value, $unique = false, $skip_permissions = false ) {
 
 		$term_id = intval($term) > 0 ? intval($term) : $term['term_id'];
 
@@ -200,9 +200,12 @@ class IWP_Mapper_Tax extends IWP_Mapper implements \ImportWP\Importer\MapperInte
 			return;
 		}
 
-		$data = $this->checkPermissions($this->method, array($key => $value));
-		if(!isset($data[$key])){
-			return;
+		$data = array( $key => $value );
+		if(false === $skip_permissions) {
+			$data = $this->checkPermissions( $this->method, $data );
+			if ( ! isset( $data[ $key ] ) ) {
+				return;
+			}
 		}
 
 		// set to new value in-case it has been changed

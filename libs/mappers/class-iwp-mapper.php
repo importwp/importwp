@@ -105,8 +105,18 @@ class IWP_Mapper {
 			throw new \ImportWP\Importer\Exception\MapperException( "No Enough Permissions to Delete Record");
 		}
 
-		$data = apply_filters('iwp/import_mapper_permissions', $data, $method);
+		$this->applyImportMapperPermissions($data, $method);
 
+		return $data;
+	}
+
+	public function applyImportMapperPermissions($data, $method = null){
+
+		if(is_null($method)){
+			$method = $this->method;
+		}
+
+		$data = apply_filters('iwp/import_mapper_permissions', $data, $method);
 		return $data;
 	}
 
