@@ -3,7 +3,7 @@
     <div class="jci-heading">
         <div class="jci-left">
             <h1>CSV Column Selector</h1>
-            <p>Select columns below in the order you want, once happy click on the submit button to choose use the
+            <p>Each column from your csv has been displayed below per row, select a row below in the order you want, once happy click on the submit button to choose use the
                 selection, you can manually edit the formatting in the <strong>Currently Selected</strong> field below.
             </p>
         </div>
@@ -12,30 +12,14 @@
     <div class="jci-preview-block">
         <table id="jci-csv-select" width="100%" border="1">
 
-            <thead>
-			<?php
-			$row = array_shift( $records );
-			if ( $row ): ?>
+            <?php
+            $headings = array_shift( $records );
+            foreach ($headings as $i => $heading): ?>
                 <tr>
-					<?php foreach ( $row as $item ): ?>
-                        <th><?php echo $item; ?></th>
-					<?php endforeach; ?>
+                    <th><?php echo $heading ?></th>
+                    <td><?php echo isset($records[0][$i]) ? $records[0][$i] : '&nbsp;'; ?></td>
                 </tr>
-			<?php endif; ?>
-            </thead>
-
-            <tbody>
-			<?php if ( count( $records ) > 0 ): ?>
-				<?php foreach ( $records as $row ): ?>
-                    <tr>
-						<?php foreach ( $row as $item ): ?>
-                            <td><?php echo $item; ?></td>
-						<?php endforeach; ?>
-                    </tr>
-				<?php endforeach; ?>
-			<?php endif; ?>
-            </tbody>
-
+            <?php endforeach; ?>
         </table>
     </div>
 
@@ -71,17 +55,16 @@
             _modal.find('.jci-preview-block').height(_available_height - (_header_height + _footer_height));
         });
 
-        // when a column is selected, insert that column into the input field
-        $('#jci-csv-select tr').each(function () {
-            $(this).find('td, th').each(function (index) {
-                $(this).click(function (e) {
-                    var _val = _preview_input.val();
-                    _preview_input.val(_val + '{' + index + '}');
-                    _preview_input.trigger('change');
-                    e.preventDefault();
-                    return false;
-                });
-            });
+        // when a row is selected insert that row into the input field
+        $('#jci-csv-select tr').on('click', 'td,th', function(e){
+
+            var index = $(this).closest('tr').index();
+            var _val = _preview_input.val();
+            _preview_input.val(_val + '{' + index + '}');
+            _preview_input.trigger('change');
+            e.preventDefault();
+            return false;
+
         });
 
         // When input changed, trigger preview

@@ -305,14 +305,17 @@ class IWP_FormBuilder {
 		return false;
 	}
 
-	static function get_label( $name, $tooltip = '' ) {
+	static function get_label( $name, $tooltip = '', $args = array() ) {
 		$tooltip_str   = '';
 		$label_classes = array( 'iwp-field__label' );
+
+		$for = isset($args['for']) && !empty($args['for']) ? $args['for'] : false;
+
 		if ( ! empty( $tooltip ) ) {
 			$label_classes[] = 'iwp-field__label--has_tooltip';
 			$tooltip_str     = '<span class="iwp-field__tooltip iwp-field__tooltip--inline" data-title="' . esc_attr( $tooltip ) . '" title="' . esc_attr( $tooltip ) . '">?</span>';
 		}
-		$output = '<label class="' . implode( ' ', $label_classes ) . '">' . $name . $tooltip_str . '</label>';
+		$output = '<label class="' . implode( ' ', $label_classes ) . '"'. ($for ? ' for="'.$for.'"' : '') .'>' . $name . $tooltip_str . '</label>';
 
 		return $output;
 	}
@@ -611,7 +614,7 @@ class IWP_FormBuilder {
 		}
 
 		if ( $label !== false ) {
-			$output .= self::get_label( $label );
+			$output .= self::get_label( $label, '', array('for' => self::$prefix . $name) );
 		}
 
 		if ( $after ) {
