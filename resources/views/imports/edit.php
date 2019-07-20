@@ -189,21 +189,33 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
 
                         <div class="jci-group-permissions jci-group-section" data-section-id="permissions">
                             <div class="permissions">
-                                <h4>Permissions</h4>
+                                <h4>Importer Permissions</h4>
 								<?php
 
-                                $data = array( 'create', 'update', 'delete' );
+                                $data = array(
+                                        'create' => JCI()->text()->get('import.permissions.create_method') . ' - <em>'.JCI()->text()->get('import.permissions.create_desc').'</em>',
+                                        'update' => JCI()->text()->get('import.permissions.update_method') . ' - <em>'.JCI()->text()->get('import.permissions.update_desc').'</em>',
+                                        'delete' => JCI()->text()->get('import.permissions.delete_method') . ' - <em>'.JCI()->text()->get('import.permissions.delete_desc').'</em>',
+                                );
 
-                                foreach($data as $method){
+                                foreach($data as $method => $method_label){
 	                                $perm = isset( $permissions_general[ $method ] ) && $permissions_general[ $method ] == 1 ? 1 : 0;
 
+	                                echo '<div class="import-permission import-permission--'.$method.'">';
+
+	                                echo '<div class="permission__core">';
+
 	                                echo IWP_FormBuilder::checkbox( 'permissions['.$method.']', array(
-		                                'label'   => ucfirst($method),
+		                                'label'   => $method_label,
 		                                'default' => 1,
 		                                'checked' => $perm
 	                                ) );
 
+	                                echo '</div>';
+
 	                                do_action('iwp/importer_permissions/' . $method);
+
+	                                echo '</div>';
                                 }
 								?>
                             </div>

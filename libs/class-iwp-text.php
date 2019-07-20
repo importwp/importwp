@@ -34,6 +34,19 @@ class IWP_Text {
 			'import.settings.row_count'                => __( 'Maximum number of rows to import, leave "0" to ignore.', 'iwp' ),
 			'import.settings.record_import_count'      => __( 'Number of items to import at a time, increasing this number may speed up the import, or if your import is timing out decrease it.', 'iwp' ),
 			'import.settings.template_type'            => __( 'Set the type of import you are running, once changed hit save all for the page to be changed.', 'iwp' ),
+			'import.permissions.create_method'         => __( 'Create', 'iwp' ),
+			'import.permissions.create_desc'           => __( 'Allow the creation of new records.', 'iwp' ),
+			'import.permissions.create_filter'         => __( 'Restrict which fields are imported when a new record is created.', 'iwp' ),
+			'import.permissions.update_method'         => __( 'Update', 'iwp' ),
+			'import.permissions.update_desc'           => __( 'Allow updating of existing records.', 'iwp' ),
+			'import.permissions.update_filter'         => __( 'Restrict which fields are imported when updating existing records.', 'iwp' ),
+			'import.permissions.delete_method'         => __( 'Delete', 'iwp' ),
+			'import.permissions.delete_desc'           => __( 'Allow deletion of previously imported records.', 'iwp' ),
+			'import.permissions.label_filter_type'     => __( 'Filter Fields', 'iwp' ),
+			'import.permissions.info_filter_type'      => __( '', 'iwp' ),
+			'import.permissions.label_filter_fields'   => __( 'Fields', 'iwp' ),
+			'import.permissions.info_filter_fields'    => __( 'Enter each field name on a new line, use * to match field names. E.g. "field_name", starts with "field_*", ends with "*_field", or match all "*"', 'iwp' ),
+
 			// Local Upload Settings
 			'import.local.local_url'                   => __( 'Enter the full local path to the file you want to import.', 'iwp' ),
 			// Local Upload Settings

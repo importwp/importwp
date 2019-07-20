@@ -55,25 +55,36 @@ class IWP_Importer_Permissions {
 		$permission_type = isset( $permissions["{$type}_type"] ) ? $permissions["{$type}_type"] : '';
 		$fields          = isset( $permissions["{$type}_fields"] ) ? $permissions["{$type}_fields"] : array();
 
+		echo '<div class="permission-filters">';
+
+		if('create' === $type){
+			echo '<p>' . JCI()->text()->get( 'import.permissions.create_filter' ) . '</p>';
+		}else{
+			echo '<p>' . JCI()->text()->get( 'import.permissions.update_filter' ) . '</p>';
+		}
+
 		echo '<div class="iwp-field-toggle-wrapper">';
 
 		echo IWP_FormBuilder::select( "field_permissions_type[{$type}]", array(
-			'label'   => 'Filter Fields',
+			'label'   => JCI()->text()->get('import.permissions.label_filter_type'),
 			'class'   => 'iwp-field-toggle-trigger',
 			'default' => $permission_type,
 			'options' => array(
 				''        => 'All Fields',
 				'include' => 'Include Fields',
 				'exclude' => 'Exclude Fields'
-			)
+			),
+			'tooltip' => JCI()->text()->get('import.permissions.info_filter_type')
 		) );
 
 		echo '<div class="iwp-field-toggle-show--include iwp-field-toggle-show--exclude">';
 		echo IWP_FormBuilder::textarea( "field_permissions[{$type}]", array(
-			'label'   => 'Fields',
+			'label'   => JCI()->text()->get('import.permissions.label_filter_fields'),
 			'default' => implode( "\n", $fields ),
-			'tooltip' => 'Enter each field name on a new line, use * to match field names. E.g. "field_name", starts with "field_*", ends with "*_field", or match all "*"'
+			'tooltip' => JCI()->text()->get('import.permissions.info_filter_fields')
 		) );
+		echo '</div>';
+
 		echo '</div>';
 
 		echo '</div>';

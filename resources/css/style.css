@@ -295,6 +295,25 @@
 .iwp-field [data-iwp-type="select"] > .jci-import-edit {
   display: none !important; }
 
+.import-permission {
+  border: 1px solid #e2e2e2;
+  margin-bottom: 10px; }
+
+.permission__core {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  padding: 5px 10px; }
+
+.permission-filters {
+  background-color: #f9f9f9;
+  border-top: 1px solid #e2e2e2;
+  padding: 0 10px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  overflow: hidden; }
+
 .jci-left {
   float: left; }
 
