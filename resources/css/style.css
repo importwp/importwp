@@ -297,7 +297,16 @@
 
 .import-permission {
   border: 1px solid #e2e2e2;
-  margin-bottom: 10px; }
+  border-top: none; }
+
+.import-permission--create {
+  border-top: 1px solid #e2e2e2; }
+
+.import-permission--enabled .permission-filters {
+  display: none; }
+
+.import-permission--active .permission-filters {
+  display: block; }
 
 .permission__core {
   -webkit-box-sizing: border-box;

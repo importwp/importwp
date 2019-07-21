@@ -71,8 +71,8 @@ class IWP_Importer_Permissions {
 			'default' => $permission_type,
 			'options' => array(
 				''        => 'All Fields',
-				'include' => 'Include Fields',
-				'exclude' => 'Exclude Fields'
+				'include' => 'Only the following Fields',
+				'exclude' => 'None of the following Fields'
 			),
 			'tooltip' => JCI()->text()->get('import.permissions.info_filter_type')
 		) );

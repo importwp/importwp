@@ -1060,6 +1060,29 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
 
                         })(jQuery, window);
 
+                        /**
+                         * Toggle extra permission panels
+                         */
+                        (function($){
+
+                            $(document).ready(function () {
+
+                                $('.permission__core input[type="checkbox"]').on('change', function(){
+                                    var $wrapper = $(this).closest('.import-permission');
+                                    if($(this).is(':checked')){
+                                        $wrapper.addClass('import-permission--active');
+                                    }else{
+                                        $wrapper.removeClass('import-permission--active');
+                                    }
+
+                                });
+
+                                $('.import-permission').addClass('import-permission--enabled');
+                                $('.permission__core input[type="checkbox"]').trigger('change');
+                            });
+
+                        })(jQuery);
+
                     </script>
 				<?php endif; ?>
 
