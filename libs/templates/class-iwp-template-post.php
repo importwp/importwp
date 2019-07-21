@@ -123,7 +123,7 @@ class IWP_Template_Post extends IWP_Template {
         <div class="iwp__sub-fields">
 			<?php
 			echo IWP_FormBuilder::select( 'field[' . $this->get_group() . '][' . $field_id . '_field_type]', array(
-				'label' => 'Type',
+				'label' => 'Parent Field Type',
 				'options' => array(
 					'id' => 'ID',
 					'slug' => 'Slug',
@@ -135,7 +135,7 @@ class IWP_Template_Post extends IWP_Template {
 
 			$key = $field_id.'_ref';
 			echo IWP_FormBuilder::text( 'field[' . $this->get_group() . '][' . $key . ']', array(
-				'label'   => 'Parent Reference Column',
+				'label'   => 'Reference Column',
 				'tooltip' => '',
 				'default' => $this->get_field_value($key),
 				'class'   => 'xml-drop jci-group field__input field__input--'.$key,
