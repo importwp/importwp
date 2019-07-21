@@ -3,7 +3,7 @@ Contributors: jcollings
 Tags: import, wordpress xml importer, wordpress csv importer, xml, csv
 Requires at least: 4.0  
 Tested up to: 5.2
-Stable tag: 1.1.4
+Stable tag: 1.1.5
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -22,6 +22,7 @@ ImportWP is an Advanced Wordpress CSV/XML Importer, allowing you to easily drag 
 * Import WordPress Pages.
 * Import WordPress Taxonomies.
 * Import WordPress Attachments.
+* Import field Permissions.
 * Import Custom Fields **(Requires Pro)**
 * Import to Custom Post Types  **(Requires Pro)**
 * Schedule Imports  **(Requires Pro)**
@@ -67,9 +68,10 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 
 == Changelog ==
 
-= 1.2.0 =
+= 1.1.5 =
 
 * ADD - Visual Permission editor to filter fields to be imported per insert/update
+* EDIT - Change csv column selector to show a vertical table with one record.
 
 = 1.1.4 - 11/07/2019 =
 
