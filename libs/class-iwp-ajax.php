@@ -393,47 +393,54 @@ class IWP_Ajax {
 		$config->set('file_encoding', apply_filters('iwp/importer/file_encoding', false, $importer_id));
 		if( $config->get('processed') !== true ) {
 
-			$file_path = JCI()->importer->get_file();
-			if(JCI()->importer->get_template_type() === 'xml'){
+			try {
 
-				// generate node list
-				$file = new \ImportWP\Importer\File\XMLFile( $file_path, $config );
-				$file->get_node_list();
+				$file_path = JCI()->importer->get_file();
+				if ( JCI()->importer->get_template_type() === 'xml' ) {
 
-				// generate indices for current basepath
-				$base = JCI()->importer->addon_settings['import_base'];
-				$file = new \ImportWP\Importer\File\XMLFile( $file_path, $config );
-				$file->setRecordPath($base);
-				$file->getRecordCount();
+					// generate node list
+					$file = new \ImportWP\Importer\File\XMLFile( $file_path, $config );
+					$file->get_node_list();
 
-				$config->set('processed', true);
+					// generate indices for current basepath
+					$base = JCI()->importer->addon_settings['import_base'];
+					$file = new \ImportWP\Importer\File\XMLFile( $file_path, $config );
+					$file->setRecordPath( $base );
+					$file->getRecordCount();
 
-			}else{
-				$file = new \ImportWP\Importer\File\CSVFile( JCI()->importer->get_file(), $config );
+					$config->set( 'processed', true );
 
-				$csv_delimiter = IWP_Importer_Settings::getImporterMetaArr( JCI()->importer->get_ID(), array(
-					'_parser_settings',
-					'csv_delimiter'
-				) );
-				$csv_enclosure = IWP_Importer_Settings::getImporterMetaArr( JCI()->importer->get_ID(), array(
-					'_parser_settings',
-					'csv_enclosure'
-				) );
-				$csv_enclosure = stripslashes( $csv_enclosure );
+				} else {
+					$file = new \ImportWP\Importer\File\CSVFile( JCI()->importer->get_file(), $config );
 
-				if ( empty( $csv_delimiter ) ) {
-					$csv_delimiter = ',';
+					$csv_delimiter = IWP_Importer_Settings::getImporterMetaArr( JCI()->importer->get_ID(), array(
+						'_parser_settings',
+						'csv_delimiter'
+					) );
+					$csv_enclosure = IWP_Importer_Settings::getImporterMetaArr( JCI()->importer->get_ID(), array(
+						'_parser_settings',
+						'csv_enclosure'
+					) );
+					$csv_enclosure = stripslashes( $csv_enclosure );
+
+					if ( empty( $csv_delimiter ) ) {
+						$csv_delimiter = ',';
+					}
+
+					if ( empty( $csv_enclosure ) ) {
+						$csv_enclosure = '"';
+					}
+
+					$file->setDelimiter( $csv_delimiter );
+					$file->setEnclosure( $csv_enclosure );
+
+					$file->getRecordCount();
+					$config->set( 'processed', true );
 				}
-
-				if ( empty( $csv_enclosure ) ) {
-					$csv_enclosure = '"';
-				}
-
-				$file->setDelimiter( $csv_delimiter );
-				$file->setEnclosure( $csv_enclosure );
-
-				$file->getRecordCount();
-				$config->set('processed', true);
+			}catch (Exception $e){
+				$this->error_on_shutdown = false;
+				wp_send_json_error($e->getMessage());
+				die();
 			}
 		}
 

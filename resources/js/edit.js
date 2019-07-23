@@ -29,11 +29,20 @@
 
                     },
                     success: function (response) {
+
+                        if( false === response.success ){
+                            iwp.onError('An Error has occurred when processing your file, ' + response.data);
+                            $('#processing .preview-loading').hide();
+                            $('#poststuff').fadeIn();
+                            $('#processing').hide();
+                            return;
+                        }
+
                         self.isProcessed = true;
                         $('#processing p').text('File Processed Successfully.');
                         $('#processing .preview-loading').hide();
                         $('#poststuff').fadeIn();
-                        console.log('SUCCESS');
+                        console.log('SUCCESS', response);
                         self.onProcessComplete.run(self);
 
                         // hide message after a period of time
