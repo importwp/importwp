@@ -440,6 +440,8 @@ class IWP_Importer_Settings {
 					if ( $file ) {
 						$wp_upload_dir = wp_upload_dir();
 						$settings      = $wp_upload_dir['basedir'] . $file->src;
+					}else{
+						$settings = '';
 					}
 
 				} else {

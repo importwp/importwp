@@ -226,7 +226,8 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
                                 <h4>Files:</h4>
 								<?php
 
-								$current_import_file = basename( $jcimporter->importer->get_file() );
+                                $file_path = $jcimporter->importer->get_file();
+								$current_import_file = is_string($file_path) && !empty($file_path) ? basename( $file_path ) : false;
 								$files               = IWP_Importer_Settings::getImporterFiles( $id );
 
 								echo '<ul>';

@@ -29,3 +29,14 @@
     </div><?php endif; ?>
 <a href="<?php echo esc_url( add_query_arg( array( 'action' => 'update-db' ), remove_query_arg( 'result' ) ) ); ?>"
    class="button button-primary">Run DB Update</a>
+<br><br>
+<hr>
+
+<h3>Run DB Reset</h3>
+<?php if ( isset( $_GET['action'] ) && $_GET['action'] == 'reset-db' ): ?>
+	<?php if ( isset( $_GET['result'] ) && $_GET['result'] == 1 ): ?><div id="message" class="error_msg warn updated">
+        <p>Importer DB has been reset</p><?php endif; ?>
+    </div><?php endif; ?>
+<p>Remove and Reinstall Importer Database Tables.</p>
+<a href="<?php echo esc_url( add_query_arg( array( 'action' => 'reset-db' ), remove_query_arg( 'result' ) ) ); ?>"
+   class="button button-primary">Run DB Reset</a>

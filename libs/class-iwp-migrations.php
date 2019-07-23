@@ -19,6 +19,14 @@ class IWP_Migrations{
 		$this->migrate(false);
 	}
 
+	public function uninstall(){
+		global $wpdb;
+		$wpdb->query("DROP TABLE IF EXISTS `" . $wpdb->prefix . "importer_log`;");
+		$wpdb->query("DROP TABLE IF EXISTS `" . $wpdb->prefix . "importer_files`;");
+		delete_site_option('iwp_db_version');
+		delete_site_option('jci_db_version');
+	}
+
 	public function migrate($migrate_data = true){
 
 		$verion_key = 'iwp_db_version';

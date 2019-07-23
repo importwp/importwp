@@ -257,46 +257,46 @@ class IWP_Ajax {
 
 		if($config->get('processed') === true) {
 
-			if ( JCI()->importer->get_template_type() === 'csv' ) {
-
-				$file = new \ImportWP\Importer\File\CSVFile( JCI()->importer->get_file(), $config );
-
-				$csv_delimiter = IWP_Importer_Settings::getImporterMetaArr( JCI()->importer->get_ID(), array(
-					'_parser_settings',
-					'csv_delimiter'
-				) );
-				$csv_enclosure = IWP_Importer_Settings::getImporterMetaArr( JCI()->importer->get_ID(), array(
-					'_parser_settings',
-					'csv_enclosure'
-				) );
-				$csv_enclosure = stripslashes( $csv_enclosure );
-
-				if ( empty( $csv_delimiter ) ) {
-					$csv_delimiter = ',';
-				}
-
-				if ( empty( $csv_enclosure ) ) {
-					$csv_enclosure = '"';
-				}
-
-				$file->setDelimiter( $csv_delimiter );
-				$file->setEnclosure( $csv_enclosure );
-
-				$parser = new \ImportWP\Importer\Parser\CSVParser( $file );
-
-			} else {
-				$base = isset( $_POST['general_base'] ) ? $_POST['general_base'] : '';
-
-				if(empty($base)){
-					return wp_send_json_error("No record base set");
-				}
-
-				$file = new \ImportWP\Importer\File\XMLFile( JCI()->importer->get_file(), $config );
-				$file->setRecordPath( $base );
-				$parser = new \ImportWP\Importer\Parser\XMLParser( $file );
-			}
-
 			try {
+				if ( JCI()->importer->get_template_type() === 'csv' ) {
+
+					$file = new \ImportWP\Importer\File\CSVFile( JCI()->importer->get_file(), $config );
+
+					$csv_delimiter = IWP_Importer_Settings::getImporterMetaArr( JCI()->importer->get_ID(), array(
+						'_parser_settings',
+						'csv_delimiter'
+					) );
+					$csv_enclosure = IWP_Importer_Settings::getImporterMetaArr( JCI()->importer->get_ID(), array(
+						'_parser_settings',
+						'csv_enclosure'
+					) );
+					$csv_enclosure = stripslashes( $csv_enclosure );
+
+					if ( empty( $csv_delimiter ) ) {
+						$csv_delimiter = ',';
+					}
+
+					if ( empty( $csv_enclosure ) ) {
+						$csv_enclosure = '"';
+					}
+
+					$file->setDelimiter( $csv_delimiter );
+					$file->setEnclosure( $csv_enclosure );
+
+					$parser = new \ImportWP\Importer\Parser\CSVParser( $file );
+
+				} else {
+					$base = isset( $_POST['general_base'] ) ? $_POST['general_base'] : '';
+
+					if(empty($base)){
+						return wp_send_json_error("No record base set");
+					}
+
+					$file = new \ImportWP\Importer\File\XMLFile( JCI()->importer->get_file(), $config );
+					$file->setRecordPath( $base );
+					$parser = new \ImportWP\Importer\Parser\XMLParser( $file );
+				}
+
 				$record = $parser->getRecord( $row - 1 );
 
 				if ( is_array( $map ) ) {

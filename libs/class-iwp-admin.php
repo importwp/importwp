@@ -267,8 +267,18 @@ class IWP_Admin {
 		} elseif ( $action == 'update-db' && ! isset( $_GET['result'] ) ) {
 
 			// TODO: Rollback migrations / decrease version number as otherwise this does nothing.
-			require_once $jcimporter->get_plugin_dir() . '/libs/class-iwp-migrations.php';
+			require_once JCI()->get_plugin_dir() . '/libs/class-iwp-migrations.php';
 			$migrations = new IWP_Migrations();
+			$migrations->migrate();
+
+			wp_redirect( add_query_arg( array( 'result' => 1 ) ) );
+			exit();
+		} elseif ( $action == 'reset-db' && ! isset( $_GET['result'] ) ) {
+
+			// TODO: Rollback migrations / decrease version number as otherwise this does nothing.
+			require_once JCI()->get_plugin_dir() . '/libs/class-iwp-migrations.php';
+			$migrations = new IWP_Migrations();
+			$migrations->uninstall();
 			$migrations->migrate();
 
 			wp_redirect( add_query_arg( array( 'result' => 1 ) ) );
