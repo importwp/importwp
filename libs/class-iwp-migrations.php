@@ -25,12 +25,17 @@ class IWP_Migrations{
 		$wpdb->query("DROP TABLE IF EXISTS `" . $wpdb->prefix . "importer_files`;");
 		delete_site_option('iwp_db_version');
 		delete_site_option('jci_db_version');
+		delete_site_option('iwp_is_migrating');
 	}
 
 	public function migrate($migrate_data = true){
 
 		$verion_key = 'iwp_db_version';
 		$version = intval( get_site_option( 'iwp_db_version', get_site_option( 'jci_db_version', 0 ) ) );
+		$migrating = get_site_option('iwp_is_migrating', 'no');
+		if('yes' === $migrating){
+			return;
+		}
 
 		if($version < count($this->_migrations)){
 
@@ -41,6 +46,8 @@ class IWP_Migrations{
 				$migration_version = $i+1;
 				if($version < $migration_version){
 
+					update_site_option('iwp_is_migrating', 'yes');
+
 					set_time_limit(0);
 
 					// Run migration
@@ -48,6 +55,7 @@ class IWP_Migrations{
 
 					// Flag as migrated
 					update_site_option($verion_key, $migration_version);
+					update_site_option('iwp_is_migrating', 'no');
 				}
 			}
 		}

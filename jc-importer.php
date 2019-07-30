@@ -173,7 +173,7 @@ class JC_Importer {
 		require_once __DIR__ . '/libs/class-iwp-status.php';
 		require_once __DIR__ . '/libs/class-iwp-importer-permissions.php';
 
-		if ( is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+		if ( is_admin() && is_user_logged_in() ) {
 
 			// load importer.
 			$importer_id = isset( $_GET['import'] ) && ! empty( $_GET['import'] ) ? intval( $_GET['import'] ) : 0;
@@ -185,7 +185,9 @@ class JC_Importer {
 
 			require_once __DIR__ . '/libs/class-iwp-admin.php';
 			new IWP_Admin( $this );
+		}
 
+		if( defined( 'DOING_AJAX' ) && DOING_AJAX ){
 			require_once __DIR__ . '/libs/class-iwp-ajax.php';
 			new IWP_Ajax( $this );
 		}

@@ -19,10 +19,11 @@ class IWP_Ajax {
 
 		add_action( 'wp_ajax_jc_node_select', array( $this, 'admin_ajax_node_select' ) );
 
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_ajax_import' ) );
-
 		// preview xml base node
 		add_action( 'wp_ajax_jc_preview_xml_base_bode', array( $this, 'admin_ajax_preview_xml_node' ) );
+
+		// ajax import all at once with status file
+		add_action( 'wp_ajax_jc_import_all', array( $this, 'admin_ajax_import_all_rows' ) );
 	}
 
 	public function get_last_error(){
@@ -46,40 +47,6 @@ class IWP_Ajax {
 		die();
 	}
 
-	public function enqueue_ajax_import() {
-
-		global $pagenow;
-
-		wp_enqueue_style( 'thickbox' );
-		wp_enqueue_script( 'thickbox' );
-
-		$ext     = '.min';
-		$version = JCI()->get_version();
-		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
-			$version = time();
-			$ext     = '';
-		}
-
-		if ( isset( $_GET['page'] ) && $_GET['page'] == 'jci-importers' && isset( $_GET['import'] ) && intval( $_GET['import'] ) > 0 ) {
-
-			$post_id = intval( $_GET['import'] );
-			wp_enqueue_script( 'tiptip', trailingslashit( JCI()->get_plugin_url() ) . 'resources/js/vendor/jquery-tipTip' . $ext . '.js', array(), '1.3' );
-			wp_enqueue_script( 'ajax-importer', trailingslashit( JCI()->get_plugin_url() ) . 'resources/js/importer' . $ext . '.js', array(
-				'jquery',
-				'tiptip'
-			), $version, false );
-			wp_localize_script( 'ajax-importer', 'ajax_object', array(
-				'ajax_url'           => admin_url( 'admin-ajax.php' ),
-				'id'                 => $post_id,
-				'node_ajax_url'      => admin_url( 'admin-ajax.php?action=jc_node_select&importer_id=' . $post_id ),
-				'base_node_ajax_url' => admin_url( 'admin-ajax.php?action=jc_base_node&importer_id=' . $post_id ),
-				'record_preview_url' => admin_url( 'admin-ajax.php?action=jc_preview_record&importer_id=' . $post_id ),
-			) );
-
-			do_action( 'jci/admin_scripts' );
-		}
-	}
-
 	/**
 	 * Ajax show xml generated from currently chosen nodes
 	 * @return void
@@ -89,7 +56,7 @@ class IWP_Ajax {
 		$this->start_request();
 
 		$importer_id = intval( $_POST['id'] );
-		$base_node   = $_POST['base'];
+		$base_node   = sanitize_text_field($_POST['base']);
 
 		$file = IWP_Importer_Settings::getImportSettings( $importer_id, 'import_file' );
 
@@ -244,7 +211,7 @@ class IWP_Ajax {
 	public function admin_ajax_preview_record() {
 
 		$importer_id = intval($_POST['id']);
-		$map         = $_POST['map'];
+		$map         = sanitize_text_field($_POST['map']);
 		$row         = isset( $_POST['row'] ) && intval( $_POST['row'] ) > 0 ? intval( $_POST['row'] ) : 1;
 
 		// setup importer
@@ -286,7 +253,7 @@ class IWP_Ajax {
 					$parser = new \ImportWP\Importer\Parser\CSVParser( $file );
 
 				} else {
-					$base = isset( $_POST['general_base'] ) ? $_POST['general_base'] : '';
+					$base = isset( $_POST['general_base'] ) ? sanitize_text_field($_POST['general_base']) : '';
 
 					if(empty($base)){
 						return wp_send_json_error("No record base set");
@@ -341,7 +308,7 @@ class IWP_Ajax {
 					}
 
 				} else {
-					$map_field = isset( $_POST['field'] ) ? $_POST['field'] : '';
+					$map_field = isset( $_POST['field'] ) ? sanitize_text_field($_POST['field']) : '';
 					$map_val   = stripslashes( $map );
 
 
@@ -368,7 +335,7 @@ class IWP_Ajax {
 		JCI()->importer = new IWP_Importer( $importer_id );
 
 		if(JCI()->importer->get_template_type() === 'xml'){
-			$base = isset($_POST['general_base']) ? $_POST['general_base'] : '';
+			$base = isset($_POST['general_base']) ? sanitize_text_field($_POST['general_base']) : '';
 			JCI()->importer->addon_settings['import_base'] = $base;
 		}
 
@@ -447,6 +414,15 @@ class IWP_Ajax {
 		// output and disable error handler
 		$this->end_request();
 	}
-}
 
-?>
+	public function admin_ajax_import_all_rows() {
+
+		set_time_limit( 0 );
+
+		$importer_id  = intval( $_POST['id'] );
+		$request_type = isset( $_POST['request'] ) ? $_POST['request'] == 'run' : 'check';
+
+		JCI()->importer = new IWP_Importer( $importer_id );
+		JCI()->importer->run( $request_type );
+	}
+}

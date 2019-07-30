@@ -23,9 +23,6 @@ class IWP_Admin {
 		add_action( 'wp_loaded', array( $this, 'process_forms' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_styles' ) );
 
-		// ajax import all at once with status file
-		add_action( 'wp_ajax_jc_import_all', array( $this, 'admin_ajax_import_all_rows' ) );
-
 		$this->setup_forms();
 	}
 
@@ -76,7 +73,7 @@ class IWP_Admin {
 
 			}
 
-			$this->config->forms = apply_filters( 'jci/setup_forms', $this->config->forms, $_POST['jc-importer_import_type'] );
+			$this->config->forms = apply_filters( 'jci/setup_forms', $this->config->forms, sanitize_text_field($_POST['jc-importer_import_type']) );
 		}
 	}
 
@@ -86,6 +83,9 @@ class IWP_Admin {
 		if($screen->id !== 'toplevel_page_jci-importers' && $screen->id !== 'importwp_page_jci-settings'){
 			return;
 		}
+
+		wp_enqueue_style( 'thickbox' );
+		wp_enqueue_script( 'thickbox' );
 
 		$ext     = '.min';
 		$version = JCI()->get_version();
@@ -116,6 +116,25 @@ class IWP_Admin {
 					wp_localize_script('importer-edit', 'iwp_settings', apply_filters('iwp/js/iwp_settings', $settings));
 					break;
 			}
+		}
+
+		if ( isset( $_GET['page'] ) && $_GET['page'] === 'jci-importers' && isset( $_GET['import'] ) && intval( $_GET['import'] ) > 0 ) {
+
+			$post_id = intval( $_GET['import'] );
+			wp_enqueue_script( 'tiptip', trailingslashit( JCI()->get_plugin_url() ) . 'resources/js/vendor/jquery-tipTip' . $ext . '.js', array(), '1.3' );
+			wp_enqueue_script( 'ajax-importer', trailingslashit( JCI()->get_plugin_url() ) . 'resources/js/importer' . $ext . '.js', array(
+				'jquery',
+				'tiptip'
+			), $version, false );
+			wp_localize_script( 'ajax-importer', 'ajax_object', array(
+				'ajax_url'           => admin_url( 'admin-ajax.php' ),
+				'id'                 => $post_id,
+				'node_ajax_url'      => admin_url( 'admin-ajax.php?action=jc_node_select&importer_id=' . $post_id ),
+				'base_node_ajax_url' => admin_url( 'admin-ajax.php?action=jc_base_node&importer_id=' . $post_id ),
+				'record_preview_url' => admin_url( 'admin-ajax.php?action=jc_preview_record&importer_id=' . $post_id ),
+			) );
+
+			do_action( 'jci/admin_scripts' );
 		}
 	}
 
@@ -546,17 +565,4 @@ class IWP_Admin {
 			exit();
 		}
 	}
-
-	public function admin_ajax_import_all_rows() {
-
-		set_time_limit( 0 );
-
-		$importer_id  = intval( $_POST['id'] );
-		$request_type = isset( $_POST['request'] ) ? $_POST['request'] == 'run' : 'check';
-
-		JCI()->importer = new IWP_Importer( $importer_id );
-		JCI()->importer->run( $request_type );
-	}
 }
-
-?>
