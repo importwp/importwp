@@ -220,14 +220,6 @@ class JC_Importer {
 			'show_in_nav_menus' => false,
 			'label'             => 'Importer Files',
 		) );
-
-		// importer tempaltes.
-		register_post_type( 'jc-import-template', array(
-			'public'            => false,
-			'has_archive'       => false,
-			'show_in_nav_menus' => false,
-			'label'             => 'Template',
-		) );
 	}
 
 	/**

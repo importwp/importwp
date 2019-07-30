@@ -252,9 +252,6 @@ class IWP_Admin {
 			if ( $importer && get_post_type($importer) === 'jc-imports' ) {
 
 				wp_delete_post( $importer );
-			} elseif ( $template  && get_post_type($template) === 'jc-import-template') {
-
-				wp_delete_post( $template );
 			}
 
 			wp_redirect( admin_url( 'admin.php?page=jci-importers&message=2&trash=1' ) );
