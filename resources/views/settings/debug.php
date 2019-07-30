@@ -7,6 +7,17 @@ if ( function_exists( 'curl_init' ) ) {
 	$remote_fetch = "Non Curl Request";
 }
 
+$db_tables = '';
+
+try{
+
+    global $wpdb;
+    $db_tables = $wpdb->get_col("SHOW TABLES LIKE '{$wpdb->prefix}importer_%'");
+
+}catch (Exception $e){
+
+}
+
 $debug_info = array(
 	'General'     => array(
 		'WordPress version'  => get_bloginfo( 'version' ),
@@ -17,6 +28,11 @@ $debug_info = array(
         'Memory Limit'       => ini_get('memory_limit'),
         'DISABLE_WP_CRON'   => defined('DISABLE_WP_CRON') && DISABLE_WP_CRON === true ? 'Yes' : 'No',
 	),
+	'Database' => array(
+		'Database Version' => get_site_option('iwp_db_version', 0),
+		'Database Is Migrating' => get_site_option('iwp_is_migrating', 'no'),
+        'Database Tables' => implode(', ', $db_tables)
+    ),
 	'File Upload' => array(
 		'Post max size'       => ini_get( 'post_max_size' ),
 		'Upload max filesize' => ini_get( 'upload_max_filesize' ),
