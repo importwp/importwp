@@ -1,6 +1,6 @@
 {
   "name": "jc-importer",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "devDependencies": {
     "grunt": "^1.0.1",
     "grunt-contrib-clean": "^1.1.0",
