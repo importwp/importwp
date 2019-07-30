@@ -68,6 +68,13 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 
 == Changelog ==
 
+= 1.1.7 =
+
+* DEL - Remove unused custom curl methods for downloading attachments
+* FIX - escape output data globally
+* FIX - sanitize data globally
+* FIX - Add nounce's to all ajax requests
+
 = 1.1.6 =
 
 * FIX - Post Deletion Vulnerability in ImportWP.

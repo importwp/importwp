@@ -101,7 +101,7 @@ class IWP_Imports_List_Table extends WP_List_Table {
 							$link = admin_url( sprintf( 'admin.php?page=jci-importers&import=%d&action=edit', $item->ID ) );
 
 							$links   = array();
-							$links[] = '<span class="edit"><a href="' . $link . '" aria-label="View">Edit</a></span>';
+							$links[] = '<span class="edit"><a href="' . esc_attr($link) . '" aria-label="View">Edit</a></span>';
 
 							$run_url = admin_url(sprintf('admin.php?page=jci-importers&import=%d&action=logs', $item->ID ));
 							if( in_array( IWP_Importer_Settings::getImportSettings($item->ID, 'import_type'), array('local', 'remote') ) ){
@@ -115,12 +115,12 @@ class IWP_Imports_List_Table extends WP_List_Table {
 								}
 							}
 
-							$links[] = '<span class="edit"><a href="' . $run_url . '" aria-label="Run">Run</a></span>';
-							$links[] = '<span class="edit"><a href="' . admin_url( sprintf( 'admin.php?page=jci-importers&import=%s&action=history', $item->ID ) ) . '" aria-label="History">History</a></span>';
-							$links[] = '<span class="delete"><a href="' . admin_url( sprintf( 'admin.php?page=jci-importers&import=%s&action=trash', $item->ID ) ) . '" aria-label="Delete">Delete</a></span>';
+							$links[] = '<span class="edit"><a href="' . esc_html($run_url) . '" aria-label="Run">Run</a></span>';
+							$links[] = '<span class="edit"><a href="' . esc_html(admin_url( sprintf( 'admin.php?page=jci-importers&import=%s&action=history', $item->ID ) ) ). '" aria-label="History">History</a></span>';
+							$links[] = '<span class="delete"><a href="' . esc_html(admin_url( sprintf( 'admin.php?page=jci-importers&import=%s&action=trash', $item->ID ) ) ). '" aria-label="Delete">Delete</a></span>';
 
 							echo '<td>';
-							echo '<strong><a href="' . $link . '">' . get_the_title( $item->ID ) . '</a></strong>';
+							echo '<strong><a href="' . esc_html($link) . '">' . get_the_title( $item->ID ) . '</a></strong>';
 							if ( ! empty( $links ) ) {
 								echo '<div class="row-actions">' . implode( ' | ', $links ) . '</div>';
 							}

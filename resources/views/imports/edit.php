@@ -21,9 +21,9 @@ $last_import_row = $jcimporter->importer->get_last_import_row();
 
 <div id="icon-tools" class="icon32"><br></div>
 <h2 class="nav-tab-wrapper">
-    <a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=edit"
-       class="nav-tab nav-tab-active tab"><?php echo $name; ?></a>
-    <a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=history" class="nav-tab tab">History</a>
+    <a href="admin.php?page=jci-importers&import=<?php echo intval($id); ?>&action=edit"
+       class="nav-tab nav-tab-active tab"><?php echo esc_html($name); ?></a>
+    <a href="admin.php?page=jci-importers&import=<?php echo intval($id); ?>&action=history" class="nav-tab tab">History</a>
 </h2>
 
 <div id="ajaxResponse"></div>
@@ -44,7 +44,7 @@ if($status !== false){
 
 	switch($status['status']){
         case 'error':
-	        echo '<div id="message" class="error_msg error updated below-h2"><p><strong>Last Import ran threw the following error: </strong><br />'.$status['message'].'.</p></div>';
+	        echo '<div id="message" class="error_msg error updated below-h2"><p><strong>Last Import ran threw the following error: </strong><br />'.esc_html($status['message']).'.</p></div>';
 	        break;
 		case 'timeout':
 		case 'running':
@@ -53,7 +53,7 @@ if($status !== false){
 
 		$cron_enabled_meta = get_post_meta( $id, '_jci_cron_enabled', true);
 		if($cron_enabled_meta !== 'yes'){
-			echo '<div id="message" class="error_msg warn updated below-h2"><p>Do you want to continue your last import? <a href="admin.php?page=jci-importers&import=' . $id . '&action=logs&continue=1">Click here</a>.</p></div>';
+			echo '<div id="message" class="error_msg warn updated below-h2"><p>Do you want to continue your last import? <a href="admin.php?page=jci-importers&import=' . intval($id) . '&action=logs&continue=1">Click here</a>.</p></div>';
 			$import_complete = false;
         }
 			break;
@@ -70,7 +70,7 @@ echo IWP_FormBuilder::create( 'EditImporter', array( 'type' => 'file' ) );
 echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
 ?>
 
-<div id="poststuff" class="<?php echo $template_type; ?>-import jci-edit-screen">
+<div id="poststuff" class="<?php echo esc_attr($template_type); ?>-import jci-edit-screen">
     <div id="post-body" class="metabox-holder columns-2">
 
         <div id="post-body-content">
@@ -201,7 +201,7 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
                                 foreach($data as $method => $method_label){
 	                                $perm = isset( $permissions_general[ $method ] ) && $permissions_general[ $method ] == 1 ? 1 : 0;
 
-	                                echo '<div class="import-permission import-permission--'.$method.'">';
+	                                echo '<div class="import-permission import-permission--'.esc_attr($method).'">';
 
 	                                echo '<div class="permission__core">';
 
@@ -307,7 +307,7 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
                     <!--Container-->
                     <div id="pageparentdiv" class="postbox " style="display: block;">
                         <div class="handlediv" title="Click to toggle"><br></div>
-                        <h3 class="hndle"><span>Template Fields: <?php echo $group_id; ?></span></h3>
+                        <h3 class="hndle"><span>Template Fields: <?php echo esc_html($group_id); ?></span></h3>
 
                         <div class="inside jci-node-group">
 
@@ -385,7 +385,7 @@ echo IWP_FormBuilder::hidden( 'import_id', array( 'value' => $id ) );
 										}
 										?>
 
-                                        <div id="<?php echo $group_id; ?>-taxonomies" class="taxonomies multi-rows">
+                                        <div id="<?php echo esc_attr($group_id); ?>-taxonomies" class="taxonomies multi-rows">
 
                                             <table class="iwp-table" cellspacing="0" cellpadding="0">
                                                 <thead class="iwp-table__header">

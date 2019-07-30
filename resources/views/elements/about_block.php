@@ -10,12 +10,12 @@
             <li><a href="https://www.importwp.com/" target="_blank">About</a></li>
 			<?php if ( ! class_exists( 'ImportWP_Pro' ) ): ?>
                 <li class="iwp-about__upgrade"><i class="iwp-premium">*</i><a
-                            href="<?php echo admin_url( 'admin.php?page=jci-settings&tab=premium' ); ?>"><strong>Go
+                            href="<?php echo esc_attr(admin_url( 'admin.php?page=jci-settings&tab=premium' )); ?>"><strong>Go
                             Premium</strong></a></li>
 			<?php endif; ?>
         </ul>
     </div>
     <p class="iwp-about__version">
-        Version: <strong><?php echo apply_filters('iwp/display_version',JCI()->get_version()); ?></strong>
+        Version: <strong><?php echo esc_html(apply_filters('iwp/display_version',JCI()->get_version())); ?></strong>
     </p>
 </div>

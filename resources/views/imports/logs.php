@@ -32,10 +32,10 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
 <div id="icon-tools" class="icon32"><br></div>
 <h2 class="nav-tab-wrapper">
-    <a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=edit"
-       class="nav-tab tab"><?php echo $name; ?></a>
-    <a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=history" class="nav-tab tab">History</a>
-    <a href="admin.php?page=jci-importers&import=<?php echo $id; ?>&action=logs" class="nav-tab nav-tab-active tab">Run
+    <a href="admin.php?page=jci-importers&import=<?php echo intval($id); ?>&action=edit"
+       class="nav-tab tab"><?php echo esc_html($name); ?></a>
+    <a href="admin.php?page=jci-importers&import=<?php echo intval($id); ?>&action=history" class="nav-tab tab">History</a>
+    <a href="admin.php?page=jci-importers&import=<?php echo intval($id); ?>&action=logs" class="nav-tab nav-tab-active tab">Run
         Import</a>
 </h2>
 
@@ -69,9 +69,9 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                                 <th scope="col" id="author" class="manage-column column-author" style="width:30px;">ID
                                 </th>
 								<?php foreach ( $columns as $key => $col ): ?>
-                                    <th scope="col" id="<?php echo $key; ?>"
-                                        class="manage-column column-<?php echo $key; ?>"
-                                        style=""><?php echo $col; ?></th>
+                                    <th scope="col" id="<?php echo esc_attr($key); ?>"
+                                        class="manage-column column-<?php echo esc_attr($key); ?>"
+                                        style=""><?php echo esc_html($col); ?></th>
 								<?php endforeach; ?>
                             </tr>
                             </thead>
@@ -113,11 +113,11 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                         <br/>
 						<?php if ( $import_status == 1 ): ?>
                             <a href="#"
-                               class="jc-importer_update-run iwp-import-btn__csv <?php echo $template_type; ?> button-primary">Continue
+                               class="jc-importer_update-run iwp-import-btn__csv <?php echo esc_attr($template_type); ?> button-primary">Continue
                                 Import</a>
 						<?php else: ?>
                             <a href="#"
-                               class="jc-importer_update-run iwp-import-btn__csv <?php echo $template_type; ?> button-primary">Run
+                               class="jc-importer_update-run iwp-import-btn__csv <?php echo esc_attr($template_type); ?> button-primary">Run
                                 Import</a>
 						<?php endif; ?>
                     </div>
@@ -232,7 +232,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 
             var data_arr = {
                 action: 'jc_import_all',
-                id: ajax_object.id
+                id: ajax_object.id,
+                iwp_ajax_nonce: ajax_object.iwp_ajax_nonce
             };
 
             if (run === true) {

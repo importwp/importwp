@@ -50,49 +50,4 @@ class IWP_Attachment_CURL extends IWP_Attachment {
 
 		return false;
 	}
-
-	/**
-	 * Fetch file with curl
-	 *
-	 * @param  string $src Attachment source.
-	 * @param  string $dest Attachment destination.
-	 *
-	 * @deprecated 1.1.4 Using wp_remote_get instead to fetch files
-	 *
-	 * @return bool
-	 */
-	private function fetch_curl_image( $src = '', $dest = '' ) {
-
-		$src = trim($src);
-
-		$ch = curl_init( $src );
-		$fp = fopen( $dest, 'wb' );
-
-		curl_setopt( $ch, CURLOPT_FILE, $fp );
-		curl_setopt( $ch, CURLOPT_HEADER, 0 );
-		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true);
-		$result = curl_exec( $ch );
-		if(curl_error($ch)){
-			$this->_errors[] = curl_error($ch);
-		}
-		curl_close( $ch );
-		fclose( $fp );
-
-		return $result;
-	}
-
-	/**
-	 * Fetch file without curl
-	 *
-	 * @param  string $src Attachment source.
-	 * @param  string $dest Attachment destination.
-	 *
-	 * @deprecated 1.1.4 Using wp_remote_get instead to fetch files
-	 *
-	 * @return bool
-	 */
-	private function fetch_noncurl_image( $src = '', $dest = '' ) {
-
-		return file_put_contents( $dest, file_get_contents( $src ) );
-	}
 }

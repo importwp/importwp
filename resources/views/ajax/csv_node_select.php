@@ -16,8 +16,8 @@
             $headings = array_shift( $records );
             foreach ($headings as $i => $heading): ?>
                 <tr>
-                    <th><?php echo $heading ?></th>
-                    <td><?php echo isset($records[0][$i]) ? $records[0][$i] : '&nbsp;'; ?></td>
+                    <th><?php esc_html_e($heading); ?></th>
+                    <td><?php echo isset($records[0][$i]) ? esc_html($records[0][$i]) : '&nbsp;'; ?></td>
                 </tr>
             <?php endforeach; ?>
         </table>
@@ -75,8 +75,8 @@
                     action: 'jc_preview_record',
                     id: ajax_object.id,
                     map: _preview_input.val(),
-                    row: $('#preview-record').val()
-
+                    row: $('#preview-record').val(),
+                    iwp_ajax_nonce: ajax_object.iwp_ajax_nonce
                 },
                 dataType: 'json',
                 type: "POST",

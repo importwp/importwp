@@ -19,12 +19,12 @@ if(count($values)) {
 ?>
 <div>
 
-	<div class="taxonomies multi-rows multi-rows--indexed" data-iwp-index="<?php echo $repeater_index; ?>">
+	<div class="taxonomies multi-rows multi-rows--indexed" data-iwp-index="<?php echo esc_attr($repeater_index); ?>">
 
 		<table class="iwp-table" cellspacing="0" cellpadding="0">
 			<thead class="iwp-table__header">
 			<tr>
-				<th><?php echo $repeater['label']; ?></th>
+				<th><?php echo esc_html($repeater['label']); ?></th>
 				<th></th>
 			</tr>
 			</thead>
@@ -60,9 +60,9 @@ if(count($values)) {
 						</td>
 						<td>
 							<a href="#" class="add-row button"
-							   title="Add New <?php echo $repeater['label']; ?>">+</a>
+							   title="Add New <?php echo esc_attr($repeater['label']); ?>">+</a>
 							<a href="#" class="del-row button"
-							   title="Delete <?php echo $repeater['label']; ?>">-</a>
+							   title="Delete <?php echo esc_attr($repeater['label']); ?>">-</a>
 						</td>
 					</tr>
                     <?php endforeach; ?>
@@ -93,9 +93,9 @@ if(count($values)) {
 						?>
 					</td>
 					<td>
-						<a href="#" class="add-row button" title="Add New <?php echo $repeater['label']; ?>">+</a>
+						<a href="#" class="add-row button" title="Add New <?php echo esc_attr($repeater['label']); ?>">+</a>
 						<a href="#" class="del-row button"
-						   title="Delete <?php echo $repeater['label']; ?>">-</a>
+						   title="Delete <?php echo esc_attr($repeater['label']); ?>">-</a>
 					</td>
 				</tr>
 				<?php endif; ?>

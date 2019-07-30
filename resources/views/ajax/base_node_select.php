@@ -19,7 +19,7 @@
                 <option value="">Leave Empty</option>
 				<?php if ( ! empty( $nodes ) ): ?>
 					<?php foreach ( $nodes as $node ): ?>
-                        <option value="<?php echo $node; ?>" <?php selected( $node, $current_base_node, true ); ?>><?php echo $node; ?></option>
+                        <option value="<?php esc_attr_e($node); ?>" <?php selected( $node, $current_base_node, true ); ?>><?php esc_attr_e($node); ?></option>
 					<?php endforeach; ?>
 				<?php endif; ?>
             </select>
@@ -44,7 +44,7 @@
         jQuery(function ($) {
 
             var base_node = '';
-            var base_node_parent = '<?php echo $base_node; ?>';
+            var base_node_parent = '<?php echo esc_attr($base_node); ?>';
 
             $('#jci-node-selector').on('change', function () {
 
@@ -58,7 +58,8 @@
                 data = {
                     action: 'jc_preview_xml_base_bode',
                     id: ajax_object.id,
-                    base: base_node_parent + base_node
+                    base: base_node_parent + base_node,
+                    iwp_ajax_nonce: ajax_object.iwp_ajax_nonce
                 };
 
                 $('.jci-node-select .preview-loading').css("visibility","visible").show();
@@ -84,7 +85,8 @@
                     data: {
                         action: 'jc_record_total',
                         id: ajax_object.id,
-                        general_base: output_base_node
+                        general_base: output_base_node,
+                        iwp_ajax_nonce: ajax_object.iwp_ajax_nonce
                     },
                     dataType: 'json',
                     type: "POST",

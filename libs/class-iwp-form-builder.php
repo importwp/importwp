@@ -108,9 +108,9 @@ class IWP_FormBuilder {
 
 				$validation_rule = $rule['rule'][0];
 				if ( isset( $rule['type'] ) && $rule['type'] == 'file' ) {
-					$validation_field = $_FILES[ self::$prefix . $field_name ]['name'];
+					$validation_field = sanitize_text_field($_FILES[ self::$prefix . $field_name ]['name']);
 				} else {
-					$validation_field = $_POST[ self::$prefix . $field_name ];
+					$validation_field = sanitize_text_field($_POST[ self::$prefix . $field_name ]);
 				}
 
 				$validation_message = $rule['message'];
@@ -160,17 +160,17 @@ class IWP_FormBuilder {
 			$output .= '<div class="form_header">';
 
 			if ( $title ) {
-				$output .= '<h1>' . $title . '</h1>';
+				$output .= '<h1>' . esc_html($title) . '</h1>';
 			}
 			if ( $desc ) {
-				$output .= '<p>' . $desc . '</p>';
+				$output .= '<p>' . esc_html($desc) . '</p>';
 			}
 
 			$output .= '</div>';
 		}
 
 		if ( ! empty( self::$errors ) ) {
-			$output .= '<div id="message" class="error_msg warn error below-h2"><p>' . $error_msg . '</p></div>';
+			$output .= '<div id="message" class="error_msg warn error below-h2"><p>' . esc_html($error_msg) . '</p></div>';
 		}
 
 		if ( isset( $args['type'] ) && $args['type'] == 'file' ) {
@@ -204,15 +204,15 @@ class IWP_FormBuilder {
 		}
 
 		$value  = self::get_value( $name, $value );
-		$output = '<div class="input input--hidden '.implode(' ', $classes).'">' .
-		          '<input type="hidden" name="' . self::$prefix . $name . '" id="' . $id . '" value="' . $value . '" />' .
+		$output = '<div class="input input--hidden '.esc_attr(implode(' ', $classes)).'">' .
+		          '<input type="hidden" name="' . esc_attr(self::$prefix . $name ). '" id="' .esc_attr( $id ) . '" value="' . esc_attr($value) . '" />' .
 		          '</div>';
 
 		return $output;
 	}
 
 	static function get_value( $field, $default = false ) {
-		return isset( $_POST[ self::$prefix . $field ] ) ? $_POST[ self::$prefix . $field ] : $default;
+		return isset( $_POST[ self::$prefix . $field ] ) ? sanitize_text_field($_POST[ self::$prefix . $field ]) : $default;
 	}
 
 	static function password( $name, $args = array() ) {
@@ -237,14 +237,14 @@ class IWP_FormBuilder {
 		$data_str = '';
 		if ( is_array( $data ) && ! empty( $data ) ) {
 			foreach ( $data as $dk => $dv ) {
-				$data_str .= ' data-' . $dk . '="' . $dv . '"';
+				$data_str .= ' data-' . esc_attr($dk) . '="' . esc_attr($dv) . '"';
 			}
 		}
 
 		$wrapper_data_str = '';
 		if ( is_array( $wrapper_data ) && ! empty( $wrapper_data ) ) {
 			foreach ( $wrapper_data as $dk => $dv ) {
-				$wrapper_data_str .= ' data-' . $dk . '="' . $dv . '"';
+				$wrapper_data_str .= ' data-' . esc_attr($dk) . '="' . esc_attr($dv) . '"';
 			}
 		}
 
@@ -282,7 +282,7 @@ class IWP_FormBuilder {
 
 		$id = self::get_id( self::$prefix . $name );
 
-		$output .= '<input aria-label="'.esc_attr(strip_tags($label)).'" type="' . $type . '" name="' . self::$prefix . $name . '" id="' . $id . '" value="' . $value . '" ' . $data_str . ' />';
+		$output .= '<input aria-label="'.esc_attr(strip_tags($label)).'" type="' . esc_attr($type) . '" name="' . esc_attr(self::$prefix . $name) . '" id="' . esc_attr($id) . '" value="' . esc_attr($value) . '" ' . $data_str . ' />';
 
 		if ( $after ) {
 			$output .= $after;
@@ -299,7 +299,7 @@ class IWP_FormBuilder {
 
 	static function get_error( $name ) {
 		if ( isset( self::$errors[ $name ] ) && ! empty( self::$errors[ $name ] ) ) {
-			return '<div class="validation_msg"><p>&uarr; ' . self::$errors[ $name ] . '</p></div>';
+			return '<div class="validation_msg"><p>&uarr; ' . esc_html(self::$errors[ $name ]) . '</p></div>';
 		}
 
 		return false;
@@ -315,7 +315,7 @@ class IWP_FormBuilder {
 			$label_classes[] = 'iwp-field__label--has_tooltip';
 			$tooltip_str     = '<span class="iwp-field__tooltip iwp-field__tooltip--inline" data-title="' . esc_attr( $tooltip ) . '" title="' . esc_attr( $tooltip ) . '">?</span>';
 		}
-		$output = '<label class="' . implode( ' ', $label_classes ) . '"'. ($for ? ' for="'.$for.'"' : '') .'>' . $name . $tooltip_str . '</label>';
+		$output = '<label class="' . esc_attr(implode( ' ', $label_classes )) . '"'. ($for ? ' for="'.esc_attr($for).'"' : '') .'>' . $name . $tooltip_str . '</label>';
 
 		return $output;
 	}
@@ -352,13 +352,13 @@ class IWP_FormBuilder {
 			$classes[] = 'form-required';
 		}
 
-		$output = '<div class="' . implode( ' ', $classes ) . '" />';
+		$output = '<div class="' . esc_html(implode( ' ', $classes )) . '" />';
 
 		if ( $label !== false ) {
 			$output .= self::get_label( $label );
 		}
 
-		$output .= '<input aria-label="'.esc_attr(strip_tags($label)).'" type="file" name="' . self::$prefix . $name . '" id="' . self::$prefix . $name . '" />';
+		$output .= '<input aria-label="'.esc_attr(strip_tags($label)).'" type="file" name="' . esc_attr(self::$prefix . $name) . '" id="' . esc_attr(self::$prefix . $name) . '" />';
 
 		if ( $error ) {
 			$output .= $error;
@@ -399,13 +399,13 @@ class IWP_FormBuilder {
 			$classes[] = 'form-required';
 		}
 
-		$output = '<div class="' . implode( ' ', $classes ) . '" />';
+		$output = '<div class="' . esc_attr(implode( ' ', $classes )) . '" />';
 
 		if ( $label !== false ) {
 			$output .= self::get_label( $label, $tooltip );
 		}
 
-		$output .= '<textarea  aria-label="'.esc_attr(strip_tags($label)).'" name="' . self::$prefix . $name . '" id="' . self::$prefix . $name . '" >' . $value . '</textarea>';
+		$output .= '<textarea  aria-label="'.esc_attr(strip_tags($label)).'" name="' . esc_attr(self::$prefix . $name) . '" id="' . esc_attr(self::$prefix . $name) . '" >' . esc_html($value) . '</textarea>';
 
 		if ( $error ) {
 			$output .= $error;
@@ -445,7 +445,7 @@ class IWP_FormBuilder {
 			$classes[] = 'form-required';
 		}
 
-		$output = '<div class="' . implode( ' ', $classes ) . '" />';
+		$output = '<div class="' . esc_attr(implode( ' ', $classes )) . '" />';
 
 		if ( $label !== false ) {
 			$output .= self::get_label( $label );
@@ -510,27 +510,27 @@ class IWP_FormBuilder {
 
 		$id_string = '';
 		if ( $id ) {
-			$id_string = ' id="' . $id . '"';
+			$id_string = ' id="' . esc_attr($id) . '"';
 		}
 
-		$output = '<div class="' . implode( ' ', $classes ) . '" ' . $id_string . ' />';
+		$output = '<div class="' . esc_attr(implode( ' ', $classes )) . '" ' . $id_string . ' />';
 
 		if ( $label !== false ) {
 			$output .= self::get_label( $label, $tooltip );
 		}
 
-		$output .= '<select aria-label="'.esc_attr(strip_tags($label)).'" name="' . self::$prefix . $name . '" id="' . self::get_id( self::$prefix . $name ) . '">';
+		$output .= '<select aria-label="'.esc_attr(strip_tags($label)).'" name="' . esc_attr(self::$prefix . $name) . '" id="' . esc_attr(self::get_id( self::$prefix . $name ) ) . '">';
 
 		if ( $empty ) {
 			$empty_val = $empty === true ? '' : $empty;
-			$output    .= '<option value="">' . $empty_val . '</option>';
+			$output    .= '<option value="">' . esc_html($empty_val) . '</option>';
 		}
 
 		foreach ( $options as $option_id => $option ) {
 			if ( ( $option_id === $default && empty( $value ) ) || $option_id === $value ) {
-				$output .= '<option value="' . $option_id . '" selected="selected">' . $option . '</option>';
+				$output .= '<option value="' . esc_attr($option_id) . '" selected="selected">' . esc_html($option) . '</option>';
 			} else {
-				$output .= '<option value="' . $option_id . '">' . $option . '</option>';
+				$output .= '<option value="' . esc_attr($option_id) . '">' . esc_html($option) . '</option>';
 			}
 		}
 
@@ -566,9 +566,9 @@ class IWP_FormBuilder {
 			$classes = array_merge( $classes, explode( ' ', $args['class'] ) );
 		}
 
-		$output = '<div class="' . implode( ' ', $classes ) . '" >';
+		$output = '<div class="' . esc_attr(implode( ' ', $classes )) . '" >';
 
-		$output .= '<input aria-label="'.esc_attr(strip_tags($label)).'" type="radio" name="' . self::$prefix . $name . '" value="' . $value . '" ' . $checked . ' />';
+		$output .= '<input aria-label="'.esc_attr(strip_tags($label)).'" type="radio" name="' . esc_attr(self::$prefix . $name) . '" value="' . esc_attr($value) . '" ' . $checked . ' />';
 
 		if ( $label !== false ) {
 			$output .= self::get_label( $label );
@@ -606,11 +606,11 @@ class IWP_FormBuilder {
 			$classes[] = 'form-required';
 		}
 
-		$output = '<div class="' . implode( ' ', $classes ) . '" >';
+		$output = '<div class="' . esc_attr(implode( ' ', $classes )) . '" >';
 		if ( $checked ) {
-			$output .= '<input aria-label="'.esc_attr(strip_tags($label)).'" type="checkbox" name="' . self::$prefix . $name . '" value="1" id="' . self::$prefix . $name . '" checked="checked" />';
+			$output .= '<input aria-label="'.esc_attr(strip_tags($label)).'" type="checkbox" name="' . esc_attr(self::$prefix . $name) . '" value="1" id="' . esc_attr(self::$prefix . $name) . '" checked="checked" />';
 		} else {
-			$output .= '<input aria-label="'.esc_attr(strip_tags($label)).'" type="checkbox" name="' . self::$prefix . $name . '" value="1" id="' . self::$prefix . $name . '" />';
+			$output .= '<input aria-label="'.esc_attr(strip_tags($label)).'" type="checkbox" name="' . esc_attr(self::$prefix . $name) . '" value="1" id="' . esc_attr(self::$prefix . $name) . '" />';
 		}
 
 		if ( $label !== false ) {
@@ -648,7 +648,7 @@ class IWP_FormBuilder {
 		$id = self::get_id( self::$prefix . $name );
 
 		$output = '<div class="input submit">';
-		$output .= '<input aria-label="'.esc_attr(strip_tags($value)).'" type="submit" name="' . self::$prefix . $name . '" value="' . $value . '" class="' . $args_class . '" id="' . $id . '-' . strtolower( $value ) . '" />';
+		$output .= '<input aria-label="'.esc_attr(strip_tags($value)).'" type="submit" name="' . esc_attr(self::$prefix . $name) . '" value="' . esc_attr($value) . '" class="' . esc_attr($args_class) . '" id="' . esc_attr($id . '-' . strtolower( $value ) ). '" />';
 		$output .= '</div>';
 
 		return $output;
@@ -715,6 +715,3 @@ class FormValidator {
 		return false;
 	}
 }
-
-
-?>

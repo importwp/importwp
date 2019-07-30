@@ -320,7 +320,7 @@ class IWP_Importer_Settings {
 				$row_count = $file->getRecordCount();
 
 			}else{
-				$base = isset($_POST['jc-importer_parser_settings']) && isset($_POST['jc-importer_parser_settings']['import_base']) ? $_POST['jc-importer_parser_settings']['import_base'] : '';
+				$base = isset($_POST['jc-importer_parser_settings']) && isset($_POST['jc-importer_parser_settings']['import_base']) ? sanitize_text_field($_POST['jc-importer_parser_settings']['import_base']) : '';
 				$file = new \ImportWP\Importer\File\XMLFile($filepath, $config);
 				$file->setRecordPath($base);
 				$row_count = !empty($base) ? $file->getRecordCount() : 0;

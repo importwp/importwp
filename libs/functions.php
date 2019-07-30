@@ -240,7 +240,7 @@ function iwp_output_pagination( $current = 1, $max_results, $per_page, $max_show
 
 	if ( $max >= 1 ): ?>
         <div class="iwp-pagination__wrapper">
-            <p>Showing Page <?php echo $current; ?> of <?php echo $max; ?></p>
+            <p>Showing Page <?php echo intval($current); ?> of <?php echo intval($max); ?></p>
 
             <ul class="iwp-pagination">
 
@@ -255,11 +255,11 @@ function iwp_output_pagination( $current = 1, $max_results, $per_page, $max_show
 				<?php for ( $i = $start; $i <= $end; $i ++ ): ?>
 
 					<?php if ( $current == $i ): ?>
-                        <li class="iwp-pagination__link iwp-pagination__link--active"><span><?php echo $i; ?></span>
+                        <li class="iwp-pagination__link iwp-pagination__link--active"><span><?php echo intval($i); ?></span>
                         </li>
 					<?php else: ?>
                         <li class="iwp-pagination__link"><a
-                                    href="<?php echo add_query_arg( 'iwp_page', $i ); ?>"><?php echo $i; ?></a></li>
+                                    href="<?php echo add_query_arg( 'iwp_page', $i ); ?>"><?php echo intval($i); ?></a></li>
 					<?php endif; ?>
 				<?php endfor; ?>
 				<?php if ( $max > 1 && $current < $max ): ?>

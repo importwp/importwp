@@ -19,6 +19,7 @@
                     data: {
                         action: 'iwp_process',
                         id: ajax_object.id,
+                        iwp_ajax_nonce: ajax_object.iwp_ajax_nonce
                     },
                     dataType: 'json',
                     type: "POST",

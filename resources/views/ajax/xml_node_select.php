@@ -3,7 +3,7 @@ $output = $xml->output();
 ?>
 <script type="text/javascript">
     jQuery(document).ready(function ($) {
-        $.fn.nodeSelect('<?php echo $base_node; ?>');
+        $.fn.nodeSelect('<?php echo esc_attr($base_node); ?>');
     });
 </script>
 

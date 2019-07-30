@@ -47,11 +47,27 @@ class IWP_Ajax {
 		die();
 	}
 
+	private function verify_nonce($post = false){
+
+		if($post){
+			$nonce = $_POST['iwp_ajax_nonce'];
+		}else{
+			$nonce = $_GET['iwp_ajax_nonce'];
+		}
+
+		if(!wp_verify_nonce($nonce, 'iwp-ajax-nonce')){
+			wp_send_json_error("Invalid WordPress Nonce");
+			exit;
+		}
+	}
+
 	/**
 	 * Ajax show xml generated from currently chosen nodes
 	 * @return void
 	 */
 	public function admin_ajax_preview_xml_node() {
+
+		$this->verify_nonce(true);
 
 		$this->start_request();
 
@@ -79,6 +95,8 @@ class IWP_Ajax {
 	 * @return void
 	 */
 	public function admin_ajax_node_select() {
+
+		$this->verify_nonce(false);
 
 		// get url values
 		$post_id = intval( $_GET['importer_id'] );
@@ -162,6 +180,8 @@ class IWP_Ajax {
 	 */
 	public function admin_ajax_base_node() {
 
+		$this->verify_nonce(false);
+
 		$post_id           = intval($_GET['importer_id']);
 		if($post_id <= 0){
 			http_response_code(404);
@@ -210,8 +230,10 @@ class IWP_Ajax {
 	 */
 	public function admin_ajax_preview_record() {
 
+		$this->verify_nonce(true);
+
 		$importer_id = intval($_POST['id']);
-		$map         = sanitize_text_field($_POST['map']);
+		$map         = $_POST['map'];
 		$row         = isset( $_POST['row'] ) && intval( $_POST['row'] ) > 0 ? intval( $_POST['row'] ) : 1;
 
 		// setup importer
@@ -278,8 +300,8 @@ class IWP_Ajax {
 							continue;
 						}
 
-						$map_val   = stripslashes( $map_row['map'] );
-						$map_field = $map_row['field'];
+						$map_val   = stripslashes( sanitize_text_field($map_row['map']) );
+						$map_field = sanitize_text_field($map_row['field']);
 
 						if ( $map_val == "" ) {
 							continue;
@@ -296,8 +318,8 @@ class IWP_Ajax {
 								continue;
 							}
 
-							$map_val   = stripslashes( $map_row['map'] );
-							$map_field = $map_row['field'];
+							$map_val   = stripslashes( sanitize_text_field( $map_row['map'] ) );
+							$map_field = sanitize_text_field( $map_row['field'] );
 
 							if ( $map_val == "" ) {
 								continue;
@@ -331,6 +353,9 @@ class IWP_Ajax {
 	 * @return void
 	 */
 	public function admin_ajax_record_count() {
+
+		$this->verify_nonce(true);
+
 		$importer_id = intval($_POST['id']);
 		JCI()->importer = new IWP_Importer( $importer_id );
 
@@ -346,6 +371,8 @@ class IWP_Ajax {
 	}
 
 	public function process(){
+
+		$this->verify_nonce(true);
 
 		set_time_limit(0);
 
@@ -416,6 +443,8 @@ class IWP_Ajax {
 	}
 
 	public function admin_ajax_import_all_rows() {
+
+		$this->verify_nonce(true);
 
 		set_time_limit( 0 );
 

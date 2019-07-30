@@ -58,8 +58,8 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
 							<?php if ( $rows ): ?>
 								<?php foreach ( $rows as $row ): ?>
                                     <tr>
-                                        <td><?php echo $row->version; ?></td>
-                                        <td><?php echo $row->row_total; ?></td>
+                                        <td><?php echo esc_html($row->version); ?></td>
+                                        <td><?php echo esc_html($row->row_total); ?></td>
                                         <td><?php echo date( 'H:i:s d/m/y', strtotime( $row->created ) ); ?></td>
                                         <td>
                                             <a href="admin.php?page=jci-importers&import=<?php echo $importer_id; ?>&log=<?php echo $row->version; ?>&action=history">View</a>
@@ -102,9 +102,9 @@ $columns = apply_filters( "jci/log_{$template_name}_columns", array() );
                                 <th scope="col" id="author" class="manage-column column-author" style="width:30px;">ID
                                 </th>
 								<?php foreach ( $columns as $key => $col ): ?>
-                                    <th scope="col" id="<?php echo $key; ?>"
-                                        class="manage-column column-<?php echo $key; ?>"
-                                        style=""><?php echo $col; ?></th>
+                                    <th scope="col" id="<?php echo esc_attr($key); ?>"
+                                        class="manage-column column-<?php echo esc_attr($key); ?>"
+                                        style=""><?php echo esc_html($col); ?></th>
 								<?php endforeach; ?>
                             </tr>
                             </thead>

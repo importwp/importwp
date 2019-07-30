@@ -25,7 +25,7 @@ if ( ! $error ) {
 		// success
 		?>
         <tr>
-            <td><?php echo $row; ?></td>
+            <td><?php echo esc_html($row); ?></td>
 			<?php foreach ( $columns as $key => $col ): ?>
                 <td><?php do_action( "jci/log_{$template}_content", $key, $data ); ?></td>
 			<?php endforeach; ?>
@@ -40,7 +40,7 @@ if ( ! $error ) {
 if ( $error !== false ) {
 	?>
     <tr>
-        <td colspan="<?php echo count( $columns ) + 1; ?>">Error: <?php echo $error; ?></td>
+        <td colspan="<?php echo count( $columns ) + 1; ?>">Error: <?php echo esc_html($error); ?></td>
     </tr>
 	<?php
 }

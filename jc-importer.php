@@ -173,7 +173,7 @@ class JC_Importer {
 		require_once __DIR__ . '/libs/class-iwp-status.php';
 		require_once __DIR__ . '/libs/class-iwp-importer-permissions.php';
 
-		if ( is_admin() && is_user_logged_in() ) {
+		if ( is_admin() && current_user_can('manage_options')) {
 
 			// load importer.
 			$importer_id = isset( $_GET['import'] ) && ! empty( $_GET['import'] ) ? intval( $_GET['import'] ) : 0;

@@ -689,7 +689,7 @@ abstract class IWP_Template {
 	}
 
 	public function display_section($section){
-		echo sprintf('<div class="jci-group-fields jci-group-section" data-section-id="%s">', $section);
+		echo sprintf('<div class="jci-group-fields jci-group-section" data-section-id="%s">', esc_attr($section));
 		$this->display_fields($section);
 		echo '</div>';
 	}
@@ -716,7 +716,7 @@ abstract class IWP_Template {
 
 	public function get_field_value($key, $default = ''){
 		$fields = IWP_Importer_Settings::getImporterMeta( JCI()->importer->get_ID(), 'fields' );
-		return isset($fields[$this->_group][$key]) ? $fields[$this->_group][$key] : $default;
+		return esc_attr(isset($fields[$this->_group][$key]) ? $fields[$this->_group][$key] : $default);
 	}
 
 	public function get_group(){

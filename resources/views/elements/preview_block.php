@@ -58,6 +58,7 @@ $jci_template_type = JCI()->importer->get_template_type();
                                 action: 'jc_preview_record',
                                 id: ajax_object.id,
                                 field: field,
+                                iwp_ajax_nonce: ajax_object.iwp_ajax_nonce,
 					            <?php if($jci_template_type == 'xml'): ?>map: val,
                                 row: row,
                                 general_base: $('#jc-importer_parser_settings-import_base').val(),
@@ -117,6 +118,7 @@ $jci_template_type = JCI()->importer->get_template_type();
                             data: {
                                 action: 'jc_preview_record',
                                 id: ajax_object.id,
+                                iwp_ajax_nonce: ajax_object.iwp_ajax_nonce,
 					            <?php if($jci_template_type == 'xml'): ?>map: mappings,
                                 row: row,
                                 general_base: $('#jc-importer_parser_settings-import_base').val(),

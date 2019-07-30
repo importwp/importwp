@@ -132,6 +132,7 @@ class IWP_Admin {
 				'node_ajax_url'      => admin_url( 'admin-ajax.php?action=jc_node_select&importer_id=' . $post_id ),
 				'base_node_ajax_url' => admin_url( 'admin-ajax.php?action=jc_base_node&importer_id=' . $post_id ),
 				'record_preview_url' => admin_url( 'admin-ajax.php?action=jc_preview_record&importer_id=' . $post_id ),
+				'iwp_ajax_nonce' => wp_create_nonce('iwp-ajax-nonce')
 			) );
 
 			do_action( 'jci/admin_scripts' );
@@ -326,7 +327,7 @@ class IWP_Admin {
 			// general importer fields
 //			$name     = $_POST['jc-importer_name'];
 			$name     = '';
-			$template = $_POST['jc-importer_template'];
+			$template = sanitize_text_field($_POST['jc-importer_template']);
 
 			$post_id = IWP_Importer_Settings::insertImporter( 0, array( 'name' => $name ) );
 			$general = array();
@@ -334,7 +335,7 @@ class IWP_Admin {
 			// @todo: fix upload so no file is uploaded unless it is the correct type, currently file is uploaded then removed.
 
 			$file_error_field = 'import_file';
-			$import_type      = $_POST['jc-importer_import_type'];
+			$import_type      = sanitize_text_field($_POST['jc-importer_import_type']);
 			switch ( $import_type ) {
 
 				// file upload settings
@@ -351,7 +352,7 @@ class IWP_Admin {
 				case 'remote':
 
 					// download
-					$src                   = $_POST['jc-importer_remote_url'];
+					$src                   = sanitize_text_field($_POST['jc-importer_remote_url']);
 					$dest                  = basename( $src );
 					$attach                = new IWP_Attachment_CURL();
 					$result                = $attach->attach_remote_file( $post_id, $src, $dest, array( 'importer-file' => true ) );
@@ -474,7 +475,7 @@ class IWP_Admin {
 						'_import_settings',
 						'general',
 						'remote_url'
-					), $_POST['jc-importer_remote_url'] );
+					), sanitize_text_field($_POST['jc-importer_remote_url'] ));
 				}
 			}
 
@@ -488,24 +489,28 @@ class IWP_Admin {
 						'_import_settings',
 						'general',
 						'local_url'
-					), wp_normalize_path( $_POST['jc-importer_local_url'] ) );
+					), wp_normalize_path( sanitize_text_field($_POST['jc-importer_local_url']) ) );
 				}
 			}
 
 			if ( isset( $_POST['jc-importer_permissions'] ) ) {
-				$settings['permissions'] = $_POST['jc-importer_permissions'];
+				$settings['permissions'] = array(
+					'create' => isset($_POST['jc-importer_permissions']['create']) && intval($_POST['jc-importer_permissions']['create']) === 1 ? 1 : 0,
+					'update' => isset($_POST['jc-importer_permissions']['update']) && intval($_POST['jc-importer_permissions']['update']) === 1 ? 1 : 0,
+					'delete' => isset($_POST['jc-importer_permissions']['delete']) && intval($_POST['jc-importer_permissions']['delete']) === 1 ? 1 : 0,
+				);
 			}
 			if ( isset( $_POST['jc-importer_start-line'] ) ) {
-				$settings['start_line'] = $_POST['jc-importer_start-line'];
+				$settings['start_line'] = sanitize_text_field($_POST['jc-importer_start-line']);
 			}
 			if ( isset( $_POST['jc-importer_row-count'] ) ) {
-				$settings['row_count'] = $_POST['jc-importer_row-count'];
+				$settings['row_count'] = sanitize_text_field($_POST['jc-importer_row-count']);
 			}
 			if ( isset( $_POST['jc-importer_record-import-count'] ) ) {
-				$settings['record_import_count'] = $_POST['jc-importer_record-import-count'];
+				$settings['record_import_count'] = sanitize_text_field($_POST['jc-importer_record-import-count']);
 			}
 			if ( isset( $_POST['jc-importer_template-unique-field'] ) ) {
-				$settings['template_unique_field'] = $_POST['jc-importer_template-unique-field'];
+				$settings['template_unique_field'] = sanitize_text_field($_POST['jc-importer_template-unique-field']);
 			}
 
 			$settings = apply_filters( 'jci/process_edit_form', $settings );
@@ -513,6 +518,10 @@ class IWP_Admin {
 			$fields      = isset( $_POST['jc-importer_field'] ) ? $_POST['jc-importer_field'] : array();
 			$attachments = isset( $_POST['jc-importer_attachment'] ) ? $_POST['jc-importer_attachment'] : array();
 			$taxonomies  = isset( $_POST['jc-importer_taxonomies'] ) ? $_POST['jc-importer_taxonomies'] : array();
+
+			array_walk_recursive($fields, 'sanitize_text_field');
+			array_walk_recursive($attachments, 'sanitize_text_field');
+			array_walk_recursive($taxonomies, 'sanitize_text_field');
 
 			// load parser settings
 
@@ -532,7 +541,7 @@ class IWP_Admin {
 				$settings['import_file'] = $selected_import_id;
 			}
 
-			$importer_name = isset( $_POST['jc-importer_name'] ) && ! empty( $_POST['jc-importer_name'] ) ? $_POST['jc-importer_name'] : false;
+			$importer_name = isset( $_POST['jc-importer_name'] ) && ! empty( $_POST['jc-importer_name'] ) ? sanitize_text_field($_POST['jc-importer_name']) : false;
 
 			$result = IWP_Importer_Settings::update( $id, array(
 				'name'        => $importer_name,
