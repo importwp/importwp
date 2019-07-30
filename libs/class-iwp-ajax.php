@@ -100,7 +100,7 @@ class IWP_Ajax {
 
 		// get url values
 		$post_id = intval( $_GET['importer_id'] );
-		$type    = isset( $_GET['type'] ) ? $_GET['type'] : '';
+		$type    = isset( $_GET['type'] ) ? sanitize_text_field($_GET['type']) : '';
 
 		$config_file = JCI()->get_tmp_config_path($post_id);
 		$config = new \ImportWP\Importer\Config\Config($config_file);
@@ -109,7 +109,7 @@ class IWP_Ajax {
 		switch ( $type ) {
 			case 'xml':
 
-				$base_node = isset( $_GET['base'] ) ? $_GET['base'] : '';
+				$base_node = isset( $_GET['base'] ) ? sanitize_text_field($_GET['base']) : '';
 				$file      = IWP_Importer_Settings::getImportSettings( $post_id, 'import_file' );
 
 				$xml_file = new \ImportWP\Importer\File\XMLFile( $file, $config );
@@ -188,8 +188,8 @@ class IWP_Ajax {
 			die();
 		}
 
-		$base_node         = isset( $_GET['base'] ) ? $_GET['base'] : '';
-		$current_base_node = isset( $_GET['current'] ) ? $_GET['current'] : 'choose-one';
+		$base_node         = isset( $_GET['base'] ) ? sanitize_text_field($_GET['base']) : '';
+		$current_base_node = isset( $_GET['current'] ) ? sanitize_text_field($_GET['current']) : 'choose-one';
 		$nodes             = array(); // array of nodes
 
 		// 
@@ -449,7 +449,7 @@ class IWP_Ajax {
 		set_time_limit( 0 );
 
 		$importer_id  = intval( $_POST['id'] );
-		$request_type = isset( $_POST['request'] ) ? $_POST['request'] == 'run' : 'check';
+		$request_type = isset( $_POST['request'] ) && $_POST['request'] == 'run' ? 'run' : 'check';
 
 		JCI()->importer = new IWP_Importer( $importer_id );
 		JCI()->importer->run( $request_type );
