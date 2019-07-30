@@ -169,6 +169,10 @@ class IWP_Admin {
 
 	public function process_forms() {
 
+		if(!is_user_logged_in()){
+			return;
+		}
+
 		IWP_FormBuilder::init( $this->config->forms );
 		if ( isset( $_POST['jc-importer_form_action'] ) ) {
 
@@ -184,7 +188,7 @@ class IWP_Admin {
 		}
 
 		// trash importers
-		$action   = isset( $_GET['action'] ) && ! empty( $_GET['action'] ) ? $_GET['action'] : 'index';
+		$action   = isset( $_GET['action'] ) && ! empty( $_GET['action'] ) ? esc_attr($_GET['action']) : 'index';
 		$importer = isset( $_GET['import'] ) && intval( $_GET['import'] ) > 0 ? intval( $_GET['import'] ) : false;
 		$template = isset( $_GET['template'] ) && intval( $_GET['template'] ) > 0 ? intval( $_GET['template'] ) : false;
 
@@ -245,10 +249,10 @@ class IWP_Admin {
 
 		if ( $action == 'trash' && ( $importer || $template ) ) {
 
-			if ( $importer ) {
+			if ( $importer && get_post_type($importer) === 'jc-imports' ) {
 
 				wp_delete_post( $importer );
-			} elseif ( $template ) {
+			} elseif ( $template  && get_post_type($template) === 'jc-import-template') {
 
 				wp_delete_post( $template );
 			}
