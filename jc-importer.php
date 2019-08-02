@@ -128,7 +128,8 @@ class JC_Importer {
 		add_action( 'init', array( $this, 'init' ) );
 
 		// activation.
-		register_activation_hook( __FILE__, array( $this, 'activation' ) );
+		register_activation_hook( __FILE__, array( $this, 'on_activation' ) );
+		register_deactivation_hook( __FILE__, array( $this, 'on_deactivation' ) );
 		add_action( 'admin_init', array( $this, 'load_plugin' ) );
 	}
 
@@ -229,8 +230,54 @@ class JC_Importer {
 	 *
 	 * @return void
 	 */
-	function activation() {
+	function on_activation() {
 		add_option( 'Activated_Plugin', 'jcimporter' );
+	}
+
+	function on_deactivation(){
+		$this->clear_tmp_dir();
+	}
+
+	private function clear_tmp_dir(){
+
+		// clear config files from uploads dir
+		$path = JCI()->get_tmp_dir() . '/*.json';
+		foreach(glob($path) as $file){
+			unlink($file);
+		}
+
+		$path = JCI()->get_tmp_dir() . '/*.json.file_index';
+		foreach(glob($path) as $file){
+			unlink($file);
+		}
+
+		@rmdir($this->get_tmp_dir());
+	}
+
+	public function on_uninstall(){
+
+		if (!defined('WP_UNINSTALL_PLUGIN')) {
+			die;
+		}
+
+		$this->clear_tmp_dir();
+
+		// uninstall database
+		require_once 'libs/class-iwp-migrations.php';
+		$migrations = new IWP_Migrations();
+		$migrations->uninstall();
+
+		// delete all importers
+		$importers = new WP_Query(array(
+			'post_type' => array('jc-imports', 'jc-import-files'),
+			'posts_per_page' => -1,
+			'fields' => 'ids'
+		));
+		if($importers->have_posts()){
+			foreach($importers->posts as $post_id){
+				wp_delete_post($post_id, true);
+			}
+		}
 	}
 
 	/**
