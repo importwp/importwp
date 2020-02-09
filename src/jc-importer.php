@@ -1,14 +1,14 @@
 <?php
 
-/*
-Plugin Name: ImportWP
-Plugin URI:
-Description: ImportWP allows you to select which WordPress data you want to export csv and xml files using the visual data select tool.
-Author: ImportWP
-Version: __STABLE_TAG__ 
-Author URI: https://www.importwp.com
-Network: True
-*/
+/**
+ * Plugin Name: ImportWP
+ * Plugin URI: https://www.importwp.com
+ * Description: ImportWP allows you to select which WordPress data you want to export csv and xml files using the visual data select tool.
+ * Author: James Collings <james@jclabs.co.uk>
+ * Version: __STABLE_TAG__ 
+ * Author URI: https://www.importwp.com
+ * Network: True
+ */
 
 $iwp_base_path = dirname(__FILE__);
 
