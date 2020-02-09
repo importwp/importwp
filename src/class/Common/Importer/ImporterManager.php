@@ -295,6 +295,12 @@ class ImporterManager
             unlink($config_path);
             if (true === $all) {
                 foreach (glob($config_path . '*') as $file) {
+
+                    // don't remove status file
+                    if (basename($file) === basename($config_path) . '.status') {
+                        continue;
+                    }
+
                     unlink($file);
                 }
             }

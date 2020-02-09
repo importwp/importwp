@@ -10,7 +10,11 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 }
 
 $iwp_base_path = dirname(__FILE__);
-require_once $iwp_base_path . '/importwp.php';
+if (file_exists($iwp_base_path . '/importwp-pro.php')) {
+    require_once $iwp_base_path . '/importwp-pro.php';
+} else {
+    require_once $iwp_base_path . '/jc-importer.php';
+}
 
 // 1. Delete all importers, Delete all importer files
 
