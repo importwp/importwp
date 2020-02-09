@@ -21,7 +21,7 @@ class Properties
 
     public function __construct()
     {
-        $this->plugin_file_path = realpath(dirname(__DIR__) . '/../../importwp.php');
+        $this->plugin_file_path = realpath(dirname(__DIR__) . '/../../jc-importer.php');
         $this->plugin_dir_path = plugin_dir_path($this->plugin_file_path);
         $this->plugin_folder_name = basename($this->plugin_dir_path);
         $this->plugin_basename = plugin_basename($this->plugin_file_path);
