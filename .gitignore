@@ -1,7 +1,0 @@
-phpunit.xml
-.idea/
-node_modules/
-build/
-/tmp
-/resources/js/*.min.js
-/yarn.lock
