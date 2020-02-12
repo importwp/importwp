@@ -31,6 +31,7 @@ class Menu
 
         add_action('admin_menu', array($this, 'register_tools_menu'));
         add_action('tool_box', array($this->view_manager, 'tool_box'));
+        add_filter('plugin_action_links_' . $this->properties->plugin_basename, array($this, 'add_plugin_links'));
     }
 
     public function register_tools_menu()
@@ -43,6 +44,16 @@ class Menu
         ));
 
         add_action('load-' . $hook_suffix, array($this, 'load_assets'));
+    }
+
+    public function add_plugin_links($links)
+    {
+        return array_merge(
+            ['<a href="' .
+                admin_url('tools.php?page=' . $this->properties->plugin_domain) .
+                '">' . __('Settings', 'importwp') . '</a>'],
+            $links
+        );
     }
 
     public function load_assets()

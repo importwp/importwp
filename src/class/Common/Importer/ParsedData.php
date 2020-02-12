@@ -115,7 +115,8 @@ class ParsedData
         // TODO: Should we pre process the data before permissions?
 
         if ($this->mapper->permission()) {
-            $this->data = $this->mapper->permission()->validate($this->data, $this->method);
+            $allowed_fields = $this->mapper->permission()->validate($this->getData('default'), $this->method, 'default');
+            $this->replace($allowed_fields);
         }
 
         if (false === $this->id) {
@@ -125,9 +126,19 @@ class ParsedData
         }
     }
 
+    public function getMethod()
+    {
+        return $this->method;
+    }
+
     public function getLog()
     {
         return $this->mapper->getLog();
+    }
+
+    public function permission()
+    {
+        return $this->mapper->permission();
     }
 
     public function isInsert()

@@ -48,6 +48,11 @@ class Importer
     private $start_time;
 
     /**
+     * @var int
+     */
+    private $import_start_time;
+
+    /**
      * @var ParserInterface $parser
      */
     private $parser;
@@ -191,6 +196,7 @@ class Importer
     public function import()
     {
         $this->start_time = time();
+        $this->import_start_time = time();
 
         if ($this->parser == null) {
             throw new \Exception("Parser Not Loaded.");
@@ -343,11 +349,13 @@ class Importer
 
         $limit = intval(ini_get('max_execution_time'));
         if ($limit <= 0) {
-            $limit = 30;
+            $limit = 30; // TODO: Set this back to 30s
+        } else {
+            $limit = ceil($limit * 0.9);
         }
 
         $current_time = time();
-        if ($current_time - $this->start_time >= $limit) {
+        if ($current_time - $this->import_start_time >= $limit) {
             $this->status->timeout();
             $this->mapper->teardown();
             return true;

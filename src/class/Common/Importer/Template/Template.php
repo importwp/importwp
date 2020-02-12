@@ -73,7 +73,9 @@ class Template extends AbstractTemplate
     public function display_record_info($message, $id, $data)
     {
         $fields = $data->getData();
-        $message .= ' (' . implode(', ', array_keys($fields)) . ')';
+        if (!empty($fields)) {
+            $message .= ' (' . implode(', ', array_keys($fields)) . ')';
+        }
         return $message;
     }
 
@@ -124,8 +126,10 @@ class Template extends AbstractTemplate
         foreach ($this->field_options as $callback_field_name => $temp_callback) {
             if (strpos($callback_field_name, '*') !== false) {
 
+                $callback_field_name = str_replace('.', '\.', $callback_field_name);
+
                 $pattern = str_replace('*', '[\d]+', $callback_field_name);
-                if (false === preg_match("/^{$pattern}/i", $field_name)) {
+                if (1 !== preg_match("/^{$pattern}/i", $field_name)) {
                     continue;
                 }
 

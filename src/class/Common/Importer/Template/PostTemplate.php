@@ -511,7 +511,11 @@ class PostTemplate extends Template implements TemplateInterface
                 foreach ($terms as $term) {
 
                     $term = trim($term);
-                    if (empty($term)) {
+                    $permission_key = 'taxonomy.' . $tax; //taxonomy.category | taxonomy.post_tag
+                    $allowed = $data->permission()->validate([$permission_key => ''], $data->getMethod(), $group);
+                    $is_allowed = isset($allowed[$permission_key]) ? true : false;
+
+                    if (!$is_allowed || empty($term)) {
                         continue;
                     }
 
@@ -571,6 +575,14 @@ class PostTemplate extends Template implements TemplateInterface
         $delimiter = apply_filters('iwp/attachment/value_delimiter', $delimiter);
 
         for ($i = 0; $i < $total_rows; $i++) {
+
+            $permission_key = 'attachment.' . $i; //attachment.0 | attachment.1
+            $allowed = $data->permission()->validate([$permission_key => ''], $data->getMethod(), $group);
+            $is_allowed = isset($allowed[$permission_key]) ? true : false;
+            if (!$is_allowed) {
+                continue;
+            }
+
             // Process Attachments
             $row_prefix = $group . '.' . $i . '.';
             $location = isset($attachment_data[$row_prefix . 'location']) ? $attachment_data[$row_prefix . 'location'] : null;

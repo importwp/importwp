@@ -525,41 +525,41 @@ class Migrations
 
                         $cf_prefix = 'custom_fields.' . $row_id . '.';
                         $converted_mapped_fields[$cf_prefix . 'key'] = $custom_field['key'];
-                        $converted_mapped_fields[$cf_prefix . '_value.value'] = $custom_field['value'];
-                        $converted_mapped_fields[$cf_prefix . '_value._field_type'] = $custom_field['type'];
+                        $converted_mapped_fields[$cf_prefix . 'value'] = $custom_field['value'];
+                        $converted_mapped_fields[$cf_prefix . '_field_type'] = $custom_field['type'];
 
                         if ('attachment' === $custom_field['type']) {
-                            $converted_mapped_fields[$cf_prefix . '_value._return'] = $custom_field['settings']['attachment_return'];
+                            $converted_mapped_fields[$cf_prefix . '_return'] = $custom_field['settings']['attachment_return'];
 
-                            $converted_mapped_fields[$cf_prefix . '_value._ftp_host'] = $custom_field['settings']['attachment_ftp_server'];
-                            $converted_mapped_fields[$cf_prefix . '_value._ftp_user'] = $custom_field['settings']['attachment_ftp_user'];
-                            $converted_mapped_fields[$cf_prefix . '_value._ftp_pass'] = $custom_field['settings']['attachment_ftp_pass'];
+                            $converted_mapped_fields[$cf_prefix . '_ftp_host'] = $custom_field['settings']['attachment_ftp_server'];
+                            $converted_mapped_fields[$cf_prefix . '_ftp_user'] = $custom_field['settings']['attachment_ftp_user'];
+                            $converted_mapped_fields[$cf_prefix . '_ftp_pass'] = $custom_field['settings']['attachment_ftp_pass'];
 
 
-                            $converted_mapped_fields[$cf_prefix . '_value._ftp_path'] = '';
-                            $converted_mapped_fields[$cf_prefix . '_value._remote_url'] = '';
-                            $converted_mapped_fields[$cf_prefix . '_value._local_url'] = '';
+                            $converted_mapped_fields[$cf_prefix . '_ftp_path'] = '';
+                            $converted_mapped_fields[$cf_prefix . '_remote_url'] = '';
+                            $converted_mapped_fields[$cf_prefix . '_local_url'] = '';
 
                             switch ($custom_field['settings']['attachment_download']) {
                                 case 'ftp':
-                                    $converted_mapped_fields[$cf_prefix . '_value._download'] = 'ftp';
-                                    $converted_mapped_fields[$cf_prefix . '_value._ftp_path'] = $custom_field['settings']['attachment_base_url'];
+                                    $converted_mapped_fields[$cf_prefix . '_download'] = 'ftp';
+                                    $converted_mapped_fields[$cf_prefix . '_ftp_path'] = $custom_field['settings']['attachment_base_url'];
                                     break;
                                 case 'url':
-                                    $converted_mapped_fields[$cf_prefix . '_value._download'] = 'remote';
-                                    $converted_mapped_fields[$cf_prefix . '_value._remote_url'] = $custom_field['settings']['attachment_base_url'];
+                                    $converted_mapped_fields[$cf_prefix . '_download'] = 'remote';
+                                    $converted_mapped_fields[$cf_prefix . '_remote_url'] = $custom_field['settings']['attachment_base_url'];
                                     break;
                                 case 'local':
-                                    $converted_mapped_fields[$cf_prefix . '_value._download'] = 'local';
-                                    $converted_mapped_fields[$cf_prefix . '_value._local_url'] = $custom_field['settings']['attachment_base_url'];
+                                    $converted_mapped_fields[$cf_prefix . '_download'] = 'local';
+                                    $converted_mapped_fields[$cf_prefix . '_local_url'] = $custom_field['settings']['attachment_base_url'];
                                     break;
                             }
 
-                            $converted_mapped_fields[$cf_prefix . '_value._enabled'] = 'no';
-                            $converted_mapped_fields[$cf_prefix . '_value._alt'] = '';
-                            $converted_mapped_fields[$cf_prefix . '_value._title'] = '';
-                            $converted_mapped_fields[$cf_prefix . '_value._caption'] = '';
-                            $converted_mapped_fields[$cf_prefix . '_value._description'] = '';
+                            $converted_mapped_fields[$cf_prefix . '_enabled'] = 'no';
+                            $converted_mapped_fields[$cf_prefix . '_alt'] = '';
+                            $converted_mapped_fields[$cf_prefix . '_title'] = '';
+                            $converted_mapped_fields[$cf_prefix . '_caption'] = '';
+                            $converted_mapped_fields[$cf_prefix . '_description'] = '';
                         }
                         $row_id++;
                     }

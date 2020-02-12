@@ -15,10 +15,8 @@ class Permission implements PermissionInterface
         $this->importer_model = $importer_model;
     }
 
-    public function validate($fields, $method)
+    public function validate($fields, $method, $group_id)
     {
-        $output = [];
-
         $permission_method = false;
         if ('INSERT' === $method) {
             $permission_method = 'create';
@@ -33,12 +31,9 @@ class Permission implements PermissionInterface
         }
 
         $permission_data = $this->importer_model->getPermission($permission_method);
+        $fields = $this->validate_group($fields, $group_id, $permission_data);
 
-        foreach ($fields as $group_id => $group_data) {
-            $output[$group_id] = $this->validate_group($group_data, $group_id, $permission_data);
-        }
-
-        return $output;
+        return $fields;
     }
 
     public function allowed_method($method)
@@ -47,10 +42,10 @@ class Permission implements PermissionInterface
         return $permission_data['enabled'] !== true ? false : true;
     }
 
-    private function validate_group($fields, $group_id, $permission_data)
+    public function validate_group($fields, $group_id, $permission_data)
     {
         $permission_type = $permission_data['type'];
-        $permission_fields = explode("\n", $permission_data['fields']);
+        $permission_fields = is_array($permission_data['fields']) ? $permission_data['fields'] :  explode("\n", $permission_data['fields']);
 
         $matches = array();
         foreach ($permission_fields as $field_search) {

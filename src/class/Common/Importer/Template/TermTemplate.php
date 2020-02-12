@@ -192,7 +192,7 @@ class TermTemplate extends Template implements TemplateInterface
             }
         }
 
-        if (!isset($term_field_map['slug']) || empty($term_field_map['slug'])) {
+        if ((!isset($term_field_map['slug']) || empty($term_field_map['slug'])) && isset($term_field_map['term']) && !empty($term_field_map['term'])) {
             $term_field_map['slug'] = sanitize_title($term_field_map['term']);
 
             // set flag to say slug has been generated

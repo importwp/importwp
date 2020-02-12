@@ -8,6 +8,9 @@ interface MapperInterface
 
     public function teardown();
 
+    /**
+     * @return PermissionInterface 
+     */
     public function permission();
 
     public function exists(ParsedData $data);

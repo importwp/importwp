@@ -312,7 +312,30 @@ class RestManager extends \WP_REST_Controller
         $post_data = $request->get_body_params();
         $id = isset($post_data['id']) ? intval($post_data['id']) : null;
 
+        $temp_post_data = [
+            'create' => [],
+            'update' => []
+        ];
+
+        if (isset($post_data['permissions'])) {
+            // TODO: update sanitize method to keep track of hierarchy
+            $temp_post_data['create'] = explode("\n", $post_data['permissions']['create']['fields']);
+            $temp_post_data['update'] = explode("\n", $post_data['permissions']['update']['fields']);
+        }
+
         $post_data = $this->sanitize($post_data);
+
+        if (isset($post_data['permissions'])) {
+            // TODO: Method to bypass sanitization not needed once sanitize method has been upgraded
+            foreach (['create', 'update'] as $permission_method) {
+                $permission_fields = $temp_post_data[$permission_method];
+                if (!empty($permission_fields)) {
+                    $post_data['permissions'][$permission_method]['fields'] = array_values(array_filter(array_map([$this, 'sanitize'], $permission_fields, array_fill(0, count($permission_fields), 'permission_' . $permission_method . '_fields'))));
+                } else {
+                    $post_data['permissions'][$permission_method]['fields'] = [];
+                }
+            }
+        }
 
         $importer = new ImporterModel($id);
 
@@ -420,7 +443,7 @@ class RestManager extends \WP_REST_Controller
                 $importer->setPermission('create', [
                     'enabled' => isset($create['enabled']) && $create['enabled'] === 'true' ? true : false,
                     'type' => isset($create['type']) && in_array($create['type'], ['include', 'exclude'], true) ? $create['type'] : null,
-                    'fields' => isset($create['fields']) ? $create['fields'] : null,
+                    'fields' => isset($create['fields']) ? $create['fields'] : [],
                 ]);
             }
 
@@ -430,7 +453,7 @@ class RestManager extends \WP_REST_Controller
                 $importer->setPermission('update', [
                     'enabled' => isset($update['enabled']) && $update['enabled'] === 'true' ? true : false,
                     'type' => isset($update['type']) && in_array($update['type'], ['include', 'exclude'], true) ? $update['type'] : null,
-                    'fields' => isset($update['fields']) ? $update['fields'] : null,
+                    'fields' => isset($update['fields']) ? $update['fields'] : [],
                 ]);
             }
 
@@ -575,12 +598,12 @@ class RestManager extends \WP_REST_Controller
                 $importer->setFileSetting('nodes', $nodes);
             } elseif ('csv' === $parser) {
 
-                $delimiter = $post_data['delimiter'];
+                $delimiter = isset($post_data['delimiter']) ? $post_data['delimiter'] : null;
                 if (is_null($delimiter)) {
                     $delimiter = ',';
                 }
 
-                $enclosure = $post_data['enclosure'];
+                $enclosure = isset($post_data['enclosure']) ? $post_data['enclosure'] : null;
                 if (is_null($enclosure)) {
                     $enclosure = '"';
                 }
@@ -733,7 +756,11 @@ class RestManager extends \WP_REST_Controller
     public function render_import_status_update(ImporterStatus $status)
     {
         echo json_encode($status->output()) . "\n";
-        ob_flush();
+
+        if (ob_get_level() > 0) {
+            ob_flush();
+        }
+
         flush();
     }
 
