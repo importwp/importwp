@@ -349,7 +349,7 @@ class Importer
 
         $limit = intval(ini_get('max_execution_time'));
         if ($limit <= 0) {
-            $limit = 30; // TODO: Set this back to 30s
+            $limit = 30;
         } else {
             $limit = ceil($limit * 0.9);
         }

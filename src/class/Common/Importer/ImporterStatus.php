@@ -268,7 +268,7 @@ class ImporterStatus
 
     public function output()
     {
-        return [
+        $output = [
             's' => $this->status, // status
             'b' => $this->section,
             'd' => date('Y-m-d H:i:s'), // date
@@ -281,13 +281,19 @@ class ImporterStatus
             'i' => $this->inserts,
             'u' => $this->updates,
             'm' => $this->message,
-            'z' => $this->elapsed_time,
+            'z' => $this->elapsed_time
         ];
+
+        if (defined('WP_DEBUG') && true === WP_DEBUG) {
+            $output['x'] = $this->size_formatted(memory_get_peak_usage(true));
+        }
+
+        return $output;
     }
 
     public function data()
     {
-        return [
+        $output = [
             'session' => $this->session,
             'warnings' => $this->warnings,
             'errors' => $this->errors,
@@ -306,6 +312,19 @@ class ImporterStatus
             'end' => $this->end,
             'message' => $this->message
         ];
+
+        if (defined('WP_DEBUG') && true === WP_DEBUG) {
+            $output['memory'] = $this->size_formatted(memory_get_peak_usage(true));
+        }
+
+        return $output;
+    }
+
+    private function size_formatted($size)
+    {
+        $units = array('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
+        $power = $size > 0 ? floor(log($size, 1024)) : 0;
+        return number_format($size / pow(1024, $power), 2, '.', ',') . ' ' . $units[$power];
     }
 
     public function save($force = false)
