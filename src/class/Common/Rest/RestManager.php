@@ -222,14 +222,24 @@ class RestManager extends \WP_REST_Controller
         return true;
     }
 
-    public function sanitize($data, $name = null)
+    public function sanitize($data, $name = null, $path = [])
     {
+        $path[] = $name;
+
         if (is_array($data)) {
             foreach ($data as $k => $v) {
-                $data[$k] = $this->sanitize($v, $k);
+                $data[$k] = $this->sanitize($v, $k, $path);
             }
 
             return $data;
+        }
+
+        $full_path = implode('.', array_filter($path));
+        if (!is_null($full_path)) {
+
+            if (preg_match('/^map\.\S+/', $full_path) !== false) {
+                return $data;
+            }
         }
 
         if (!is_null($name)) {
