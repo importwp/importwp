@@ -12,6 +12,7 @@ use ImportWP\Common\Importer\Preview\XMLPreview;
 use ImportWP\Common\Migration\Migrations;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Properties\Properties;
+use ImportWP\Common\Util\Logger;
 
 class RestManager extends \WP_REST_Controller
 {
@@ -733,15 +734,32 @@ class RestManager extends \WP_REST_Controller
      */
     public function init_import(\WP_REST_Request $request)
     {
-
-        $id = intval($request->get_param('id'));
-        $importer_data = $this->importer_manager->get_importer($id);
-
         // new
-        $status = $this->importer_status_manager->new($importer_data);
+        try {
+            $id = intval($request->get_param('id'));
+            Logger::write(__CLASS__  . '::init_import -id=' . intval($id));
+
+            $importer_data = $this->importer_manager->get_importer($id);
+
+            Logger::write(__CLASS__  . '::init_import -id=' . intval($id) . ' -importer_data=' . print_r($importer_data, true));
+
+            $status = $this->importer_status_manager->new($importer_data);
+
+            Logger::write(__CLASS__  . '::init_import -id=' . intval($id) . ' -status=' . print_r($status, true));
+
+            if (!$status) {
+                Logger::write(__CLASS__  . '::init_import -id=' . intval($id) . ' -error=Error: Unable to generate new import session.');
+                return $this->http->end_rest_error('Error: Unable to generate new import session.');
+            }
+        } catch (\Exception $e) {
+            Logger::write(__CLASS__  . '::init_import -id=' . intval($id) . ' -error=Error Generating Importer Session: ' . $e->getMessage());
+            return $this->http->end_rest_error('Error Generating Importer Session: ' . $e->getMessage());
+        }
+
 
         // continue
         // $status = $this->importer_status_manager->get_importer_status($importer_data, $importer_data->getStatusId());
+        Logger::write(__CLASS__  . '::init_import -id=' . intval($id) . ' -session=' . $status->get_session_id());
 
         return $this->http->end_rest_success([
             'session' => $status->get_session_id()
@@ -752,13 +770,19 @@ class RestManager extends \WP_REST_Controller
     {
         // $this->http->set_stream_headers();
 
-        $session = $request->get_body_params('session');
+        $session = $request->get_param('session');
 
         add_action('iwp/importer/status/save', array($this, 'render_import_status_update'));
 
         $id = intval($request->get_param('id'));
+        Logger::write(__CLASS__  . '::run_import -id=' . intval($id) . ' -session=' . print_r($session, true));
+
         $importer_data = $this->importer_manager->get_importer($id);
+        Logger::write(__CLASS__  . '::run_import -id=' . intval($id) . ' -importer_model=' . print_r($importer_data, true));
+
         $status = $this->importer_manager->import($importer_data, $session);
+        Logger::write(__CLASS__  . '::run_import -id=' . intval($id) . ' -status=' . print_r($status, true));
+
         echo json_encode($status->output()) . "\n";
         die();
     }
@@ -798,6 +822,9 @@ class RestManager extends \WP_REST_Controller
 
         $importer_data = $this->importer_manager->get_importer($id);
         $status = $this->importer_status_manager->get_importer_status($importer_data, $session);
+        if (!$status) {
+            return $this->http->end_rest_error('Unable to get importer status in stop_import.');
+        }
         $status->stop();
 
         return $this->http->end_rest_success($status->output());

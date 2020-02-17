@@ -20,6 +20,7 @@ use ImportWP\Common\Importer\Template\Template;
 use ImportWP\Common\Importer\Template\TermTemplate;
 use ImportWP\Common\Importer\Template\UserTemplate;
 use ImportWP\Common\Model\ImporterModel;
+use ImportWP\Common\Util\Logger;
 
 class ImporterManager
 {
@@ -351,15 +352,26 @@ class ImporterManager
 
     public function import($id, $session)
     {
-
         $importer_data = $this->get_importer($id);
+        Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -session=' . $session);
+
         $importer_status = $this->importer_status_manager->get_importer_status($importer_data, $session);
+        Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -status=' . print_r($importer_status, true));
 
         try {
+
+            if (!$importer_status) {
+                $importer_post = get_post($importer_data->getId());
+                throw new \Exception("Unable to read importer session: (" . $importer_post->post_excerpt . ")");
+            }
 
             // clear config before import
             $is_init = $importer_status->has_status('init');
             if ($is_init) {
+                $set_time_limit = set_time_limit(0);
+                Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' : -set-time-limit=' . ($set_time_limit === true ? 'yes' : 'no') . ' -time-limit=' . intval(ini_get('max_execution_time')));
+
+                Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' : Clearing config files');
                 $this->clear_config_files($id, false, true);
             }
 
@@ -400,9 +412,14 @@ class ImporterManager
             }
 
             // TODO: if end <= start it imports all, should throw an error instead.
+            Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' : Get record count');
             $end = $parser->file()->getRecordCount();
 
+            Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -count=' . $end);
+
             if ($importer_status->has_status('init')) {
+
+                Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -new');
 
                 $tmp_start = $importer_data->getStartRow();
                 if (!is_null($tmp_start) && "" !== $tmp_start) {
@@ -423,13 +440,20 @@ class ImporterManager
                 $importer_status->set_start($start);
                 $importer_status->set_end($end);
 
+                Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -start=' . $start . ' -end=' . $end);
+
                 $importer_status->set_status('running');
                 $importer_status->set_section('importing');
                 $importer_status->save();
             } elseif ($importer_status->has_status('timeout')) { // || $importer_status->has_status('paused')) {
+
+                Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -resume');
+
                 // TODO: continue from where we left off
                 $start = $importer_status->get_counter();
                 $end = $importer_status->get_total();
+
+                Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -start=' . $start . ' -end=' . $end);
 
                 $importer_status->set_status('running');
                 $importer_status->save();
@@ -444,9 +468,12 @@ class ImporterManager
             $importer->import();
 
             $template->unregister_hooks();
+
+            Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -complete');
         } catch (Exception $e) {
 
             // TODO: Missing template errors are currently not being logged to history, possibly others?
+            Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -error=' . $e->getMessage());
             $importer_status->record_fatal_error($e->getMessage());
             $importer_status->save();
             $importer_status->write_to_file();

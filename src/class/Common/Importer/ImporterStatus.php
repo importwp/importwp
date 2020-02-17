@@ -2,6 +2,7 @@
 
 namespace ImportWP\Common\Importer;
 
+use ImportWP\Common\Util\Logger;
 use ImportWP\Container;
 
 class ImporterStatus
@@ -341,8 +342,10 @@ class ImporterStatus
     public function save($force = false)
     {
         $session = get_post_meta($this->importer_id, '_iwp_session', true);
+        Logger::write(__CLASS__ . '::save -id=' . $this->importer_id . ' -force=' . ($force === true ? 'yes' : 'no') . ' -session=' . $session);
 
         if ($session !== $this->get_session_id()) {
+            Logger::write(__CLASS__ . '::save -id=' . $this->importer_id . ' -invalid-session=' . $this->get_session_id());
             return false;
         }
 
@@ -375,17 +378,31 @@ class ImporterStatus
             $this->_changes = [];
         }
 
-        // Match what happens in wp-rest.
-        remove_filter('content_save_pre', 'wp_filter_post_kses');
-        remove_filter('excerpt_save_pre', 'wp_filter_post_kses');
 
-        $result = wp_update_post($post_arr, true);
+        Logger::write(__CLASS__ . '::save -id=' . $this->importer_id . ' -update=' . print_r($post_arr, true));
+
+        global $wpdb;
+        $result = $wpdb->update(
+            $wpdb->posts,
+            ['post_excerpt' => $post_arr['post_excerpt']],
+            ['ID' => $post_arr['ID']],
+            ['%s'],
+            ['%d']
+        );
 
         // Match what happens in wp-rest.
-        add_filter('content_save_pre', 'wp_filter_post_kses');
-        add_filter('excerpt_save_pre', 'wp_filter_post_kses');
+        // remove_filter('content_save_pre', 'wp_filter_post_kses');
+        // remove_filter('excerpt_save_pre', 'wp_filter_post_kses');
+
+        // $result = wp_update_post($post_arr, true);
+
+        // // Match what happens in wp-rest.
+        // add_filter('content_save_pre', 'wp_filter_post_kses');
+        // add_filter('excerpt_save_pre', 'wp_filter_post_kses');
 
         do_action('iwp/importer/status/save', $this);
+
+        Logger::write(__CLASS__ . '::save -id=' . $this->importer_id . ' -saved=' . ($result === false ? 'no' : 'yes'));
 
         return $result;
     }
@@ -409,6 +426,9 @@ class ImporterStatus
     {
 
         $file = $this->get_status_file();
+        if (!file_exists($file)) {
+            return false;
+        }
 
         $line = '';
 
@@ -447,7 +467,7 @@ class ImporterStatus
     private function update_status_session($data)
     {
         $file = $this->get_status_file();
-        $f = fopen($file, 'r+');
+        $f = fopen($file, 'a+');
 
         $session_data = json_encode($data['data']);
 

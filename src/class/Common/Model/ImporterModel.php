@@ -456,7 +456,7 @@ class ImporterModel
     {
         clean_post_cache($this->id);
         $post = get_post($this->id);
-        return maybe_unserialize($post->post_excerpt);
+        return (array) maybe_unserialize($post->post_excerpt);
     }
 
     public function getStatusId()
