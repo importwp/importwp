@@ -135,4 +135,10 @@ class ImporterStatusManager
         $importer->setStatus($status);
         return $status;
     }
+
+    public function clear(ImporterModel $importer_model)
+    {
+        delete_post_meta($importer_model->getId(), '_iwp_session');
+        wp_update_post(['ID' => $importer_model->getId(), 'post_excerpt' => '']);
+    }
 }

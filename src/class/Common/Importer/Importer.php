@@ -340,7 +340,7 @@ class Importer
             return;
         }
 
-        $this->status->pause();
+        $this->status->timeout();
         $this->mapper->teardown();
     }
 
@@ -349,7 +349,7 @@ class Importer
 
         $limit = intval(ini_get('max_execution_time'));
         if ($limit <= 0) {
-            $limit = 30;
+            $limit = 360;
         } else {
             $limit = ceil($limit * 0.9);
         }

@@ -132,6 +132,11 @@ class ImporterStatus
      */
     private $_changes;
 
+    /**
+     * @var int $memory
+     */
+    private $memory;
+
     public function __construct($importer_id, $data = null)
     {
         $this->importer_id = $importer_id;
@@ -158,6 +163,7 @@ class ImporterStatus
         $this->version = $this->getDefault($data, 'version', 0);
         $this->elapsed_time = $this->getDefault($data, 'elapsed_time', 0);
         $this->message = $this->getDefault($data, 'message', null);
+        $this->memory = $this->getDefault($data, 'memory', 0);
     }
 
     public function is_cancelled()
@@ -205,6 +211,11 @@ class ImporterStatus
     public function has_status($status)
     {
         return $status === $this->status;
+    }
+
+    public function get_status()
+    {
+        return $this->status;
     }
 
     public function set_start($start)
@@ -284,8 +295,8 @@ class ImporterStatus
             'z' => $this->elapsed_time
         ];
 
-        if (defined('WP_DEBUG') && true === WP_DEBUG) {
-            $output['x'] = $this->size_formatted(memory_get_peak_usage(true));
+        if (defined('WP_DEBUG') && true === WP_DEBUG && $this->memory > 0) {
+            $output['x'] = $this->size_formatted($this->memory);
         }
 
         return $output;
@@ -310,11 +321,11 @@ class ImporterStatus
             'elapsed_time' => $this->elapsed_time,
             'start' => $this->start,
             'end' => $this->end,
-            'message' => $this->message
+            'message' => $this->message,
         ];
 
-        if (defined('WP_DEBUG') && true === WP_DEBUG) {
-            $output['memory'] = $this->size_formatted(memory_get_peak_usage(true));
+        if (defined('WP_DEBUG') && true === WP_DEBUG && $this->memory > 0) {
+            $output['memory'] = $this->memory;
         }
 
         return $output;
@@ -335,15 +346,25 @@ class ImporterStatus
             return false;
         }
 
+        $status_data = $this->data();
+
+        if (defined('WP_DEBUG') && true === WP_DEBUG) {
+
+            $memory = memory_get_peak_usage(true);
+            if (!isset($status_data['memory']) || intval($status_data['memory']) < $memory) {
+                $status_data['memory'] = $memory;
+            }
+        }
+
         $post_arr = [
             'ID' => $this->importer_id,
-            'post_excerpt' => serialize($this->data())
+            'post_excerpt' => serialize($status_data)
         ];
 
         if (false === $force) {
             // TODO: get the raw data and apply only the changed fields
             $raw_status = $this->get_raw_status();
-            $current_data = $this->data();
+            $current_data = $status_data;
 
             foreach ($this->_changes as $field) {
                 $raw_status[$field] = $current_data[$field];
@@ -356,11 +377,13 @@ class ImporterStatus
 
         // Match what happens in wp-rest.
         remove_filter('content_save_pre', 'wp_filter_post_kses');
+        remove_filter('excerpt_save_pre', 'wp_filter_post_kses');
 
         $result = wp_update_post($post_arr, true);
 
         // Match what happens in wp-rest.
         add_filter('content_save_pre', 'wp_filter_post_kses');
+        add_filter('excerpt_save_pre', 'wp_filter_post_kses');
 
         do_action('iwp/importer/status/save', $this);
 
@@ -369,17 +392,86 @@ class ImporterStatus
 
     public function write_to_file()
     {
-        $exported = get_post_meta($this->importer_id, '_iwp_exported_' . $this->session, true);
-        if ($exported === 'yes') {
-            return;
+        $data = $this->get_last_session_from_status($this->get_session_id());
+        if ($data) {
+            $data['data'] = $this->data();
+            $this->update_status_session($data);
+        } else {
+            $this->update_status_session([
+                'start' => '-1',
+                'length' => 0,
+                'data' => $this->data()
+            ]);
+        }
+    }
+
+    private function get_last_session_from_status($session)
+    {
+
+        $file = $this->get_status_file();
+
+        $line = '';
+
+        $f = fopen($file, 'r');
+        $cursor = -1;
+
+        fseek($f, $cursor, SEEK_END);
+        $char = fgetc($f);
+
+        /**
+         * Trim trailing newline chars of the file
+         */
+        while ($char === "\n" || $char === "\r") {
+            fseek($f, $cursor--, SEEK_END);
+            $char = fgetc($f);
         }
 
-        $file_path = $this->get_status_file();
-        $fh = fopen($file_path, 'a');
-        fputs($fh, json_encode($this->data()) . "\n");
-        fclose($fh);
+        /**
+         * Read until the start of file or first newline char
+         */
+        while ($char !== false && $char !== "\n" && $char !== "\r") {
+            /**
+             * Prepend the new char
+             */
+            $line = $char . $line;
+            fseek($f, $cursor--, SEEK_END);
+            $char = fgetc($f);
+        }
 
-        update_post_meta($this->importer_id, '_iwp_exported_' . $this->session, 'yes');
+        $json_data = json_decode($line, true);
+        $result = isset($json_data['session']) && $json_data['session'] === $session ? ['start' => ftell($f), 'length' => strlen($line), 'data' => $json_data] : false;
+        fclose($f);
+        return $result;
+    }
+
+    private function update_status_session($data)
+    {
+        $file = $this->get_status_file();
+        $f = fopen($file, 'r+');
+
+        $session_data = json_encode($data['data']);
+
+        if ($data['start'] > -1) {
+
+            // get end of file after existing status
+            fseek($f, $data['start'] + $data['length']);
+            $end_content = fgets($data['length']);
+
+            if (empty($end_content)) {
+                $end_content = "\n";
+            }
+
+            fseek($f, $data['start']);
+            fputs($f, $session_data . $end_content);
+        } else {
+            fseek($f, 0, SEEK_END);
+            fputs($f, $session_data . "\n");
+        }
+
+        // end file here
+        ftruncate($f, ftell($f));
+
+        fclose($f);
     }
 
     public function validate()
@@ -442,12 +534,16 @@ class ImporterStatus
     {
         $this->set_status('timeout');
         $this->save();
+
+        $this->write_to_file();
     }
 
     public function shutdown()
     {
         $this->set_status('shutdown');
         $this->save();
+
+        $this->write_to_file();
     }
 
     public function pause()
@@ -455,6 +551,8 @@ class ImporterStatus
         update_post_meta($this->importer_id, '_iwp_paused_' . $this->session, 'yes');
         $this->set_status('paused');
         $this->save();
+
+        $this->write_to_file();
     }
 
     public function stop()
@@ -548,6 +646,7 @@ class ImporterStatus
             $this->setup_data($raw_status);
         } else {
             // TODO: Current session has changed
+            throw new \Exception("Importer session has changed, unable to continue current import.");
         }
     }
 
