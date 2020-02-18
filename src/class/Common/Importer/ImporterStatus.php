@@ -467,7 +467,7 @@ class ImporterStatus
     private function update_status_session($data)
     {
         $file = $this->get_status_file();
-        $f = fopen($file, 'a+');
+        $f = fopen($file, 'r+');
 
         $session_data = json_encode($data['data']);
 
@@ -481,7 +481,7 @@ class ImporterStatus
                 $end_content = "\n";
             }
 
-            fseek($f, $data['start']);
+            fseek($f, $data['start'], SEEK_SET);
             fputs($f, $session_data . $end_content);
         } else {
             fseek($f, 0, SEEK_END);
