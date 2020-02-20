@@ -590,6 +590,7 @@ class PostTemplate extends Template implements TemplateInterface
             $featured = isset($attachment_data[$row_prefix . '_featured']) ? $attachment_data[$row_prefix . '_featured'] : null;
             $source = null;
             $result = false;
+            $attachment_id = null;
 
             $location = trim($location);
 
@@ -600,6 +601,10 @@ class PostTemplate extends Template implements TemplateInterface
                     // check if file hash is already stored
                     $source = $base_url . $location;
                     $source = apply_filters('iwp/attachment/filename', $source);
+                    if (empty($source)) {
+                        continue;
+                    }
+
                     $attachment_id = $attachment->get_attachment_by_hash($source);
                     if ($attachment_id <= 0) {
                         $result = $filesystem->download_file($source);
@@ -614,6 +619,10 @@ class PostTemplate extends Template implements TemplateInterface
                     // check if file hash is already stored
                     $source = $base_url . $location;
                     $source = apply_filters('iwp/attachment/filename', $source);
+                    if (empty($source)) {
+                        continue;
+                    }
+
                     $attachment_id = $attachment->get_attachment_by_hash($source);
                     if ($attachment_id <= 0) {
                         $result = $ftp->download_file($source, $ftp_host, $ftp_user, $ftp_pass);
@@ -625,6 +634,10 @@ class PostTemplate extends Template implements TemplateInterface
                     // check if file hash is already stored
                     $source = $base_url . $location;
                     $source = apply_filters('iwp/attachment/filename', $source);
+                    if (empty($source)) {
+                        continue;
+                    }
+                    
                     $attachment_id = $attachment->get_attachment_by_hash($source);
                     if ($attachment_id <= 0) {
                         $result = $filesystem->copy_file($source);
@@ -638,7 +651,7 @@ class PostTemplate extends Template implements TemplateInterface
             if ($attachment_id <= 0) {
 
                 if (is_wp_error($result)) {
-                    // TODO: What do we do with errors?
+                    $this->errors[] = $result;
                     continue;
                 }
 

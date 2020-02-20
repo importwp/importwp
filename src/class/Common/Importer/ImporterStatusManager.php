@@ -21,7 +21,7 @@ class ImporterStatusManager
     {
         $logs = $this->get_importer_logs($immpoter_data);
         foreach ($logs as $log) {
-            if ($log['session'] === $session) {
+            if ($log && $log['session'] === $session) {
                 return $log;
             }
         }

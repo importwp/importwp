@@ -334,6 +334,7 @@ class ImporterStatus
 
     private function size_formatted($size)
     {
+        $size = intval($size);
         $units = array('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
         $power = $size > 0 ? floor(log($size, 1024)) : 0;
         return number_format($size / pow(1024, $power), 2, '.', ',') . ' ' . $units[$power];
@@ -467,6 +468,10 @@ class ImporterStatus
     private function update_status_session($data)
     {
         $file = $this->get_status_file();
+        if (!file_exists($file)) {
+            file_put_contents($file, '');
+        }
+
         $f = fopen($file, 'r+');
 
         $session_data = json_encode($data['data']);
@@ -475,7 +480,7 @@ class ImporterStatus
 
             // get end of file after existing status
             fseek($f, $data['start'] + $data['length']);
-            $end_content = fgets($data['length']);
+            $end_content = fgets($f);
 
             if (empty($end_content)) {
                 $end_content = "\n";

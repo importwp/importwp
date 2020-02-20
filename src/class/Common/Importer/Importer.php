@@ -348,10 +348,10 @@ class Importer
     {
 
         $limit = intval(ini_get('max_execution_time'));
-        if ($limit <= 0) {
-            $limit = 360;
-        } else {
+        if ($limit > 0) {
             $limit = ceil($limit * 0.9);
+        }else{
+            $limit = 3600;
         }
 
         $current_time = time();

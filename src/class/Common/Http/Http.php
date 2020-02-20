@@ -35,6 +35,13 @@ class Http
     public function download_file($source, $destination)
     {
         $response = wp_remote_get($source, array('timeout' => 30, 'sslverify' => false));
+        if (!is_wp_error($response)) {
+            $response_code = wp_remote_retrieve_response_code($response);
+            if ($response_code !== 200) {
+                return new \WP_Error('IWP_HTTP_1', 'Unable to download: ' . esc_url($source) . ', Response Code: ' . $response_code);
+            }
+        }
+
         if (is_wp_error($response)) {
             return $response;
         }
@@ -45,6 +52,13 @@ class Http
     public function download_file_stream($source, $destination)
     {
         $response = wp_remote_get($source, ['stream' => true, 'filename' => $destination, 'timeout' => 30, 'sslverify' => false]);
+        if (!is_wp_error($response)) {
+            $response_code = wp_remote_retrieve_response_code($response);
+            if ($response_code !== 200) {
+                return new \WP_Error('IWP_HTTP_1', 'Unable to download: ' . esc_url($source) . ', Response Code: ' . $response_code);
+            }
+        }
+
         if (is_wp_error($response)) {
             return $this->download_file($source, $destination);
         }

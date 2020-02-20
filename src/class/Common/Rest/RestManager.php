@@ -639,7 +639,7 @@ class RestManager extends \WP_REST_Controller
             $post_data = $this->sanitize($request->get_body_params());
             $importer = $this->importer_manager->get_importer($id);
 
-            $record_index = $post_data['record'];
+            $record_index = isset($post_data['record']) ? $post_data['record'] : null;
             if (is_null($record_index)) {
                 $record_index = 0;
             }

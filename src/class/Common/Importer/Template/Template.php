@@ -38,6 +38,11 @@ class Template extends AbstractTemplate
      */
     protected $field_options = [];
 
+    /**
+     * @var \WP_Error[] $errors
+     */
+    protected $errors = [];
+
     public function get_name()
     {
         return $this->name;
@@ -72,10 +77,23 @@ class Template extends AbstractTemplate
      */
     public function display_record_info($message, $id, $data)
     {
+
         $fields = $data->getData();
         if (!empty($fields)) {
             $message .= ' (' . implode(', ', array_keys($fields)) . ')';
         }
+
+        if (!empty($this->errors)) {
+            $errors = [];
+            foreach ($this->errors as $error) {
+                $errors[] = $error->get_error_message();
+            }
+
+            $message .= ', Errors: (' . implode(', ', $errors) . ')';
+        }
+
+        $this->errors = [];
+
         return $message;
     }
 
@@ -219,5 +237,20 @@ class Template extends AbstractTemplate
         }
 
         return $data;
+    }
+
+    /**
+     * Add error message
+     *
+     * @param string|\WP_Error $error
+     * @return void
+     */
+    public function add_error($error)
+    {
+        if (!is_wp_error($error)) {
+            $error = new \WP_Error('IWP_TEMP_ERR', $error);
+        }
+
+        $this->errors[] = $error;
     }
 }

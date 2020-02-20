@@ -308,10 +308,15 @@ class ImporterManager
         }
     }
 
-    public function get_config($id, $tmp = false)
+    public function get_config($importer, $tmp = false)
     {
-        $config_path = $this->get_config_path($id, $tmp);
-        return new Config($config_path);
+        $config_path = $this->get_config_path($importer, $tmp);
+        $config = new Config($config_path);
+
+        // file encoding
+        $config->set('file_encoding', apply_filters('iwp/importer/file_encoding', false, $importer));
+
+        return $config;
     }
 
     public function get_session_path($id, $session, $max_depth = 4)
@@ -376,9 +381,6 @@ class ImporterManager
             }
 
             $config = $this->get_config($importer_data);
-
-            // file encoding
-            $config->set('file_encoding', apply_filters('iwp/importer/file_encoding', false, $importer_data));
 
             // template
             $template = $this->get_importer_template($importer_data);
@@ -456,6 +458,10 @@ class ImporterManager
                 Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -start=' . $start . ' -end=' . $end);
 
                 $importer_status->set_status('running');
+
+                // clear paused flag
+                delete_post_meta($importer_data->getId(), '_iwp_paused_' . $session);
+
                 $importer_status->save();
             }
 
