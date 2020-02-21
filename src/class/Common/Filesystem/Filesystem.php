@@ -212,7 +212,11 @@ class Filesystem
 
     public function get_file_mime($file)
     {
-        return mime_content_type($file);
+        if (function_exists('mime_content_type')) {
+            return mime_content_type($file);
+        } else {
+            return false;
+        }
     }
 
     public function get_filetype_from_ext($file)
