@@ -203,7 +203,7 @@ class Template extends AbstractTemplate
         return $data;
     }
 
-    public function process($post_id, ParsedData $data)
+    public function process($post_id, ParsedData $data, ImporterModel $importer_model)
     {
     }
 

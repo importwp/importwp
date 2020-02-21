@@ -602,7 +602,7 @@ class PostTemplate extends Template implements TemplateInterface
                     $source = $base_url . $location;
                     $source = apply_filters('iwp/attachment/filename', $source);
                     if (empty($source)) {
-                        continue;
+                        continue 2;
                     }
 
                     $attachment_id = $attachment->get_attachment_by_hash($source);
@@ -620,7 +620,7 @@ class PostTemplate extends Template implements TemplateInterface
                     $source = $base_url . $location;
                     $source = apply_filters('iwp/attachment/filename', $source);
                     if (empty($source)) {
-                        continue;
+                        continue 2;
                     }
 
                     $attachment_id = $attachment->get_attachment_by_hash($source);
@@ -635,9 +635,9 @@ class PostTemplate extends Template implements TemplateInterface
                     $source = $base_url . $location;
                     $source = apply_filters('iwp/attachment/filename', $source);
                     if (empty($source)) {
-                        continue;
+                        continue 2;
                     }
-                    
+
                     $attachment_id = $attachment->get_attachment_by_hash($source);
                     if ($attachment_id <= 0) {
                         $result = $filesystem->copy_file($source);

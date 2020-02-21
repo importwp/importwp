@@ -159,7 +159,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
         }
 
         // TODO: Do we merge in the custom fields, or do we process that in post_process
-        $this->template->process($this->ID, $data);
+        $this->template->process($this->ID, $data, $this->importer);
 
         $meta = array_merge($meta, $data->getData('custom_fields'));
 
@@ -183,7 +183,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
     {
         $fields = $data->getData('default');
 
-        $post_type = 'post';
+        $post_type = $this->importer->getSetting('post_type');
 
         $post = array();
         $meta = array();
@@ -233,7 +233,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
         }
 
         // TODO: Do we merge in the custom fields, or do we process that in post_process
-        $this->template->process($this->ID, $data);
+        $this->template->process($this->ID, $data, $this->importer);
 
         // update post meta
         $meta = array_merge($meta, $data->getData('custom_fields'));

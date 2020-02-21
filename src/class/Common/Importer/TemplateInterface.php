@@ -2,6 +2,8 @@
 
 namespace ImportWP\Common\Importer;
 
+use ImportWP\Common\Model\ImporterModel;
+
 interface TemplateInterface
 {
     public function register();
@@ -25,9 +27,10 @@ interface TemplateInterface
      *
      * @param int $post_id
      * @param ParsedData $data
+     * @param ImporterModel $importer_model
      * @return ParsedData
      */
-    public function process($post_id, ParsedData $data);
+    public function process($post_id, ParsedData $data, ImporterModel $importer_model);
 
     /**
      * Process data after record is importer.

@@ -99,7 +99,7 @@ class TermMapper extends AbstractMapper implements MapperInterface
             $this->ID = $insert['term_id'];
 
             // TODO: Do we merge in the custom fields, or do we process that in post_process
-            $this->template->process($this->ID, $data);
+            $this->template->process($this->ID, $data, $this->importer);
 
             $custom_fields = array_merge($custom_fields, $data->getData('custom_fields'));
 
@@ -147,7 +147,7 @@ class TermMapper extends AbstractMapper implements MapperInterface
         }
 
         // TODO: Do we merge in the custom fields, or do we process that in post_process
-        $this->template->process($this->ID, $data);
+        $this->template->process($this->ID, $data, $this->importer);
 
         // merge meta group
         $custom_fields = array_merge($custom_fields, $data->getData('custom_fields'));

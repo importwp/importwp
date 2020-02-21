@@ -126,7 +126,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
         }
 
         // TODO: Do we merge in the custom fields, or do we process that in post_process
-        $this->template->process($this->ID, $data);
+        $this->template->process($this->ID, $data, $this->importer);
 
         // TODO: merge in custom fields from $data->getData('custom_fields');
         $meta = array_merge($meta, $data->getData('custom_fields'));
@@ -175,7 +175,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
         }
 
         // TODO: Do we merge in the custom fields, or do we process that in post_process
-        $this->template->process($this->ID, $data);
+        $this->template->process($this->ID, $data, $this->importer);
 
         $meta = array_merge($meta, $data->getData('custom_fields'));
 
