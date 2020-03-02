@@ -363,7 +363,7 @@ class RestManager extends \WP_REST_Controller
 
 
 
-        $importer = $this->importer_manager->get_importer($id);
+        $importer = new ImporterModel($id);
 
         if (isset($post_data['datasource'])) {
             $importer->setDatasource($post_data['datasource']);
