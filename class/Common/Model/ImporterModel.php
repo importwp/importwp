@@ -3,6 +3,7 @@
 namespace ImportWP\Common\Model;
 
 use ImportWP\Common\Importer\ImporterStatus;
+use ImportWP\Common\Util\Logger;
 
 class ImporterModel
 {
@@ -93,8 +94,14 @@ class ImporterModel
      */
     protected $settings;
 
-    public function __construct($data = null)
+    /**
+     * @var bool
+     */
+    protected $debug;
+
+    public function __construct($data = null, $debug = false)
     {
+        $this->debug = $debug;
         $this->setup_data($data);
     }
 
@@ -172,7 +179,7 @@ class ImporterModel
     {
         $files = $this->getFiles();
         $file = $this->getFile();
-        if ($view === 'public') {
+        if ($view === 'public' && false === $this->debug) {
             $file = basename($file);
             foreach ($files as &$file) {
                 $file = basename($file);
@@ -195,7 +202,7 @@ class ImporterModel
             'max_row' => $this->max_row,
         ]);
 
-        return array(
+        $result = array(
             'id' => $this->id,
             'name' => $this->getName(),
             'template' => $this->template,
@@ -210,6 +217,17 @@ class ImporterModel
             'permissions' => (object) $this->getPermissions(),
             'settings' => (object) $settings
         );
+
+        if (true === $this->debug) {
+            global $wpdb;
+            $content = $wpdb->get_var($wpdb->prepare("SELECT post_content from {$wpdb->posts} WHERE post_type='%s' AND ID=%d", IWP_POST_TYPE, $this->getId()));
+            $result['debug'] = [
+                'settings' => base64_encode($content),
+                // 'log' => file_get_contents(Logger::getLogFile($this->getId()))
+            ];
+        }
+
+        return $result;
     }
 
     public function save()

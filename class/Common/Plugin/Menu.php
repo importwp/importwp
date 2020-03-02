@@ -49,9 +49,14 @@ class Menu
     public function add_plugin_links($links)
     {
         return array_merge(
-            ['<a href="' .
-                admin_url('tools.php?page=' . $this->properties->plugin_domain) .
-                '">' . __('Settings', 'importwp') . '</a>'],
+            [
+                '<a href="' .
+                    admin_url('tools.php?page=' . $this->properties->plugin_domain) .
+                    '">' . __('Dashboard', 'importwp') . '</a>',
+                '<a href="' .
+                    admin_url('tools.php?page=' . $this->properties->plugin_domain . '&tab=settings') .
+                    '">' . __('Settings', 'importwp') . '</a>',
+            ],
             $links
         );
     }

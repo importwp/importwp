@@ -113,7 +113,7 @@ class ImporterStatusManager
         return $importer_manager->get_config_path($importer_id, false, $session_id) . '.logs-' . $session_id;
     }
 
-    public function new(ImporterModel $importer)
+    public function create(ImporterModel $importer)
     {
         $version = get_post_meta($importer->getId(), '_iwp_version', true);
         if ($version !== false) {

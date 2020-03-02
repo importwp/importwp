@@ -77,7 +77,22 @@ class ImporterManager
             return false;
         }
 
-        return new ImporterModel($id);
+        return new ImporterModel($id, $this->is_debug());
+    }
+
+    public function is_debug()
+    {
+
+        if (defined('IWP_DEBUG') && true === IWP_DEBUG) {
+            return true;
+        }
+
+        $uninstall_enabled = get_option('iwp_settings');
+        if (isset($uninstall_enabled['debug']) && true === $uninstall_enabled['debug']) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -365,10 +380,10 @@ class ImporterManager
     public function import($id, $session)
     {
         $importer_data = $this->get_importer($id);
-        Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -session=' . $session);
+        Logger::write(__CLASS__ . '::import -session=' . $session, $importer_data->getId());
 
         $importer_status = $this->importer_status_manager->get_importer_status($importer_data, $session);
-        Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -status=' . print_r($importer_status, true));
+        Logger::write(__CLASS__ . '::import -status=' . $importer_status->get_status(), $importer_data->getId());
 
         try {
 
@@ -381,9 +396,9 @@ class ImporterManager
             $is_init = $importer_status->has_status('init');
             if ($is_init) {
                 $set_time_limit = set_time_limit(0);
-                Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' : -set-time-limit=' . ($set_time_limit === true ? 'yes' : 'no') . ' -time-limit=' . intval(ini_get('max_execution_time')));
+                Logger::write(__CLASS__ . '::import -set-time-limit=' . ($set_time_limit === true ? 'yes' : 'no') . ' -time-limit=' . intval(ini_get('max_execution_time')), $importer_data->getId());
 
-                Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' : Clearing config files');
+                Logger::write(__CLASS__ . '::import clearing config files', $importer_data->getId());
                 $this->clear_config_files($id, false, true);
             }
 
@@ -421,14 +436,14 @@ class ImporterManager
             }
 
             // TODO: if end <= start it imports all, should throw an error instead.
-            Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' : Get record count');
+            Logger::write(__CLASS__ . '::import Get record count', $importer_data->getId());
             $end = $parser->file()->getRecordCount();
 
-            Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -count=' . $end);
+            Logger::write(__CLASS__ . '::import -count=' . $end, $importer_data->getId());
 
             if ($importer_status->has_status('init')) {
 
-                Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -new');
+                Logger::write(__CLASS__ . '::import -new', $importer_data->getId());
 
                 $tmp_start = $importer_data->getStartRow();
                 if (!is_null($tmp_start) && "" !== $tmp_start) {
@@ -449,20 +464,20 @@ class ImporterManager
                 $importer_status->set_start($start);
                 $importer_status->set_end($end);
 
-                Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -start=' . $start . ' -end=' . $end);
+                Logger::write(__CLASS__ . '::import -start=' . $start . ' -end=' . $end, $importer_data->getId());
 
                 $importer_status->set_status('running');
                 $importer_status->set_section('importing');
                 $importer_status->save();
             } elseif ($importer_status->has_status('timeout')) { // || $importer_status->has_status('paused')) {
 
-                Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -resume');
+                Logger::write(__CLASS__ . '::import -resume', $importer_data->getId());
 
                 // TODO: continue from where we left off
                 $start = $importer_status->get_counter();
                 $end = $importer_status->get_total();
 
-                Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -start=' . $start . ' -end=' . $end);
+                Logger::write(__CLASS__ . '::import -start=' . $start . ' -end=' . $end, $importer_data->getId());
 
                 $importer_status->set_status('running');
 
@@ -482,11 +497,11 @@ class ImporterManager
 
             $template->unregister_hooks();
 
-            Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -complete');
+            Logger::write(__CLASS__ . '::import -complete', $importer_data->getId());
         } catch (\Exception $e) {
 
             // TODO: Missing template errors are currently not being logged to history, possibly others?
-            Logger::write(__CLASS__ . '::import -id=' . $importer_data->getId() . ' -error=' . $e->getMessage());
+            Logger::write(__CLASS__ . '::import -error=' . $e->getMessage(), $importer_data->getId());
             $importer_status->record_fatal_error($e->getMessage());
             $importer_status->save();
             $importer_status->write_to_file();

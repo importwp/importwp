@@ -343,12 +343,12 @@ class ImporterStatus
     public function save($force = false)
     {
         $session = get_post_meta($this->importer_id, '_iwp_session', true);
-        Logger::write(__CLASS__ . '::save -id=' . $this->importer_id . ' -force=' . ($force === true ? 'yes' : 'no') . ' -session=' . $session);
-
         if ($session !== $this->get_session_id()) {
-            Logger::write(__CLASS__ . '::save -id=' . $this->importer_id . ' -invalid-session=' . $this->get_session_id());
+            Logger::write(__CLASS__ . '::save -invalid-session=' . $this->get_session_id(), $this->importer_id);
             return false;
         }
+
+        Logger::write(__CLASS__ . '::save -start', $this->importer_id);
 
         $status_data = $this->data();
 
@@ -372,15 +372,15 @@ class ImporterStatus
 
             foreach ($this->_changes as $field) {
                 $raw_status[$field] = $current_data[$field];
+                Logger::write(__CLASS__ . '::save -update-' . $field . '=' . $current_data[$field], $this->importer_id);
             }
 
             $post_arr['post_excerpt'] = serialize($raw_status);
 
             $this->_changes = [];
+        } else {
+            Logger::write(__CLASS__ . '::save -update-all', $this->importer_id);
         }
-
-
-        Logger::write(__CLASS__ . '::save -id=' . $this->importer_id . ' -update=' . print_r($post_arr, true));
 
         global $wpdb;
         $result = $wpdb->update(
@@ -403,7 +403,7 @@ class ImporterStatus
 
         do_action('iwp/importer/status/save', $this);
 
-        Logger::write(__CLASS__ . '::save -id=' . $this->importer_id . ' -saved=' . ($result === false ? 'no' : 'yes'));
+        Logger::write(__CLASS__ . '::save -end -saved=' . ($result === false ? 'no' : 'yes'), $this->importer_id);
 
         return $result;
     }

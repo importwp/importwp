@@ -211,6 +211,19 @@ class RestManager extends \WP_REST_Controller
                 'permission_callback' => array($this, 'get_permission')
             )
         ));
+
+        register_rest_route($namespace, '/settings', array(
+            array(
+                'methods'             => \WP_REST_Server::CREATABLE,
+                'callback'            => array($this, 'save_settings'),
+                'permission_callback' => array($this, 'get_permission')
+            ),
+            array(
+                'methods'             => \WP_REST_Server::READABLE,
+                'callback'            => array($this, 'get_settings'),
+                'permission_callback' => array($this, 'get_permission')
+            ),
+        ));
     }
 
     public function get_permission()
@@ -348,7 +361,9 @@ class RestManager extends \WP_REST_Controller
             }
         }
 
-        $importer = new ImporterModel($id);
+
+
+        $importer = $this->importer_manager->get_importer($id);
 
         if (isset($post_data['datasource'])) {
             $importer->setDatasource($post_data['datasource']);
@@ -519,7 +534,7 @@ class RestManager extends \WP_REST_Controller
 
             foreach ($query->posts as $importer_id) {
 
-                $importer_model = new ImporterModel($importer_id);
+                $importer_model = $this->importer_manager->get_importer($importer_id);
                 $status = new ImporterStatus($importer_model->getId(), $importer_model->getStatus());
                 $output = $status->output();
                 $output['id'] = $importer_id;
@@ -557,7 +572,7 @@ class RestManager extends \WP_REST_Controller
 
         $action = $post_data['action'];
 
-        $importer = new ImporterModel($id);
+        $importer = $this->importer_manager->get_importer($id);
 
         switch ($action) {
             case 'file_upload':
@@ -701,7 +716,7 @@ class RestManager extends \WP_REST_Controller
 
     public function get_preview(\WP_REST_Request $request)
     {
-        // TODO: if no fields have been posted send all previews
+        // if no fields have been posted send all previews
         try {
             $id = intval($request->get_param('id'));
             $importer = $this->importer_manager->get_importer($id);
@@ -737,29 +752,28 @@ class RestManager extends \WP_REST_Controller
         // new
         try {
             $id = intval($request->get_param('id'));
-            Logger::write(__CLASS__  . '::init_import -id=' . intval($id));
+            Logger::clear($id);
+            Logger::write(__CLASS__  . '::init_import -start', $id);
 
             $importer_data = $this->importer_manager->get_importer($id);
 
-            Logger::write(__CLASS__  . '::init_import -id=' . intval($id) . ' -importer_data=' . print_r($importer_data, true));
+            $status = $this->importer_status_manager->create($importer_data);
 
-            $status = $this->importer_status_manager->new($importer_data);
-
-            Logger::write(__CLASS__  . '::init_import -id=' . intval($id) . ' -status=' . print_r($status, true));
+            Logger::write(__CLASS__  . '::init_import -status=' . $status->get_status(), $id);
 
             if (!$status) {
-                Logger::write(__CLASS__  . '::init_import -id=' . intval($id) . ' -error=Error: Unable to generate new import session.');
+                Logger::write(__CLASS__  . '::init_import -error=Error: Unable to generate new import session.', $id);
                 return $this->http->end_rest_error('Error: Unable to generate new import session.');
             }
         } catch (\Exception $e) {
-            Logger::write(__CLASS__  . '::init_import -id=' . intval($id) . ' -error=Error Generating Importer Session: ' . $e->getMessage());
+            Logger::write(__CLASS__  . '::init_import -error=Error Generating Importer Session: ' . $e->getMessage(), $id);
             return $this->http->end_rest_error('Error Generating Importer Session: ' . $e->getMessage());
         }
 
 
         // continue
         // $status = $this->importer_status_manager->get_importer_status($importer_data, $importer_data->getStatusId());
-        Logger::write(__CLASS__  . '::init_import -id=' . intval($id) . ' -session=' . $status->get_session_id());
+        Logger::write(__CLASS__  . '::init_import -session=' . $status->get_session_id(), $id);
 
         return $this->http->end_rest_success([
             'session' => $status->get_session_id()
@@ -775,13 +789,13 @@ class RestManager extends \WP_REST_Controller
         add_action('iwp/importer/status/save', array($this, 'render_import_status_update'));
 
         $id = intval($request->get_param('id'));
-        Logger::write(__CLASS__  . '::run_import -id=' . intval($id) . ' -session=' . print_r($session, true));
+        Logger::write(__CLASS__  . '::run_import -session=' . base64_encode(serialize($session)), $id);
 
         $importer_data = $this->importer_manager->get_importer($id);
-        Logger::write(__CLASS__  . '::run_import -id=' . intval($id) . ' -importer_model=' . print_r($importer_data, true));
+        Logger::write(__CLASS__  . '::run_import -import=start', $id);
 
         $status = $this->importer_manager->import($importer_data, $session);
-        Logger::write(__CLASS__  . '::run_import -id=' . intval($id) . ' -status=' . print_r($status, true));
+        Logger::write(__CLASS__  . '::run_import -import=end -status=' . $status->get_status(), $id);
 
         echo json_encode($status->output()) . "\n";
         die();
@@ -882,5 +896,65 @@ class RestManager extends \WP_REST_Controller
         $log = $this->importer_status_manager->get_importer_log($importer_data, $session, $page, 100);
         $status = $this->importer_status_manager->get_importer_status_report($importer_data, $session);
         return $this->http->end_rest_success(['logs' => $log, 'status' => $status]);
+    }
+
+    private function _default_settings()
+    {
+        return [
+            'debug' => [
+                'type' => 'bool',
+                'value' => false,
+            ],
+            'cleanup' => [
+                'type' => 'bool',
+                'value' => false
+            ],
+        ];
+    }
+
+    public function save_settings(\WP_REST_Request $request)
+    {
+        $post_data = $request->get_body_params();
+        $post_data = $this->sanitize($post_data);
+
+        $defaults = $this->_default_settings();
+
+        $output = [];
+
+        foreach ($defaults as $setting => $default) {
+            if (isset($post_data[$setting])) {
+                if ('bool' === $default['type']) {
+                    // Handle Boolean
+                    if (is_bool($post_data[$setting])) {
+                        $output[$setting] = $post_data[$setting];
+                    } elseif (in_array($post_data[$setting], ['true', 'false'])) {
+                        $output[$setting] = $post_data[$setting] === 'true' ? true : false;
+                    } else {
+                        $output[$setting] = boolval($post_data[$setting]);
+                    }
+                } else {
+                    $output[$setting] = $post_data[$setting];
+                }
+            } else {
+                $output[$setting] = $default['value'];
+            }
+        }
+
+        update_option('iwp_settings', $output);
+
+        return $this->get_settings();
+    }
+
+    public function get_settings(\WP_REST_Request $request = null)
+    {
+        $defaults = $this->_default_settings();
+        $settings = get_option('iwp_settings', []);
+        $output = [];
+
+        foreach ($defaults as $setting => $default) {
+            $output[$setting] = isset($settings[$setting]) ? $settings[$setting] : $default['value'];
+        }
+
+        return $this->http->end_rest_success($output);
     }
 }

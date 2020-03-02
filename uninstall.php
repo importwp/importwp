@@ -9,6 +9,12 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
     die;
 }
 
+// Escape if cleanup has not been enabled.
+$uninstall_enabled = get_option('iwp_settings');
+if (!isset($uninstall_enabled['cleanup']) || true !== $uninstall_enabled['cleanup']) {
+    return;
+}
+
 $iwp_base_path = dirname(__FILE__);
 if (file_exists($iwp_base_path . '/importwp-pro.php')) {
     require_once $iwp_base_path . '/importwp-pro.php';
