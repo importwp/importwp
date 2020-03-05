@@ -506,7 +506,7 @@ class RestManager extends \WP_REST_Controller
 
     public function get_status(\WP_REST_Request $request)
     {
-        // $this->http->set_stream_headers();
+        $this->http->set_stream_headers();
         ob_start();
 
         $importer_ids = $request->get_param('ids');
@@ -789,7 +789,7 @@ class RestManager extends \WP_REST_Controller
 
     public function run_import(\WP_REST_Request $request)
     {
-        // $this->http->set_stream_headers();
+        $this->http->set_stream_headers();
 
         $session = $request->get_param('session');
 
