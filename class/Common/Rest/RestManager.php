@@ -224,6 +224,14 @@ class RestManager extends \WP_REST_Controller
                 'permission_callback' => array($this, 'get_permission')
             ),
         ));
+
+        register_rest_route($namespace, '/importer/(?P<id>\d+)/debug_log', array(
+            array(
+                'methods' => \WP_REST_Server::READABLE,
+                'callback' => array($this, 'get_debug_log'),
+                'permission_callback' => array($this, 'get_permission')
+            )
+        ));
     }
 
     public function get_permission()
@@ -363,7 +371,7 @@ class RestManager extends \WP_REST_Controller
 
 
 
-        $importer = new ImporterModel($id);
+        $importer = new ImporterModel($id, $this->importer_manager->is_debug());
 
         if (isset($post_data['datasource'])) {
             $importer->setDatasource($post_data['datasource']);
@@ -498,7 +506,7 @@ class RestManager extends \WP_REST_Controller
 
     public function get_status(\WP_REST_Request $request)
     {
-        $this->http->set_stream_headers();
+        // $this->http->set_stream_headers();
         ob_start();
 
         $importer_ids = $request->get_param('ids');
@@ -752,7 +760,6 @@ class RestManager extends \WP_REST_Controller
         // new
         try {
             $id = intval($request->get_param('id'));
-            Logger::clear($id);
             Logger::write(__CLASS__  . '::init_import -start', $id);
 
             $importer_data = $this->importer_manager->get_importer($id);
@@ -782,7 +789,7 @@ class RestManager extends \WP_REST_Controller
 
     public function run_import(\WP_REST_Request $request)
     {
-        $this->http->set_stream_headers();
+        // $this->http->set_stream_headers();
 
         $session = $request->get_param('session');
 
@@ -896,6 +903,18 @@ class RestManager extends \WP_REST_Controller
         $log = $this->importer_status_manager->get_importer_log($importer_data, $session, $page, 100);
         $status = $this->importer_status_manager->get_importer_status_report($importer_data, $session);
         return $this->http->end_rest_success(['logs' => $log, 'status' => $status]);
+    }
+
+    public function get_debug_log(\WP_REST_Request $request)
+    {
+        $id = intval($request->get_param('id'));
+        $page = intval($request->get_param('page'));
+        if ($page < 1) {
+            $page = 1;
+        }
+        $importer_data = $this->importer_manager->get_importer($id);
+        $log = $this->importer_manager->get_importer_debug_log($importer_data, $page, 100);
+        return $this->http->end_rest_success(['log' => $log]);
     }
 
     private function _default_settings()

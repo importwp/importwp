@@ -340,6 +340,15 @@ class Importer
             return;
         }
 
+        // TODO: Log errors
+        $error = error_get_last();
+        if (!is_null($error)) {
+            $this->status->record_fatal_error($error['message']);
+            $this->mapper->teardown();
+            echo json_encode($this->status->output()) . "\n";
+            die();
+        }
+
         $this->status->timeout();
         $this->mapper->teardown();
     }
@@ -350,7 +359,7 @@ class Importer
         $limit = intval(ini_get('max_execution_time'));
         if ($limit > 0) {
             $limit = ceil($limit * 0.9);
-        }else{
+        } else {
             $limit = 3600;
         }
 

@@ -343,12 +343,9 @@ class ImporterStatus
     public function save($force = false)
     {
         $session = get_post_meta($this->importer_id, '_iwp_session', true);
-        if ($session !== $this->get_session_id()) {
-            Logger::write(__CLASS__ . '::save -invalid-session=' . $this->get_session_id(), $this->importer_id);
+        if (false === $this->validate($session)) {
             return false;
         }
-
-        Logger::write(__CLASS__ . '::save -start', $this->importer_id);
 
         $status_data = $this->data();
 
@@ -370,10 +367,14 @@ class ImporterStatus
             $raw_status = $this->get_raw_status();
             $current_data = $status_data;
 
+            $tmp_log = '';
+
             foreach ($this->_changes as $field) {
                 $raw_status[$field] = $current_data[$field];
-                Logger::write(__CLASS__ . '::save -update-' . $field . '=' . $current_data[$field], $this->importer_id);
+                $tmp_log .= '  -' . $field . '=' . $current_data[$field];
             }
+
+            Logger::write(__CLASS__ . '::save -update ' . $tmp_log, $this->importer_id);
 
             $post_arr['post_excerpt'] = serialize($raw_status);
 
@@ -391,19 +392,7 @@ class ImporterStatus
             ['%d']
         );
 
-        // Match what happens in wp-rest.
-        // remove_filter('content_save_pre', 'wp_filter_post_kses');
-        // remove_filter('excerpt_save_pre', 'wp_filter_post_kses');
-
-        // $result = wp_update_post($post_arr, true);
-
-        // // Match what happens in wp-rest.
-        // add_filter('content_save_pre', 'wp_filter_post_kses');
-        // add_filter('excerpt_save_pre', 'wp_filter_post_kses');
-
         do_action('iwp/importer/status/save', $this);
-
-        Logger::write(__CLASS__ . '::save -end -saved=' . ($result === false ? 'no' : 'yes'), $this->importer_id);
 
         return $result;
     }
@@ -499,11 +488,23 @@ class ImporterStatus
         fclose($f);
     }
 
-    public function validate()
+    /**
+     * Validate the current session against current status
+     *
+     * @param string $session Optional session to validate against.
+     * @return bool
+     */
+    public function validate($session = null)
     {
-        if ($this->get_session_id() !== get_post_meta($this->importer_id, '_iwp_session', true)) {
+        if (is_null($session)) {
+            $session = get_post_meta($this->importer_id, '_iwp_session', true);
+        }
+
+        if ($this->get_session_id() !== $session) {
+            Logger::write(__CLASS__ . '::validate -invalid-session=' . $session . ' -current-session=' . $this->get_session_id(), $this->importer_id);
             return false;
         }
+
         return true;
     }
 
@@ -520,6 +521,7 @@ class ImporterStatus
     {
         $this->set_status('error');
         $this->log_row_message($error, 'E');
+        $this->save();
     }
 
     public function get_errors()

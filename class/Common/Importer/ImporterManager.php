@@ -389,7 +389,9 @@ class ImporterManager
 
             if (!$importer_status) {
                 $importer_post = get_post($importer_data->getId());
-                throw new \Exception("Unable to read importer session: (" . $importer_post->post_excerpt . ")");
+                $exception_msg = "Unable to read importer session: (" . $importer_post->post_excerpt . ")";
+                Logger::write(__CLASS__ . '::import -error=' . $exception_msg);
+                throw new \Exception($exception_msg);
             }
 
             // clear config before import
@@ -397,8 +399,6 @@ class ImporterManager
             if ($is_init) {
                 $set_time_limit = set_time_limit(0);
                 Logger::write(__CLASS__ . '::import -set-time-limit=' . ($set_time_limit === true ? 'yes' : 'no') . ' -time-limit=' . intval(ini_get('max_execution_time')), $importer_data->getId());
-
-                Logger::write(__CLASS__ . '::import clearing config files', $importer_data->getId());
                 $this->clear_config_files($id, false, true);
             }
 
@@ -436,10 +436,8 @@ class ImporterManager
             }
 
             // TODO: if end <= start it imports all, should throw an error instead.
-            Logger::write(__CLASS__ . '::import Get record count', $importer_data->getId());
             $end = $parser->file()->getRecordCount();
-
-            Logger::write(__CLASS__ . '::import -count=' . $end, $importer_data->getId());
+            Logger::write(__CLASS__ . '::import -record-count=' . $end, $importer_data->getId());
 
             if ($importer_status->has_status('init')) {
 
@@ -512,13 +510,14 @@ class ImporterManager
 
     public function get_importer_template($id)
     {
-        $importer = $this->get_importer($id);
-
+        $importer_model = $this->get_importer($id);
         $templates = $this->get_templates();
-        $template_name = $importer->getTemplate();
+        $template_name = $importer_model->getTemplate();
 
         if (!isset($templates[$template_name])) {
-            throw new \Exception("Unable to locate importer template: " . $template_name);
+            $exception_msg = "Unable to locate importer template: " . $template_name;
+            Logger::write(__CLASS__ . '::import -get_importer_template=' . $exception_msg, $importer_model->getId());
+            throw new \Exception($exception_msg);
         }
 
         return new $templates[$template_name];
@@ -558,5 +557,36 @@ class ImporterManager
             'term' => TermTemplate::class,
             'custom-post-type' => CustomPostTypeTemplate::class,
         ];
+    }
+
+    public function get_importer_debug_log(ImporterModel $importer_data, $page = 0, $per_page = -1)
+    {
+        $file_path = Logger::getLogFile($importer_data->getId());
+
+        $line_counter = 0;
+        $lines = [];
+        $start = $end = -1;
+
+        if ($per_page > 0) {
+            $start = ($page - 1) * $per_page;
+            $end =  $start + $per_page;
+        }
+
+        if (file_exists($file_path)) {
+            $fh = fopen($file_path, 'r');
+            if ($fh !== false) {
+                while (($data = fgetcsv($fh)) !== false) {
+                    if ($line_counter === $end) {
+                        return $lines;
+                    } elseif ($per_page === -1 || $line_counter >= $start) {
+                        $lines[] = $data;
+                    }
+
+                    $line_counter++;
+                }
+                fclose($fh);
+            }
+        }
+        return $lines;
     }
 }

@@ -3,7 +3,7 @@ Contributors: jcollings
 Tags: import, wordpress xml importer, wordpress csv importer, xml, csv
 Requires at least: 4.0  
 Tested up to: 5.3
-Stable tag: 2.0.15
+Stable tag: 2.0.16
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -73,6 +73,9 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 * ADD - Rewrite of PHP code to use namespaces, and WordPress Rest API.
 * ADD - New User Interface, Moved plugin menu item from top level to under tools.
 * ADD - Update frontend code to use ReactJS library.
+* ADD - Debug panel on edit importer screen.
+* ADD - Importer logs to Debug panel.
+* ADD - Importer Settings base64 encoded string.
 * FIX - Remove taxonomy field from term template, now pick taxonomy at start. 
 * FIX - AJAX load in field options.
 * FIX - Importer Speed increases.
