@@ -92,7 +92,7 @@ class ImporterModel
      *
      * @var array
      */
-    protected $settings;
+    protected $settings = [];
 
     /**
      * @var bool

@@ -364,7 +364,11 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
         while (preg_match($new_regex, $temp, $matches, PREG_OFFSET_CAPTURE) !== 0) {
             if (isset($matches[0]) && isset($matches[0][0]) && isset($matches[1]) && isset($matches[1][0])) {
                 list($match, $offset) = $matches[0];
-                $namespace = $matches[1][0];
+                $namespace = trim($matches[1][0]);
+
+                // TODO: update regex to not need this
+                $namespace_parts = explode(' ', $namespace);
+                $namespace = $namespace_parts[count($namespace_parts) - 1];
 
                 if (!in_array($namespace, $unique_matches)) {
                     $unique_matches[] = $namespace;

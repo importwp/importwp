@@ -535,28 +535,33 @@ class ImporterManager
     {
         $importer = $this->get_importer($id);
         $mapper_name = $template->get_mapper();
-        switch ($mapper_name) {
-            case 'post':
-                return new PostMapper($importer, $template, $permission);
-                break;
-            case 'user':
-                return new UserMapper($importer, $template, $permission);
-                break;
-            case 'term':
-                return new TermMapper($importer, $template, $permission);
-                break;
-        }
+
+        $mappers = $this->get_mappers();
+        return isset($mappers[$mapper_name]) ? new $mappers[$mapper_name]($importer, $template, $permission) : false;
+    }
+
+    public function get_mappers()
+    {
+        $mappers = apply_filters('iwp/mappers/register', []);
+        $mappers = array_merge($mappers, [
+            'post' => PostMapper::class,
+            'user' => UserMapper::class,
+            'term' => TermMapper::class
+        ]);
+        return $mappers;
     }
 
     public function get_templates()
     {
-        return [
+        $templates = apply_filters('iwp/templates/register', []);
+        $templates = array_merge($templates, [
             'post' => PostTemplate::class,
             'page' => PageTemplate::class,
             'user' => UserTemplate::class,
             'term' => TermTemplate::class,
             'custom-post-type' => CustomPostTypeTemplate::class,
-        ];
+        ]);
+        return $templates;
     }
 
     public function get_importer_debug_log(ImporterModel $importer_data, $page = 0, $per_page = -1)
