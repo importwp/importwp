@@ -8,6 +8,13 @@ use ImportWP\Container;
 
 class Logger
 {
+    private static $id = null;
+
+    public static function setId($id = null)
+    {
+        self::$id = $id;
+    }
+
     public static function clear($id)
     {
 
@@ -24,6 +31,10 @@ class Logger
     }
     public static function write($message, $id = null)
     {
+        if (is_null($id) && !is_null(self::$id)) {
+            $id = self::$id;
+        }
+
         /**
          * @var ImporterManager $importer_manager
          */

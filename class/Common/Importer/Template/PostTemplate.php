@@ -8,6 +8,7 @@ use ImportWP\Common\Ftp\Ftp;
 use ImportWP\Common\Importer\ParsedData;
 use ImportWP\Common\Importer\TemplateInterface;
 use ImportWP\Common\Model\ImporterModel;
+use ImportWP\Common\Util\Logger;
 use ImportWP\Container;
 
 class PostTemplate extends Template implements TemplateInterface
@@ -410,6 +411,10 @@ class PostTemplate extends Template implements TemplateInterface
             }
         }
 
+        foreach ($post_field_map as $key => $value) {
+            $post_field_map[$key] = apply_filters('iwp/template/process_field', $value, $key, $this->importer);
+        }
+
         $data->replace($post_field_map, 'default');
 
         return $data;
@@ -612,6 +617,7 @@ class PostTemplate extends Template implements TemplateInterface
 
                     $attachment_id = $attachment->get_attachment_by_hash($source);
                     if ($attachment_id <= 0) {
+                        Logger::write(__CLASS__ . '::process__attachments -remote=' . $source);
                         $result = $filesystem->download_file($source);
                     }
                     break;
@@ -630,6 +636,7 @@ class PostTemplate extends Template implements TemplateInterface
 
                     $attachment_id = $attachment->get_attachment_by_hash($source);
                     if ($attachment_id <= 0) {
+                        Logger::write(__CLASS__ . '::process__attachments -ftp=' . $source);
                         $result = $ftp->download_file($source, $ftp_host, $ftp_user, $ftp_pass);
                     }
                     break;
@@ -645,6 +652,7 @@ class PostTemplate extends Template implements TemplateInterface
 
                     $attachment_id = $attachment->get_attachment_by_hash($source);
                     if ($attachment_id <= 0) {
+                        Logger::write(__CLASS__ . '::process__attachments -local=' . $source);
                         $result = $filesystem->copy_file($source);
                     }
                     break;
@@ -656,6 +664,7 @@ class PostTemplate extends Template implements TemplateInterface
             if ($attachment_id <= 0) {
 
                 if (is_wp_error($result)) {
+                    Logger::write(__CLASS__ . '::process__attachments -error=' . $result->get_error_message());
                     $this->errors[] = $result;
                     continue;
                 }
@@ -674,6 +683,7 @@ class PostTemplate extends Template implements TemplateInterface
 
                 $attachment_id = $attachment->insert_attachment($post_id, $result['dest'], $result['mime'], $attachment_args);
                 if (is_wp_error($attachment_id)) {
+                    Logger::write(__CLASS__ . '::process__attachments -error=' . $attachment_id->get_error_message());
                     continue;
                 }
 
@@ -707,7 +717,10 @@ class PostTemplate extends Template implements TemplateInterface
                 }
             }
 
-            $this->_attachments[] = wp_get_attachment_url($attachment_id);
+            $attachment_url = wp_get_attachment_url($attachment_id);
+            $this->_attachments[] = $attachment_url;
+
+            Logger::write(__CLASS__ . '::process__attachments -id=' . $attachment_id . ' -url=' . $attachment_url);
 
             // set featured
             if ('yes' === $featured) {

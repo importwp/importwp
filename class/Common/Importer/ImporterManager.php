@@ -380,6 +380,7 @@ class ImporterManager
     public function import($id, $session)
     {
         $importer_data = $this->get_importer($id);
+        Logger::setId($importer_data->getId());
         Logger::write(__CLASS__ . '::import -session=' . $session, $importer_data->getId());
 
         $importer_status = $this->importer_status_manager->get_importer_status($importer_data, $session);

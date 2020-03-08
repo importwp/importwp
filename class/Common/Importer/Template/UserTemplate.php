@@ -156,6 +156,10 @@ class UserTemplate extends Template implements TemplateInterface
             }
         }
 
+        foreach ($user_field_map as $key => $value) {
+            $user_field_map[$key] = apply_filters('iwp/template/process_field', $value, $key, $this->importer);
+        }
+
         $data->replace($user_field_map, 'default');
 
         return $data;

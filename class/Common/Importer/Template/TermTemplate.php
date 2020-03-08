@@ -199,6 +199,10 @@ class TermTemplate extends Template implements TemplateInterface
             $data->add(['slug' => 'yes'], '_generated');
         }
 
+        foreach ($term_field_map as $key => $value) {
+            $term_field_map[$key] = apply_filters('iwp/template/process_field', $value, $key, $this->importer);
+        }
+
         $data->replace($term_field_map, 'default');
 
         return $data;

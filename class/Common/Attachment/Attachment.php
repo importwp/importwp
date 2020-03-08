@@ -2,10 +2,14 @@
 
 namespace ImportWP\Common\Attachment;
 
+use ImportWP\Common\Util\Logger;
+
 class Attachment
 {
     public function insert_attachment($parent_id, $dest, $mime, $args = array())
     {
+
+        Logger::write(__CLASS__ . '::insert_attachment -parent=' . $parent_id . ' -mime=' . $mime);
 
         $title = isset($args['title']) ? $args['title'] : false;
         $alt = isset($args['alt']) ? $args['alt'] : false;
@@ -44,7 +48,11 @@ class Attachment
         global $wpdb;
         $hash = md5($dest);
         $query = $wpdb->prepare("SELECT p.ID FROM {$wpdb->postmeta} as pm INNER JOIN {$wpdb->posts} as p ON pm.post_id = p.ID WHERE p.post_type='attachment' AND pm.meta_key='_iwp_attachment_src' AND pm.meta_value=%s ORDER BY p.ID DESC LIMIT 1", [$hash]);
-        return intval($wpdb->get_var($query));
+        $attachment_id = intval($wpdb->get_var($query));
+        if ($attachment_id > 0) {
+            Logger::write(__CLASS__ . '::process__attachments -use-existing=' . $attachment_id . ' -hash' . $hash);
+        }
+        return $attachment_id;
     }
 
     public function generate_image_sizes($attachment_id, $source)

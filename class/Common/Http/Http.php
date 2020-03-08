@@ -3,6 +3,7 @@
 namespace ImportWP\Common\Http;
 
 use ImportWP\Common\Properties\Properties;
+use ImportWP\Common\Util\Logger;
 
 class Http
 {
@@ -37,6 +38,7 @@ class Http
         $response = wp_remote_get($source, array('timeout' => 30, 'sslverify' => false));
         if (!is_wp_error($response)) {
             $response_code = wp_remote_retrieve_response_code($response);
+            Logger::write(__CLASS__ . '::download_file -response-code=' . $response_code . ' -url=' . esc_url($source));
             if ($response_code !== 200) {
                 return new \WP_Error('IWP_HTTP_1', 'Unable to download: ' . esc_url($source) . ', Response Code: ' . $response_code);
             }
@@ -54,6 +56,7 @@ class Http
         $response = wp_remote_get($source, ['stream' => true, 'filename' => $destination, 'timeout' => 30, 'sslverify' => false]);
         if (!is_wp_error($response)) {
             $response_code = wp_remote_retrieve_response_code($response);
+            Logger::write(__CLASS__ . '::download_file_stream -response-code=' . $response_code . ' -url=' . esc_url($source) . ' -size=' . filesize($destination));
             if ($response_code !== 200) {
                 return new \WP_Error('IWP_HTTP_1', 'Unable to download: ' . esc_url($source) . ', Response Code: ' . $response_code);
             }

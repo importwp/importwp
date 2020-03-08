@@ -215,7 +215,8 @@ class Filesystem
         if (function_exists('mime_content_type')) {
             return mime_content_type($file);
         } else {
-            return false;
+            $check = wp_check_filetype_and_ext($file, basename($file));
+            return $check['type'];
         }
     }
 
