@@ -4,18 +4,21 @@ namespace ImportWP\Common\Importer\Template;
 
 use ImportWP\Common\Importer\ParsedData;
 use ImportWP\Common\Importer\TemplateInterface;
+use ImportWP\EventHandler;
 
 class TermTemplate extends Template implements TemplateInterface
 {
     protected $name = 'Term';
     protected $mapper = 'term';
 
-    public function __construct()
+    public function __construct(EventHandler $event_handler)
     {
+        parent::__construct($event_handler);
+
         $this->groups[] = 'term';
-        $this->field_options = [
+        $this->field_options = array_merge($this->field_options, [
             'term._parent.parent' => [$this, 'get_term_parent_options'],
-        ];
+        ]);
     }
 
     public function register_options()

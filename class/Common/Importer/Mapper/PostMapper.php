@@ -119,6 +119,10 @@ class PostMapper extends AbstractMapper implements MapperInterface
             throw new MapperException("No Unique fields present.");
         }
 
+        if (!empty($meta_args)) {
+            $query_args['meta_query'] = $meta_args;
+        }
+
         $query = new \WP_Query($query_args);
 
         if ($query->post_count == 1) {
@@ -152,7 +156,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
         // set post_type
         $post['post_type'] = $this->importer->getSetting('post_type');
 
-        $this->ID = wp_insert_post($post, true);
+        $this->ID = $this->create_post($post, $data);
 
         if (is_wp_error($this->ID)) {
             throw new MapperException($this->ID->get_error_message());
@@ -177,6 +181,11 @@ class PostMapper extends AbstractMapper implements MapperInterface
         clean_post_cache($this->ID);
 
         return $this->ID;
+    }
+
+    public function create_post($post, ParsedData $data)
+    {
+        return wp_insert_post($post, true);
     }
 
     public function update(ParsedData $data)

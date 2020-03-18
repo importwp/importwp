@@ -5,18 +5,21 @@ namespace ImportWP\Common\Importer\Template;
 use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\ParsedData;
 use ImportWP\Common\Importer\TemplateInterface;
+use ImportWP\EventHandler;
 
 class UserTemplate extends Template implements TemplateInterface
 {
     protected $name = 'User';
     protected $mapper = 'user';
 
-    public function __construct()
+    public function __construct(EventHandler $event_handler)
     {
+        parent::__construct($event_handler);
+
         $this->groups[] = 'user';
-        $this->field_options = [
+        $this->field_options = array_merge($this->field_options, [
             'user.role' => [$this, 'get_user_role_options'],
-        ];
+        ]);
     }
 
     public function register()

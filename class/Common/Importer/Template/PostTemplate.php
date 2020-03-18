@@ -10,6 +10,7 @@ use ImportWP\Common\Importer\TemplateInterface;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Util\Logger;
 use ImportWP\Container;
+use ImportWP\EventHandler;
 
 class PostTemplate extends Template implements TemplateInterface
 {
@@ -35,16 +36,20 @@ class PostTemplate extends Template implements TemplateInterface
 
     private $virtual_fields = [];
 
-    public function __construct()
+    public function __construct(EventHandler $event_handler)
     {
+        parent::__construct($event_handler);
+
         $this->groups[] = 'post';
         $this->groups[] = 'taxonomies';
         $this->groups[] = 'attachments';
 
-        $this->field_options = [
+        $this->default_template_options['post_type'] = 'post';
+
+        $this->field_options = array_merge($this->field_options, [
             'post._parent.parent' => [$this, 'get_post_parent_options'],
             'taxonomies.*.tax' => [$this, 'get_taxonomy_options'],
-        ];
+        ]);
     }
 
     /**
@@ -167,7 +172,17 @@ class PostTemplate extends Template implements TemplateInterface
         ]);
 
         // Taxonomies
-        $groups[] = $this->register_group('Taxonomies', 'taxonomies', [
+        $groups[] = $this->register_taxonomy_fields();
+
+        // Attachments
+        $groups[] = $this->register_attachment_fields();
+
+        return $groups;
+    }
+
+    public function register_taxonomy_fields()
+    {
+        return $this->register_group('Taxonomies', 'taxonomies', [
             $this->register_field('Taxonomy', 'tax', [
                 'default' => 'category',
                 'options' => 'callback',
@@ -175,85 +190,20 @@ class PostTemplate extends Template implements TemplateInterface
             ]),
             $this->register_field('Terms', 'term', [
                 'tooltip' => __('Name of the taxonomy term or terms (entered as a comma seperated list).', 'importwp')
-            ])
-        ], ['type' => 'repeatable']);
-
-        // Attachments
-        $groups[] = $this->register_group('Attachments', 'attachments', [
-            $this->register_field('Location', 'location', [
-                'tooltip' => __('The source location of the file being attached.', 'importwp')
             ]),
-            $this->register_field('Is Featured?', '_featured', [
+            $this->register_field('Enable Hierarchy', '_hierarchy', [
                 'default' => 'no',
                 'options' => [
                     ['value' => 'no', 'label' => 'No'],
                     ['value' => 'yes', 'label' => 'Yes'],
                 ],
-                'tooltip' => __('Is the attachment the featured image for the current post.', 'importwp')
+                'type' => 'select'
             ]),
-            $this->register_field('Download', '_download', [
-                'default' => 'remote',
-                'options' => [
-                    ['value' => 'remote', 'label' => 'Remote URL'],
-                    ['value' => 'ftp', 'label' => 'FTP'],
-                    ['value' => 'local', 'label' => 'Local Filesystem'],
-                ],
-                'tooltip' => __('Select how the attachment is being downloaded.', 'importwp')
+            $this->register_field('Hierarchy Character', '_hierarchy_character', [
+                'default' => '>',
+                'condition' => ['_hierarchy', '==', 'yes'],
             ]),
-            $this->register_field('Host', '_ftp_host', [
-                'condition' => ['_download', '==', 'ftp'],
-                'tooltip' => __('Enter the FTP hostname', 'importwp')
-            ]),
-            $this->register_field('Username', '_ftp_user', [
-                'condition' => ['_download', '==', 'ftp'],
-                'tooltip' => __('Enter the FTP username', 'importwp')
-            ]),
-            $this->register_field('Password', '_ftp_pass', [
-                'condition' => ['_download', '==', 'ftp'],
-                'tooltip' => __('Enter the FTP password', 'importwp')
-            ]),
-            $this->register_field('Path', '_ftp_path', [
-                'condition' => ['_download', '==', 'ftp'],
-                'tooltip' => __('Enter the FTP base path, this is prefixed onto the Location field, leave empty to be ignore', 'importwp')
-            ]),
-            $this->register_field('Base URL', '_remote_url', [
-                'condition' => ['_download', '==', 'remote'],
-                'tooltip' => __('Enter the base url, this is prefixed onto the Location field, leave empty to be ignore', 'importwp')
-            ]),
-            $this->register_field('Base URL', '_local_url', [
-                'condition' => ['_download', '==', 'local'],
-                'tooltip' => __('Enter the base path from this servers root file system, this is prefixed onto the Location field, leave empty to be ignore', 'importwp')
-            ]),
-            $this->register_group('Attachment Meta', '_meta', [
-                $this->register_field('Enable Meta', '_enabled', [
-                    'default' => 'no',
-                    'options' => [
-                        ['value' => 'no', 'label' => 'No'],
-                        ['value' => 'yes', 'label' => 'Yes'],
-                    ],
-                    'type' => 'select',
-                    'tooltip' => __('Enable/Disable the fields to import attachment meta data.', 'importwp')
-                ]),
-                $this->register_field('Alt Text', '_alt', [
-                    'condition' => ['_enabled', '==', 'yes'],
-                    'tooltip' => __('Image attachment alt text.', 'importwp'),
-                ]),
-                $this->register_field('Title Text', '_title', [
-                    'condition' => ['_enabled', '==', 'yes'],
-                    'tooltip' => __('Attachments title text.', 'importwp')
-                ]),
-                $this->register_field('Caption Text', '_caption', [
-                    'condition' => ['_enabled', '==', 'yes'],
-                    'tooltip' => __('Image attachments caption text.', 'importwp')
-                ]),
-                $this->register_field('Description Text', '_description', [
-                    'condition' => ['_enabled', '==', 'yes'],
-                    'tooltip' => __('Attachments description text.', 'importwp')
-                ])
-            ]),
-        ], ['type' => 'repeatable']);
-
-        return $groups;
+        ], ['type' => 'repeatable', 'row_base' => true]);
     }
 
     public function register_settings()
@@ -477,6 +427,7 @@ class PostTemplate extends Template implements TemplateInterface
          */
         $attachment = Container::getInstance()->get('attachment');
 
+        $this->featured_set = false;
         $this->process_taxonomies($post_id, $data);
         $this->process_attachments($post_id, $data, $filesystem, $ftp, $attachment);
     }
@@ -501,62 +452,153 @@ class PostTemplate extends Template implements TemplateInterface
         $delimiter = apply_filters('iwp/value_delimiter', ',');
         $delimiter = apply_filters('iwp/taxonomy/value_delimiter', $delimiter);
 
+        $processed_taxonomies = [];
+        $term_hierarchy = [];
+
+        // Pre-Process taxonomy data
         for ($i = 0; $i < $total_rows; $i++) {
 
             $prefix = $group . '.' . $i . '.';
-            $tax = isset($taxonomes_data[$prefix . 'tax']) ? $taxonomes_data[$prefix . 'tax'] : null;
-            $terms = isset($taxonomes_data[$prefix . 'term']) ? $taxonomes_data[$prefix . 'term'] : null;
-            $fields = [
-                'taxonomy_name' => $tax,
-                'taxonomy_terms' => []
-            ];
 
-            if (!is_null($tax) && !is_null($terms)) {
-                $terms = explode($delimiter, $terms);
-                foreach ($terms as $term) {
+            $sub_rows = [$taxonomes_data];
+            if (isset($taxonomes_data[$prefix . 'row_base']) && !empty($taxonomes_data[$prefix . 'row_base'])) {
+                $sub_group_id = $group . '.' . $i;
+                $sub_rows = $data->getData($sub_group_id);
+            }
 
-                    $term = trim($term);
-                    $permission_key = 'taxonomy.' . $tax; //taxonomy.category | taxonomy.post_tag
+            foreach ($sub_rows as $row) {
+                $tax = isset($row[$prefix . 'tax']) ? $row[$prefix . 'tax'] : null;
+                $terms = isset($row[$prefix . 'term']) ? $row[$prefix . 'term'] : null;
 
-                    if ($data->permission()) {
-                        $allowed = $data->permission()->validate([$permission_key => ''], $data->getMethod(), $group);
-                        $is_allowed = isset($allowed[$permission_key]) ? true : false;
+                $hierarchy_enabled = isset($row[$prefix . '_hierarchy']) && $row[$prefix . '_hierarchy'] === 'yes' ? true : false;
+                $hierarchy_character = isset($row[$prefix . '_hierarchy_character']) ? $row[$prefix . '_hierarchy_character'] : null;
 
-                        if (!$is_allowed || empty($term)) {
-                            continue;
-                        }
-                    }
-
-                    $fields['taxonomy_terms'][] = $term;
+                if (empty($hierarchy_character)) {
+                    $hierarchy_enabled = false;
                 }
 
-                // clear existing taxonomies
-                wp_set_object_terms($post_id, null, $fields['taxonomy_name']);
+                if (!is_null($tax) && !is_null($terms)) {
+                    $terms = explode($delimiter, $terms);
+                    foreach ($terms as $term) {
 
-                // insert terms
-                if (!empty($fields['taxonomy_terms'])) {
-                    foreach ($fields['taxonomy_terms'] as $term) {
+                        $term = trim($term);
+                        $permission_key = 'taxonomy.' . $tax; //taxonomy.category | taxonomy.post_tag
 
-                        if (!isset($this->_taxonomies[$fields['taxonomy_name']])) {
-                            $this->_taxonomies[$fields['taxonomy_name']] = [];
+                        if ($data->permission()) {
+                            $allowed = $data->permission()->validate([$permission_key => ''], $data->getMethod(), $group);
+                            $is_allowed = isset($allowed[$permission_key]) ? true : false;
+
+                            if (!$is_allowed || empty($term)) {
+                                continue;
+                            }
                         }
 
-                        if (term_exists($term, $fields['taxonomy_name'])) {
-                            // attach term to post
-                            wp_set_object_terms($post_id, $term, $fields['taxonomy_name'], true);
-                            $this->_taxonomies[$fields['taxonomy_name']][] = $term;
-                        } else {
-                            // add term
-                            $term_id = wp_insert_term($term, $fields['taxonomy_name']);
-                            if (!is_wp_error($term_id)) {
-                                wp_set_object_terms($post_id, $term_id, $fields['taxonomy_name'], true);
-                                $this->_taxonomies[$fields['taxonomy_name']][] = $term;
+                        // handle taxonomies
+                        if (!isset($processed_taxonomies[$tax])) {
+                            $processed_taxonomies[$tax] = [];
+                        }
+
+                        $processed_taxonomies[$tax][] = $term;
+
+                        // Handle hierarchy
+                        if (!isset($term_hierarchy[$tax])) {
+                            $term_hierarchy[$tax] = [];
+                        }
+
+                        if ($hierarchy_enabled) {
+                            $hierarchy_parts = explode($hierarchy_character, $term);
+                            if (count($hierarchy_parts) > 0) {
+                                $hierarchy_parts = array_filter(array_map('trim', $hierarchy_parts));
+                                $term_hierarchy[$tax][] = $hierarchy_parts;
                             }
+                        } else {
+                            $term_hierarchy[$tax][] = [$term];
                         }
                     }
                 }
             }
         }
+
+        // TODO: Process term hierarchy
+        foreach ($term_hierarchy as $processed_tax => $term_hierarchy_list) {
+
+            // clear existing taxonomies
+            wp_set_object_terms($post_id, null, $processed_tax);
+
+            if (empty($term_hierarchy_list)) {
+                continue;
+            }
+
+            foreach ($term_hierarchy_list as $hierarchy_list) {
+                $prev_term = null;
+                foreach ($hierarchy_list as $term) {
+                    if (!isset($this->_taxonomies[$processed_tax])) {
+                        $this->_taxonomies[$processed_tax] = [];
+                    }
+
+                    $term_result = $this->create_or_get_taxonomy_term($post_id, $processed_tax, $term, $prev_term);
+                    if ($term_result) {
+                        $prev_term = $term_result;
+                        $this->_taxonomies[$processed_tax][] = $term_result;
+                    }
+                }
+            }
+        }
+
+        // Process taxonomy data
+        // foreach ($processed_taxonomies as $processed_tax => $processed_terms) {
+
+        //     // clear existing taxonomies
+        //     wp_set_object_terms($post_id, null, $processed_tax);
+
+        //     // insert terms
+        //     if (!empty($processed_terms)) {
+        //         foreach ($processed_terms as $term) {
+
+        //             if (!isset($this->_taxonomies[$processed_tax])) {
+        //                 $this->_taxonomies[$processed_tax] = [];
+        //             }
+
+        //             $term_result = $this->create_or_get_taxonomy_term($post_id, $processed_tax, $term);
+        //             if ($term_result) {
+        //                 $this->_taxonomies[$processed_tax][] = $term_result;
+        //             }
+        //         }
+        //     }
+        // }
+    }
+
+    private function create_or_get_taxonomy_term($post_id, $tax, $term, $parent = null)
+    {
+        $parent_id = false;
+        $args = [];
+        if (!empty($parent)) {
+            $term_obj = get_term_by('name', $parent, $tax);
+            $parent_id = $term_obj->term_id;
+            $args['parent'] = $parent_id;
+        }
+
+        $term_result = term_exists($term, $tax);
+        if ($term_result) {
+
+            if (!empty($args)) {
+                $term_id = $term_result['term_id'];
+                wp_update_term($term_id, $tax, $args);
+            }
+
+            // attach term to post
+            wp_set_object_terms($post_id, $term, $tax, true);
+            return $term;
+        } else {
+            // add term
+            $term_id = wp_insert_term($term, $tax, $args);
+            if (!is_wp_error($term_id)) {
+                wp_set_object_terms($post_id, $term_id, $tax, true);
+                return $term;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -571,12 +613,12 @@ class PostTemplate extends Template implements TemplateInterface
      * @param Attachment $attachment
      * @return void
      */
-    public function process_attachments($post_id, $data, $filesystem, $ftp, $attachment)
+    public function process_attachments($post_id, $data, $filesystem, $ftp, $attachment, $group = 'attachments')
     {
         // reset list of attachments
         $this->_attachments = [];
+        $attachment_ids = [];
 
-        $group = 'attachments';
         $attachment_data = $data->getData($group);
         $total_rows = isset($attachment_data[$group . '._index']) ? intval($attachment_data[$group . '._index']) : 0;
         $delimiter = apply_filters('iwp/value_delimiter', ',');
@@ -584,7 +626,7 @@ class PostTemplate extends Template implements TemplateInterface
 
         for ($i = 0; $i < $total_rows; $i++) {
 
-            $permission_key = 'attachment.' . $i; //attachment.0 | attachment.1
+            $permission_key = $group . '.' . $i; //attachment.0 | attachment.1
             if ($data->permission()) {
                 $allowed = $data->permission()->validate([$permission_key => ''], $data->getMethod(), $group);
                 $is_allowed = isset($allowed[$permission_key]) ? true : false;
@@ -595,138 +637,20 @@ class PostTemplate extends Template implements TemplateInterface
 
             // Process Attachments
             $row_prefix = $group . '.' . $i . '.';
-            $location = isset($attachment_data[$row_prefix . 'location']) ? $attachment_data[$row_prefix . 'location'] : null;
-            $download = isset($attachment_data[$row_prefix . '_download']) ? $attachment_data[$row_prefix . '_download'] : null;
-            $featured = isset($attachment_data[$row_prefix . '_featured']) ? $attachment_data[$row_prefix . '_featured'] : null;
-            $source = null;
-            $result = false;
-            $attachment_id = null;
 
-            $location = trim($location);
-
-            switch ($download) {
-                case 'remote':
-                    $base_url = isset($attachment_data[$row_prefix . '_remote_url']) ? $attachment_data[$row_prefix . '_remote_url'] : null;
-
-                    // check if file hash is already stored
-                    $source = $base_url . $location;
-                    $source = apply_filters('iwp/attachment/filename', $source);
-                    if (empty($source)) {
-                        continue 2;
-                    }
-
-                    $attachment_id = $attachment->get_attachment_by_hash($source);
-                    if ($attachment_id <= 0) {
-                        Logger::write(__CLASS__ . '::process__attachments -remote=' . $source);
-                        $result = $filesystem->download_file($source);
-                    }
-                    break;
-                case 'ftp':
-                    $ftp_user = isset($attachment_data[$row_prefix . '_ftp_user']) ? $attachment_data[$row_prefix . '_ftp_user'] : null;
-                    $ftp_host = isset($attachment_data[$row_prefix . '_ftp_host']) ? $attachment_data[$row_prefix . '_ftp_host'] : null;
-                    $ftp_pass = isset($attachment_data[$row_prefix . '_ftp_pass']) ? $attachment_data[$row_prefix . '_ftp_pass'] : null;
-                    $base_url = isset($attachment_data[$row_prefix . '_ftp_path']) ? $attachment_data[$row_prefix . '_ftp_path'] : null;
-
-                    // check if file hash is already stored
-                    $source = $base_url . $location;
-                    $source = apply_filters('iwp/attachment/filename', $source);
-                    if (empty($source)) {
-                        continue 2;
-                    }
-
-                    $attachment_id = $attachment->get_attachment_by_hash($source);
-                    if ($attachment_id <= 0) {
-                        Logger::write(__CLASS__ . '::process__attachments -ftp=' . $source);
-                        $result = $ftp->download_file($source, $ftp_host, $ftp_user, $ftp_pass);
-                    }
-                    break;
-                case 'local':
-                    $base_url = isset($attachment_data[$row_prefix . '_local_url']) ? $attachment_data[$row_prefix . '_local_url'] : null;
-
-                    // check if file hash is already stored
-                    $source = $base_url . $location;
-                    $source = apply_filters('iwp/attachment/filename', $source);
-                    if (empty($source)) {
-                        continue 2;
-                    }
-
-                    $attachment_id = $attachment->get_attachment_by_hash($source);
-                    if ($attachment_id <= 0) {
-                        Logger::write(__CLASS__ . '::process__attachments -local=' . $source);
-                        $result = $filesystem->copy_file($source);
-                    }
-                    break;
+            $sub_rows = [$attachment_data];
+            if (isset($attachment_data[$row_prefix . 'row_base']) && !empty($attachment_data[$row_prefix . 'row_base'])) {
+                $sub_group_id = $group . '.' . $i;
+                $sub_rows = $data->getData($sub_group_id);
             }
 
-            $meta_enabled = isset($attachment_data[$row_prefix . '_meta._enabled']) && $attachment_data[$row_prefix . '_meta._enabled'] === 'yes' ? true : false;
-
-            // insert attachment
-            if ($attachment_id <= 0) {
-
-                if (is_wp_error($result)) {
-                    Logger::write(__CLASS__ . '::process__attachments -error=' . $result->get_error_message());
-                    $this->errors[] = $result;
-                    continue;
-                }
-
-                if (!$result) {
-                    continue;
-                }
-
-                $attachment_args = [];
-                if ($meta_enabled) {
-                    $attachment_args['title'] = isset($attachment_data[$row_prefix . '_meta._title']) ? $attachment_data[$row_prefix . '_meta._title'] : null;
-                    $attachment_args['alt'] = isset($attachment_data[$row_prefix . '_meta._alt']) ? $attachment_data[$row_prefix . '_meta._alt'] : null;
-                    $attachment_args['caption'] = isset($attachment_data[$row_prefix . '_meta._caption']) ? $attachment_data[$row_prefix . '_meta._caption'] : null;
-                    $attachment_args['description'] = isset($attachment_data[$row_prefix . '_meta._description']) ? $attachment_data[$row_prefix . '_meta._description'] : null;
-                }
-
-                $attachment_id = $attachment->insert_attachment($post_id, $result['dest'], $result['mime'], $attachment_args);
-                if (is_wp_error($attachment_id)) {
-                    Logger::write(__CLASS__ . '::process__attachments -error=' . $attachment_id->get_error_message());
-                    continue;
-                }
-
-                $attachment->generate_image_sizes($attachment_id, $result['dest']);
-                $attachment->store_attachment_hash($attachment_id, $source);
-            } else {
-                // Update existing attachment meta
-                if ($meta_enabled) {
-                    $post_data = [];
-
-                    if (isset($attachment_data[$row_prefix . '_meta._title']) && !empty($attachment_data[$row_prefix . '_meta._title'])) {
-                        $post_data['post_title'] = $attachment_data[$row_prefix . '_meta._title'];
-                    }
-
-                    if (isset($attachment_data[$row_prefix . '_meta._description']) && !empty($attachment_data[$row_prefix . '_meta._description'])) {
-                        $post_data['post_content'] = $attachment_data[$row_prefix . '_meta._description'];
-                    }
-
-                    if (isset($attachment_data[$row_prefix . '_meta._caption']) && !empty($attachment_data[$row_prefix . '_meta._caption'])) {
-                        $post_data['post_excerpt'] = $attachment_data[$row_prefix . '_meta._caption'];
-                    }
-
-                    if (!empty($post_data)) {
-                        $post_data['ID'] = $attachment_id;
-                        wp_update_post($post_data);
-                    }
-
-                    if (isset($attachment_data[$row_prefix . '_meta._alt']) && !empty($attachment_data[$row_prefix . '_meta._alt'])) {
-                        update_post_meta($attachment_id, '_wp_attachment_image_alt', $attachment_data[$row_prefix . '_meta._alt']);
-                    }
-                }
-            }
-
-            $attachment_url = wp_get_attachment_url($attachment_id);
-            $this->_attachments[] = $attachment_url;
-
-            Logger::write(__CLASS__ . '::process__attachments -id=' . $attachment_id . ' -url=' . $attachment_url);
-
-            // set featured
-            if ('yes' === $featured) {
-                update_post_meta($post_id, '_thumbnail_id', $attachment_id);
+            foreach ($sub_rows as $row) {
+                $ids = $this->process_attachment($post_id, $row, $row_prefix, $filesystem, $ftp, $attachment);
+                $attachment_ids = array_merge($attachment_ids, $ids);
             }
         }
+
+        return $attachment_ids;
     }
 
     /**

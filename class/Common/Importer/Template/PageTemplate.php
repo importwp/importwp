@@ -3,10 +3,17 @@
 namespace ImportWP\Common\Importer\Template;
 
 use ImportWP\Common\Importer\ParsedData;
+use ImportWP\EventHandler;
 
 class PageTemplate extends PostTemplate
 {
     protected $name = 'Page';
+
+    public function __construct(EventHandler $event_handler)
+    {
+        parent::__construct($event_handler);
+        $this->default_template_options['post_type'] = 'page';
+    }
 
     public function register()
     {

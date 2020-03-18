@@ -31,7 +31,7 @@ class Logger
     }
     public static function write($message, $id = null)
     {
-        if (is_null($id) && !is_null(self::$id)) {
+        if (is_null($id) && !is_null(self::$id) && intval(self::$id) > 0) {
             $id = self::$id;
         }
 

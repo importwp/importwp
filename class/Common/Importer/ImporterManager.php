@@ -16,6 +16,7 @@ use ImportWP\Common\Importer\Template\CustomPostTypeTemplate;
 use ImportWP\Common\Importer\Template\PageTemplate;
 use ImportWP\Common\Importer\Template\PostTemplate;
 use ImportWP\Common\Importer\Template\Template;
+use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Importer\Template\TermTemplate;
 use ImportWP\Common\Importer\Template\UserTemplate;
 use ImportWP\Common\Model\ImporterModel;
@@ -35,10 +36,16 @@ class ImporterManager
      */
     private $importer_status_manager;
 
-    public function __construct(ImporterStatusManager $importer_status_manager, Filesystem $filesystem)
+    /**
+     * @var TemplateManager $template_manager
+     */
+    private $template_manager;
+
+    public function __construct(ImporterStatusManager $importer_status_manager, Filesystem $filesystem, TemplateManager $template_manager)
     {
         $this->importer_status_manager = $importer_status_manager;
         $this->filesystem = $filesystem;
+        $this->template_manager = $template_manager;
     }
 
     /**
@@ -56,7 +63,7 @@ class ImporterManager
         ));
 
         foreach ($query->posts as $post) {
-            $result[] = new ImporterModel($post);
+            $result[] = $this->get_importer($post);
         }
         return $result;
     }
@@ -281,7 +288,7 @@ class ImporterManager
      * @param string $file_path File location on server
      * @param string $file_type Type of file
      * 
-     * @return WP_Error|int Id of file
+     * @return \WP_Error|int Id of file
      */
     private function insert_file_attachment($id, $file_path, $file_type)
     {
@@ -380,7 +387,6 @@ class ImporterManager
     public function import($id, $session)
     {
         $importer_data = $this->get_importer($id);
-        Logger::setId($importer_data->getId());
         Logger::write(__CLASS__ . '::import -session=' . $session, $importer_data->getId());
 
         $importer_status = $this->importer_status_manager->get_importer_status($importer_data, $session);
@@ -415,12 +421,55 @@ class ImporterManager
             // mapper
             $mapper = $this->get_importer_mapper($importer_data, $template, $permission);
 
-            // get data
-            $config->set('data', [
+            // TODO: allow for field groups to set 'base'
+            //
+            // If base is set on field group, add it to the group `default::$index`
+            // This will allow for it to be processed and put back into the default
+            // group for processing.
+
+            $template_fields = $template->field_map($importer_data->getMap());
+            $field_groups = [
                 'default' => [
-                    'fields' => $template->field_map($importer_data->getMap())
+                    'id' => 'default',
+                    'fields' => []
                 ]
-            ]);
+            ];
+
+            foreach ($template_fields as $key => $value) {
+
+                if (empty($value) || preg_match('/\.row_base$/', $key) !== 1) {
+                    continue;
+                }
+
+                $group_id = substr($key, 0, strlen($key) - strlen('.row_base'));
+
+                $field_groups[$group_id] = [
+                    'id' => $group_id,
+                    'base' => $value,
+                    'fields' => []
+                ];
+            }
+
+            foreach ($template_fields as $field_id => $field_value) {
+
+                $found = false;
+
+                foreach ($field_groups as $group_prefix => $group_settings) {
+                    if (false === strpos($field_id, $group_prefix) || preg_match('/\.row_base$/', $field_id) === 1) {
+                        continue;
+                    }
+
+                    $field_groups[$group_prefix]['fields'][$field_id] = $field_value;
+                    $found = true;
+                }
+
+                if (false === $found) {
+                    $field_groups['default']['fields'][$field_id] = $field_value;
+                }
+            }
+
+            // get data
+            $config->set('data', $field_groups);
 
             $start = 0;
 
@@ -521,7 +570,7 @@ class ImporterManager
             throw new \Exception($exception_msg);
         }
 
-        return new $templates[$template_name];
+        return $this->template_manager->load_template($templates[$template_name]);
     }
 
     /**
@@ -552,6 +601,16 @@ class ImporterManager
         return $mappers;
     }
 
+    public function get_mapper($key)
+    {
+        $mappers = $this->get_mappers();
+        if (!isset($mappers[$key])) {
+            return new \WP_Error('IWP_IM_1', 'Unable to locate mapper: ' . $key);
+        }
+
+        return $mappers[$key];
+    }
+
     public function get_templates()
     {
         $templates = apply_filters('iwp/templates/register', []);
@@ -563,6 +622,16 @@ class ImporterManager
             'custom-post-type' => CustomPostTypeTemplate::class,
         ]);
         return $templates;
+    }
+
+    public function get_template($key)
+    {
+        $templates = $this->get_templates();
+        if (!isset($templates[$key])) {
+            return new \WP_Error('IWP_IM_1', 'Unable to locate template: ' . $key);
+        }
+
+        return $templates[$key];
     }
 
     public function get_importer_debug_log(ImporterModel $importer_data, $page = 0, $per_page = -1)

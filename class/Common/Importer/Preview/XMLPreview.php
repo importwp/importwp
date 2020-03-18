@@ -117,6 +117,7 @@ class XMLPreview implements PreviewInterface
                         while ($xml->moveToNextAttribute()) {
                             $attributes[] = ['name' => $xml->name, 'value' => $xml->value, 'xpath' => $this->generateXpath($element_path, '@' . $xml->name)];
                         }
+                        $xml->moveToElement();
                     }
 
                     $row['attr'] = $attributes;

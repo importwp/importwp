@@ -9,6 +9,8 @@ use ImportWP\Common\Importer\ImporterStatus;
 use ImportWP\Common\Importer\ImporterStatusManager;
 use ImportWP\Common\Importer\Preview\CSVPreview;
 use ImportWP\Common\Importer\Preview\XMLPreview;
+use ImportWP\Common\Importer\Template\Template;
+use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Migration\Migrations;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Properties\Properties;
@@ -41,13 +43,19 @@ class RestManager extends \WP_REST_Controller
      */
     protected $importer_status_manager;
 
-    public function __construct(ImporterManager $importer_manager, ImporterStatusManager $importer_status_manager, Properties $properties, Http $http, Filesystem $filesystem)
+    /**
+     * @var TemplateManager $template_manager
+     */
+    protected $template_manager;
+
+    public function __construct(ImporterManager $importer_manager, ImporterStatusManager $importer_status_manager, Properties $properties, Http $http, Filesystem $filesystem, TemplateManager $template_manager)
     {
         $this->importer_manager = $importer_manager;
         $this->importer_status_manager = $importer_status_manager;
         $this->properties = $properties;
         $this->http = $http;
         $this->filesystem = $filesystem;
+        $this->template_manager = $template_manager;
     }
 
     public function register()
@@ -391,10 +399,22 @@ class RestManager extends \WP_REST_Controller
 
         if (isset($post_data['template'], $post_data['template_type'])) {
             $importer->setTemplate($post_data['template'], $post_data['template_type']);
+
+            // Get default template options
+            $template_class = $this->importer_manager->get_template($post_data['template']);
+
+            /**
+             * @var Template $template
+             */
+            $template = $this->template_manager->load_template($template_class);
+            $template_options = $template->get_default_template_options();
+
             if (isset($post_data['template_options'])) {
-                foreach ($post_data['template_options'] as $key => $val) {
-                    $importer->setSetting($key, $val);
-                }
+                $template_options = array_merge($template_options, $post_data['template_options']);
+            }
+
+            foreach ($template_options as $key => $val) {
+                $importer->setSetting($key, $val);
             }
         }
 

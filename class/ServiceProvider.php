@@ -7,6 +7,7 @@ use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Ftp\Ftp;
 use ImportWP\Common\Http\Http;
 use ImportWP\Common\Importer\ImporterStatusManager;
+use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Properties\Properties;
 use ImportWP\Common\Rest\RestManager;
 use ImportWP\Common\UI\ViewManager;
@@ -47,7 +48,12 @@ class ServiceProvider
      */
     public $importer_status_manager;
 
-    public function __construct()
+    /**
+     * @var TemplateManager
+     */
+    protected $template_manager;
+
+    public function __construct($event_handler)
     {
         $this->properties = new Properties();
         $this->filesystem = new Filesystem();
@@ -57,5 +63,6 @@ class ServiceProvider
 
         $this->view_manager = new ViewManager($this->properties);
         $this->importer_status_manager = new ImporterStatusManager();
+        $this->template_manager = new TemplateManager($event_handler);
     }
 }

@@ -23,12 +23,12 @@ class ServiceProvider extends \ImportWP\ServiceProvider
      */
     public $rest_manager;
 
-    public function __construct()
+    public function __construct($event_handler)
     {
-        parent::__construct();
+        parent::__construct($event_handler);
 
-        $this->importer_manager = new ImporterManager($this->importer_status_manager, $this->filesystem);
-        $this->menu = new Menu($this->properties, $this->view_manager, $this->importer_manager);
-        $this->rest_manager = new RestManager($this->importer_manager, $this->importer_status_manager, $this->properties, $this->http, $this->filesystem);
+        $this->importer_manager = new ImporterManager($this->importer_status_manager, $this->filesystem, $this->template_manager);
+        $this->menu = new Menu($this->properties, $this->view_manager, $this->importer_manager, $this->template_manager);
+        $this->rest_manager = new RestManager($this->importer_manager, $this->importer_status_manager, $this->properties, $this->http, $this->filesystem, $this->template_manager);
     }
 }

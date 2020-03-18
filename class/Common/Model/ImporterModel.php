@@ -173,6 +173,8 @@ class ImporterModel
                 $this->settings = isset($json['settings']) ? $json['settings'] : [];
             }
         }
+
+        Logger::setId($this->getId());
     }
 
     public function data($view = 'public')

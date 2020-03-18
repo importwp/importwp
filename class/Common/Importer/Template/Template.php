@@ -2,8 +2,12 @@
 
 namespace ImportWP\Common\Importer\Template;
 
+use ImportWP\Common\Importer\File\XMLFile;
 use ImportWP\Common\Importer\ParsedData;
 use ImportWP\Common\Model\ImporterModel;
+use ImportWP\Common\Util\Logger;
+use ImportWP\Container;
+use ImportWP\EventHandler;
 
 class Template extends AbstractTemplate
 {
@@ -38,10 +42,76 @@ class Template extends AbstractTemplate
      */
     protected $field_options = [];
 
+    protected $default_template_options = [];
+
     /**
      * @var \WP_Error[] $errors
      */
     protected $errors = [];
+
+    /**
+     * @var EventHandler $event_handler
+     */
+    private $event_handler;
+
+    public function __construct(EventHandler $event_handler)
+    {
+        $this->event_handler = $event_handler;
+        $this->event_handler->run('template.init', [$this]);
+
+        $this->groups = $this->event_handler->run('template.data_groups', [$this->groups, $this]);
+
+        // Register field options callbacks
+        $this->field_options = [
+            '*.row_base' => [$this, 'get_row_base']
+        ];
+        $this->field_options = $this->event_handler->run('template.field_option_callbacks', [$this->field_options, $this]);
+    }
+
+    /**
+     * Get xml record base
+     *
+     * @param ImporterModel $importer_model
+     * @return array
+     */
+    public function get_row_base($importer_model)
+    {
+        /**
+         * @var ImporterManager $importer_manager
+         */
+        $importer_manager = Container::getInstance()->get('importer_manager');
+        $tmp = false;
+        $results = [];
+
+        if ($importer_model->getParser() !== 'xml') {
+            return $results;
+        }
+
+        $base_path = $importer_model->getFileSetting('base_path');
+        $nodes = $importer_model->getFileSetting('nodes');
+
+        $config = $importer_manager->get_config($importer_model->getId(), $tmp);
+
+        $filePath = $importer_model->getFile();
+        $file = new XMLFile($filePath, $config);
+        $file->setRecordPath($base_path);
+        $nodes = $file->get_node_list();
+
+        foreach ($nodes as $node) {
+            if (strpos($node, $base_path) !== 0) {
+                continue;
+            }
+
+            $sub_node = substr($node, strlen($base_path));
+
+            $results[] = [
+                'value' => $sub_node,
+                'label' => $sub_node
+            ];
+        }
+
+        return $results;
+    }
 
     public function get_name()
     {
@@ -51,6 +121,18 @@ class Template extends AbstractTemplate
     public function get_mapper()
     {
         return $this->mapper;
+    }
+
+    public function get_fields()
+    {
+        $fields = $this->register();
+        $fields = $this->event_handler->run('template.fields', [$fields, $this]);
+        return $fields;
+    }
+
+    public function register()
+    {
+        return [];
     }
 
     public function register_hooks(ImporterModel $importer)
@@ -99,6 +181,17 @@ class Template extends AbstractTemplate
 
     public function register_group($label, $key, $fields, $args = [])
     {
+        if (isset($args['row_base']) && true === $args['row_base']) {
+            $fields = array_merge(
+                [$this->register_field('Repeater Node', 'row_base', [
+                    'type' => 'select',
+                    'options' => 'callback',
+                    'tooltip' => 'Select the path to the parent node containing values for this record, The preview when selecting data for each record should show a single record. Please note changing this will require updating references in this record.'
+                ])],
+                $fields
+            );
+        }
+
         return [
             'id' => $key,
             'heading' => $label,
@@ -138,6 +231,86 @@ class Template extends AbstractTemplate
         return $data;
     }
 
+    public function register_attachment_fields($label = 'Attachments', $name = 'attachments', $field_label = 'Location', $group_args = null)
+    {
+        if (is_null($group_args)) {
+            $group_args = ['type' => 'repeatable', 'row_base' => true];
+        }
+        return $this->register_group($label, $name, [
+            $this->register_field($field_label, 'location', [
+                'tooltip' => __('The source location of the file being attached.', 'importwp')
+            ]),
+            $this->register_field('Is Featured?', '_featured', [
+                'default' => 'no',
+                'options' => [
+                    ['value' => 'no', 'label' => 'No'],
+                    ['value' => 'yes', 'label' => 'Yes'],
+                ],
+                'tooltip' => __('Is the attachment the featured image for the current post.', 'importwp')
+            ]),
+            $this->register_field('Download', '_download', [
+                'default' => 'remote',
+                'options' => [
+                    ['value' => 'remote', 'label' => 'Remote URL'],
+                    ['value' => 'ftp', 'label' => 'FTP'],
+                    ['value' => 'local', 'label' => 'Local Filesystem'],
+                ],
+                'tooltip' => __('Select how the attachment is being downloaded.', 'importwp')
+            ]),
+            $this->register_field('Host', '_ftp_host', [
+                'condition' => ['_download', '==', 'ftp'],
+                'tooltip' => __('Enter the FTP hostname', 'importwp')
+            ]),
+            $this->register_field('Username', '_ftp_user', [
+                'condition' => ['_download', '==', 'ftp'],
+                'tooltip' => __('Enter the FTP username', 'importwp')
+            ]),
+            $this->register_field('Password', '_ftp_pass', [
+                'condition' => ['_download', '==', 'ftp'],
+                'tooltip' => __('Enter the FTP password', 'importwp')
+            ]),
+            $this->register_field('Path', '_ftp_path', [
+                'condition' => ['_download', '==', 'ftp'],
+                'tooltip' => __('Enter the FTP base path, this is prefixed onto the Location field, leave empty to be ignore', 'importwp')
+            ]),
+            $this->register_field('Base URL', '_remote_url', [
+                'condition' => ['_download', '==', 'remote'],
+                'tooltip' => __('Enter the base url, this is prefixed onto the Location field, leave empty to be ignore', 'importwp')
+            ]),
+            $this->register_field('Base URL', '_local_url', [
+                'condition' => ['_download', '==', 'local'],
+                'tooltip' => __('Enter the base path from this servers root file system, this is prefixed onto the Location field, leave empty to be ignore', 'importwp')
+            ]),
+            $this->register_group('Attachment Meta', '_meta', [
+                $this->register_field('Enable Meta', '_enabled', [
+                    'default' => 'no',
+                    'options' => [
+                        ['value' => 'no', 'label' => 'No'],
+                        ['value' => 'yes', 'label' => 'Yes'],
+                    ],
+                    'type' => 'select',
+                    'tooltip' => __('Enable/Disable the fields to import attachment meta data.', 'importwp')
+                ]),
+                $this->register_field('Alt Text', '_alt', [
+                    'condition' => ['_enabled', '==', 'yes'],
+                    'tooltip' => __('Image attachment alt text.', 'importwp'),
+                ]),
+                $this->register_field('Title Text', '_title', [
+                    'condition' => ['_enabled', '==', 'yes'],
+                    'tooltip' => __('Attachments title text.', 'importwp')
+                ]),
+                $this->register_field('Caption Text', '_caption', [
+                    'condition' => ['_enabled', '==', 'yes'],
+                    'tooltip' => __('Image attachments caption text.', 'importwp')
+                ]),
+                $this->register_field('Description Text', '_description', [
+                    'condition' => ['_enabled', '==', 'yes'],
+                    'tooltip' => __('Attachments description text.', 'importwp')
+                ])
+            ]),
+        ], $group_args);
+    }
+
     public function get_field_options($field_name, $id)
     {
         $callback = false;
@@ -146,7 +319,7 @@ class Template extends AbstractTemplate
 
                 $callback_field_name = str_replace('.', '\.', $callback_field_name);
 
-                $pattern = str_replace('*', '[\d]+', $callback_field_name);
+                $pattern = str_replace('*', '[\S]+', $callback_field_name);
                 if (1 !== preg_match("/^{$pattern}/i", $field_name)) {
                     continue;
                 }
@@ -178,6 +351,11 @@ class Template extends AbstractTemplate
         return call_user_func_array($callback, [$id]);
     }
 
+    public function get_default_template_options()
+    {
+        return $this->default_template_options;
+    }
+
     /**
      * Alter fields before they are parsed
      *
@@ -200,11 +378,13 @@ class Template extends AbstractTemplate
     public function pre_process(ParsedData $data)
     {
         $data = $this->pre_process_groups($data);
+        $this->event_handler->run('template.pre_process', [$data, $this->importer, $this]);
         return $data;
     }
 
     public function process($post_id, ParsedData $data, ImporterModel $importer_model)
     {
+        $this->event_handler->run('template.process', [$post_id, $data, $importer_model, $this]);
     }
 
     /**
@@ -218,6 +398,7 @@ class Template extends AbstractTemplate
      */
     public function post_process($post_id, ParsedData $data)
     {
+        $this->event_handler->run('template.post_process', [$post_id, $data, $this]);
     }
 
     public function pre_process_groups(ParsedData $data)
@@ -237,6 +418,155 @@ class Template extends AbstractTemplate
         }
 
         return $data;
+    }
+
+    public function process_attachment($post_id, $row, $row_prefix, $filesystem, $ftp, $attachment)
+    {
+        $locations = isset($row[$row_prefix . 'location']) ? $row[$row_prefix . 'location'] : null;
+        $location_parts = explode(',', $locations);
+        $location_parts = array_filter(array_map('trim', $location_parts));
+        $attachment_ids = [];
+        foreach ($location_parts as $location) {
+
+            if (empty($location)) {
+                continue;
+            }
+
+            $download = isset($row[$row_prefix . '_download']) ? $row[$row_prefix . '_download'] : null;
+            $featured = isset($row[$row_prefix . '_featured']) ? $row[$row_prefix . '_featured'] : null;
+            $source = null;
+            $result = false;
+            $attachment_id = null;
+
+            $location = trim($location);
+
+            switch ($download) {
+                case 'remote':
+                    $base_url = isset($row[$row_prefix . '_remote_url']) ? $row[$row_prefix . '_remote_url'] : null;
+
+                    // check if file hash is already stored
+                    $source = $base_url . $location;
+                    $source = apply_filters('iwp/attachment/filename', $source);
+                    if (empty($source)) {
+                        continue 2;
+                    }
+
+                    $attachment_id = $attachment->get_attachment_by_hash($source);
+                    if ($attachment_id <= 0) {
+                        Logger::write(__CLASS__ . '::process__attachments -remote=' . $source);
+                        $result = $filesystem->download_file($source);
+                    }
+                    break;
+                case 'ftp':
+                    $ftp_user = isset($row[$row_prefix . '_ftp_user']) ? $row[$row_prefix . '_ftp_user'] : null;
+                    $ftp_host = isset($row[$row_prefix . '_ftp_host']) ? $row[$row_prefix . '_ftp_host'] : null;
+                    $ftp_pass = isset($row[$row_prefix . '_ftp_pass']) ? $row[$row_prefix . '_ftp_pass'] : null;
+                    $base_url = isset($row[$row_prefix . '_ftp_path']) ? $row[$row_prefix . '_ftp_path'] : null;
+
+                    // check if file hash is already stored
+                    $source = $base_url . $location;
+                    $source = apply_filters('iwp/attachment/filename', $source);
+                    if (empty($source)) {
+                        continue 2;
+                    }
+
+                    $attachment_id = $attachment->get_attachment_by_hash($source);
+                    if ($attachment_id <= 0) {
+                        Logger::write(__CLASS__ . '::process__attachments -ftp=' . $source);
+                        $result = $ftp->download_file($source, $ftp_host, $ftp_user, $ftp_pass);
+                    }
+                    break;
+                case 'local':
+                    $base_url = isset($row[$row_prefix . '_local_url']) ? $row[$row_prefix . '_local_url'] : null;
+
+                    // check if file hash is already stored
+                    $source = $base_url . $location;
+                    $source = apply_filters('iwp/attachment/filename', $source);
+                    if (empty($source)) {
+                        continue 2;
+                    }
+
+                    $attachment_id = $attachment->get_attachment_by_hash($source);
+                    if ($attachment_id <= 0) {
+                        Logger::write(__CLASS__ . '::process__attachments -local=' . $source);
+                        $result = $filesystem->copy_file($source);
+                    }
+                    break;
+            }
+
+            $meta_enabled = isset($row[$row_prefix . '_meta._enabled']) && $row[$row_prefix . '_meta._enabled'] === 'yes' ? true : false;
+
+            // insert attachment
+            if ($attachment_id <= 0) {
+
+                if (is_wp_error($result)) {
+                    Logger::write(__CLASS__ . '::process__attachments -error=' . $result->get_error_message());
+                    $this->errors[] = $result;
+                    continue;
+                }
+
+                if (!$result) {
+                    continue;
+                }
+
+                $attachment_args = [];
+                if ($meta_enabled) {
+                    $attachment_args['title'] = isset($row[$row_prefix . '_meta._title']) ? $row[$row_prefix . '_meta._title'] : null;
+                    $attachment_args['alt'] = isset($row[$row_prefix . '_meta._alt']) ? $row[$row_prefix . '_meta._alt'] : null;
+                    $attachment_args['caption'] = isset($row[$row_prefix . '_meta._caption']) ? $row[$row_prefix . '_meta._caption'] : null;
+                    $attachment_args['description'] = isset($row[$row_prefix . '_meta._description']) ? $row[$row_prefix . '_meta._description'] : null;
+                }
+
+                $attachment_id = $attachment->insert_attachment($post_id, $result['dest'], $result['mime'], $attachment_args);
+                if (is_wp_error($attachment_id)) {
+                    Logger::write(__CLASS__ . '::process__attachments -error=' . $attachment_id->get_error_message());
+                    continue;
+                }
+
+                $attachment->generate_image_sizes($attachment_id, $result['dest']);
+                $attachment->store_attachment_hash($attachment_id, $source);
+            } else {
+                // Update existing attachment meta
+                if ($meta_enabled) {
+                    $post_data = [];
+
+                    if (isset($row[$row_prefix . '_meta._title']) && !empty($row[$row_prefix . '_meta._title'])) {
+                        $post_data['post_title'] = $row[$row_prefix . '_meta._title'];
+                    }
+
+                    if (isset($row[$row_prefix . '_meta._description']) && !empty($row[$row_prefix . '_meta._description'])) {
+                        $post_data['post_content'] = $row[$row_prefix . '_meta._description'];
+                    }
+
+                    if (isset($row[$row_prefix . '_meta._caption']) && !empty($row[$row_prefix . '_meta._caption'])) {
+                        $post_data['post_excerpt'] = $row[$row_prefix . '_meta._caption'];
+                    }
+
+                    if (!empty($post_data)) {
+                        $post_data['ID'] = $attachment_id;
+                        wp_update_post($post_data);
+                    }
+
+                    if (isset($row[$row_prefix . '_meta._alt']) && !empty($row[$row_prefix . '_meta._alt'])) {
+                        update_post_meta($attachment_id, '_wp_attachment_image_alt', $row[$row_prefix . '_meta._alt']);
+                    }
+                }
+            }
+
+            $attachment_ids[] = $attachment_id;
+            $attachment_url = wp_get_attachment_url($attachment_id);
+            $this->_attachments[] = $attachment_url;
+
+            Logger::write(__CLASS__ . '::process__attachments -id=' . $attachment_id . ' -url=' . $attachment_url);
+
+            // set featured
+            if ('yes' === $featured && false === $this->featured_set) {
+                update_post_meta($post_id, '_thumbnail_id', $attachment_id);
+                $this->featured_set = true;
+            }
+        }
+
+        return $attachment_ids;
     }
 
     /**

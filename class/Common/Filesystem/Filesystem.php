@@ -3,6 +3,7 @@
 namespace ImportWP\Common\Filesystem;
 
 use ImportWP\Common\Http\Http;
+use ImportWP\Common\Util\Logger;
 use ImportWP\Common\Util\Singleton;
 use ImportWP\Container;
 
@@ -24,80 +25,71 @@ class Filesystem
     {
 
         if (!file_exists($source)) {
+            Logger::write('File doesn`t exist on local filesystem: ' . $source);
             return new \WP_Error('IWP_FS_7', 'File doesn`t exist on local filesystem.');
         }
 
+        $filetype = $this->get_filetype($source);
+
         if (!is_null($allowed_mimes)) {
 
-            $filetype = $this->get_filetype($source);
             if (!$filetype) {
+                Logger::write('Unable to determine filetype: ' . $source);
                 return new \WP_Error('IWP_FS_6', 'Unable to determine filetype.');
             }
 
             if (!in_array($filetype, $allowed_mimes, true)) {
+                Logger::write('Invalid filetype: ' . $filetype . ', allowed(' . implode(', ', $allowed_mimes) . ')');
                 return new \WP_Error('IWP_FS_4', 'Invalid filetype.');
             }
-
-            return copy($source, $destination);
         }
 
-        return copy($source, $destination);
+        if (!copy($source, $destination)) {
+            return new \WP_Error('IWP_FS_4', 'Unable to copy file: ' . $source . '.');
+        }
+
+        $type = $this->get_file_mime($source);
+        Logger::write('Copied file: ' . $destination . ' -type=' . $filetype . ' -mime=' . $type);
+        return true;
     }
 
     public function upload_file($attachment, $allowed_mimes = null)
     {
-        // check for upload status.
-        switch ($attachment['error']) {
-            case UPLOAD_ERR_OK:
-                break;
-            case UPLOAD_ERR_NO_FILE:
-                return new \WP_Error('IWP_FS_1', 'No file sent.');
-                break;
-            case UPLOAD_ERR_INI_SIZE:
-            case UPLOAD_ERR_FORM_SIZE:
-                return new \WP_Error('IWP_FS_2', 'Exceeded filesize limit.');
-                break;
-            default:
-                return new \WP_Error('IWP_FS_3', 'Unknown errors.');
-                break;
+        // use built in wordpress file upload
+        if (!function_exists('wp_handle_upload')) {
+            require_once ABSPATH . "wp-admin" . '/includes/file.php';
         }
 
-        if (isset($attachment['error']) && UPLOAD_ERR_OK === $attachment['error']) {
+        $uploaded_file = wp_handle_upload($attachment, ['test_form' => false]);
 
-            // uploaded without errors.
-            $a_name     = $attachment['name'];
-            $a_tmp_name = $attachment['tmp_name'];
-
-            $filetype = $this->check_mime_header($attachment['type']);
-
-            // if header doesnt match check for file extension.
-            if (!$filetype) {
-                $filetype = $this->get_filetype_from_ext($attachment['name']);
-            }
-
-            // determine file type from mimetype.
-            if (!is_null($allowed_mimes) && !in_array($filetype, $allowed_mimes, true)) {
-                return new \WP_Error('IWP_FS_4', 'Invalid filetype.');
-            }
-
-            $wp_upload_dir = wp_upload_dir();
-
-            $dest    = wp_unique_filename($wp_upload_dir['path'], $a_name);
-            $wp_dest = $wp_upload_dir['path'] . '/' . $dest;
-
-            // check to see if file was created.
-            if (move_uploaded_file($a_tmp_name, $wp_dest)) {
-
-                // return result array.
-                return array(
-                    'dest' => $wp_dest,
-                    'type' => $filetype,
-                    'mime' => $attachment['type']
-                );
-            }
-
-            return new \WP_Error('IWP_FS_5', 'Unable to upload file.');
+        if (isset($uploaded_file['error'])) {
+            Logger::write($uploaded_file['error']);
+            return new \WP_Error('IWP_FS_UF', $uploaded_file['error']);
         }
+
+        $file = $uploaded_file['file'];
+        $type = $uploaded_file['type'];
+
+        $filetype = $this->check_mime_header($uploaded_file['type']);
+
+        // if header doesnt match check for file extension.
+        if (!$filetype) {
+            $filetype = $this->get_filetype_from_ext($attachment['name']);
+        }
+
+        // determine file type from mimetype.
+        if (!is_null($allowed_mimes) && !in_array($filetype, $allowed_mimes, true)) {
+            Logger::write('Invalid filetype: ' . $filetype . ', allowed(' . implode(', ', $allowed_mimes) . ')');
+            return new \WP_Error('IWP_FS_4', 'Invalid filetype.');
+        }
+
+        Logger::write('Uploaded file: ' . $file . ' -type=' . $filetype . ' -mime=' . $type);
+
+        return array(
+            'dest' => $file,
+            'type' => $filetype,
+            'mime' => $type
+        );
     }
 
     public function download_file($remote_url, $filetype = null, $allowed_mimes = null)
@@ -109,6 +101,7 @@ class Filesystem
                 $filetype = $this->get_filetype_from_ext($remote_url_temp);
             }
             if (!in_array($filetype, $allowed_mimes, true)) {
+                Logger::write('Invalid filetype: ' . $filetype . ', allowed(' . implode(', ', $allowed_mimes) . ')');
                 return new \WP_Error('IWP_FS_4', 'Invalid filetype.');
             }
         }
@@ -125,13 +118,17 @@ class Filesystem
 
         $result = $http->download_file_stream($remote_url, $wp_dest);
         if (is_wp_error($result)) {
+            Logger::write($result->get_error_message());
             return $result;
         }
+
+        $type = $this->get_file_mime($wp_dest);
+        Logger::write('Downloaded file: ' . $wp_dest . ' -type=' . $filetype . ' -mime=' . $type);
 
         return array(
             'dest' => $wp_dest,
             'type' => $filetype,
-            'mime' => $this->get_file_mime($wp_dest)
+            'mime' => $type
         );
     }
 
@@ -212,12 +209,8 @@ class Filesystem
 
     public function get_file_mime($file)
     {
-        if (function_exists('mime_content_type')) {
-            return mime_content_type($file);
-        } else {
-            $check = wp_check_filetype_and_ext($file, basename($file));
-            return $check['type'];
-        }
+        $check = wp_check_filetype_and_ext($file, basename($file));
+        return $check['type'];
     }
 
     public function get_filetype_from_ext($file)

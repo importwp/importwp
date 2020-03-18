@@ -3,6 +3,7 @@
 namespace ImportWP\Common\Plugin;
 
 use ImportWP\Common\Importer\ImporterManager;
+use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Migration\Migrations;
 use ImportWP\Common\Properties\Properties;
 use ImportWP\Common\UI\ViewManager;
@@ -22,12 +23,17 @@ class Menu
      * @var ImporterManager
      */
     private $importer_manager;
+    /**
+     * @var TemplateManager $template_manager
+     */
+    private $template_manager;
 
-    public function __construct(Properties $properties, ViewManager $view_manager, ImporterManager $importer_manager)
+    public function __construct(Properties $properties, ViewManager $view_manager, ImporterManager $importer_manager, TemplateManager $template_manager)
     {
         $this->properties = $properties;
         $this->view_manager = $view_manager;
         $this->importer_manager = $importer_manager;
+        $this->template_manager = $template_manager;
 
         add_action('admin_menu', array($this, 'register_tools_menu'));
         add_action('tool_box', array($this->view_manager, 'tool_box'));
@@ -77,12 +83,12 @@ class Menu
         $template_data = [];
         foreach ($templates as $template_id => $template) {
 
-            $template_class = new $template;
+            $template_class = $this->template_manager->load_template($template);
 
             $template_data[] = [
                 'id' => $template_id,
                 'label' => $template_class->get_name(),
-                'map' => $template_class->register(),
+                'map' => $template_class->get_fields(),
                 'settings' => $template_class->register_settings(),
                 'options' => $template_class->register_options(),
             ];

@@ -6,6 +6,7 @@ class Container
 {
     public $providers = [];
     public $classes = [];
+    private $event_handler;
 
     private static $instance;
 
@@ -32,6 +33,7 @@ class Container
 
     public function setupServiceProviders($is_pro = false)
     {
+        $this->event_handler = new EventHandler();
         $potential_classes = [];
 
         if (true === $is_pro) {
@@ -39,6 +41,9 @@ class Container
         } else {
             $potential_classes = ['ImportWP\Free\ServiceProvider'];
         }
+
+        // Addons
+        $potential_classes[] = 'ImportWPAddon\YoastSEO\ServiceProvider';
 
         foreach ($potential_classes as $class) {
             $this->maybeAddProvider($class);
@@ -59,7 +64,7 @@ class Container
     public function maybeAddProvider($class)
     {
         if (class_exists($class)) {
-            $this->providers[$class] = new $class;
+            $this->providers[$class] = new $class($this->event_handler);
         }
     }
 
@@ -74,5 +79,9 @@ class Container
         }
 
         return false;
+    }
+
+    protected function _registerProvider($provider)
+    {
     }
 }
