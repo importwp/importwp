@@ -18,7 +18,7 @@ class EventHandler
      * @param string $event
      * @param array $args
      *
-     * @return void
+     * @return mixed
      */
     public function run($event, $orignal_args = array())
     {

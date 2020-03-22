@@ -758,7 +758,11 @@ class RestManager extends \WP_REST_Controller
             if ('xml' === $parser) {
                 $result = $this->importer_manager->preview_xml_file($importer, $fields);
             } elseif ('csv' === $parser) {
-                $result = $this->importer_manager->preview_csv_file($importer, $fields);
+                $row = 0;
+                if ($importer->getFileSetting('show_headings') === true) {
+                    $row = 1;
+                }
+                $result = $this->importer_manager->preview_csv_file($importer, $fields, $row);
             }
 
             return $this->http->end_rest_success($result);

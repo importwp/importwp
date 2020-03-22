@@ -59,7 +59,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
         // allow user to set unique field name, get from importer setting
         $unique_field = $this->importer->getSetting('unique_field');
         if ($unique_field !== null) {
-            $unique_fields = [$unique_field];
+            $unique_fields = is_string($unique_field) ? [$unique_field] : $unique_field;
         }
 
         $post_type = $this->importer->getSetting('post_type');

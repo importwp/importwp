@@ -21,7 +21,7 @@ use ImportWP\Common\Importer\Template\TermTemplate;
 use ImportWP\Common\Importer\Template\UserTemplate;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Util\Logger;
-use WP_Error;
+use ImportWP\EventHandler;
 
 class ImporterManager
 {
@@ -41,11 +41,17 @@ class ImporterManager
      */
     private $template_manager;
 
-    public function __construct(ImporterStatusManager $importer_status_manager, Filesystem $filesystem, TemplateManager $template_manager)
+    /**
+     * @var EventHandler $event_handler
+     */
+    protected $event_handler;
+
+    public function __construct(ImporterStatusManager $importer_status_manager, Filesystem $filesystem, TemplateManager $template_manager, EventHandler $event_handler)
     {
         $this->importer_status_manager = $importer_status_manager;
         $this->filesystem = $filesystem;
         $this->template_manager = $template_manager;
+        $this->event_handler = $event_handler;
     }
 
     /**
@@ -231,7 +237,8 @@ class ImporterManager
     {
 
         $importer = $this->get_importer($id);
-        $result = $this->filesystem->upload_file($file, $importer->getAllowedFileTypes());
+        $allowed_file_types = $this->event_handler->run('importer.allowed_file_types', [$importer->getAllowedFileTypes()]);
+        $result = $this->filesystem->upload_file($file, $allowed_file_types);
 
         if (is_wp_error($result)) {
             return $result;
@@ -248,7 +255,8 @@ class ImporterManager
     public function remote_file($id, $source, $filetype = null)
     {
         $importer = $this->get_importer($id);
-        $result = $this->filesystem->download_file($source, $filetype, $importer->getAllowedFileTypes());
+        $allowed_file_types = $this->event_handler->run('importer.allowed_file_types', [$importer->getAllowedFileTypes()]);
+        $result = $this->filesystem->download_file($source, $filetype, $allowed_file_types);
 
         if (is_wp_error($result)) {
             return $result;
@@ -265,7 +273,8 @@ class ImporterManager
     public function local_file($id, $source)
     {
         $importer = $this->get_importer($id);
-        $result = $this->filesystem->copy_file($source, $importer->getAllowedFileTypes());
+        $allowed_file_types = $this->event_handler->run('importer.allowed_file_types', [$importer->getAllowedFileTypes()]);
+        $result = $this->filesystem->copy_file($source, $allowed_file_types);
 
         if (is_wp_error($result)) {
             return $result;
@@ -592,7 +601,7 @@ class ImporterManager
 
     public function get_mappers()
     {
-        $mappers = apply_filters('iwp/mappers/register', []);
+        $mappers = $this->event_handler->run('mappers.register', [[]]); // apply_filters('iwp/mappers/register', []);
         $mappers = array_merge($mappers, [
             'post' => PostMapper::class,
             'user' => UserMapper::class,
@@ -613,7 +622,7 @@ class ImporterManager
 
     public function get_templates()
     {
-        $templates = apply_filters('iwp/templates/register', []);
+        $templates = $this->event_handler->run('templates.register', [[]]);
         $templates = array_merge($templates, [
             'post' => PostTemplate::class,
             'page' => PageTemplate::class,

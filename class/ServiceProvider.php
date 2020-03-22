@@ -56,7 +56,7 @@ class ServiceProvider
     public function __construct($event_handler)
     {
         $this->properties = new Properties();
-        $this->filesystem = new Filesystem();
+        $this->filesystem = new Filesystem($event_handler);
         $this->attachment = new Attachment();
         $this->ftp = new Ftp($this->filesystem);
         $this->http = new Http($this->properties);

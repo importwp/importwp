@@ -51,8 +51,6 @@ class DataParser
             }
         }
 
-        EventHandler::instance()->run('importer.record_parsed', [$this, $index, &$parsed_data]);
-
         return $parsed_data;
     }
 }

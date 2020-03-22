@@ -6,6 +6,7 @@ use ImportWP\Common\Http\Http;
 use ImportWP\Common\Util\Logger;
 use ImportWP\Common\Util\Singleton;
 use ImportWP\Container;
+use ImportWP\EventHandler;
 
 class Filesystem
 {
@@ -16,8 +17,14 @@ class Filesystem
      */
     private $container;
 
-    public function __construct()
+    /**
+     * @var EventHandler $event_handler
+     */
+    private $event_handler;
+
+    public function __construct(EventHandler $event_handler)
     {
+        $this->event_handler = $event_handler;
         $this->container = Container::getInstance();
     }
 
@@ -194,7 +201,7 @@ class Filesystem
                 return 'xml';
         }
 
-        return false;
+        return $this->event_handler->run('importer.allowed_mime_types', [false, $mime]);
     }
 
     public function get_filetype($file)
