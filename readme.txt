@@ -3,7 +3,7 @@ Contributors: jcollings
 Tags: import, wordpress xml importer, wordpress csv importer, xml, csv
 Requires at least: 4.0  
 Tested up to: 5.4
-Stable tag: 2.0.21
+Stable tag: 2.0.22
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -41,23 +41,19 @@ For further documentation on installing and using ImportWP features can be found
 
 = How do i create an importer =
 
-Documentation on adding an importer can be viewed [here](https://www.importwp.com/documentation/adding-an-importer/)
+Documentation on adding an importer can be viewed [here](https://www.importwp.com/documentation/how-to-add-an-importer/)
 
 = What settings does each importer have =
 
-Documentation on using the importer settings can be found [here](https://www.importwp.com/documentation/importer-settings/)
+Documentation on using the importer settings can be found [here](https://www.importwp.com/documentation/importer-file-settings/)
 
-= How to import from an XML file =
+= How to import from an XML/CSV files =
 
-A guide to importing data from an xml file can be viewed [here](https://www.importwp.com/documentation/importing-from-xml-file/)
-
-= How to import from an CSV file =
-
-A guide to importing data from an csv file can be viewed [here](https://www.importwp.com/documentation/importing-from-csv-file/)
+A guide to importing data from an xml file can be viewed [here](https://www.importwp.com/documentation/template-fields/)
 
 = How do i run an importer once it is setup =
 
-A guide to running and pausing an import can be viewed [here](https://www.importwp.com/documentation/running-an-import/)
+A guide to running and pausing an import can be viewed [here](https://www.importwp.com/documentation/run-import/)
 
 == Screenshots ==
 
@@ -67,6 +63,10 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 == Changelog ==
+
+= 2.0.22 =
+* ADD - Ability to download debug log on import screen.
+* FIX - Enable field label uses Field label instead of key.
 
 = 2.0.0 =
 

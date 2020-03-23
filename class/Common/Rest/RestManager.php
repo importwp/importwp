@@ -938,7 +938,9 @@ class RestManager extends \WP_REST_Controller
         }
         $importer_data = $this->importer_manager->get_importer($id);
         $log = $this->importer_manager->get_importer_debug_log($importer_data, $page, 100);
-        return $this->http->end_rest_success(['log' => $log]);
+
+        $download = Logger::getLogFile($importer_data->getId(), true);
+        return $this->http->end_rest_success(['log' => $log, 'download' => $download]);
     }
 
     private function _default_settings()

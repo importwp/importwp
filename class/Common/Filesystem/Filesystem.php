@@ -167,15 +167,16 @@ class Filesystem
      *
      * @return string
      */
-    public function get_temp_directory()
+    public function get_temp_directory($url = false)
     {
-
-        $path = WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'uploads';
+        $base = $url ? WP_CONTENT_URL : WP_CONTENT_DIR;
+        $ds = $url ? '/' : DIRECTORY_SEPARATOR;
+        $path = $base . $ds . 'uploads';
         if (!is_dir($path)) {
             mkdir($path);
         }
 
-        $path .= DIRECTORY_SEPARATOR . 'importwp';
+        $path .= $ds . 'importwp';
         if (!is_dir($path)) {
             mkdir($path);
         }
