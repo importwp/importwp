@@ -249,6 +249,14 @@ class Importer
 
                     $data = $data_parser->get($i);
 
+                    // Add in ability to filter input file records, could this be moved up before data parser (speed checks)?
+                    $skip_record = apply_filters('iwp/importer/skip_record', false, $data, $this);
+                    if ($skip_record) {
+                        $this->record_time();
+                        $this->status->record_skip();
+                        continue;
+                    }
+
                     $data = apply_filters('iwp/importer/before_mapper', $data, $this);
                     $data->map();
 
@@ -355,13 +363,14 @@ class Importer
 
     private function timeout()
     {
-
         $limit = intval(ini_get('max_execution_time'));
         if ($limit > 0) {
             $limit = ceil($limit * 0.9);
         } else {
             $limit = 3600;
         }
+
+        $limit = apply_filters('iwp/importer/timeout', $limit);
 
         $current_time = time();
         if ($current_time - $this->import_start_time >= $limit) {

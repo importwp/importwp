@@ -38,15 +38,15 @@ class Attachment
         return $attachment_id;
     }
 
-    public function store_attachment_hash($attachment_id, $dest)
+    public function store_attachment_hash($attachment_id, $dest, $salt = '')
     {
-        update_post_meta($attachment_id, '_iwp_attachment_src', md5($dest));
+        update_post_meta($attachment_id, '_iwp_attachment_src', md5($dest . $salt));
     }
 
-    public function get_attachment_by_hash($dest)
+    public function get_attachment_by_hash($dest, $salt = '')
     {
         global $wpdb;
-        $hash = md5($dest);
+        $hash = md5($dest, $salt);
         $query = $wpdb->prepare("SELECT p.ID FROM {$wpdb->postmeta} as pm INNER JOIN {$wpdb->posts} as p ON pm.post_id = p.ID WHERE p.post_type='attachment' AND pm.meta_key='_iwp_attachment_src' AND pm.meta_value=%s ORDER BY p.ID DESC LIMIT 1", [$hash]);
         $attachment_id = intval($wpdb->get_var($query));
         if ($attachment_id > 0) {

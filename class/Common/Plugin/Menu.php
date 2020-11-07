@@ -88,7 +88,7 @@ class Menu
             $template_data[] = [
                 'id' => $template_id,
                 'label' => $template_class->get_name(),
-                'map' => $template_class->get_fields(),
+                'map' => [],
                 'settings' => $template_class->register_settings(),
                 'options' => $template_class->register_options(),
             ];
@@ -106,6 +106,7 @@ class Menu
             'is_setup' => $is_setup,
             'plugin_url' => plugin_dir_url($this->properties->plugin_file_path),
             'version' => $this->properties->plugin_version,
+            'encodings' => $this->properties->encodings,
             'is_pro' => $this->properties->is_pro ? 'yes' : 'no'
         ));
 

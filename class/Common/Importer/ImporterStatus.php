@@ -85,6 +85,13 @@ class ImporterStatus
     protected $deletes;
 
     /**
+     * Record skip counter
+     *
+     * @var int
+     */
+    protected $skips;
+
+    /**
      * Total number of records to delete
      *
      * @var int
@@ -158,6 +165,7 @@ class ImporterStatus
         $this->inserts = $this->getDefault($data, 'inserts', 0);
         $this->updates = $this->getDefault($data, 'updates', 0);
         $this->deletes = $this->getDefault($data, 'deletes', 0);
+        $this->skips = $this->getDefault($data, 'skips', 0);
         $this->delete_total = $this->getDefault($data, 'delete_total', 0);
         $this->start = $this->getDefault($data, 'start');
         $this->end = $this->getDefault($data, 'end');
@@ -290,6 +298,7 @@ class ImporterStatus
             'w' => $this->warnings, // warnings
             'r' => $this->deletes,
             'a' => $this->delete_total,
+            'f' => $this->skips,
             'i' => $this->inserts,
             'u' => $this->updates,
             'm' => $this->message,
@@ -635,6 +644,15 @@ class ImporterStatus
         $this->deletes++;
         $message = apply_filters('iwp/status/record_deleted', 'Record Deleted: #' . $id, $id);
         $this->log_row_message($message, 'D', $this->deletes);
+        $this->save();
+    }
+
+    public function record_skip()
+    {
+        $this->_changes[] = 'counter';
+        $this->counter++;
+        $this->skips++;
+        $this->log_row_message("Skipped Record", 'S');
         $this->save();
     }
 

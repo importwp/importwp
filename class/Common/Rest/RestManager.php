@@ -233,10 +233,31 @@ class RestManager extends \WP_REST_Controller
             ),
         ));
 
+        register_rest_route($namespace, '/import-export', array(
+            array(
+                'methods'             => \WP_REST_Server::CREATABLE,
+                'callback'            => array($this, 'import_exporters'),
+                'permission_callback' => array($this, 'get_permission')
+            ),
+            array(
+                'methods'             => \WP_REST_Server::READABLE,
+                'callback'            => array($this, 'export_importers'),
+                'permission_callback' => array($this, 'get_permission')
+            ),
+        ));
+
         register_rest_route($namespace, '/importer/(?P<id>\d+)/debug_log', array(
             array(
                 'methods' => \WP_REST_Server::READABLE,
                 'callback' => array($this, 'get_debug_log'),
+                'permission_callback' => array($this, 'get_permission')
+            )
+        ));
+
+        register_rest_route($namespace, '/importer/(?P<id>\d+)/template', array(
+            array(
+                'methods' => \WP_REST_Server::READABLE,
+                'callback' => array($this, 'get_template'),
                 'permission_callback' => array($this, 'get_permission')
             )
         ));
@@ -434,19 +455,16 @@ class RestManager extends \WP_REST_Controller
         foreach ($post_data as $key => $value) {
             if (1 === preg_match('/^setting_(?<key>.*)/', $key, $matches)) {
 
-                if (in_array($value, ['true', 'false'], true)) {
-                    if ($value === 'true') {
-                        $value = true;
-                    } else {
-                        $value = false;
-                    }
-                }
-
+                $value = $this->sanitize_setting($value);
                 $importer->setSetting($matches['key'], $value);
             }
         }
 
         $parser = $importer->getParser();
+
+        if (isset($post_data['file_settings_encoding'])) {
+            $importer->setFileSetting('file_encoding', $post_data['file_settings_encoding']);
+        }
 
         if ($parser === 'csv') {
             if (isset($post_data['file_settings_delimiter'])) {
@@ -522,6 +540,26 @@ class RestManager extends \WP_REST_Controller
             return $this->http->end_rest_error($result->get_error_message());
         }
         return $this->http->end_rest_success($importer->data());
+    }
+
+    private function sanitize_setting($value)
+    {
+        if (is_array($value)) {
+            foreach ($value as &$tmp) {
+                $tmp = $this->sanitize_setting($tmp);
+            }
+            return $value;
+        } else {
+            if (in_array($value, ['true', 'false'], true)) {
+                if ($value === 'true') {
+                    $value = true;
+                } else {
+                    $value = false;
+                }
+            }
+        }
+
+        return $value;
     }
 
     public function get_status(\WP_REST_Request $request)
@@ -687,6 +725,11 @@ class RestManager extends \WP_REST_Controller
                 $record_index = 0;
             }
 
+            // Temp set file_encoding
+            if (isset($post_data['file_encoding'])) {
+                $importer->setFileSetting('file_encoding', $post_data['file_encoding']);
+            }
+
             if ($importer->getParser() === 'xml') {
 
                 $config = $this->importer_manager->get_config($importer, true);
@@ -828,13 +871,38 @@ class RestManager extends \WP_REST_Controller
         $status = $this->importer_manager->import($importer_data, $session);
         Logger::write(__CLASS__  . '::run_import -import=end -status=' . $status->get_status(), $id);
 
+        if (!empty($this->output_cache)) {
+            echo $this->output_cache;
+            $this->output_cache = '';
+        }
+
         echo json_encode($status->output()) . "\n";
         die();
     }
 
+    private $output_last_time = -1;
+    private $output_cache = '';
+
     public function render_import_status_update(ImporterStatus $status)
     {
-        echo json_encode($status->output()) . "\n";
+        $this->output_cache .= json_encode($status->output()) . "\n";
+        if ($this->output_last_time !== -1 && $this->output_last_time + 1 > time()) {
+
+            // Testing to see what happens when data is returned broken
+
+            // if (!empty($this->output_cache)) {
+
+            //     $index = rand(0, strlen($this->output_cache) - 1);
+            //     echo substr($this->output_cache, 0, $index);
+            //     $this->output_cache = substr($this->output_cache, $index);
+            //     flush();
+            // }
+            return;
+        }
+
+        echo $this->output_cache;
+        $this->output_last_time = time();
+        $this->output_cache = '';
 
         if (ob_get_level() > 0) {
             ob_flush();
@@ -1001,5 +1069,115 @@ class RestManager extends \WP_REST_Controller
         }
 
         return $this->http->end_rest_success($output);
+    }
+
+    public function get_template(\WP_REST_Request $request = null)
+    {
+        $importer_id = $request->get_param('id');
+        $importer_model = $this->importer_manager->get_importer($importer_id);
+        $importer_template = $importer_model->getTemplate();
+
+        $templates = $this->importer_manager->get_templates();
+        $template_id = $templates[$importer_template];
+        $template_class = $this->template_manager->load_template($template_id);
+
+        $output = [
+            'id' => $template_id,
+            'label' => $template_class->get_name(),
+            'map' => $template_class->get_fields($importer_model),
+            'settings' => $template_class->register_settings(),
+            'options' => $template_class->register_options(),
+        ];
+        return $this->http->end_rest_success($output);
+    }
+
+    public function export_importers(\WP_REST_Request $request = null)
+    {
+        $importer_ids = $request->get_param('ids');
+
+        $sql_ids = array_map(function ($v) {
+            return "'" . esc_sql($v) . "'";
+        }, $importer_ids);
+        $sql_ids = implode(',', $sql_ids);
+
+        $output = [];
+
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+        $results = $wpdb->get_results("SELECT post_title, post_content from {$wpdb->posts} WHERE post_type='" . IWP_POST_TYPE . "' AND ID IN (" . $sql_ids . ")", ARRAY_A);
+        foreach ($results as $result) {
+
+            $data = unserialize($result['post_content']);
+
+            unset($data['file']['id']);
+            unset($data['file']['settings']['count']);
+            unset($data['file']['settings']['processed']);
+
+
+            $row = [
+                'name' => $result['post_title'],
+                'data' => $data
+            ];
+
+            if ($this->importer_manager->is_debug()) {
+                $row['raw'] = base64_encode($result['post_content']);
+            }
+
+            $output[] = $row;
+        }
+
+        $json = json_encode($output);
+
+        header('Content-disposition: attachment; filename="ImportWP-export-' . date('Y-m-d') . '.json"');
+        header('Content-type: "application/json"; charset="utf8"');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . strlen($json));
+
+        echo $json;
+        die();
+    }
+
+    public function import_exporters(\WP_REST_Request $request = null)
+    {
+        $upload = $this->filesystem->upload_file($_FILES['file']);
+        if(is_wp_error($upload)){
+            return $this->http->end_rest_error($upload->get_error_message());
+        }
+
+        $json_contents = file_get_contents($upload['dest']);
+        @unlink($upload['dest']);
+
+        $contents = json_decode($json_contents, true);
+        $counter = 0;
+        $errors = [];
+        if (!empty($contents)) {
+            foreach ($contents as $importer) {
+
+                $result = wp_insert_post([
+                    'post_type' => IWP_POST_TYPE,
+                    'post_title' => $importer['name'],
+                    'post_status'   => 'publish',
+                    'post_author' => get_current_user_id(),
+                    'post_content' => serialize($importer['data'])
+                ], true);
+
+                if (is_wp_error($result)) {
+                    $errors[] =  $result->get_error_message();
+                    continue;
+                }
+
+                $counter++;
+            }
+        }
+
+        if (empty($counter)) {
+            return $this->http->end_rest_error('No Importers found.');
+        }
+
+        return $this->http->end_rest_success("Import Complete, {$counter} Importer" . ($counter > 1 ? 's' : '') . '.');
     }
 }

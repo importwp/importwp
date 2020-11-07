@@ -54,6 +54,11 @@ class Template extends AbstractTemplate
      */
     private $event_handler;
 
+    /**
+     * @var boolean
+     */
+    private $featured_set = false;
+
     public function __construct(EventHandler $event_handler)
     {
         $this->event_handler = $event_handler;
@@ -123,10 +128,15 @@ class Template extends AbstractTemplate
         return $this->mapper;
     }
 
-    public function get_fields()
+    public function get_importer()
+    {
+        return $this->importer;
+    }
+
+    public function get_fields(ImporterModel $importer = null)
     {
         $fields = $this->register();
-        $fields = $this->event_handler->run('template.fields', [$fields, $this]);
+        $fields = $this->event_handler->run('template.fields', [$fields, $this, $importer]);
         return $fields;
     }
 
@@ -384,6 +394,7 @@ class Template extends AbstractTemplate
 
     public function process($post_id, ParsedData $data, ImporterModel $importer_model)
     {
+        $this->featured_set = false;
         $this->event_handler->run('template.process', [$post_id, $data, $importer_model, $this]);
     }
 
@@ -437,6 +448,7 @@ class Template extends AbstractTemplate
             $source = null;
             $result = false;
             $attachment_id = null;
+            $attachment_salt = '';
 
             $location = trim($location);
 
@@ -485,8 +497,9 @@ class Template extends AbstractTemplate
                     if (empty($source)) {
                         continue 2;
                     }
+                    $attachment_salt = file_exists($source) ? md5_file($source) : '';
 
-                    $attachment_id = $attachment->get_attachment_by_hash($source);
+                    $attachment_id = $attachment->get_attachment_by_hash($source, $attachment_salt);
                     if ($attachment_id <= 0) {
                         Logger::write(__CLASS__ . '::process__attachments -local=' . $source);
                         $result = $filesystem->copy_file($source);
@@ -524,7 +537,7 @@ class Template extends AbstractTemplate
                 }
 
                 $attachment->generate_image_sizes($attachment_id, $result['dest']);
-                $attachment->store_attachment_hash($attachment_id, $source);
+                $attachment->store_attachment_hash($attachment_id, $source, $attachment_salt);
             } else {
                 // Update existing attachment meta
                 if ($meta_enabled) {

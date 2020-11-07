@@ -15,6 +15,7 @@ class Properties
     public $plugin_domain;
     public $plugin_version;
     public $plugin_file_path;
+    public $encodings;
 
     public $rest_version;
     public $rest_namespace;
@@ -28,10 +29,21 @@ class Properties
         $this->plugin_domain = 'importwp';
         $this->plugin_version = IWP_VERSION;
         $this->is_pro = false;
+        $this->encodings = $this->get_available_encodings();
 
         $this->view_dir = $this->plugin_dir_path . trailingslashit('views');
 
         $this->rest_namespace = 'iwp';
         $this->rest_version = 'v1';
+    }
+
+    protected function get_available_encodings()
+    {
+        $encodings = mb_list_encodings();
+        $output = [];
+        foreach ($encodings as $encoding) {
+            $output[$encoding] = $encoding;
+        }
+        return $output;
     }
 }

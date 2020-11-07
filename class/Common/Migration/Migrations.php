@@ -30,6 +30,7 @@ class Migrations
         }
 
         // v2 migrations
+        $this->_migrations[] = array($this, 'migration_05_multiple_crons');
 
         $this->_version = count($this->_migrations);
     }
@@ -667,6 +668,45 @@ class Migrations
                     update_post_meta($post->ID, '_iwp_v2_importer', $result);
                 }
             }
+        }
+    }
+
+    public function migration_05_multiple_crons()
+    {
+
+        /**
+         * @var \wpdb $wpdb
+         */
+        global $wpdb;
+
+        // TODO: loop through serialsed post_content, switching from single cron to array
+        $importers = $wpdb->get_results("SELECT * FROM {$wpdb->posts} WHERE post_type='" . IWP_POST_TYPE . "'", ARRAY_A);
+        foreach ($importers as $importer) {
+            $id = $importer['ID'];
+            $data = unserialize($importer['post_content']);
+            if ($data['settings']['import_method'] !== 'schedule') {
+                continue;
+            }
+
+            $cron = [[
+                'setting_cron_schedule' => $data['settings']['cron_schedule'],
+                'setting_cron_day' => $data['settings']['cron_day'],
+                'setting_cron_hour' => $data['settings']['cron_hour'],
+                'setting_cron_minute' => $data['settings']['cron_minute'],
+                'setting_cron_disabled' => $data['settings']['cron_disabled'],
+            ]];
+
+            unset($data['settings']['cron_schedule']);
+            unset($data['settings']['cron_day']);
+            unset($data['settings']['cron_hour']);
+            unset($data['settings']['cron_minute']);
+            unset($data['settings']['cron_disabled']);
+
+            $data['settings']['cron'] = $cron;
+
+            remove_filter('content_save_pre', 'wp_filter_post_kses');
+            wp_update_post(['ID' => $id, 'post_content' => serialize($data)]);
+            add_filter('content_save_pre', 'wp_filter_post_kses');
         }
     }
 }

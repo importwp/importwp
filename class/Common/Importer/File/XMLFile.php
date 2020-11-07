@@ -160,10 +160,15 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
 
             $this->chunk .= $this->getChunk();
             $this->readChunkXmlNodes();
+
+            // only read the first 1mb of file
+            if ($this->is_processing && ($this->record_counter > 0 || ftell($this->getFileHandle()) > $this->process_max_size)) {
+                break;
+            }
         }
 
         // if file is incomplete do we try and fix the record, or skip it?
-        if (true === $this->record_opened) {
+        if (!$this->is_processing && true === $this->record_opened) {
             $this->record_opened          = false;
             $this->last_record_incomplete = true;
             $this->setIndex(
@@ -345,6 +350,15 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
     private function isRecordEnd($node_name)
     {
         if ($this->record_opened === true && $node_name === $this->base_path) {
+
+            // check to see if we are a nested duplicate node name /Events/Event/Instance and we are closing Event
+            if (in_array($node_name, $this->open_nodes)) {
+                $array_counts = array_count_values($this->open_nodes);
+                if (isset($array_counts[$node_name]) && $array_counts[$node_name] > 0) {
+                    return false;
+                }
+            }
+
             return true;
         }
 

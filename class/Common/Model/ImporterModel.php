@@ -183,8 +183,13 @@ class ImporterModel
         $file = $this->getFile();
         if ($view === 'public' && false === $this->debug) {
             $file = basename($file);
-            foreach ($files as &$file) {
-                $file = basename($file);
+            foreach ($files as &$tmp_file) {
+                $tmp_file = basename($tmp_file) . ' - (Added: ' . date(get_option( 'date_format' ) . ' \a\t ' . get_option( 'time_format' ), filemtime($tmp_file)) . ')';
+            }
+        }else{
+            foreach ($files as &$tmp_file) {
+                
+                $tmp_file .= ' - (Added: ' . date(get_option( 'date_format' ) . ' \a\t ' . get_option( 'time_format' ), filemtime($tmp_file)) . ')';
             }
         }
 

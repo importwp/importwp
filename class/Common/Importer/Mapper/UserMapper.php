@@ -41,6 +41,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
     public function exists(ParsedData $data)
     {
         $unique_fields = ['user_email', 'user_login'];
+        $unique_field_found = false;
 
         $default_group = $data->getData('default');
         $query_args = array();
@@ -68,6 +69,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
                         'type'    => 'CHAR'
                     );
                 }
+                $unique_field_found = $field;
                 break;
             }
         }
@@ -81,6 +83,15 @@ class UserMapper extends AbstractMapper implements MapperInterface
         $query_args['search_columns'] = $search_columns;
         $query_args['meta_query']     = $meta_args;
         $query = new \WP_User_Query($query_args);
+
+        if ($query->total_users > 1) {
+            $ids = [];
+            foreach ($query->results as $result) {
+                $ids[] = $result->ID;
+            }
+            throw new MapperException("Record is not unique: " . $unique_field_found . ", Matching Ids: (" . implode(', ', $ids) . ").");
+        }
+
         if ($query->total_users == 1) {
             $this->ID = $query->results[0]->ID;
             return $this->ID;
@@ -135,7 +146,14 @@ class UserMapper extends AbstractMapper implements MapperInterface
         if (!empty($meta)) {
             foreach ($meta as $key => $value) {
                 if (!in_array($key, $this->_user_fields)) {
-                    $this->update_custom_field($this->ID, $key, $value);
+                    if (is_array($value)) {
+                        $this->clear_custom_field($this->ID, $key);
+                        foreach ($value as $v) {
+                            $this->add_custom_field($this->ID, $key, $v);
+                        }
+                    } else {
+                        $this->update_custom_field($this->ID, $key, $value);
+                    }
                 }
             }
         }
@@ -183,7 +201,14 @@ class UserMapper extends AbstractMapper implements MapperInterface
         if (!empty($meta)) {
             foreach ($meta as $key => $value) {
                 if (!in_array($key, $this->_user_fields)) {
-                    $this->update_custom_field($this->ID, $key, $value);
+                    if (is_array($value)) {
+                        $this->clear_custom_field($this->ID, $key);
+                        foreach ($value as $v) {
+                            $this->add_custom_field($this->ID, $key, $v);
+                        }
+                    } else {
+                        $this->update_custom_field($this->ID, $key, $value);
+                    }
                 }
             }
         }
@@ -225,6 +250,32 @@ class UserMapper extends AbstractMapper implements MapperInterface
     public function get_custom_field($id, $key, $single = true)
     {
         return get_user_meta($id, $key, $single);
+    }
+
+    /**
+     * Clear all post meta before adding custom field
+     */
+    public function clear_custom_field($user_id, $key)
+    {
+        delete_user_meta($user_id, $key);
+    }
+
+    /**
+     * Add custom field, allow for multiple records using the same key
+     *
+     * @param int $user_id
+     * @param string $key
+     * @param string $value
+     * @return void
+     */
+    public function add_custom_field($user_id, $key, $value)
+    {
+        // Stop double serialization
+        if (is_serialized($value)) {
+            $value = unserialize($value);
+        }
+
+        add_user_meta($user_id, $key, $value);
     }
 
     public function update_custom_field($user_id, $meta_key, $meta_value)

@@ -62,8 +62,11 @@ class PostMapper extends AbstractMapper implements MapperInterface
             $unique_fields = is_string($unique_field) ? [$unique_field] : $unique_field;
         }
 
+        $unique_fields = apply_filters('iwp/template_unique_fields', $unique_fields, $this->template, $this->importer);
+        $unique_field_found = false;
+
         $post_type = $this->importer->getSetting('post_type');
-        $post_status = 'any';
+        $post_status = 'any, trash, future';
 
         $meta_args = array();
         $query_args = array(
@@ -82,6 +85,24 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
             // check all groups for a unique value
             $unique_value = $data->getValue($field, '*');
+            if (empty($unique_value)) {
+                $cf = $data->getData('custom_fields');
+                if (!empty($cf)) {
+                    $cf_index = intval($cf['custom_fields._index']);
+                    if ($cf_index > 0) {
+                        for ($i = 0; $i < $cf_index; $i++) {
+                            $row = 'custom_fields.' . $i . '.';
+                            $custom_field_key = apply_filters('iwp/custom_field_key', $cf[$row . 'key'], $this->template, $this->importer);
+                            if ($custom_field_key !== $field) {
+                                continue;
+                            }
+                            $unique_value = $cf[$row . 'value'];
+                            break;
+                        }
+                    }
+                }
+            }
+
             if (!empty($unique_value)) {
                 $has_unique_field = true;
 
@@ -90,7 +111,14 @@ class PostMapper extends AbstractMapper implements MapperInterface
                     if (array_key_exists($field, $this->_query_vars)) {
                         $query_args[$this->_query_vars[$field]] = $unique_value;
                     } else {
-                        $query_args[$field] = $unique_value;
+                        switch ($field) {
+                            case 'post_title':
+                                $query_args['title'] = $unique_value;
+                                break;
+                            default:
+                                $query_args[$field] = $unique_value;
+                                break;
+                        }
                     }
                 } else {
                     $meta_args[] = array(
@@ -98,25 +126,20 @@ class PostMapper extends AbstractMapper implements MapperInterface
                         'value' => $unique_value
                     );
                 }
-
+                $unique_field_found = $field;
                 break;
             }
         }
 
         if (!$has_unique_field) {
 
-            $post_title = $data->getValue('post_title');
-            $result = get_page_by_title($post_title, OBJECT, $post_type);
-            if ($result) {
-                $this->ID = $result->ID;
-                return $result->ID;
+            // fallback to post_title
+            $unique_value = $data->getValue('post_title');
+            if (empty($unique_value)) {
+                throw new MapperException("No Unique fields present.");
             }
 
-            return false;
-        }
-
-        if (!$has_unique_field) {
-            throw new MapperException("No Unique fields present.");
+            $query_args['title'] = $unique_value;
         }
 
         if (!empty($meta_args)) {
@@ -124,6 +147,9 @@ class PostMapper extends AbstractMapper implements MapperInterface
         }
 
         $query = new \WP_Query($query_args);
+        if ($query->post_count > 1) {
+            throw new MapperException("Record is not unique: " . $unique_field_found . ", Matching Ids: (" . implode(', ', $query->posts) . ").");
+        }
 
         if ($query->post_count == 1) {
             $this->ID = $query->posts[0];
@@ -170,8 +196,14 @@ class PostMapper extends AbstractMapper implements MapperInterface
         // create post meta
         if ($this->ID && !empty($meta)) {
             foreach ($meta as $key => $value) {
-
-                $this->update_custom_field($this->ID, $key, $value);
+                if (is_array($value)) {
+                    $this->clear_custom_field($this->ID, $key);
+                    foreach ($value as $v) {
+                        $this->add_custom_field($this->ID, $key, $v);
+                    }
+                } else {
+                    $this->update_custom_field($this->ID, $key, $value);
+                }
             }
         }
 
@@ -220,6 +252,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
                 'update_post_meta_cache' => false,
                 'update_post_term_cache' => false,
                 'no_found_rows' => true,
+                'post_status' => 'any, trash, future'
             ));
             if ($query->found_posts == 1) {
                 $old_post = $query->post;
@@ -248,7 +281,14 @@ class PostMapper extends AbstractMapper implements MapperInterface
         $meta = array_merge($meta, $data->getData('custom_fields'));
         if (!empty($meta)) {
             foreach ($meta as $key => $value) {
-                $this->update_custom_field($this->ID, $key, $value);
+                if (is_array($value)) {
+                    $this->clear_custom_field($this->ID, $key);
+                    foreach ($value as $v) {
+                        $this->add_custom_field($this->ID, $key, $v);
+                    }
+                } else {
+                    $this->update_custom_field($this->ID, $key, $value);
+                }
             }
         }
 
@@ -275,6 +315,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
             'posts_per_page' => -1,
             'cache_results' => false,
             'update_post_meta_cache' => false,
+            'post_status' => 'any'
         ));
 
         if ($q->have_posts()) {
@@ -313,6 +354,32 @@ class PostMapper extends AbstractMapper implements MapperInterface
                 $meta[$id] = $value;
             }
         }
+    }
+
+    /**
+     * Clear all post meta before adding custom field
+     */
+    public function clear_custom_field($post_id, $key)
+    {
+        delete_post_meta($post_id, $key);
+    }
+
+    /**
+     * Add custom field, allow for multiple records using the same key
+     *
+     * @param int $post_id
+     * @param string $key
+     * @param string $value
+     * @return void
+     */
+    public function add_custom_field($post_id, $key, $value)
+    {
+        // Stop double serialization
+        if (is_serialized($value)) {
+            $value = unserialize($value);
+        }
+
+        add_post_meta($post_id, $key, $value);
     }
 
     public function update_custom_field($post_id, $key, $value, $unique = false, $skip_permissions = false)

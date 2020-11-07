@@ -3,7 +3,7 @@ Contributors: jcollings
 Tags: import, wordpress xml importer, wordpress csv importer, xml, csv
 Requires at least: 4.0  
 Tested up to: 5.4
-Stable tag: 2.0.22
+Stable tag: 2.1.1
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -63,6 +63,23 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 == Changelog ==
+
+= 2.1.0 =
+
+* ADD - Ability to filter records/rows before being imported.
+* FIX - Fixed post_status bugs
+* ADD - Ability to add multiple schedules per importer
+* ADD - Ability to import/export importers.
+* FIX - Fixed issue with cron scheduling, now uses local time
+* ADD - new filter to override the default timeout length
+
+= 2.0.23 =
+
+* ADD - Update importer.custom_fields.process_field to return values
+* ADD - Send xml / csv headers when downloading file
+* FIX - Fix issue with duplicate nested xml tags prematurely closing record.
+* FIX - File process now checks x amount of records when processing file for importer editor.
+* FIX - Template fields are now fetched via REST, passing importer model to get_fields()
 
 = 2.0.22 =
 * ADD - Ability to download debug log on import screen.

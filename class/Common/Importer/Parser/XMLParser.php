@@ -130,4 +130,33 @@ class XMLParser extends AbstractParser implements ParserInterface
     {
         return $this->record_xml;
     }
+
+    /**
+     * Return list of SimpleXMLElements
+     *
+     * @param string $sub_path
+     * @param \SimpleXMLElement $record_xml
+     * @return \SimpleXMLElement[]
+     */
+    public function getSubRecords($sub_path, $record_xml = null)
+    {
+        $xpath_prefix = '.';
+
+        if ($record_xml === null) {
+            $record_xml = $this->record_xml;
+            $xpath_prefix = "/record/*";
+        }
+
+        return $record_xml->xpath($xpath_prefix . $sub_path);
+    }
+
+    public function getString($query, $record_xml = null)
+    {
+        $result = $this->getSubRecords($query, $record_xml);
+        $output = [];
+        foreach ($result as $a) {
+            $output[] = (string) $a;
+        }
+        return implode(',', $output);
+    }
 }

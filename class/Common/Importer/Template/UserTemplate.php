@@ -183,6 +183,8 @@ class UserTemplate extends Template implements TemplateInterface
         if ($notify_users === true) {
             wp_new_user_notification($user_id, null, 'user');
         }
+
+        parent::post_process($user_id, $data);
     }
 
     /**

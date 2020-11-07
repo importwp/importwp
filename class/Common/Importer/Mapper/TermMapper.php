@@ -104,8 +104,15 @@ class TermMapper extends AbstractMapper implements MapperInterface
             $custom_fields = array_merge($custom_fields, $data->getData('custom_fields'));
 
             if (!is_wp_error($this->ID) && intval($this->ID) > 0 && !empty($custom_fields)) {
-                foreach ($custom_fields as $meta_key => $meta_value) {
-                    $this->update_custom_field($this->ID, $meta_key, $meta_value);
+                foreach ($custom_fields as $key => $value) {
+                    if (is_array($value)) {
+                        $this->clear_custom_field($this->ID, $key);
+                        foreach ($value as $v) {
+                            $this->add_custom_field($this->ID, $key, $v);
+                        }
+                    } else {
+                        $this->update_custom_field($this->ID, $key, $value);
+                    }
                 }
             }
         }
@@ -153,8 +160,15 @@ class TermMapper extends AbstractMapper implements MapperInterface
         $custom_fields = array_merge($custom_fields, $data->getData('custom_fields'));
 
         if (!empty($custom_fields)) {
-            foreach ($custom_fields as $meta_key => $meta_value) {
-                $this->update_custom_field($this->ID, $meta_key, $meta_value);
+            foreach ($custom_fields as $key => $value) {
+                if (is_array($value)) {
+                    $this->clear_custom_field($this->ID, $key);
+                    foreach ($value as $v) {
+                        $this->add_custom_field($this->ID, $key, $v);
+                    }
+                } else {
+                    $this->update_custom_field($this->ID, $key, $value);
+                }
             }
         }
 
@@ -195,6 +209,32 @@ class TermMapper extends AbstractMapper implements MapperInterface
     public function delete($id)
     {
         wp_delete_term($id, $this->importer->getSetting('taxonomy'));
+    }
+
+    /**
+     * Clear all post meta before adding custom field
+     */
+    public function clear_custom_field($term_id, $key)
+    {
+        delete_term_meta($term_id, $key);
+    }
+
+    /**
+     * Add custom field, allow for multiple records using the same key
+     *
+     * @param int $term_id
+     * @param string $key
+     * @param string $value
+     * @return void
+     */
+    public function add_custom_field($term_id, $key, $value)
+    {
+        // Stop double serialization
+        if (is_serialized($value)) {
+            $value = unserialize($value);
+        }
+
+        add_term_meta($term_id, $key, $value);
     }
 
     public function update_custom_field($id, $key, $value)

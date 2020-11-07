@@ -22,6 +22,7 @@ class CSVPreview implements PreviewInterface
     public function __construct(CSVFile $file, $args = array())
     {
         $this->file = $file;
+        $this->file->processing(true);
     }
 
     /**

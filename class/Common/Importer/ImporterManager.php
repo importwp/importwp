@@ -185,6 +185,7 @@ class ImporterManager
         $file = $this->get_csv_file($importer, $config);
         $file->setDelimiter($delimiter);
         $file->setEnclosure($enclosure);
+        $file->processing(true);
 
         return $file->getRecordCount();
     }
@@ -197,6 +198,7 @@ class ImporterManager
 
         $filePath = $importer->getFile();
         $file = new XMLFile($filePath, $config);
+        $file->processing(true);
         $nodes = $file->get_node_list();
         $results = [];
 
@@ -303,6 +305,9 @@ class ImporterManager
     {
         $importer_model = $this->get_importer($id);
 
+        // Allow the modification of file path
+        $file_path = apply_filters('iwp/importer/file_uploaded/file_path', $file_path, $importer_model);
+
         $file_id = $this->link_importer_file($id, $file_path);
         if (!$file_id) {
             return new \WP_Error('IWP_IM_01', 'Unable to link importer file');
@@ -351,8 +356,12 @@ class ImporterManager
         $config_path = $this->get_config_path($importer, $tmp);
         $config = new Config($config_path);
 
+
+        $importer = $this->get_importer($importer);
+        $file_encoding = $importer->getFileSetting('file_encoding');
+
         // file encoding
-        $config->set('file_encoding', apply_filters('iwp/importer/file_encoding', false, $importer));
+        $config->set('file_encoding', apply_filters('iwp/importer/file_encoding', $file_encoding, $importer));
 
         return $config;
     }
@@ -409,6 +418,8 @@ class ImporterManager
                 Logger::write(__CLASS__ . '::import -error=' . $exception_msg);
                 throw new \Exception($exception_msg);
             }
+
+            $this->event_handler->run('importer_manager.import', [$importer_data]);
 
             // clear config before import
             $is_init = $importer_status->has_status('init');
@@ -563,6 +574,8 @@ class ImporterManager
             $importer_status->save();
             $importer_status->write_to_file();
         }
+
+        $this->event_handler->run('importer_manager.import_shutdown', [$importer_data]);
 
         return $importer_status;
     }

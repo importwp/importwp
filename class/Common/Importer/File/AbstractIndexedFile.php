@@ -11,6 +11,19 @@ abstract class AbstractIndexedFile extends AbstractFile
     protected $config;
 
     /**
+     * Are we temp processing a file
+     *
+     * @var boolean
+     */
+    protected $is_processing = false;
+    /**
+     * When temp processing a file we do not need all of it.
+     *
+     * @var integer Max byte of file to read
+     */
+    protected $process_max_size = 1000000;
+
+    /**
      * AbstractIndexedFile constructor.
      *
      * TODO: Config might not be right here, as we are just storing record index's
@@ -62,7 +75,7 @@ abstract class AbstractIndexedFile extends AbstractFile
             $encoding = mb_detect_encoding($contents, array('UTF-8'), true);
             if (false === $encoding) {
                 $from_encoding = $this->config->get('file_encoding');
-                if ($from_encoding) {
+                if (!empty($from_encoding)) {
                     $contents = mb_convert_encoding($contents, 'UTF-8', $from_encoding);
                 } else {
                     $contents = mb_convert_encoding($contents, 'UTF-8');
@@ -205,5 +218,10 @@ abstract class AbstractIndexedFile extends AbstractFile
     protected function getFileIndexKey()
     {
         return 'file_index';
+    }
+
+    public function processing($processing = false)
+    {
+        $this->is_processing = true;
     }
 }

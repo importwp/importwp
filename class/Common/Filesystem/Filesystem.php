@@ -123,10 +123,30 @@ class Filesystem
          */
         $http = Container::getInstance()->get('http');
 
-        $result = $http->download_file_stream($remote_url, $wp_dest);
+        $headers = [];
+        if ($filetype === 'xml') {
+            $headers['Content-Type'] = 'text/xml';
+            $headers['Accept'] = 'text/xml';
+        } elseif ($filetype === 'csv') {
+            $headers['Content-Type'] = 'text/csv';
+            $headers['Accept'] = 'text/csv';
+        }
+
+        $result = $http->download_file_stream($remote_url, $wp_dest, $headers);
         if (is_wp_error($result)) {
             Logger::write($result->get_error_message());
             return $result;
+        }
+
+        if (is_string($result)) {
+            $dest    = wp_unique_filename($wp_upload_dir['path'], basename($result));
+            $wp_tmp_dest = $wp_upload_dir['path'] . '/' . $dest;
+
+            if (copy($wp_dest, $wp_tmp_dest)) {
+                Logger::write('Rename file: ' . $wp_dest . ' -output=' . $wp_tmp_dest);
+                unlink($wp_dest);
+                $wp_dest = $wp_tmp_dest;
+            }
         }
 
         $type = $this->get_file_mime($wp_dest);

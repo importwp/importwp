@@ -49,6 +49,7 @@ class XMLPreview implements PreviewInterface
     public function __construct(XMLFile $file, $record_path, $args = array())
     {
         $this->file = $file;
+        $this->file->processing(true);
         $this->record_path = $record_path;
 
         if (!empty($record_path) && strpos($record_path, '/') !== false) {
@@ -102,14 +103,14 @@ class XMLPreview implements PreviewInterface
 
                 case XMLReader::ELEMENT:
 
-                    $row = [];
-                    $row['node'] = $xml->name;
-
                     $element_path = $path;
                     $element_path[] = $xml->name;
-                    // $row['xpath'] = implode('/', $element_path);
 
-                    $row['xpath'] = $this->generateXpath($element_path);
+                    $row = [
+                        'node' => $xml->name,
+                        'type' => 'element',
+                        'xpath' => $this->generateXpath($element_path),
+                    ];
 
                     $attributes = [];
                     if ($xml->hasAttributes) {
@@ -130,72 +131,18 @@ class XMLPreview implements PreviewInterface
                     break;
                 case XMLReader::TEXT:
                 case XMLReader::CDATA:
-                    $data = "" . $xml->value;
+                    $row = [
+                        'node' => 'text',
+                        'xpath' => $this->generateXpath($path),
+                        'value' => "" . $xml->value,
+                        'type' => 'text'
+                    ];
+                    $data[] = $row;
                     break;
             }
         }
 
         return $data;
-    }
-
-    public function parseXML()
-    {
-        $output = [];
-
-        while ($this->xml->read()) {
-
-            switch ($this->xml->nodeType) {
-                case XMLReader::ELEMENT:
-
-                    // $element_name = $this->xml->name;
-
-                    // // remove elements from if depth has decreased
-                    // if ($this->last_depth > $this->xml->depth) {
-
-                    //     for ($i = ($this->xml->depth + 1); $i < count($this->processed_index_nodes); $i++) {
-                    //         $this->processed_index_nodes[$i] = array();
-                    //     }
-                    // }
-
-                    // // increase index of element if found
-                    // $found = false;
-                    // if (!empty($this->processed_index_nodes[$this->xml->depth])) {
-
-                    //     foreach ($this->processed_index_nodes[$this->xml->depth] as &$node) {
-
-                    //         if (isset($node['n']) && $node['n'] == $element_name) {
-                    //             $node['i'] = ($node['i'] + 1);
-                    //             $found     = true;
-                    //         }
-                    //     }
-                    // }
-
-                    // // otherwise reset back to 1 if not found
-                    // if (!$found) {
-                    //     $this->processed_index_nodes[$this->xml->depth][] = array('n' => $element_name, 'i' => 1);
-                    // }
-
-                    // $output .= $this->open_element($element_name);
-
-                    // $isEmpty = $this->xml->isEmptyElement;
-                    // if ($isEmpty) {
-                    //     $output .= $this->close_element($element_name);
-                    // }
-
-
-                    break;
-                case XMLReader::END_ELEMENT:
-                    // $output .= $this->close_element($this->xml->name);
-                    break;
-                case XMLReader::TEXT:
-                case XMLReader::CDATA:
-
-                    // $output .= ($this->xml->value);
-                    break;
-            }
-        }
-
-        return $output;
     }
 
     /**
