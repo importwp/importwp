@@ -67,7 +67,7 @@ class Filesystem
             require_once ABSPATH . "wp-admin" . '/includes/file.php';
         }
 
-        $uploaded_file = wp_handle_upload($attachment, ['test_form' => false]);
+        $uploaded_file = wp_handle_upload($attachment, ['test_form' => false, 'test_type' => false]);
 
         if (isset($uploaded_file['error'])) {
             Logger::write($uploaded_file['error']);
@@ -99,7 +99,7 @@ class Filesystem
         );
     }
 
-    public function download_file($remote_url, $filetype = null, $allowed_mimes = null)
+    public function download_file($remote_url, $filetype = null, $allowed_mimes = null, $override_filename = null)
     {
         $remote_url_temp = strtok($remote_url, '?');
 
@@ -114,8 +114,8 @@ class Filesystem
         }
 
         $wp_upload_dir = wp_upload_dir();
-
-        $dest    = wp_unique_filename($wp_upload_dir['path'], basename($remote_url_temp));
+        $filename = !empty($override_filename) ? $override_filename : basename($remote_url_temp);
+        $dest    = wp_unique_filename($wp_upload_dir['path'], $filename);
         $wp_dest = $wp_upload_dir['path'] . '/' . $dest;
 
         /**
@@ -139,7 +139,8 @@ class Filesystem
         }
 
         if (is_string($result)) {
-            $dest    = wp_unique_filename($wp_upload_dir['path'], basename($result));
+            $filename = !empty($override_filename) ? $override_filename : basename($result);
+            $dest    = wp_unique_filename($wp_upload_dir['path'], $filename);
             $wp_tmp_dest = $wp_upload_dir['path'] . '/' . $dest;
 
             if (copy($wp_dest, $wp_tmp_dest)) {
@@ -159,13 +160,14 @@ class Filesystem
         );
     }
 
-    public function copy_file($remote_url, $allowed_mimes = null)
+    public function copy_file($remote_url, $allowed_mimes = null, $override_filename = null)
     {
         $remote_url = strtok($remote_url, '?');
 
         $wp_upload_dir = wp_upload_dir();
 
-        $dest    = wp_unique_filename($wp_upload_dir['path'], basename($remote_url));
+        $filename = !empty($override_filename) ? $override_filename : basename($remote_url);
+        $dest    = wp_unique_filename($wp_upload_dir['path'], $filename);
         $wp_dest = $wp_upload_dir['path'] . '/' . $dest;
 
         $result = $this->copy($remote_url, $wp_dest, $allowed_mimes);

@@ -2,6 +2,9 @@
 
 namespace ImportWP\Common\Importer\Template;
 
+use ImportWP\Common\Attachment\Attachment;
+use ImportWP\Common\Filesystem\Filesystem;
+use ImportWP\Common\Ftp\Ftp;
 use ImportWP\Common\Importer\File\XMLFile;
 use ImportWP\Common\Importer\ParsedData;
 use ImportWP\Common\Model\ImporterModel;
@@ -431,12 +434,33 @@ class Template extends AbstractTemplate
         return $data;
     }
 
+    /**
+     * Process attachment fields 
+     * 
+     * @param int $post_id
+     * @param array $row
+     * @param string $row_prefix
+     * @param Filesystem $filesystem
+     * @param Ftp $ftp
+     * @param Attachment $attachment
+     */
     public function process_attachment($post_id, $row, $row_prefix, $filesystem, $ftp, $attachment)
     {
+        $delimiter = apply_filters('iwp/value_delimiter', ',');
+        $delimiter = apply_filters('iwp/attachment/value_delimiter', $delimiter);
+        $meta_delimiter = apply_filters('iwp/attachment/meta_delimiter', $delimiter);
+
         $locations = isset($row[$row_prefix . 'location']) ? $row[$row_prefix . 'location'] : null;
-        $location_parts = explode(',', $locations);
+        $location_parts = explode($delimiter, $locations);
         $location_parts = array_filter(array_map('trim', $location_parts));
+
+        $attachment_titles = isset($row[$row_prefix . '_meta._title']) ? explode($meta_delimiter, $row[$row_prefix . '_meta._title']) : null;
+        $attachment_alts = isset($row[$row_prefix . '_meta._alt']) ? explode($meta_delimiter, $row[$row_prefix . '_meta._alt']) : null;
+        $attachment_captions = isset($row[$row_prefix . '_meta._caption']) ? explode($meta_delimiter, $row[$row_prefix . '_meta._caption']) : null;
+        $attachment_descriptions = isset($row[$row_prefix . '_meta._description']) ? explode($meta_delimiter, $row[$row_prefix . '_meta._description']) : null;
+
         $attachment_ids = [];
+        $location_counter = 0;
         foreach ($location_parts as $location) {
 
             if (empty($location)) {
@@ -458,15 +482,16 @@ class Template extends AbstractTemplate
 
                     // check if file hash is already stored
                     $source = $base_url . $location;
-                    $source = apply_filters('iwp/attachment/filename', $source);
                     if (empty($source)) {
                         continue 2;
                     }
 
+                    $custom_filename = apply_filters('iwp/attachment/filename', null, $source);
+
                     $attachment_id = $attachment->get_attachment_by_hash($source);
                     if ($attachment_id <= 0) {
-                        Logger::write(__CLASS__ . '::process__attachments -remote=' . $source);
-                        $result = $filesystem->download_file($source);
+                        Logger::write(__CLASS__ . '::process__attachments -remote=' . $source . ' -filename=' . $custom_filename);
+                        $result = $filesystem->download_file($source, null, null, $custom_filename);
                     }
                     break;
                 case 'ftp':
@@ -477,15 +502,16 @@ class Template extends AbstractTemplate
 
                     // check if file hash is already stored
                     $source = $base_url . $location;
-                    $source = apply_filters('iwp/attachment/filename', $source);
                     if (empty($source)) {
                         continue 2;
                     }
 
+                    $custom_filename = apply_filters('iwp/attachment/filename', null, $source);
+
                     $attachment_id = $attachment->get_attachment_by_hash($source);
                     if ($attachment_id <= 0) {
-                        Logger::write(__CLASS__ . '::process__attachments -ftp=' . $source);
-                        $result = $ftp->download_file($source, $ftp_host, $ftp_user, $ftp_pass);
+                        Logger::write(__CLASS__ . '::process__attachments -ftp=' . $source . ' -filename=' . $custom_filename);
+                        $result = $ftp->download_file($source, $ftp_host, $ftp_user, $ftp_pass, $custom_filename);
                     }
                     break;
                 case 'local':
@@ -493,16 +519,16 @@ class Template extends AbstractTemplate
 
                     // check if file hash is already stored
                     $source = $base_url . $location;
-                    $source = apply_filters('iwp/attachment/filename', $source);
                     if (empty($source)) {
                         continue 2;
                     }
-                    $attachment_salt = file_exists($source) ? md5_file($source) : '';
 
+                    $custom_filename = apply_filters('iwp/attachment/filename', null, $source);
+                    $attachment_salt = file_exists($source) ? md5_file($source) : '';
                     $attachment_id = $attachment->get_attachment_by_hash($source, $attachment_salt);
                     if ($attachment_id <= 0) {
-                        Logger::write(__CLASS__ . '::process__attachments -local=' . $source);
-                        $result = $filesystem->copy_file($source);
+                        Logger::write(__CLASS__ . '::process__attachments -local=' . $source . ' -filename=' . $custom_filename);
+                        $result = $filesystem->copy_file($source, null, $custom_filename);
                     }
                     break;
             }
@@ -524,10 +550,10 @@ class Template extends AbstractTemplate
 
                 $attachment_args = [];
                 if ($meta_enabled) {
-                    $attachment_args['title'] = isset($row[$row_prefix . '_meta._title']) ? $row[$row_prefix . '_meta._title'] : null;
-                    $attachment_args['alt'] = isset($row[$row_prefix . '_meta._alt']) ? $row[$row_prefix . '_meta._alt'] : null;
-                    $attachment_args['caption'] = isset($row[$row_prefix . '_meta._caption']) ? $row[$row_prefix . '_meta._caption'] : null;
-                    $attachment_args['description'] = isset($row[$row_prefix . '_meta._description']) ? $row[$row_prefix . '_meta._description'] : null;
+                    $attachment_args['title'] = isset($attachment_titles[$location_counter]) ? $attachment_titles[$location_counter] : null;
+                    $attachment_args['alt'] = isset($attachment_alts[$location_counter]) ? $attachment_alts[$location_counter] : null;
+                    $attachment_args['caption'] = isset($attachment_captions[$location_counter]) ? $attachment_captions[$location_counter] : null;
+                    $attachment_args['description'] = isset($attachment_descriptions[$location_counter]) ? $attachment_descriptions[$location_counter] : null;;
                 }
 
                 $attachment_id = $attachment->insert_attachment($post_id, $result['dest'], $result['mime'], $attachment_args);
@@ -543,16 +569,16 @@ class Template extends AbstractTemplate
                 if ($meta_enabled) {
                     $post_data = [];
 
-                    if (isset($row[$row_prefix . '_meta._title']) && !empty($row[$row_prefix . '_meta._title'])) {
-                        $post_data['post_title'] = $row[$row_prefix . '_meta._title'];
+                    if (isset($attachment_titles[$location_counter])) {
+                        $post_data['post_title'] = $attachment_titles[$location_counter];
                     }
 
-                    if (isset($row[$row_prefix . '_meta._description']) && !empty($row[$row_prefix . '_meta._description'])) {
-                        $post_data['post_content'] = $row[$row_prefix . '_meta._description'];
+                    if (isset($attachment_descriptions[$location_counter])) {
+                        $post_data['post_content'] = $attachment_descriptions[$location_counter];
                     }
 
-                    if (isset($row[$row_prefix . '_meta._caption']) && !empty($row[$row_prefix . '_meta._caption'])) {
-                        $post_data['post_excerpt'] = $row[$row_prefix . '_meta._caption'];
+                    if (isset($attachment_captions[$location_counter])) {
+                        $post_data['post_excerpt'] = $attachment_captions[$location_counter];
                     }
 
                     if (!empty($post_data)) {
@@ -560,8 +586,8 @@ class Template extends AbstractTemplate
                         wp_update_post($post_data);
                     }
 
-                    if (isset($row[$row_prefix . '_meta._alt']) && !empty($row[$row_prefix . '_meta._alt'])) {
-                        update_post_meta($attachment_id, '_wp_attachment_image_alt', $row[$row_prefix . '_meta._alt']);
+                    if (isset($attachment_alts[$location_counter])) {
+                        update_post_meta($attachment_id, '_wp_attachment_image_alt', $attachment_alts[$location_counter]);
                     }
                 }
             }
@@ -577,6 +603,8 @@ class Template extends AbstractTemplate
                 update_post_meta($post_id, '_thumbnail_id', $attachment_id);
                 $this->featured_set = true;
             }
+
+            $location_counter++;
         }
 
         return $attachment_ids;

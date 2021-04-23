@@ -2,8 +2,8 @@
 Contributors: jcollings  
 Tags: import, wordpress xml importer, wordpress csv importer, xml, csv
 Requires at least: 4.0  
-Tested up to: 5.4
-Stable tag: 2.1.1
+Tested up to: 5.7
+Stable tag: 2.2.0
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -63,6 +63,15 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 == Changelog ==
+
+= 2.2.0 =
+
+* ADD - Ability to split imports into sections/chunks.
+* ADD - filter iwp/importer/chunk_size
+* ADD - iwp/importer/datasource
+* ADD - Ability to use custom methods when importing, [custom_fun("arg1", ...)]
+* FIX - Fixed an issue with repeater sections displaying wrong data on front end.
+* FIX - Fixed double serialization on term meta and user meta when updating records.
 
 = 2.1.0 =
 

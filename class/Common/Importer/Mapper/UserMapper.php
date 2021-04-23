@@ -278,9 +278,14 @@ class UserMapper extends AbstractMapper implements MapperInterface
         add_user_meta($user_id, $key, $value);
     }
 
-    public function update_custom_field($user_id, $meta_key, $meta_value)
+    public function update_custom_field($user_id, $key, $value)
     {
-        update_user_meta($user_id, $meta_key, $meta_value);
+        // Stop double serialization
+        if (is_serialized($value)) {
+            $value = unserialize($value);
+        }
+
+        update_user_meta($user_id, $key, $value);
     }
 
     public function add_version_tag()

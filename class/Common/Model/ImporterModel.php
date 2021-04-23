@@ -184,12 +184,12 @@ class ImporterModel
         if ($view === 'public' && false === $this->debug) {
             $file = basename($file);
             foreach ($files as &$tmp_file) {
-                $tmp_file = basename($tmp_file) . ' - (Added: ' . date(get_option( 'date_format' ) . ' \a\t ' . get_option( 'time_format' ), filemtime($tmp_file)) . ')';
+                $tmp_file = basename($tmp_file) . ' - (Added: ' . date(get_option('date_format') . ' \a\t ' . get_option('time_format'), filemtime($tmp_file)) . ')';
             }
-        }else{
+        } else {
             foreach ($files as &$tmp_file) {
-                
-                $tmp_file .= ' - (Added: ' . date(get_option( 'date_format' ) . ' \a\t ' . get_option( 'time_format' ), filemtime($tmp_file)) . ')';
+
+                $tmp_file .= ' - (Added: ' . date(get_option('date_format') . ' \a\t ' . get_option('time_format'), filemtime($tmp_file)) . ')';
             }
         }
 
@@ -440,7 +440,9 @@ class ImporterModel
             $key = $result['meta_key'];
             $id = intval(str_replace('_importer_file_', '', $key));
             $value = $result['meta_value'];
-            $files[$id] = $value;
+            if (file_exists($value)) {
+                $files[$id] = $value;
+            }
         }
 
         return $files;

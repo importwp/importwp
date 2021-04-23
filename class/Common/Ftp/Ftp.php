@@ -29,7 +29,7 @@ class Ftp
         $this->disconnect();
     }
 
-    public function download_file($url, $host, $user, $pass)
+    public function download_file($url, $host, $user, $pass, $override_filename)
     {
         if ($this->_conn && $this->conn_hash !== md5($host . $user . $pass)) {
             $this->disconnect();

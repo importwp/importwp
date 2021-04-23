@@ -2,6 +2,7 @@
 
 namespace ImportWP\Common\Importer;
 
+use ImportWP\Common\Properties\Properties;
 use ImportWP\Common\Util\Logger;
 use ImportWP\Container;
 
@@ -224,6 +225,23 @@ class ImporterStatus
 
     public function get_status()
     {
+        if ($this->status != 'running' && !empty($this->get_session_id())) {
+
+            /**
+             * @var \WPDB $wpdb
+             */
+            global $wpdb;
+            $rows = $wpdb->get_col("SELECT meta_value FROM {$wpdb->postmeta} WHERE (meta_key LIKE '\_" . $this->get_session_id() . "\_%\_chunk' OR meta_key LIKE '\_" . $this->get_session_id() . "\_%\_delete') AND post_id=" . $this->importer_id);
+            if (!empty($rows)) {
+                foreach ($rows as $item) {
+                    $item = maybe_unserialize($item);
+                    if ($item['status'] === 'running') {
+                        return 'running';
+                    }
+                }
+            }
+        }
+
         return $this->status;
     }
 
@@ -278,7 +296,134 @@ class ImporterStatus
 
     public function get_counter()
     {
+        if (!empty($this->get_session_id())) {
+            /**
+             * @var \WPDB $wpdb
+             */
+            global $wpdb;
+
+            $rows = $wpdb->get_col("SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key LIKE '\_" . $this->get_session_id() . "\_%\_chunk' AND post_id=" . $this->importer_id);
+            if (!empty($rows)) {
+                return array_reduce($rows, function ($carry, $item) {
+                    $item = maybe_unserialize($item);
+                    return $carry += intval($item['counter']);
+                }, 0);
+            }
+        }
+
         return $this->counter;
+    }
+
+    public function get_running_chunks()
+    {
+        $output = [0, 0, 0];
+        if (!empty($this->get_session_id())) {
+            /**
+             * @var \WPDB $wpdb
+             */
+            global $wpdb;
+
+            $rows = $wpdb->get_col("SELECT meta_value FROM {$wpdb->postmeta} WHERE (meta_key LIKE '\_" . $this->get_session_id() . "\_%\_chunk' OR meta_key LIKE '\_" . $this->get_session_id() . "\_%\_delete') AND post_id=" . $this->importer_id);
+            if (!empty($rows)) {
+
+
+                /**
+                 * @var Properties $properties
+                 */
+                $properties = Container::getInstance()->get('properties');
+                $time_limit = $properties->chunk_timeout;
+
+                return array_reduce($rows, function ($carry, $item) use ($time_limit) {
+                    $item = maybe_unserialize($item);
+                    $carry[0] += ($item['status'] == 'running' && time() - $time_limit <= $item['time'] ? 1 : 0);
+                    $carry[1] += ($item['status'] != 'complete' ? 1 : 0);
+                    $carry[2] += 1;
+                    return $carry;
+                }, $output);
+            }
+        }
+
+        return $output;
+    }
+
+    public function get_inserts()
+    {
+        if (!empty($this->get_session_id())) {
+            /**
+             * @var \WPDB $wpdb
+             */
+            global $wpdb;
+
+            $rows = $wpdb->get_col("SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key LIKE '\_" . $this->get_session_id() . "\_%\_chunk' AND post_id=" . $this->importer_id);
+            if (!empty($rows)) {
+                return array_reduce($rows, function ($carry, $item) {
+                    $item = maybe_unserialize($item);
+                    return $carry += intval($item['inserts']);
+                }, 0);
+            }
+        }
+
+        return $this->inserts;
+    }
+
+    public function get_updates()
+    {
+        if (!empty($this->get_session_id())) {
+            /**
+             * @var \WPDB $wpdb
+             */
+            global $wpdb;
+
+            $rows = $wpdb->get_col("SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key LIKE '\_" . $this->get_session_id() . "\_%\_chunk' AND post_id=" . $this->importer_id);
+            if (!empty($rows)) {
+                return array_reduce($rows, function ($carry, $item) {
+                    $item = maybe_unserialize($item);
+                    return $carry += intval($item['updates']);
+                }, 0);
+            }
+        }
+
+        return $this->updates;
+    }
+
+    public function get_deletes()
+    {
+        if (!empty($this->get_session_id())) {
+            /**
+             * @var \WPDB $wpdb
+             */
+            global $wpdb;
+
+            $rows = $wpdb->get_col("SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key LIKE '\_" . $this->get_session_id() . "\_%\_delete' AND post_id=" . $this->importer_id);
+            if (!empty($rows)) {
+                return array_reduce($rows, function ($carry, $item) {
+                    $item = maybe_unserialize($item);
+                    return $carry += intval($item['deletes']);
+                }, 0);
+            }
+        }
+
+        return $this->deletes;
+    }
+
+    public function get_errors_total()
+    {
+        if (!empty($this->get_session_id())) {
+            /**
+             * @var \WPDB $wpdb
+             */
+            global $wpdb;
+
+            $rows = $wpdb->get_col("SELECT meta_value FROM {$wpdb->postmeta} WHERE (meta_key LIKE '\_" . $this->get_session_id() . "\_%\_chunk' OR meta_key LIKE '\_" . $this->get_session_id() . "\_%\_delete') AND post_id=" . $this->importer_id);
+            if (!empty($rows)) {
+                return array_reduce($rows, function ($carry, $item) {
+                    $item = maybe_unserialize($item);
+                    return $carry += intval($item['errors']);
+                }, 0);
+            }
+        }
+
+        return $this->errors;
     }
 
     public function get_total()
@@ -289,18 +434,18 @@ class ImporterStatus
     public function output()
     {
         $output = [
-            's' => $this->status, // status
+            's' => $this->get_status(), // status
             'b' => $this->section,
             'd' => date('Y-m-d H:i:s'), // date
-            'c' => $this->counter, // counter
+            'c' => $this->get_counter(), // counter
             't' => $this->total, // total
-            'e' => $this->errors, // errors
+            'e' => $this->get_errors_total(), // errors
             'w' => $this->warnings, // warnings
-            'r' => $this->deletes,
+            'r' => $this->get_deletes(),
             'a' => $this->delete_total,
             'f' => $this->skips,
-            'i' => $this->inserts,
-            'u' => $this->updates,
+            'i' => $this->get_inserts(),
+            'u' => $this->get_updates(),
             'm' => $this->message,
             'z' => $this->elapsed_time
         ];
@@ -312,20 +457,20 @@ class ImporterStatus
         return $output;
     }
 
-    public function data()
+    public function data($action = 'view')
     {
         $output = [
             'session' => $this->session,
             'warnings' => $this->warnings,
-            'errors' => $this->errors,
+            'errors' => $this->get_errors_total(),
             'timestamp' => $this->timestamp,
-            'counter' => $this->counter,
-            'inserts' => $this->inserts,
-            'updates' => $this->updates,
-            'deletes' => $this->deletes,
+            'counter' => $this->get_counter(),
+            'inserts' => $this->get_inserts(),
+            'updates' => $this->get_updates(),
+            'deletes' => $this->get_deletes(),
             'delete_total' => $this->delete_total,
             'total' => $this->total,
-            'status' => $this->status,
+            'status' => $action == 'edit' ? $this->status : $this->get_status(),
             'section' => $this->section,
             'version' => $this->version,
             'elapsed_time' => $this->elapsed_time,
@@ -341,7 +486,7 @@ class ImporterStatus
         return $output;
     }
 
-    private function size_formatted($size)
+    public function size_formatted($size)
     {
         $size = intval($size);
         $units = array('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
@@ -356,7 +501,7 @@ class ImporterStatus
             return false;
         }
 
-        $status_data = $this->data();
+        $status_data = $this->data('save');
 
         if (defined('WP_DEBUG') && true === WP_DEBUG) {
 
@@ -410,13 +555,13 @@ class ImporterStatus
     {
         $data = $this->get_last_session_from_status($this->get_session_id());
         if ($data) {
-            $data['data'] = $this->data();
+            $data['data'] = $this->data('edit');
             $this->update_status_session($data);
         } else {
             $this->update_status_session([
                 'start' => '-1',
                 'length' => 0,
-                'data' => $this->data()
+                'data' => $this->data('edit')
             ]);
         }
     }
@@ -568,6 +713,10 @@ class ImporterStatus
 
     public function timeout()
     {
+        if ($this->chunk_index > -1) {
+            $this->timeout_chunk();
+        }
+
         $this->set_status('timeout');
         $this->save();
 
@@ -711,5 +860,301 @@ class ImporterStatus
          */
         $importer_manager = Container::getInstance()->get('importer_manager');
         return $importer_manager->get_config_path($this->importer_id) . '.status';
+    }
+
+    private $chunk_index = -1;
+
+    public function get_max_chunks($size, $file_start, $file_end)
+    {
+        if (!is_null($size) && $size < $file_end - $file_start) {
+            return ceil(($file_end - $file_start) / $size);
+        }
+
+        return 1;
+    }
+
+    public function get_chunk_status($size, $file_start, $file_end)
+    {
+        if ($this->get_max_chunks($size, $file_start, $file_end) && 1 == 2) {
+            $output = [];
+            for ($i = 0; $i * $size < $file_end - $file_start; $i++) {
+                $chunk_key = '_' . $this->session . '_' . $i . '_chunk';
+                $chunk_status = get_post_meta($this->importer_id, $chunk_key, true);
+
+                if ($chunk_status !== false) {
+                    $chunk_status = maybe_unserialize($chunk_status);
+                    if (!in_array($chunk_status['status'], $output)) {
+                        $output[] = $chunk_status;
+                    }
+                }
+            }
+
+            return $output;
+        }
+
+        return $this->status;
+    }
+
+    public function has_chunk_status($status, $size, $file_start, $file_end)
+    {
+        $status_list = $this->get_chunk_status($size, $file_start, $file_end);
+        if (is_array($status_list) && in_array($status, $status_list)) {
+            return true;
+        } elseif (!is_array($status_list) && $status_list == $status) {
+            return true;
+        }
+        return false;
+    }
+
+    public function get_next_chunk($size, $file_start, $file_end)
+    {
+        $max_chunks = $this->get_max_chunks($size, $file_start, $file_end);
+        if ($max_chunks) {
+            for ($i = 0; $i < $max_chunks; $i++) {
+                $chunk_key = '_' . $this->session . '_' . $i . '_chunk';
+                $chunk_status = get_post_meta($this->importer_id, $chunk_key, true);
+
+                if (!empty($chunk_status)) {
+                    $chunk_status = maybe_unserialize($chunk_status);
+                    if ($chunk_status['status']  == 'timeout' || ($chunk_status['status']  != 'complete' && time() - 30 > $chunk_status['time'])) {
+                        $chunk_status['status'] = 'running';
+                        $chunk_status['time'] = time();
+                        update_post_meta($this->importer_id, $chunk_key, $chunk_status);
+                        return [$chunk_status['start'] + $chunk_status['counter'], $chunk_status['end'], $i];
+                    }
+                } else {
+
+                    $start  = $file_start + ($i * $size);
+                    $chunk_status = [
+                        'status' => 'running',
+                        'start' => $start,
+                        'end' => min($start + $size, $file_end),
+                        'counter' => 0,
+                        'inserts' => 0,
+                        'updates' => 0,
+                        'deletes' => 0,
+                        'errors' => 0,
+                        'time' => time()
+                    ];
+
+                    update_post_meta($this->importer_id, $chunk_key, $chunk_status);
+                    return [$chunk_status['start'] + $chunk_status['counter'], $chunk_status['end'], $i];
+                }
+            }
+
+            return [-1, -1, -1];
+        }
+
+        return [$file_start, $file_end, -1];
+    }
+
+    public function update_chunk_status($i, $status = null, $counter = null)
+    {
+
+        if (is_null($status) && is_null($counter)) {
+            return;
+        }
+
+        $chunk_key = '_' . $this->session . '_' . $i . '_chunk';
+        $chunk_status = get_post_meta($this->importer_id, $chunk_key, true);
+        if (!is_null($status)) {
+            $chunk_status['status'] = $status;
+        }
+
+        if (!is_null($counter)) {
+            $chunk_status['counter'] = $counter;
+        }
+
+        $chunk_status['time'] = time();
+
+        update_post_meta($this->importer_id, $chunk_key, $chunk_status);
+    }
+
+    public function has_more_chunks($size, $file_start, $file_end)
+    {
+        $max_chunks = $this->get_max_chunks($size, $file_start, $file_end);
+        if ($max_chunks) {
+            for ($i = 0; $i < $max_chunks; $i++) {
+                $chunk_key = '_' . $this->session . '_' . $i . '_chunk';
+                $chunk_status = get_post_meta($this->importer_id, $chunk_key, true);
+
+                if (empty($chunk_status) || (isset($chunk_status) && $chunk_status['status'] != 'complete')) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public function clear_chunk_data()
+    {
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+
+        $result = $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE post_id='" . $this->importer_id . "' AND meta_key LIKE '\_" . $this->get_session_id() . "\_%'");
+    }
+
+    public function record_chunk($i, ParsedData $data = null)
+    {
+        $chunk_key = '_' . $this->session . '_' . $i . '_chunk';
+        $chunk_status = get_post_meta($this->importer_id, $chunk_key, true);
+        $chunk_status['counter'] = intval($chunk_status['counter']) + 1;
+
+        if ($data != null) {
+            if ($data->isInsert()) {
+                if (!isset($chunk_status['inserts'])) {
+                    $chunk_status['inserts'] = 0;
+                }
+
+                $chunk_status['inserts']++;
+            } elseif ($data->isUpdate()) {
+                if (!isset($chunk_status['updates'])) {
+                    $chunk_status['updates'] = 0;
+                }
+
+                $chunk_status['updates']++;
+            }
+        }
+
+        if ($chunk_status['counter'] == $chunk_status['end'] - $chunk_status['start']) {
+            $chunk_status['status'] = 'complete';
+        }
+
+        $chunk_status['time'] = time();
+
+        update_post_meta($this->importer_id, $chunk_key, $chunk_status);
+    }
+
+    public function timeout_chunk($i = -1)
+    {
+        if ($i == -1 && $this->chunk_index > -1) {
+            $i = $this->chunk_index;
+        }
+
+        $chunk_key = '_' . $this->session . '_' . $i . '_chunk';
+        $chunk_status = get_post_meta($this->importer_id, $chunk_key, true);
+
+        if ($chunk_status['counter'] == $chunk_status['end'] - $chunk_status['start']) {
+            $chunk_status['status'] = 'complete';
+        } else {
+            $chunk_status['status'] = 'timeout';
+        }
+
+        $chunk_status['time'] = time();
+
+        update_post_meta($this->importer_id, $chunk_key, $chunk_status);
+    }
+
+    public function set_chunk_index($i)
+    {
+        $this->chunk_index = $i;
+    }
+
+    public function setup_chunk_delete_list($object_ids = [])
+    {
+        $list_key = '_' . $this->session . '_delete_list';
+        if (false == get_post_meta($this->importer_id, $list_key, true)) {
+            update_post_meta($this->importer_id, $list_key, $object_ids);
+        }
+    }
+
+    public function get_chunk_delete_list()
+    {
+        $list_key = '_' . $this->session . '_delete_list';
+        $list = get_post_meta($this->importer_id, $list_key, true);
+        return !empty($list) ? $list : false;
+    }
+
+    public function get_next_delete_chunk($size)
+    {
+        $delete_list = $this->get_chunk_delete_list();
+        if (false === $delete_list) {
+            return [false, -1];
+        }
+
+        $file_start = 0;
+        $file_end = count($delete_list);
+        $max_chunks = $this->get_max_chunks($size, $file_start, $file_end);
+        if ($max_chunks) {
+            for ($i = 0; $i < $max_chunks; $i++) {
+
+                $chunk_key = '_' . $this->session . '_' . $i . '_delete';
+                $chunk_status = get_post_meta($this->importer_id, $chunk_key, true);
+                if (!empty($chunk_status)) {
+                    $chunk_status = maybe_unserialize($chunk_status);
+                    if ($chunk_status['status']  == 'timeout' || ($chunk_status['status']  != 'complete' && time() - 30 > $chunk_status['time'])) {
+                        $chunk_status['status'] = 'running';
+                        $chunk_status['time'] = time();
+                        update_post_meta($this->importer_id, $chunk_key, $chunk_status);
+
+                        $start = $chunk_status['start'] + $chunk_status['counter'];
+                        return [array_slice($delete_list, $start, $chunk_status['end'] - $start), $i];
+                    }
+                } else {
+
+                    $start  = $file_start + ($i * $size);
+                    $chunk_status = [
+                        'status' => 'running',
+                        'start' => $start,
+                        'end' => min($start + $size, $file_end),
+                        'counter' => 0,
+                        'deletes' => 0,
+                        'errors' => 0,
+                        'time' => time()
+                    ];
+
+                    update_post_meta($this->importer_id, $chunk_key, $chunk_status);
+
+                    $start = $chunk_status['start'] + $chunk_status['counter'];
+                    return [array_slice($delete_list, $start, $chunk_status['end'] - $start), $i];
+                }
+            }
+
+            return [false, -1];
+        }
+
+        return [$delete_list, -1];
+    }
+
+    public function has_more_delete_chunks($size)
+    {
+        $delete_list = $this->get_chunk_delete_list();
+        if (false !== $delete_list) {
+            $file_start = 0;
+            $file_end = count($delete_list);
+            $max_chunks = $this->get_max_chunks($size, $file_start, $file_end);
+            if ($max_chunks) {
+                for ($i = 0; $i < $max_chunks; $i++) {
+                    $chunk_key = '_' . $this->session . '_' . $i . '_delete';
+                    $chunk_status = get_post_meta($this->importer_id, $chunk_key, true);
+
+                    if (empty($chunk_status) || (isset($chunk_status) && $chunk_status['status'] != 'complete')) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public function record_chunk_delete($i)
+    {
+        $chunk_key = '_' . $this->session . '_' . $i . '_delete';
+        $chunk_status = get_post_meta($this->importer_id, $chunk_key, true);
+        $chunk_status['counter'] = intval($chunk_status['counter']) + 1;
+
+        $chunk_status['deletes']++;
+
+        if ($chunk_status['counter'] == $chunk_status['end'] - $chunk_status['start']) {
+            $chunk_status['status'] = 'complete';
+        }
+
+        $chunk_status['time'] = time();
+
+        update_post_meta($this->importer_id, $chunk_key, $chunk_status);
     }
 }

@@ -13,6 +13,7 @@ use ImportWP\Common\Importer\MapperInterface;
 use ImportWP\Common\Importer\Parser\CSVParser;
 use ImportWP\Common\Importer\Parser\XMLParser;
 use ImportWP\Common\Importer\ParserInterface;
+use ImportWP\Common\Util\Logger;
 
 class Importer
 {
@@ -58,6 +59,8 @@ class Importer
     private $parser;
 
     private $graceful_shutdown = true;
+
+    private $chunk_size;
 
     public function __construct(ConfigInterface $config)
     {
@@ -152,6 +155,13 @@ class Importer
         $this->end = $end;
     }
 
+    public function chunk($size, $original_start, $original_end)
+    {
+        $this->chunk_size = $size;
+        $this->original_start = $original_start;
+        $this->original_end = $original_end;
+    }
+
     /**
      * Get Record Start Index
      *
@@ -169,7 +179,7 @@ class Importer
      */
     public function getRecordEnd()
     {
-        return isset($this->end) && $this->end > $this->getRecordStart() ? $this->end : $this->parser->file()->getRecordCount();
+        return isset($this->end) && $this->end >= $this->getRecordStart() ? $this->end : $this->parser->file()->getRecordCount();
     }
 
     private function register_shutdown()
@@ -216,81 +226,131 @@ class Importer
 
         $start = $this->getRecordStart();
         $end   = $this->getRecordEnd();
+        $chunk_index = -1;
+
+        Logger::write(__CLASS__ . '::import -start=' . $start . ' -end=' . $end);
+
+        // get next chunk to process
+        if (!is_null($this->chunk_size)) {
+            list($start, $end, $chunk_index) = $this->status->get_next_chunk($this->chunk_size, $this->original_start, $this->original_end);
+            $this->status->set_chunk_index($chunk_index);
+            Logger::write(__CLASS__ . '::import -start=' . $start . ' -end=' . $end . ' -chunk=' . $chunk_index);
+        }
 
         if ($this->status->has_section('importing')) {
+
+            Logger::write(__CLASS__ . '::import -importing');
 
             // TODO: Run through field map from config (xml or csv)
             $data_parser = new DataParser($this->parser, $this->mapper, $this->config->getData());
 
-            for ($i = $start; $i < $end; $i++) {
+            if ($start < $end) {
+                for ($i = $start; $i < $end; $i++) {
 
-                $this->status->refresh();
+                    $this->status->refresh();
 
-                // escape if invalid session
-                if (!$this->status->validate()) {
-                    $this->mapper->teardown();
-                    $this->unregister_shutdown();
-                    return;
-                }
-
-                // escape if we are paused or cancelled
-                if ($this->status->is_paused() || $this->status->is_cancelled()) {
-                    $this->mapper->teardown();
-                    $this->unregister_shutdown();
-                    return;
-                }
-
-                /**
-                 * @var ParsedData $data
-                 */
-                $data = null;
-
-                try {
-
-                    $data = $data_parser->get($i);
-
-                    // Add in ability to filter input file records, could this be moved up before data parser (speed checks)?
-                    $skip_record = apply_filters('iwp/importer/skip_record', false, $data, $this);
-                    if ($skip_record) {
-                        $this->record_time();
-                        $this->status->record_skip();
-                        continue;
+                    // escape if invalid session
+                    if (!$this->status->validate()) {
+                        Logger::write(__CLASS__ . '::import -invalid-session');
+                        $this->mapper->teardown();
+                        $this->unregister_shutdown();
+                        return;
                     }
 
-                    $data = apply_filters('iwp/importer/before_mapper', $data, $this);
-                    $data->map();
+                    // escape if we are paused or cancelled
+                    if ($this->status->is_paused() || $this->status->is_cancelled()) {
+                        Logger::write(__CLASS__ . '::import -paused');
+                        $this->mapper->teardown();
+                        $this->unregister_shutdown();
+                        return;
+                    }
+
+                    /**
+                     * @var ParsedData $data
+                     */
+                    $data = null;
+
+                    try {
+
+                        $data = $data_parser->get($i);
+
+                        // Add in ability to filter input file records, could this be moved up before data parser (speed checks)?
+                        $skip_record = apply_filters('iwp/importer/skip_record', false, $data, $this);
+                        if ($skip_record) {
+
+                            // skip record
+                            Logger::write(__CLASS__ . '::import -skip-record=' . $i);
+                            $this->record_time();
+                            $this->status->record_skip();
+
+                            // set data to null, to flag chunk as skipped
+                            $data = null;
+                        } else {
+
+                            // import
+                            $data = apply_filters('iwp/importer/before_mapper', $data, $this);
+                            $data->map();
+
+                            Logger::write(__CLASS__ . '::import -success');
+                            $this->status->record_success($data);
+                        }
+                    } catch (ParserException $e) {
+
+                        Logger::write(__CLASS__ . '::import -parser-error=' . $e->getMessage());
+                        $this->status->record_error($e->getMessage());
+                    } catch (MapperException $e) {
+
+                        Logger::write(__CLASS__ . '::import -mapper-error=' . $e->getMessage());
+                        $this->status->record_error($e->getMessage());
+                    } catch (FileException $e) {
+
+                        Logger::write(__CLASS__ . '::import -file-error=' . $e->getMessage());
+                        $this->status->record_error($e->getMessage());
+                    }
+
+                    if (!is_null($this->chunk_size)) {
+                        Logger::write(__CLASS__ . '::import -record-chunk');
+                        $this->status->record_chunk($chunk_index, $data);
+                    }
 
 
-                    $this->status->record_success($data);
-                } catch (ParserException $e) {
+                    $this->record_time();
+                    $this->status->record_finished();
+                    Logger::write(__CLASS__ . '::import -record-finished');
 
-
-                    $this->status->record_error($e->getMessage());
-                } catch (MapperException $e) {
-
-
-                    $this->status->record_error($e->getMessage());
-                } catch (FileException $e) {
-
-
-                    $this->status->record_error($e->getMessage());
+                    if ($this->timeout()) {
+                        Logger::write(__CLASS__ . '::import -timeout');
+                        $this->unregister_shutdown();
+                        return;
+                    }
                 }
+            }
 
+            // escape if there are more chunks processing
+            Logger::write(__CLASS__ . '::import -chunk-size=' . $this->chunk_size . ' -original-start=' . $this->original_start . ' -original_end=' . $this->original_end);
+            if (!is_null($this->chunk_size)) {
+                $has_more_chunks = $this->status->has_more_chunks($this->chunk_size, $this->original_start, $this->original_end);
 
-                $this->record_time();
-                $this->status->record_finished();
-
-                if ($this->timeout()) {
+                Logger::write(__CLASS__ . '::import -has-more-chunks=' . ($has_more_chunks ? 'yes' : 'no'));
+                if ($has_more_chunks) {
+                    Logger::write(__CLASS__ . '::import -chunk-timeout');
+                    $this->status->timeout();
+                    $this->mapper->teardown();
                     $this->unregister_shutdown();
                     return;
                 }
             }
 
+            Logger::write(__CLASS__ . '::import -deleting');
             $this->status->set_section('deleting');
 
             $object_ids = $this->mapper->get_objects_for_removal();
             if (false !== $object_ids && count($object_ids) > 0) {
                 $this->status->set_delete_total(count($object_ids));
+
+                if (!is_null($this->chunk_size)) {
+                    $this->status->setup_chunk_delete_list($object_ids);
+                }
             }
 
             $this->status->save();
@@ -299,6 +359,10 @@ class Importer
 
         if ($this->status->has_section('deleting')) {
             if ($this->mapper->permission() && $this->mapper->permission()->allowed_method('remove')) {
+
+                if (!is_null($this->chunk_size)) {
+                    list($object_ids, $chunk_index) = $this->status->get_next_delete_chunk($this->chunk_size);
+                }
 
                 if (!isset($object_ids)) {
                     $object_ids = $this->mapper->get_objects_for_removal();
@@ -318,14 +382,28 @@ class Importer
                         $this->record_time();
                         $this->status->record_delete($object_id);
 
+                        if (!is_null($this->chunk_size)) {
+                            $this->status->record_chunk_delete($chunk_index);
+                        }
+
                         if ($this->timeout($this->start_time)) {
                             $this->unregister_shutdown();
                             return;
                         }
                     }
                 }
+
+                if (!is_null($this->chunk_size)) {
+                    $has_more_chunks = $this->status->has_more_delete_chunks($this->chunk_size);
+                    if ($has_more_chunks) {
+                        $this->unregister_shutdown();
+                        return;
+                    }
+                }
             }
         }
+
+        $this->status->clear_chunk_data();
 
         $this->record_time();
         $this->status->complete();

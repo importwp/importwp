@@ -20,7 +20,9 @@ use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Importer\Template\TermTemplate;
 use ImportWP\Common\Importer\Template\UserTemplate;
 use ImportWP\Common\Model\ImporterModel;
+use ImportWP\Common\Properties\Properties;
 use ImportWP\Common\Util\Logger;
+use ImportWP\Container;
 use ImportWP\EventHandler;
 
 class ImporterManager
@@ -407,7 +409,7 @@ class ImporterManager
         $importer_data = $this->get_importer($id);
         Logger::write(__CLASS__ . '::import -session=' . $session, $importer_data->getId());
 
-        $importer_status = $this->importer_status_manager->get_importer_status($importer_data, $session);
+        $importer_status = $this->importer_status_manager->get_importer_status($importer_data);
         Logger::write(__CLASS__ . '::import -status=' . $importer_status->get_status(), $importer_data->getId());
 
         try {
@@ -492,6 +494,7 @@ class ImporterManager
             $config->set('data', $field_groups);
 
             $start = 0;
+            $original_start = 0;
 
             // get parser
             if ($importer_data->getParser() === 'csv') {
@@ -499,6 +502,7 @@ class ImporterManager
                 $parser = new CSVParser($file);
                 if (true === $importer_data->getFileSetting('show_headings')) {
                     $start = 1;
+                    $original_start = 1;
                 }
             } else {
                 $file = $this->get_xml_file($importer_data, $config);
@@ -506,7 +510,7 @@ class ImporterManager
             }
 
             // TODO: if end <= start it imports all, should throw an error instead.
-            $end = $parser->file()->getRecordCount();
+            $original_end = $end = $parser->file()->getRecordCount();
             Logger::write(__CLASS__ . '::import -record-count=' . $end, $importer_data->getId());
 
             if ($importer_status->has_status('init')) {
@@ -532,7 +536,15 @@ class ImporterManager
                 $importer_status->set_start($start);
                 $importer_status->set_end($end);
 
-                Logger::write(__CLASS__ . '::import -start=' . $start . ' -end=' . $end, $importer_data->getId());
+                /**
+                 * @var Properties $properties
+                 */
+                $properties = Container::getInstance()->get('properties');
+                $chunk_size = $properties->chunk_size;
+
+                $config->set('chunk_size', $chunk_size);
+
+                Logger::write(__CLASS__ . '::import -start=' . $start . ' -end=' . $end, ' -chunk_size=' . $chunk_size, $importer_data->getId());
 
                 $importer_status->set_status('running');
                 $importer_status->set_section('importing');
@@ -545,6 +557,17 @@ class ImporterManager
                 $start = $importer_status->get_counter();
                 $end = $importer_status->get_total();
 
+                if ($importer_data->getParser() === 'csv' && true === $importer_data->getFileSetting('show_headings') && empty($importer_data->getStartRow())) {
+                    $start += 1;
+                    $end += 1;
+                    Logger::write(__CLASS__ . '::import -resume-base=1', $importer_data->getId());
+                } elseif (intval($importer_data->getStartRow()) > 0) {
+                    $start_row_tmp = intval($importer_data->getStartRow());
+                    $start += $start_row_tmp;
+                    $end += $start_row_tmp;
+                    Logger::write(__CLASS__ . '::import -resume-base=' . $start_row_tmp, $importer_data->getId());
+                }
+
                 Logger::write(__CLASS__ . '::import -start=' . $start . ' -end=' . $end, $importer_data->getId());
 
                 $importer_status->set_status('running');
@@ -555,12 +578,31 @@ class ImporterManager
                 $importer_status->save();
             }
 
+            // chunk we need to get total start
+            $tmp_start = $importer_data->getStartRow();
+            if (!is_null($tmp_start) && "" !== $tmp_start) {
+                $tmp_start = intval($tmp_start);
+
+                if ($tmp_start > $original_start) {
+                    $original_start = $tmp_start;
+                }
+            }
+
+            $tmp_max_row = $importer_data->getMaxRow();
+            if (!is_null($tmp_max_row) && $tmp_max_row !== '') {
+                $tmp_end = $original_start + intval($tmp_max_row);
+                if ($tmp_end < $original_end) {
+                    $original_end = $tmp_end;
+                }
+            }
+
             $importer = new \ImportWP\Common\Importer\Importer($config);
             $importer->parser($parser);
             $importer->mapper($mapper);
             $importer->status($importer_status);
             $importer->from($start);
             $importer->to($end);
+            $importer->chunk($config->get('chunk_size'), $original_start, $original_end);
             $importer->import();
 
             $template->unregister_hooks();

@@ -239,6 +239,11 @@ class TermMapper extends AbstractMapper implements MapperInterface
 
     public function update_custom_field($id, $key, $value)
     {
+        // Stop double serialization
+        if (is_serialized($value)) {
+            $value = unserialize($value);
+        }
+
         update_term_meta($id, $key, $value);
     }
 }

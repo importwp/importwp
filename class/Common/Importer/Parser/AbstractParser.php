@@ -67,6 +67,7 @@ abstract class AbstractParser
     {
 
         $output = preg_replace_callback('/{(.*?)}/', array($this, 'query_matches'), $query);
+        $output = $this->handle_custom_methods($output);
 
         return $output;
     }
@@ -85,5 +86,33 @@ abstract class AbstractParser
     public function file()
     {
         return $this->file;
+    }
+
+    protected function handle_custom_methods($input)
+    {
+        $input = preg_replace_callback('/\[([\w]+)\(([^)]*)\)]/', function ($matches) {
+
+            $method = $matches[1];
+
+            $result = [];
+            $args = [];
+
+            // Dont split comma's if they are inside a double quote
+            if (preg_match_all('/(?:".*?"|[^",\s]+)(?=\s*,|\s*$)/', $matches[2], $result) > 0) {
+                $args = $result[0];
+                foreach ($args as &$arg) {
+
+                    // Strip commas from start and end of string
+                    $arg = preg_replace('~^"?(.*?)"?$~', '$1', $arg);
+                }
+            }
+
+            if (is_callable($method)) {
+                return call_user_func_array($method, $args);
+            }
+
+            return $matches[0];
+        }, $input);
+        return $input;
     }
 }

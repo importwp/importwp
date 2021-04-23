@@ -126,6 +126,11 @@ class ParsedData
         }
     }
 
+    public function getGroupKeys()
+    {
+        return array_keys($this->data);
+    }
+
     public function getMethod()
     {
         return $this->method;

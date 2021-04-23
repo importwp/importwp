@@ -15,6 +15,7 @@ use ImportWP\Common\Migration\Migrations;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Properties\Properties;
 use ImportWP\Common\Util\Logger;
+use ImportWP\EventHandler;
 
 class RestManager extends \WP_REST_Controller
 {
@@ -48,7 +49,12 @@ class RestManager extends \WP_REST_Controller
      */
     protected $template_manager;
 
-    public function __construct(ImporterManager $importer_manager, ImporterStatusManager $importer_status_manager, Properties $properties, Http $http, Filesystem $filesystem, TemplateManager $template_manager)
+    /**
+     * @var EventHandler
+     */
+    protected $event_handler;
+
+    public function __construct(ImporterManager $importer_manager, ImporterStatusManager $importer_status_manager, Properties $properties, Http $http, Filesystem $filesystem, TemplateManager $template_manager, $event_handler)
     {
         $this->importer_manager = $importer_manager;
         $this->importer_status_manager = $importer_status_manager;
@@ -56,6 +62,7 @@ class RestManager extends \WP_REST_Controller
         $this->http = $http;
         $this->filesystem = $filesystem;
         $this->template_manager = $template_manager;
+        $this->event_handler = $event_handler;
     }
 
     public function register()
@@ -613,7 +620,9 @@ class RestManager extends \WP_REST_Controller
                     }
                 }
 
-                $result[] = $output;
+                $output['msg'] = $this->generate_status_message($status);
+
+                $result[] = $this->event_handler->run('iwp/importer/status/output', [$output, $importer_model]);
             }
 
             echo json_encode($result) . "\n";
@@ -622,6 +631,119 @@ class RestManager extends \WP_REST_Controller
 
             sleep($update_time);
         } while (true);
+    }
+
+    /**
+     * @param ImporterStatus $importer_status
+     * @return string
+     */
+    protected function generate_status_message($importer_status)
+    {
+        $output = 'Status: ';
+        $data = $importer_status->data();
+
+        if (is_null($data['status']) || empty($data['status'])) {
+            return '';
+        }
+
+        $output .= $data['status'] . ', ';
+
+        $output .= 'Records: ' . $data['counter'] . ' / ' . $data['total'];
+
+        if ($data['inserts'] > 0) {
+            $output .= ', Inserts: ' . $data['inserts'];
+        }
+
+        if ($data['updates'] > 0) {
+            $output .= ', Updates: ' . $data['updates'];
+        }
+
+        if ($data['deletes'] > 0) {
+            $output .= ', Deletes: ' . $data['deletes'] . '/' . $data['delete_total'];
+        }
+
+        if ($data['errors'] > 0) {
+            $output .= ', Errors: ' . $data['errors'];
+        }
+
+        if ($data['elapsed_time'] >= 0) {
+
+
+            $time = $data['elapsed_time'];
+            $hours = floor($time / 3600);
+            $time = $time - $hours * 3600;
+            $minutes = floor($time / 60);
+            $seconds = $time - $minutes * 60;
+
+            $output .= ', Time: ';
+            if ($hours > 0) {
+                $output .= ' ' . $hours . 'h';
+            }
+            if ($minutes > 0) {
+                $output .= ' ' . $minutes . 'm';
+            }
+
+            $output .= ' ' . $seconds . 's';
+
+            if (isset($data['memory'])) {
+                $output .= ', Peak Memory: ' . $importer_status->size_formatted($data['memory']);
+            }
+        }
+
+        if ($this->importer_manager->is_debug()) {
+
+            list($running, $incomplete, $all) = $importer_status->get_running_chunks();
+            if ($all > 0) {
+                $output .= ', Chunks: ' . $running . '/' . $incomplete . '/' . $all;
+            }
+        }
+
+        /*
+        {status_txt && (
+          <span>
+            <strong>Status</strong>: {status_txt + ', '}
+          </span>
+        )}
+        <span>
+          <strong>Records</strong>: {status.c} / {status.t}
+        </span>
+        {status.i > 0 && (
+          <span>
+            , <strong>Inserts</strong>: {status.i}
+          </span>
+        )}
+        {status.u > 0 && (
+          <span>
+            , <strong>Updates</strong>: {status.u}
+          </span>
+        )}
+        {status.r > 0 && (
+          <span>
+            , <strong>Deletes</strong>: {status.r}
+          </span>
+        )}
+        {status.e > 0 && (
+          <span>
+            , <strong>Errors</strong>: {status.e}
+          </span>
+        )}
+        {status.z >= 0 && (
+          <span>
+            , <strong>Time:</strong>
+            {hours > 0 && <span> {hours}h </span>}
+            {minutes > 0 && <span> {minutes}m </span>}
+            <span> {seconds}s</span>
+          </span>
+        )}
+        {status.x && (
+          <span>
+            , <strong>Peak Memory:</strong>
+            <span> {status.x}</span>
+          </span>
+        )}
+        */
+
+        return $output;
     }
 
     public function delete_importer(\WP_REST_Request $request)
@@ -645,7 +767,9 @@ class RestManager extends \WP_REST_Controller
                 $attachment_id = $this->importer_manager->upload_file($importer, $_FILES['file']);
                 break;
             case 'file_remote':
-                $source = $post_data['remote_url'];
+                $raw_source = $post_data['remote_url'];
+                $source = apply_filters('iwp/importer/datasource', $raw_source, $raw_source, $importer);
+                $source = apply_filters('iwp/importer/datasource/remote', $source, $raw_source, $importer);
 
                 $filetype = $importer->getParser();
                 if (is_null($filetype)) {
@@ -655,7 +779,9 @@ class RestManager extends \WP_REST_Controller
                 $attachment_id = $this->importer_manager->remote_file($importer, $source, $filetype);
                 break;
             case 'file_local':
-                $source = $post_data['local_url'];
+                $raw_source = $post_data['local_url'];
+                $source = apply_filters('iwp/importer/datasource', $raw_source, $raw_source, $importer);
+                $source = apply_filters('iwp/importer/datasource/local', $source, $raw_source, $importer);
                 $attachment_id = $this->importer_manager->local_file($importer, $source);
                 break;
             default:
@@ -914,11 +1040,10 @@ class RestManager extends \WP_REST_Controller
     public function pause_import(\WP_REST_Request $request)
     {
         $id = intval($request->get_param('id'));
-        $session = $this->sanitize($request->get_param('session'), 'session');
         $paused = $this->sanitize($request->get_param('paused'), 'paused');
 
         $importer_data = $this->importer_manager->get_importer($id);
-        $status = $this->importer_status_manager->get_importer_status($importer_data, $session);
+        $status = $this->importer_status_manager->get_importer_status($importer_data);
 
         if ($paused === 'no') {
             $status->resume();
@@ -931,10 +1056,9 @@ class RestManager extends \WP_REST_Controller
     public function stop_import(\WP_REST_Request $request)
     {
         $id = intval($request->get_param('id'));
-        $session = $this->sanitize($request->get_param('session'), 'session');
 
         $importer_data = $this->importer_manager->get_importer($id);
-        $status = $this->importer_status_manager->get_importer_status($importer_data, $session);
+        $status = $this->importer_status_manager->get_importer_status($importer_data);
         if (!$status) {
             return $this->http->end_rest_error('Unable to get importer status in stop_import.');
         }
@@ -952,9 +1076,8 @@ class RestManager extends \WP_REST_Controller
     public function get_errors(\WP_REST_Request $request)
     {
         $id = intval($request->get_param('id'));
-        $session = $this->sanitize($request->get_param('session'), 'session');
         $importer_data = $this->importer_manager->get_importer($id);
-        $status = $this->importer_status_manager->get_importer_status($importer_data, $session);
+        $status = $this->importer_status_manager->get_importer_status($importer_data);
         return $this->http->end_rest_success($status->get_errors());
     }
 
@@ -992,7 +1115,7 @@ class RestManager extends \WP_REST_Controller
             $page = 1;
         }
         $importer_data = $this->importer_manager->get_importer($id);
-        $log = $this->importer_status_manager->get_importer_log($importer_data, $session, $page, 100);
+        $log = $this->importer_status_manager->get_importer_log($importer_data, $session, $page, 500);
         $status = $this->importer_status_manager->get_importer_status_report($importer_data, $session);
         return $this->http->end_rest_success(['logs' => $log, 'status' => $status]);
     }
@@ -1011,26 +1134,12 @@ class RestManager extends \WP_REST_Controller
         return $this->http->end_rest_success(['log' => $log, 'download' => $download]);
     }
 
-    private function _default_settings()
-    {
-        return [
-            'debug' => [
-                'type' => 'bool',
-                'value' => false,
-            ],
-            'cleanup' => [
-                'type' => 'bool',
-                'value' => false
-            ],
-        ];
-    }
-
     public function save_settings(\WP_REST_Request $request)
     {
         $post_data = $request->get_body_params();
         $post_data = $this->sanitize($post_data);
 
-        $defaults = $this->_default_settings();
+        $defaults = $this->properties->_default_settings();
 
         $output = [];
 
@@ -1045,6 +1154,8 @@ class RestManager extends \WP_REST_Controller
                     } else {
                         $output[$setting] = boolval($post_data[$setting]);
                     }
+                } elseif ('number' === $default['type']) {
+                    $output[$setting] = intval($post_data[$setting]);
                 } else {
                     $output[$setting] = $post_data[$setting];
                 }
@@ -1055,19 +1166,12 @@ class RestManager extends \WP_REST_Controller
 
         update_option('iwp_settings', $output);
 
-        return $this->get_settings();
+        return $this->http->end_rest_success($this->properties->get_settings());
     }
 
     public function get_settings(\WP_REST_Request $request = null)
     {
-        $defaults = $this->_default_settings();
-        $settings = get_option('iwp_settings', []);
-        $output = [];
-
-        foreach ($defaults as $setting => $default) {
-            $output[$setting] = isset($settings[$setting]) ? $settings[$setting] : $default['value'];
-        }
-
+        $output = $this->properties->get_settings();
         return $this->http->end_rest_success($output);
     }
 
@@ -1144,7 +1248,7 @@ class RestManager extends \WP_REST_Controller
     public function import_exporters(\WP_REST_Request $request = null)
     {
         $upload = $this->filesystem->upload_file($_FILES['file']);
-        if(is_wp_error($upload)){
+        if (is_wp_error($upload)) {
             return $this->http->end_rest_error($upload->get_error_message());
         }
 

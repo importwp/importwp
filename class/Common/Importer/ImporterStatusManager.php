@@ -7,9 +7,9 @@ use ImportWP\Container;
 
 class ImporterStatusManager
 {
-    public function get_importer_status(ImporterModel $importer, $session)
+    public function get_importer_status(ImporterModel $importer)
     {
-        $status_data = $importer->getStatus($session);
+        $status_data = $importer->getStatus();
         if (!$status_data) {
             return false;
         }
@@ -124,7 +124,7 @@ class ImporterStatusManager
         update_post_meta($importer->getId(), '_iwp_version', $version);
 
         $status = new ImporterStatus($importer->getId(), [
-            'session' => md5(time()),
+            'session' => md5($importer->getId() . time()),
             'status' => 'init',
             'version' => $version
         ]);

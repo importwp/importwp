@@ -158,7 +158,7 @@ class Config implements ConfigInterface
         }
 
         if (count($cache) < 2) {
-            throw new FileException("No Config File indexes found: " . $record . " on path: " . $key);
+            throw new FileException("Unable to located record: " . ($record + 1) . ".");
         }
 
         // store cache

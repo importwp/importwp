@@ -3,7 +3,9 @@
 namespace ImportWP\Common\Migration;
 
 use ImportWP\Common\Importer\ImporterManager;
+use ImportWP\Common\Importer\ImporterStatus;
 use ImportWP\Common\Model\ImporterModel;
+use ImportWP\Common\Util\Logger;
 use ImportWP\Container;
 
 class Migrations
@@ -31,6 +33,7 @@ class Migrations
 
         // v2 migrations
         $this->_migrations[] = array($this, 'migration_05_multiple_crons');
+        $this->_migrations[] = array($this, 'migration_06_cron_update');
 
         $this->_version = count($this->_migrations);
     }
@@ -707,6 +710,48 @@ class Migrations
             remove_filter('content_save_pre', 'wp_filter_post_kses');
             wp_update_post(['ID' => $id, 'post_content' => serialize($data)]);
             add_filter('content_save_pre', 'wp_filter_post_kses');
+        }
+    }
+
+    public function migration_06_cron_update()
+    {
+        wp_unschedule_hook('iwp_runner');
+
+        /**
+         * @var \wpdb $wpdb
+         */
+        global $wpdb;
+
+        // TODO: loop through serialsed post_content, switching from single cron to array
+        $importers = $wpdb->get_results("SELECT * FROM {$wpdb->posts} WHERE post_type='" . IWP_POST_TYPE . "'", ARRAY_A);
+        foreach ($importers as $importer) {
+
+            $id = $importer['ID'];
+            $data = unserialize($importer['post_content']);
+            if ($data['settings']['import_method'] !== 'schedule') {
+                continue;
+            }
+
+            // $iwp_scheduled = get_post_meta($id, '_iwp_scheduled', true);
+            // if ($iwp_scheduled && isset($iwp_scheduled['session'])) {
+            //     $session = $iwp_scheduled['session'];
+
+            //     $status_data = (array) maybe_unserialize($data['post_excerpt']);
+            //     $status = new ImporterStatus($importer->getId(), $status_data);
+            //     $status->stop();
+            // }
+
+            $status_data = (array) maybe_unserialize($importer['post_excerpt']);
+            $status = new ImporterStatus($id, $status_data);
+            $status->stop();
+
+            delete_post_meta($id, '_iwp_session');
+            delete_post_meta($id, '_iwp_cron_updated');
+            delete_post_meta($id, '_iwp_cron_status');
+            delete_post_meta($id, '_iwp_cron_version');
+            wp_update_post(['ID' => $id, 'post_excerpt' => '']);
+
+            Logger::write(__CLASS__ . '::migration_06_cron_update -rest', $id);
         }
     }
 }

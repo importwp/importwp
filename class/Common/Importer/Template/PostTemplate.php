@@ -623,8 +623,6 @@ class PostTemplate extends Template implements TemplateInterface
 
         $attachment_data = $data->getData($group);
         $total_rows = isset($attachment_data[$group . '._index']) ? intval($attachment_data[$group . '._index']) : 0;
-        $delimiter = apply_filters('iwp/value_delimiter', ',');
-        $delimiter = apply_filters('iwp/attachment/value_delimiter', $delimiter);
 
         for ($i = 0; $i < $total_rows; $i++) {
 

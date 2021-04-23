@@ -16,6 +16,9 @@ class Properties
     public $plugin_version;
     public $plugin_file_path;
     public $encodings;
+    public $chunk_timeout;
+    public $chunk_limit;
+    public $chunk_size;
 
     public $rest_version;
     public $rest_namespace;
@@ -35,6 +38,10 @@ class Properties
 
         $this->rest_namespace = 'iwp';
         $this->rest_version = 'v1';
+
+        $this->chunk_timeout = absint(apply_filters('iwp/chunk_timeout', $this->get_setting('chunk_timeout')));
+        $this->chunk_limit = absint(apply_filters('iwp/chunk_limit', $this->get_setting('chunk_limit')));
+        $this->chunk_size = absint(apply_filters('iwp/chunk_size', $this->get_setting('chunk_size')));
     }
 
     protected function get_available_encodings()
@@ -45,5 +52,56 @@ class Properties
             $output[$encoding] = $encoding;
         }
         return $output;
+    }
+
+    public function _default_settings()
+    {
+        return [
+            'debug' => [
+                'type' => 'bool',
+                'value' => false,
+            ],
+            'cleanup' => [
+                'type' => 'bool',
+                'value' => false
+            ],
+            'chunk_limit' => [
+                'type' => 'number',
+                'value' => 8
+            ],
+            'chunk_timeout' => [
+                'type' => 'number',
+                'value' => 30
+            ],
+            'chunk_size' => [
+                'type' => 'number',
+                'value' => 1000
+            ]
+        ];
+    }
+
+    public function get_settings()
+    {
+        $defaults = $this->_default_settings();
+        $settings = get_option('iwp_settings', []);
+        $output = [];
+
+        foreach ($defaults as $setting => $default) {
+            $output[$setting] = isset($settings[$setting]) ? $settings[$setting] : $default['value'];
+        }
+
+        return $output;
+    }
+
+    public function get_setting($key)
+    {
+        $defaults = $this->_default_settings();
+        $settings = get_option('iwp_settings', []);
+
+        if (!isset($defaults[$key])) {
+            return false;
+        }
+
+        return isset($settings[$key]) ? $settings[$key] : $defaults[$key]['value'];
     }
 }
