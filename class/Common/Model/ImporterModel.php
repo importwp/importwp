@@ -464,7 +464,7 @@ class ImporterModel
     {
 
         $limit = intval($limit);
-        if ($limit <= 0) {
+        if ($limit <= -1) {
             return;
         }
 

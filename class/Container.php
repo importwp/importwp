@@ -18,7 +18,7 @@ class Container
     {
     }
 
-    protected function __wakeup()
+    public function __wakeup()
     {
     }
 

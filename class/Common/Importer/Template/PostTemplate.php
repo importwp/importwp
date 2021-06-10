@@ -623,6 +623,7 @@ class PostTemplate extends Template implements TemplateInterface
 
         $attachment_data = $data->getData($group);
         $total_rows = isset($attachment_data[$group . '._index']) ? intval($attachment_data[$group . '._index']) : 0;
+        $skipped = 0;
 
         for ($i = 0; $i < $total_rows; $i++) {
 
@@ -631,6 +632,7 @@ class PostTemplate extends Template implements TemplateInterface
                 $allowed = $data->permission()->validate([$permission_key => ''], $data->getMethod(), $group);
                 $is_allowed = isset($allowed[$permission_key]) ? true : false;
                 if (!$is_allowed) {
+                    $skipped++;
                     continue;
                 }
             }
@@ -648,6 +650,10 @@ class PostTemplate extends Template implements TemplateInterface
                 $ids = $this->process_attachment($post_id, $row, $row_prefix, $filesystem, $ftp, $attachment);
                 $attachment_ids = array_merge($attachment_ids, $ids);
             }
+        }
+
+        if ($skipped == $total_rows) {
+            return false;
         }
 
         return $attachment_ids;

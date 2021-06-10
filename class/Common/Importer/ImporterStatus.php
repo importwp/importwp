@@ -225,7 +225,7 @@ class ImporterStatus
 
     public function get_status()
     {
-        if ($this->status != 'running' && !empty($this->get_session_id())) {
+        if (!in_array($this->status, ['cancelled', 'paused', 'running']) && !empty($this->get_session_id())) {
 
             /**
              * @var \WPDB $wpdb
@@ -235,7 +235,7 @@ class ImporterStatus
             if (!empty($rows)) {
                 foreach ($rows as $item) {
                     $item = maybe_unserialize($item);
-                    if ($item['status'] === 'running') {
+                    if (isset($item['status']) && $item['status'] === 'running') {
                         return 'running';
                     }
                 }
@@ -306,7 +306,7 @@ class ImporterStatus
             if (!empty($rows)) {
                 return array_reduce($rows, function ($carry, $item) {
                     $item = maybe_unserialize($item);
-                    return $carry += intval($item['counter']);
+                    return $carry += intval(isset($item['counter']) ? $item['counter'] : 0);
                 }, 0);
             }
         }
@@ -335,9 +335,11 @@ class ImporterStatus
 
                 return array_reduce($rows, function ($carry, $item) use ($time_limit) {
                     $item = maybe_unserialize($item);
-                    $carry[0] += ($item['status'] == 'running' && time() - $time_limit <= $item['time'] ? 1 : 0);
-                    $carry[1] += ($item['status'] != 'complete' ? 1 : 0);
-                    $carry[2] += 1;
+                    if (isset($item['status'])) {
+                        $carry[0] += ($item['status'] == 'running' && time() - $time_limit <= $item['time'] ? 1 : 0);
+                        $carry[1] += ($item['status'] != 'complete' ? 1 : 0);
+                        $carry[2] += 1;
+                    }
                     return $carry;
                 }, $output);
             }
@@ -358,7 +360,7 @@ class ImporterStatus
             if (!empty($rows)) {
                 return array_reduce($rows, function ($carry, $item) {
                     $item = maybe_unserialize($item);
-                    return $carry += intval($item['inserts']);
+                    return $carry += intval(isset($item['inserts']) ? $item['inserts'] : 0);
                 }, 0);
             }
         }
@@ -378,7 +380,7 @@ class ImporterStatus
             if (!empty($rows)) {
                 return array_reduce($rows, function ($carry, $item) {
                     $item = maybe_unserialize($item);
-                    return $carry += intval($item['updates']);
+                    return $carry += intval(isset($item['updates']) ? $item['updates'] : 0);
                 }, 0);
             }
         }
@@ -418,7 +420,7 @@ class ImporterStatus
             if (!empty($rows)) {
                 return array_reduce($rows, function ($carry, $item) {
                     $item = maybe_unserialize($item);
-                    return $carry += intval($item['errors']);
+                    return $carry += intval(isset($item['errors']) ? $item['errors'] : 0);
                 }, 0);
             }
         }
@@ -799,10 +801,11 @@ class ImporterStatus
     public function record_skip()
     {
         $this->_changes[] = 'counter';
+        $this->_changes[] = 'skips';
         $this->counter++;
         $this->skips++;
         $this->log_row_message("Skipped Record", 'S');
-        $this->save();
+        $this->save(true);
     }
 
     public function set_delete_total($total = 0)
@@ -916,6 +919,11 @@ class ImporterStatus
 
                 if (!empty($chunk_status)) {
                     $chunk_status = maybe_unserialize($chunk_status);
+
+                    if ($chunk_status['counter'] > $size) {
+                        continue;
+                    }
+
                     if ($chunk_status['status']  == 'timeout' || ($chunk_status['status']  != 'complete' && time() - 30 > $chunk_status['time'])) {
                         $chunk_status['status'] = 'running';
                         $chunk_status['time'] = time();

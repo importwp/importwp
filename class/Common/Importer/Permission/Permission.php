@@ -79,12 +79,13 @@ class Permission implements PermissionInterface
     {
         $result = array();
         // replaces * with the regex pattern
-        $pattern = '[a-zA-Z\d_-]+';
+        $pattern = '[a-zA-Z\d_\-\.]+';
         if ('*' === $field_search) {
             // *
             return $fields;
         } elseif (1 === preg_match("/^\*{$pattern}/i", $field_search)) {
             $search = substr($field_search, 1);
+            $search = str_replace('.', '\.', $search);
             // *_src
             foreach ($fields as $field_id => $field_value) {
                 if (1 === preg_match("/^{$pattern}{$search}$/i", $field_id)) {
@@ -93,6 +94,7 @@ class Permission implements PermissionInterface
             }
         } elseif (1 === preg_match("/{$pattern}\*$/i", $field_search)) {
             $search = substr($field_search, 0, -1);
+            $search = str_replace('.', '\.', $search);
             // attachment_*
             foreach ($fields as $field_id => $field_value) {
                 if (1 === preg_match("/^{$search}{$pattern}$/i", $field_id)) {

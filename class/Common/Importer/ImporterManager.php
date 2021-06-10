@@ -308,6 +308,7 @@ class ImporterManager
         $importer_model = $this->get_importer($id);
 
         // Allow the modification of file path
+        $file_path = wp_normalize_path($file_path);
         $file_path = apply_filters('iwp/importer/file_uploaded/file_path', $file_path, $importer_model);
 
         $file_id = $this->link_importer_file($id, $file_path);

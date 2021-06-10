@@ -581,56 +581,57 @@ class RestManager extends \WP_REST_Controller
         $importing_time = 1;
 
         $startedAt = time();
-        do {
+        // do {
 
-            $update_time = $default_time;
+        $update_time = $default_time;
 
-            if ((time() - $startedAt) > 10) {
-                if (ob_get_contents()) {
-                    ob_end_flush();
+        if ((time() - $startedAt) > 10) {
+            if (ob_get_contents()) {
+                ob_end_flush();
+            }
+            die();
+        }
+
+        $result = [];
+
+        $query_data = array(
+            'post_type'      => IWP_POST_TYPE,
+            'posts_per_page' => -1,
+            'fields' => 'ids'
+        );
+        if (!empty($importer_ids)) {
+            $query_data['post__in'] = $importer_ids;
+        }
+
+        $query  = new \WP_Query($query_data);
+
+        foreach ($query->posts as $importer_id) {
+
+            $importer_model = $this->importer_manager->get_importer($importer_id);
+            $status = new ImporterStatus($importer_model->getId(), $importer_model->getStatus());
+            $output = $status->output();
+            $output['id'] = $importer_id;
+
+            if ($output['b'] !== 'complete' && in_array($output['s'], ['running', 'paused'])) {
+                if ($output['s'] === 'running') {
+                    $update_time = $importing_time;
+                } elseif ($output['s'] === 'paused') {
+                    $update_time = $paused_time;
                 }
-                die();
             }
 
-            $result = [];
+            $output['msg'] = $this->generate_status_message($status);
 
-            $query_data = array(
-                'post_type'      => IWP_POST_TYPE,
-                'posts_per_page' => -1,
-                'fields' => 'ids'
-            );
-            if (!empty($importer_ids)) {
-                $query_data['post__in'] = $importer_ids;
-            }
+            $result[] = $this->event_handler->run('iwp/importer/status/output', [$output, $importer_model]);
+        }
 
-            $query  = new \WP_Query($query_data);
+        echo json_encode($result) . "\n";
+        die();
+        // ob_flush();
+        // flush();
 
-            foreach ($query->posts as $importer_id) {
-
-                $importer_model = $this->importer_manager->get_importer($importer_id);
-                $status = new ImporterStatus($importer_model->getId(), $importer_model->getStatus());
-                $output = $status->output();
-                $output['id'] = $importer_id;
-
-                if ($output['b'] !== 'complete' && in_array($output['s'], ['running', 'paused'])) {
-                    if ($output['s'] === 'running') {
-                        $update_time = $importing_time;
-                    } elseif ($output['s'] === 'paused') {
-                        $update_time = $paused_time;
-                    }
-                }
-
-                $output['msg'] = $this->generate_status_message($status);
-
-                $result[] = $this->event_handler->run('iwp/importer/status/output', [$output, $importer_model]);
-            }
-
-            echo json_encode($result) . "\n";
-            ob_flush();
-            flush();
-
-            sleep($update_time);
-        } while (true);
+        // sleep($update_time);
+        // } while (true);
     }
 
     /**
@@ -761,6 +762,8 @@ class RestManager extends \WP_REST_Controller
         $action = $post_data['action'];
 
         $importer = $this->importer_manager->get_importer($id);
+
+        // TODO: Remove duplicate code, found in cron manager
 
         switch ($action) {
             case 'file_upload':
@@ -986,7 +989,7 @@ class RestManager extends \WP_REST_Controller
 
         $session = $request->get_param('session');
 
-        add_action('iwp/importer/status/save', array($this, 'render_import_status_update'));
+        // add_action('iwp/importer/status/save', array($this, 'render_import_status_update'));
 
         $id = intval($request->get_param('id'));
         Logger::write(__CLASS__  . '::run_import -session=' . base64_encode(serialize($session)), $id);
@@ -1002,7 +1005,9 @@ class RestManager extends \WP_REST_Controller
             $this->output_cache = '';
         }
 
-        echo json_encode($status->output()) . "\n";
+        $output = $status->output();
+        $output['msg'] = $this->generate_status_message($status);
+        echo json_encode($output) . "\n";
         die();
     }
 

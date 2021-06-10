@@ -3,7 +3,7 @@ Contributors: jcollings
 Tags: import, wordpress xml importer, wordpress csv importer, xml, csv
 Requires at least: 4.0  
 Tested up to: 5.7
-Stable tag: 2.2.0
+Stable tag: 2.2.1
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -18,13 +18,13 @@ ImportWP is an Advanced WordPress CSV/XML Importer, allowing you to easily drag 
 
 * Import from XML and CSV files.
 * Import WordPress Users.
-* Import WordPress Posts.
-* Import WordPress Pages.
-* Import WordPress Taxonomies.
+* Import WordPress Posts and Pages.
+* Import WordPress Categories and Tags.
 * Import WordPress Attachments.
 * Permissions to control what can be imported.
 * Import Custom Fields **(Requires Pro)**
 * Import to Custom Post Types  **(Requires Pro)**
+* Import to custom Taxonomies **(Requires Pro)**
 * Schedule Imports  **(Requires Pro)**
 
 ImportWP is a base for importing files into WordPress which can be extended upon to create custom templates and parsers specific to your needs, for more details [view the documentation](https://www.importwp.com/documentation/).
@@ -63,6 +63,16 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 == Changelog ==
+
+= 2.2.1 = 
+
+* ADD - New setting field for file rotation
+* FIX - Replace php data flushing with manual ajax fetching of importer status.
+* FIX - Make it easier to select csv fields with empty values.
+* FIX - Properly log skipped records
+* FIX - Fixed issue on windows file uploads causing File Not Found Error.
+* FIX - Allow '.' in field name when using permissions.
+* FIX - Attempt to skip php output in ajax/rest response.
 
 = 2.2.0 =
 
