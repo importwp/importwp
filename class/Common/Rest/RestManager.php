@@ -779,7 +779,7 @@ class RestManager extends \WP_REST_Controller
                     $filetype = $post_data['filetype'];
                 }
 
-                $attachment_id = $this->importer_manager->remote_file($importer, $source, $filetype);
+                $attachment_id = $this->importer_manager->remote_file($importer, $source, $filetype, null, $importer->getId() . '-');
                 break;
             case 'file_local':
                 $raw_source = $post_data['local_url'];
@@ -848,6 +848,11 @@ class RestManager extends \WP_REST_Controller
             $id = intval($request->get_param('id'));
             $post_data = $this->sanitize($request->get_body_params());
             $importer = $this->importer_manager->get_importer($id);
+
+            $import_file_exists = $this->filesystem->file_exists($importer->getFile());
+            if (is_wp_error($import_file_exists)) {
+                throw new \Exception("Unable to load preview, " . $import_file_exists->get_error_message());
+            }
 
             $record_index = isset($post_data['record']) ? $post_data['record'] : null;
             if (is_null($record_index)) {
@@ -920,6 +925,11 @@ class RestManager extends \WP_REST_Controller
         try {
             $id = intval($request->get_param('id'));
             $importer = $this->importer_manager->get_importer($id);
+            $import_file_exists = $this->filesystem->file_exists($importer->getFile());
+            if (is_wp_error($import_file_exists)) {
+                throw new \Exception("Unable to load preview, " . $import_file_exists->get_error_message());
+            }
+
             $parser = $importer->getParser();
 
             $fields = $this->sanitize($request->get_body_params());

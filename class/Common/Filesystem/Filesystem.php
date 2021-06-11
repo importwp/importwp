@@ -99,7 +99,7 @@ class Filesystem
         );
     }
 
-    public function download_file($remote_url, $filetype = null, $allowed_mimes = null, $override_filename = null)
+    public function download_file($remote_url, $filetype = null, $allowed_mimes = null, $override_filename = null, $prefix = '')
     {
         $remote_url_temp = strtok($remote_url, '?');
 
@@ -114,9 +114,10 @@ class Filesystem
         }
 
         $wp_upload_dir = wp_upload_dir();
-        $filename = !empty($override_filename) ? $override_filename : basename($remote_url_temp);
+        $filename = !empty($override_filename) ? $override_filename : $prefix . basename($remote_url_temp);
         $dest    = wp_unique_filename($wp_upload_dir['path'], $filename);
         $wp_dest = $wp_upload_dir['path'] . '/' . $dest;
+        touch($wp_dest);
 
         /**
          * @var Http $http
@@ -134,12 +135,13 @@ class Filesystem
 
         $result = $http->download_file_stream($remote_url, $wp_dest, $headers);
         if (is_wp_error($result)) {
+            @unlink($wp_dest);
             Logger::write($result->get_error_message());
             return $result;
         }
 
         if (is_string($result)) {
-            $filename = !empty($override_filename) ? $override_filename : basename($result);
+            $filename = !empty($override_filename) ? $override_filename : $prefix . basename($result);
             $dest    = wp_unique_filename($wp_upload_dir['path'], $filename);
             $wp_tmp_dest = $wp_upload_dir['path'] . '/' . $dest;
 
@@ -148,6 +150,11 @@ class Filesystem
                 unlink($wp_dest);
                 $wp_dest = $wp_tmp_dest;
             }
+        }
+
+        $exists = $this->file_exists($wp_dest);
+        if (is_wp_error($exists)) {
+            return $exists;
         }
 
         $type = $this->get_file_mime($wp_dest);
@@ -160,13 +167,32 @@ class Filesystem
         );
     }
 
-    public function copy_file($remote_url, $allowed_mimes = null, $override_filename = null)
+    public function file_exists($src)
+    {
+        try {
+            if (!file_exists($src)) {
+                throw new \Exception("File not found: " . $src);
+            }
+
+            $size = filesize($src);
+            if ($size == 0) {
+                unlink($src);
+                throw new \Exception("File not found or empty: " . $src);
+            }
+        } catch (\Exception $e) {
+            return new \WP_Error('IWP_FS_8', $e->getMessage());
+        }
+
+        return true;
+    }
+
+    public function copy_file($remote_url, $allowed_mimes = null, $override_filename = null, $prefix = '')
     {
         $remote_url = strtok($remote_url, '?');
 
         $wp_upload_dir = wp_upload_dir();
 
-        $filename = !empty($override_filename) ? $override_filename : basename($remote_url);
+        $filename = !empty($override_filename) ? $override_filename : $prefix . basename($remote_url);
         $dest    = wp_unique_filename($wp_upload_dir['path'], $filename);
         $wp_dest = $wp_upload_dir['path'] . '/' . $dest;
 

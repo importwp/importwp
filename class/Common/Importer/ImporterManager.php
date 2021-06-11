@@ -237,6 +237,19 @@ class ImporterManager
         return $index;
     }
 
+    public function get_importer_file_prefix($importer)
+    {
+        $importer = $this->get_importer($importer);
+
+        $file_index = get_post_meta($importer->getId(), '_importer_files', true);
+        if (!$file_index) {
+            $file_index = 1;
+        }
+        $file_index++;
+
+        return $importer->getId() . '-' . intval($file_index) . '-';
+    }
+
     public function upload_file($id, $file)
     {
 
@@ -260,7 +273,8 @@ class ImporterManager
     {
         $importer = $this->get_importer($id);
         $allowed_file_types = $this->event_handler->run('importer.allowed_file_types', [$importer->getAllowedFileTypes()]);
-        $result = $this->filesystem->download_file($source, $filetype, $allowed_file_types);
+        $prefix = $this->get_importer_file_prefix($importer);
+        $result = $this->filesystem->download_file($source, $filetype, $allowed_file_types, null, $prefix);
 
         if (is_wp_error($result)) {
             return $result;
@@ -278,7 +292,8 @@ class ImporterManager
     {
         $importer = $this->get_importer($id);
         $allowed_file_types = $this->event_handler->run('importer.allowed_file_types', [$importer->getAllowedFileTypes()]);
-        $result = $this->filesystem->copy_file($source, $allowed_file_types);
+        $prefix = $this->get_importer_file_prefix($importer);
+        $result = $this->filesystem->copy_file($source, $allowed_file_types, null, $prefix);
 
         if (is_wp_error($result)) {
             return $result;
@@ -415,6 +430,11 @@ class ImporterManager
 
         try {
 
+            $import_file_exists = $this->filesystem->file_exists($importer_data->getFile());
+            if (is_wp_error($import_file_exists)) {
+                throw new \Exception($import_file_exists->get_error_message());
+            }
+
             if (!$importer_status) {
                 $importer_post = get_post($importer_data->getId());
                 $exception_msg = "Unable to read importer session: (" . $importer_post->post_excerpt . ")";
@@ -545,7 +565,7 @@ class ImporterManager
 
                 $config->set('chunk_size', $chunk_size);
 
-                Logger::write(__CLASS__ . '::import -start=' . $start . ' -end=' . $end, ' -chunk_size=' . $chunk_size, $importer_data->getId());
+                Logger::write(__CLASS__ . '::import -start=' . $start . ' -end=' . $end . ' -chunk_size=' . $chunk_size, $importer_data->getId());
 
                 $importer_status->set_status('running');
                 $importer_status->set_section('importing');

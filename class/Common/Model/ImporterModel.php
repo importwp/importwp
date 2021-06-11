@@ -160,8 +160,8 @@ class ImporterModel
                 $this->file_id = intval($json['file']['id']);
                 if ($this->file_id > 0) {
                     $this->file = $this->get_attached_file($this->file_id);
-                    $this->file_settings = array_merge($this->getDetaultFileSettings(), $json['file']['settings']);
                 }
+                $this->file_settings = array_merge($this->getDetaultFileSettings(), $json['file']['settings']);
 
                 $this->datasource = isset($json['datasource'], $json['datasource']['type']) ? $json['datasource']['type'] : null;
                 $this->datasource_settings = isset($json['datasource'], $json['datasource']['settings']) ? $json['datasource']['settings'] : [];
