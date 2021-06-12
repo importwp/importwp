@@ -161,6 +161,11 @@ class ImporterModel
                 if ($this->file_id > 0) {
                     $this->file = $this->get_attached_file($this->file_id);
                 }
+
+                if (!isset($json['file']['settings']) || !is_array($json['file']['settings'])) {
+                    $json['file']['settings'] = [];
+                }
+
                 $this->file_settings = array_merge($this->getDetaultFileSettings(), $json['file']['settings']);
 
                 $this->datasource = isset($json['datasource'], $json['datasource']['type']) ? $json['datasource']['type'] : null;
