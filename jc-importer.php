@@ -5,7 +5,7 @@
  * Plugin URI: https://www.importwp.com
  * Description: ImportWP allows you to select which WordPress data you want to export csv and xml files using the visual data select tool.
  * Author: James Collings <james@jclabs.co.uk>
- * Version: 2.2.3 
+ * Version: 2.2.4 
  * Author URI: https://www.importwp.com
  * Network: True
  */
@@ -13,7 +13,7 @@
 $iwp_base_path = dirname(__FILE__);
 
 if (!defined('IWP_VERSION')) {
-	define('IWP_VERSION', '2.2.3');
+	define('IWP_VERSION', '2.2.4');
 }
 
 if (!defined('IWP_MINIMUM_PHP_VERSION')) {

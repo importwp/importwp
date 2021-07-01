@@ -39,12 +39,16 @@ class Permission implements PermissionInterface
     public function allowed_method($method)
     {
         $permission_data = $this->importer_model->getPermission($method);
-        return $permission_data['enabled'] !== true ? false : true;
+        return isset($permission_data['enabled']) && $permission_data['enabled'] !== true ? false : true;
     }
 
     public function validate_group($fields, $group_id, $permission_data)
     {
-        $permission_type = $permission_data['type'];
+        $permission_type = isset($permission_data['type']) ? $permission_data['type'] : false;
+        if (!$permission_type) {
+            return $fields;
+        }
+
         $permission_fields = is_array($permission_data['fields']) ? $permission_data['fields'] :  explode("\n", $permission_data['fields']);
 
         $matches = array();

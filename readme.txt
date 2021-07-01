@@ -3,7 +3,7 @@ Contributors: jcollings
 Tags: import, wordpress xml importer, wordpress csv importer, xml, csv
 Requires at least: 4.0  
 Tested up to: 5.7
-Stable tag: 2.2.3
+Stable tag: 2.2.4
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -63,6 +63,10 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 == Changelog ==
+
+= 2.2.4 =
+
+* FIX - Update custom method handler to work with xml with large amounts of whitespace. 
 
 = 2.2.3 =
 
