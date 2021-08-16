@@ -30,5 +30,7 @@ class ServiceProvider extends \ImportWP\ServiceProvider
         $this->importer_manager = new ImporterManager($this->importer_status_manager, $this->filesystem, $this->template_manager, $event_handler);
         $this->menu = new Menu($this->properties, $this->view_manager, $this->importer_manager, $this->template_manager);
         $this->rest_manager = new RestManager($this->importer_manager, $this->importer_status_manager, $this->properties, $this->http, $this->filesystem, $this->template_manager, $event_handler);
+
+        do_action('iwp/register_events', $event_handler, $this);
     }
 }
