@@ -624,6 +624,7 @@ class ImporterManager
             $importer->from($start);
             $importer->to($end);
             $importer->chunk($config->get('chunk_size'), $original_start, $original_end);
+            $importer->filter($importer_data->getFilters());
             $importer->import();
 
             $template->unregister_hooks();

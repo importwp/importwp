@@ -538,7 +538,10 @@ class RestManager extends \WP_REST_Controller
 
             // remove
             if (isset($post_data['permissions']['remove'])) {
-                $importer->setPermission('remove', ['enabled' => $post_data['permissions']['remove'] === 'true']);
+                $importer->setPermission('remove', [
+                    'enabled' => $post_data['permissions']['remove']['enabled'] === 'true',
+                    'trash' => $post_data['permissions']['remove']['trash'] === 'true',
+                ]);
             }
         }
 
@@ -1197,6 +1200,11 @@ class RestManager extends \WP_REST_Controller
         $importer_template = $importer_model->getTemplate();
 
         $templates = $this->importer_manager->get_templates();
+
+        if (!isset($templates[$importer_template])) {
+            return $this->http->end_rest_error("Invalid template \"" . $importer_template . "\"");
+        }
+
         $template_id = $templates[$importer_template];
         $template_class = $this->template_manager->load_template($template_id);
 

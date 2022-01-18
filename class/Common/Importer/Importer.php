@@ -62,6 +62,8 @@ class Importer
 
     private $chunk_size;
 
+    private $filter_data = [];
+
     public function __construct(ConfigInterface $config)
     {
         $this->config = $config;
@@ -274,8 +276,9 @@ class Importer
 
                         $data = $data_parser->get($i);
 
-                        // Add in ability to filter input file records, could this be moved up before data parser (speed checks)?
-                        $skip_record = apply_filters('iwp/importer/skip_record', false, $data, $this);
+                        $skip_record = $this->filterRecords();
+                        $skip_record = apply_filters('iwp/importer/skip_record', $skip_record, $data, $this);
+
                         if ($skip_record) {
 
                             // skip record
@@ -410,6 +413,81 @@ class Importer
 
         $this->mapper->teardown();
         $this->unregister_shutdown();
+    }
+
+    /**
+     * Apply any importer filters to skip records
+     *
+     * @return boolean
+     */
+    function filterRecords()
+    {
+        $result = false;
+
+        if (empty($this->filter_data)) {
+            return $result;
+        }
+
+        foreach ($this->filter_data as $group) {
+
+            $result = true;
+
+            if (empty($group)) {
+                continue;
+            }
+
+            foreach ($group as $row) {
+
+                $left = $this->parser->query_string($row['left']);
+                $right = $row['right'];
+                $right_parts = array_map('trim', explode(',', $right));
+
+                switch ($row['condition']) {
+                    case 'equal':
+                        if ($left !== $right) {
+                            $result = false;
+                        }
+                        break;
+                    case 'contains':
+                        if (strpos($left, $right) === false) {
+                            $result = false;
+                        }
+                        break;
+                    case 'in':
+                        if (!in_array($left, $right_parts)) {
+                            $result = false;
+                        }
+                        break;
+                    case 'not-equal':
+                        if ($left === $right) {
+                            $result = false;
+                        }
+                        break;
+                    case 'not-contains':
+                        if (strpos($left, $right) !== false) {
+                            $result = false;
+                        }
+                        break;
+                    case 'not-in':
+                        if (in_array($left, $right_parts)) {
+                            $result = false;
+                        }
+                        break;
+                }
+            }
+
+            if ($result) {
+                return true;
+            }
+        }
+
+
+        return $result;
+    }
+
+    function filter($filter_data = [])
+    {
+        $this->filter_data = $filter_data;
     }
 
     private function record_time()

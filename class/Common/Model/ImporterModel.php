@@ -604,4 +604,39 @@ class ImporterModel
     {
         $this->permissions[$key] = $settings;
     }
+
+    public function getFilters()
+    {
+        $output = [];
+        $filter_data = $this->getSetting('filters');
+        if (!is_array($filter_data)) {
+            return $output;
+        }
+
+        $max_groups = isset($filter_data['filters._index']) ? intval($filter_data['filters._index']) : 0;
+        if ($max_groups <= 0) {
+            return $output;
+        }
+
+        for ($i = 0; $i < $max_groups; $i++) {
+            $group_data = [];
+            $max_rows = isset($filter_data["filters.{$i}._index"]) ? intval($filter_data["filters.{$i}._index"]) : 0;
+            if ($max_groups <= 0) {
+                continue;
+            }
+
+            for ($j = 0; $j < $max_rows; $j++) {
+
+                $group_data[] = [
+                    'left' => isset($filter_data["filters.{$i}.{$j}.left"]) ? $filter_data["filters.{$i}.{$j}.left"] : "",
+                    'condition' => isset($filter_data["filters.{$i}.{$j}.condition"]) ? $filter_data["filters.{$i}.{$j}.condition"] : "equal",
+                    'right' => isset($filter_data["filters.{$i}.{$j}.right"]) ? $filter_data["filters.{$i}.{$j}.right"] : "",
+                ];
+            }
+
+            $output[] = $group_data;
+        }
+
+        return $output;
+    }
 }

@@ -451,8 +451,8 @@ class PostTemplate extends Template implements TemplateInterface
         $group = 'taxonomies';
         $taxonomes_data = $data->getData($group);
         $total_rows = isset($taxonomes_data[$group . '._index']) ? intval($taxonomes_data[$group . '._index']) : 0;
-        $delimiter = apply_filters('iwp/value_delimiter', ',');
-        $delimiter = apply_filters('iwp/taxonomy/value_delimiter', $delimiter);
+        $base_delimiter = apply_filters('iwp/value_delimiter', ',');
+        $base_delimiter = apply_filters('iwp/taxonomy/value_delimiter', $base_delimiter);
 
         $processed_taxonomies = [];
         $term_hierarchy = [];
@@ -471,6 +471,8 @@ class PostTemplate extends Template implements TemplateInterface
             foreach ($sub_rows as $row) {
                 $tax = isset($row[$prefix . 'tax']) ? $row[$prefix . 'tax'] : null;
                 $terms = isset($row[$prefix . 'term']) ? $row[$prefix . 'term'] : null;
+
+                $delimiter = apply_filters('iwp/taxonomy=' . $tax . '/value_delimiter', $base_delimiter);
 
                 $hierarchy_enabled = isset($row[$prefix . '_hierarchy']) && $row[$prefix . '_hierarchy'] === 'yes' ? true : false;
                 $hierarchy_character = isset($row[$prefix . '_hierarchy_character']) ? $row[$prefix . '_hierarchy_character'] : null;

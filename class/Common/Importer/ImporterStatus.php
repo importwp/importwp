@@ -605,7 +605,10 @@ class ImporterStatus
         }
 
         $json_data = json_decode($line, true);
-        $result = isset($json_data['session']) && $json_data['session'] === $session ? ['start' => ftell($f), 'length' => strlen($line), 'data' => $json_data] : false;
+
+        $ftell = ftell($f);
+        $result = isset($json_data['session']) && $json_data['session'] === $session ? ['start' => $ftell > 1 ? $ftell : 0, 'length' => strlen($line), 'data' => $json_data] : false;
+
         fclose($f);
         return $result;
     }

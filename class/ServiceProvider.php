@@ -3,6 +3,7 @@
 namespace ImportWP;
 
 use ImportWP\Common\Attachment\Attachment;
+use ImportWP\Common\Cli\Cli;
 use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Ftp\Ftp;
 use ImportWP\Common\Http\Http;

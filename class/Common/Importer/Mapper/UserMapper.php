@@ -41,6 +41,10 @@ class UserMapper extends AbstractMapper implements MapperInterface
     public function exists(ParsedData $data)
     {
         $unique_fields = ['user_email', 'user_login'];
+
+        $unique_fields = $this->getUniqueIdentifiers($unique_fields);
+        $unique_fields = apply_filters('iwp/template_unique_fields', $unique_fields, $this->template, $this->importer);
+
         $unique_field_found = false;
 
         $default_group = $data->getData('default');

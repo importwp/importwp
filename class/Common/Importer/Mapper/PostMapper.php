@@ -62,7 +62,9 @@ class PostMapper extends AbstractMapper implements MapperInterface
             $unique_fields = is_string($unique_field) ? [$unique_field] : $unique_field;
         }
 
+        $unique_fields = $this->getUniqueIdentifiers($unique_fields);
         $unique_fields = apply_filters('iwp/template_unique_fields', $unique_fields, $this->template, $this->importer);
+
         $unique_field_found = false;
 
         $post_type = $this->importer->getSetting('post_type');
@@ -92,7 +94,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
                     if ($cf_index > 0) {
                         for ($i = 0; $i < $cf_index; $i++) {
                             $row = 'custom_fields.' . $i . '.';
-                            $custom_field_key = apply_filters('iwp/custom_field_key', $cf[$row . 'key'], $this->template, $this->importer);
+                            $custom_field_key = apply_filters('iwp/custom_field_key', $cf[$row . 'key'], $this->template);
                             if ($custom_field_key !== $field) {
                                 continue;
                             }
@@ -240,6 +242,12 @@ class PostMapper extends AbstractMapper implements MapperInterface
             return false;
         }
 
+        // Check to see if trash flag is set
+        $trash_status = get_post_meta($this->ID, '_iwp_trash_status', true);
+        if (!empty($trash_status)) {
+            $post['post_status'] = $trash_status;
+        }
+
         // update post type
         if (!empty($post)) {
 
@@ -295,6 +303,11 @@ class PostMapper extends AbstractMapper implements MapperInterface
         $this->add_version_tag();
         $this->template->post_process($this->ID, $data);
 
+        // Delete trash flag once post has been updated.
+        if (!empty($trash_status)) {
+            delete_post_meta($this->ID, '_iwp_trash_status');
+        }
+
         clean_post_cache($this->ID);
 
         return $this->ID;
@@ -327,7 +340,16 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
     public function delete($id)
     {
-        wp_delete_post($id, true);
+        $permissions = $this->importer->getPermission('remove');
+        $force = isset($permissions['trash']) ? !$permissions['trash'] : true; // trash = true
+        if (!$force) {
+
+            // set trash flag
+            update_post_meta($id, '_iwp_trash_status', get_post_status($id));
+            wp_trash_post($id);
+        } else {
+            wp_delete_post($id, $force);
+        }
     }
 
     /**

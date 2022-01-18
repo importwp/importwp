@@ -2,8 +2,8 @@
 Contributors: jcollings  
 Tags: import, wordpress xml importer, wordpress csv importer, xml, csv
 Requires at least: 4.0  
-Tested up to: 5.7
-Stable tag: 2.2.5
+Tested up to: 5.8
+Stable tag: 2.3.0
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -63,6 +63,13 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. ImportWP, Import history page
 
 == Changelog ==
+
+= 2.3.0 =
+
+* ADD - Add option to move posts / pages to trash instead of forceful deletion.
+* ADD - Add `iwp/custom_field_label` filter to alter custom field label on importer log.
+* ADD - Add data mapper and serialization tool.
+* ADD - Add unique identifier field on permissions step for templates using user or post mapper. 
 
 = 2.2.5 =
 

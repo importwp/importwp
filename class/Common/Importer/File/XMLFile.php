@@ -133,7 +133,7 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
     private function getNodeName($node)
     {
 
-        preg_match("/<\/?([a-zA-Z\-_\.:]+)[ ]*[^>]*>/", $node, $matches);
+        preg_match("/<\/?([a-zA-Z0-9\-_\.:]+)[ ]*[^>]*>/", $node, $matches);
         if (isset($matches[0]) && isset($matches[1])) {
             $name = $matches[1];
         } else {
@@ -369,6 +369,10 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
     {
         $namespace_attrs = '';
         $unique_matches = array();
+
+        // clear sub namespaces
+        $record = preg_replace('/xmlns[^=]*="[^"]*"/i', '', $record);
+
         $temp = $record;
 
         //        $new_regex       = '/<([^:!\/]+):[^ ]+[^>]*>/';

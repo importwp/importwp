@@ -45,4 +45,21 @@ class AbstractMapper
 
         return $this->permission;
     }
+
+    public function getUniqueIdentifiers($unique_fields = [])
+    {
+
+        // set via importer interface
+        $unique_identifier = $this->importer->getSetting('unique_identifier');
+        if (empty($unique_identifier)) {
+            return $unique_fields;
+        }
+
+        $parts = array_filter(array_map('trim', explode(',', $unique_identifier)));
+        if (empty($parts)) {
+            return $unique_fields;
+        }
+
+        return $parts;
+    }
 }
