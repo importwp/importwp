@@ -13,6 +13,11 @@ class ImporterModel
     protected $id;
 
     /**
+     * @var int $user_id
+     */
+    protected $user_id;
+
+    /**
      * @var string $name
      */
     protected $name;
@@ -150,6 +155,7 @@ class ImporterModel
                 $json = maybe_unserialize($post->post_content, true);
                 $this->id = $post->ID;
                 $this->name = $post->post_title;
+                $this->user_id = $post->post_author;
 
                 $this->template = isset($json['template']) ? $json['template'] : null;
                 $this->template_type = isset($json['template_type']) ? $json['template_type'] : null;
@@ -638,5 +644,10 @@ class ImporterModel
         }
 
         return $output;
+    }
+
+    public function getUserId()
+    {
+        return intval($this->user_id) > 0 ? intval($this->user_id) : false;
     }
 }

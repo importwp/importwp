@@ -2,6 +2,7 @@
 
 namespace ImportWP\Common\Rest;
 
+use ImportWP\Common\Exporter\ExporterManager;
 use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Http\Http;
 use ImportWP\Common\Importer\ImporterManager;
@@ -12,6 +13,7 @@ use ImportWP\Common\Importer\Preview\XMLPreview;
 use ImportWP\Common\Importer\Template\Template;
 use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Migration\Migrations;
+use ImportWP\Common\Model\ExporterModel;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Properties\Properties;
 use ImportWP\Common\Util\Logger;
@@ -40,6 +42,11 @@ class RestManager extends \WP_REST_Controller
     protected $importer_manager;
 
     /**
+     * @var ExporterManager
+     */
+    protected $exporter_manager;
+
+    /**
      * @var ImporterStatusManager
      */
     protected $importer_status_manager;
@@ -54,9 +61,10 @@ class RestManager extends \WP_REST_Controller
      */
     protected $event_handler;
 
-    public function __construct(ImporterManager $importer_manager, ImporterStatusManager $importer_status_manager, Properties $properties, Http $http, Filesystem $filesystem, TemplateManager $template_manager, $event_handler)
+    public function __construct(ImporterManager $importer_manager, ExporterManager $exporter_manager, ImporterStatusManager $importer_status_manager, Properties $properties, Http $http, Filesystem $filesystem, TemplateManager $template_manager, $event_handler)
     {
         $this->importer_manager = $importer_manager;
+        $this->exporter_manager = $exporter_manager;
         $this->importer_status_manager = $importer_status_manager;
         $this->properties = $properties;
         $this->http = $http;
@@ -267,6 +275,58 @@ class RestManager extends \WP_REST_Controller
                 'callback' => array($this, 'get_template'),
                 'permission_callback' => array($this, 'get_permission')
             )
+        ));
+
+        // Exporter
+
+        register_rest_route($namespace, '/exporter', array(
+            array(
+                'methods'             => \WP_REST_Server::CREATABLE,
+                'callback'            => array($this, 'save_exporter'),
+                'permission_callback' => array($this, 'get_permission')
+            )
+        ));
+
+        register_rest_route($namespace, '/exporters', array(
+            array(
+                'methods'             => \WP_REST_Server::READABLE,
+                'callback'            => array($this, 'get_exporters'),
+                'permission_callback' => array($this, 'get_permission')
+            ),
+        ));
+
+        register_rest_route($namespace, '/exporter/(?P<id>\d+)', array(
+            array(
+                'methods'             => \WP_REST_Server::READABLE,
+                'callback'            => array($this, 'get_exporter'),
+                'permission_callback' => array($this, 'get_permission')
+            ),
+            array(
+                'methods'             => \WP_REST_Server::EDITABLE,
+                'callback'            => array($this, 'save_exporter'),
+                'permission_callback' => array($this, 'get_permission')
+            ),
+            array(
+                'methods'             => \WP_REST_Server::DELETABLE,
+                'callback'            => array($this, 'delete_exporter'),
+                'permission_callback' => array($this, 'get_permission')
+            ),
+        ));
+
+        register_rest_route($namespace, '/exporter/(?P<id>\d+)/run', array(
+            array(
+                'methods'             => \WP_REST_Server::CREATABLE,
+                'callback'            => array($this, 'run_exporter'),
+                'permission_callback' => array($this, 'get_permission')
+            ),
+        ));
+
+        register_rest_route($namespace, '/exporter/status', array(
+            array(
+                'methods'             => \WP_REST_Server::READABLE,
+                'callback'            => array($this, 'get_exporter_status'),
+                'permission_callback' => array($this, 'get_permission')
+            ),
         ));
     }
 
@@ -1306,5 +1366,126 @@ class RestManager extends \WP_REST_Controller
         }
 
         return $this->http->end_rest_success("Import Complete, {$counter} Importer" . ($counter > 1 ? 's' : '') . '.');
+    }
+
+    public function save_exporter(\WP_REST_Request $request = null)
+    {
+        $post_data = $request->get_body_params();
+        $id = isset($post_data['id']) ? intval($post_data['id']) : null;
+
+
+        $exporter = new ExporterModel($id, $this->importer_manager->is_debug());
+
+        if (isset($post_data['name'])) {
+            $exporter->setName($post_data['name']);
+        }
+
+        if (isset($post_data['type'])) {
+            $exporter->setType($post_data['type']);
+        }
+
+        if (isset($post_data['file_type'])) {
+            $exporter->setFileType($post_data['file_type']);
+        }
+
+        if (isset($post_data['fields'])) {
+            $exporter->setFields($post_data['fields']);
+        }
+
+        if (isset($post_data['filters'])) {
+            $exporter->setFilters($post_data['filters']);
+        }
+
+        if (isset($post_data['unique_identifier'])) {
+            $exporter->setUniqueIdentifier($post_data['unique_identifier']);
+        }
+
+        $result = $exporter->save();
+        if (is_wp_error($result)) {
+            return $this->http->end_rest_error($result->get_error_message());
+        }
+        return $this->http->end_rest_success($exporter->data());
+    }
+
+    public function get_exporters(\WP_REST_Request $request = null)
+    {
+        $exporters = $this->exporter_manager->get_exporters();
+        $result = [];
+
+        foreach ($exporters as $exporter) {
+            $result[] = $exporter->data();
+        }
+
+        return $this->http->end_rest_success($result);
+    }
+
+    public function get_exporter(\WP_REST_Request $request = null)
+    {
+        $id = intval($request->get_param('id'));
+        $exporter_data = $this->exporter_manager->get_exporter($id);
+        $response = $exporter_data->data('public');
+        return $this->http->end_rest_success($response);
+    }
+
+    public function delete_exporter(\WP_REST_Request $request = null)
+    {
+        $id = intval($request->get_param('id'));
+        $this->exporter_manager->delete_exporter($id);
+        return $this->http->end_rest_success(true);
+    }
+
+    public function run_exporter(\WP_REST_Request $request)
+    {
+        $this->http->set_stream_headers();
+
+        $id       = intval($request->get_param('id'));
+        $session = $request->get_param('session');
+
+        $exporter_data = $this->exporter_manager->get_exporter($id);
+
+        $status = $this->exporter_manager->export($exporter_data, $session);
+        echo json_encode($status);
+        // Logger::write(__CLASS__  . '::run_import -import=end -status=' . $status->get_status(), $id);
+
+        // if (!empty($this->output_cache)) {
+        //     echo $this->output_cache;
+        //     $this->output_cache = '';
+        // }
+
+        // $output = $status->output();
+        // $output['msg'] = $this->generate_exporter_status_message($status);
+        // echo json_encode($output) . "\n";
+        die();
+    }
+
+    public function get_exporter_status(\WP_REST_Request $request)
+    {
+        $exporter_ids = $request->get_param('ids');
+        $result = array();
+        $query_data = array(
+            'post_type'      => EWP_POST_TYPE,
+            'posts_per_page' => -1,
+            'fields' => 'ids'
+        );
+
+        if (!empty($exporter_ids)) {
+            $query_data['post__in'] = $exporter_ids;
+        }
+
+        $query  = new \WP_Query($query_data);
+
+        if (!empty($query->posts)) {
+            foreach ($query->posts as $post_id) {
+
+                $exporter = $this->exporter_manager->get_exporter($post_id);
+                $status = $exporter->get_status();
+                $status['id'] = $post_id;
+
+                $result[] = $status;
+            }
+        }
+
+        echo json_encode($result) . "\n";
+        die();
     }
 }

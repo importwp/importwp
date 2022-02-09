@@ -408,6 +408,11 @@ class ImporterStatus
         return $this->deletes;
     }
 
+    public function get_skips()
+    {
+        return $this->skips;
+    }
+
     public function get_errors_total()
     {
         if (!empty($this->get_session_id())) {
@@ -470,6 +475,7 @@ class ImporterStatus
             'inserts' => $this->get_inserts(),
             'updates' => $this->get_updates(),
             'deletes' => $this->get_deletes(),
+            'skips' => $this->skips,
             'delete_total' => $this->delete_total,
             'total' => $this->total,
             'status' => $action == 'edit' ? $this->status : $this->get_status(),

@@ -1,41 +1,63 @@
-=== ImportWP - Import any XML or CSV File into WordPress ===
+=== Import WP - Import and Export WordPress data to XML or CSV files ===
 Contributors: jcollings  
-Tags: import, wordpress xml importer, wordpress csv importer, xml, csv
+Tags: wordpress csv import, wordpress xml import, wordpress csv export, wordpress xml export, csv, xml, bulk edit, migrate, wordpress importer, wordpress exporter, import xml file, import csv file, xml importer, csv importer, csv to wordpress, xml to wordpress
 Requires at least: 4.0  
-Tested up to: 5.8
-Stable tag: 2.3.0
+Tested up to: 5.9  
+Requires PHP: 5.4  
+Stable tag: 2.4.0  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
 
-ImportWP is a powerful importer that allows you to import WordPress posts, pages, users and custom post types from any XML or CSV file.
+Import WP is a powerful Importer & Exporter with a visual data selection tool that makes it easy to Export or Import any XML or CSV file to WordPress.
 
 == Description ==
 
-ImportWP is an Advanced WordPress CSV/XML Importer, allowing you to easily drag and drop data into import templates. ImportWP has been built with developers in mind allowing import templates to be easily created and mapped to post_types, taxonomies, users, or tables.
+Import WP makes it easy to import any xml or csv files to WordPress, and export any wordpress data to xml, csv or json.
 
-= Features =
+Import WP is a WordPress Importer and Exporter plugin that makes importing and exporting wordpress content easy, fast and straightforward.
 
-* Import from XML and CSV files.
-* Import WordPress Users.
-* Import WordPress Posts and Pages.
-* Import WordPress Categories and Tags.
-* Import WordPress Attachments.
-* Permissions to control what can be imported.
-* Import Custom Fields **(Requires Pro)**
-* Import to Custom Post Types  **(Requires Pro)**
-* Import to custom Taxonomies **(Requires Pro)**
-* Schedule Imports  **(Requires Pro)**
+Each import has been optimised to the following steps:
 
-ImportWP is a base for importing files into WordPress which can be extended upon to create custom templates and parsers specific to your needs, for more details [view the documentation](https://www.importwp.com/documentation/).
+1. Attach an XML or CSV file.
+2. Select each part of a WordPress post, page, category, taxonomy or user and mapping it to the file.
+3. Set what is used to identify each record, and select what the importer can insert, update and delete.
+4. Run the importer.
+
+Import WP importer fully supports all core WordPress data types such as Posts, Pages, Attachments, Tags, Categories, and Users. This means you can easily import data from any xml or csv into all core WordPress data types using our data selection tool to visually map every field.
+
+Each export is comprised of the following steps:
+
+1. Select what WordPress fields should be exported.
+2. Select the desired output format.
+3. Run the exporter.
+
+Import WP exporter allows you to export posts, pages, custom post types, attachment urls and details, tags, categories, custom taxonomies, users, and custom fields. This means you can easily generate csv, xml or json files containing only the data you need.
+
+**What if you want to import xml or csv to custom post types, custom fields or custom taxonomies?**
+
+[With the pro version of Import WP](https://www.importwp.com/pricing/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting), you can import xml or csv to any custom post types, custom fields or custom taxonomies created by themes or plugins.
+
+
+**What is Pro?**
+
+The Pro version adds the following extra features:
+
+* Import any post type, taxonomy or user custom fields.
+* Import WordPress custom post types.
+* Import WordPress custom taxonomies
+* Speed imports by importing chunks in parallel using the WordPress cron system.
+* Schedule importers
+
+Find out more [about Import WP Pro on our websie](https://www.importwp.com/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting).
 
 == Installation ==
 
 1. Upload 'jc-importer' to the '/wp-content/plugins/' directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. A new menu item under Tools > ImportWP should appear where you can access the plugin.
+3. A new menu item under Tools > Import WP should appear where you can access the plugin.
 
-For further documentation on installing and using ImportWP features can be found [here](https://www.importwp.com/documentation/).
+For further documentation on installing and using Import WP features can be found [here](https://www.importwp.com/documentation/).
 
 == Frequently Asked Questions ==
 
@@ -57,12 +79,17 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 
 == Screenshots ==
 
-1. ImportWP, New importer screen
-2. ImportWP, Post template setup screen
-3. ImportWP, Run import page
-4. ImportWP, Import history page
+1. Import WP, New importer screen
+2. Import WP, Post template setup screen
+3. Import WP, Run import page
+4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.4.0 =
+
+* ADD - Added new exporter section to interface, allowing the exporting of wordpress data to XML / CSV / JSON.
+* FIX - Fix upload error causing white screen.
 
 = 2.3.0 =
 
@@ -154,8 +181,8 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 
 = 1.1.6 =
 
-* FIX - Post Deletion Vulnerability in ImportWP.
-* FIX - Add tool to reset ImportWP database.
+* FIX - Post Deletion Vulnerability in Import WP.
+* FIX - Add tool to reset Import WP database.
 * FIX - Display errors when processing file fails.
 
 = 1.1.5 =
@@ -192,7 +219,7 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 
 = 1.1.0 - 16/01/2019 =
 
-* FIX - ImportWP XMLFile reader, stop xml parsing CDATA
+* FIX - Import WP XMLFile reader, stop xml parsing CDATA
 * ADD - Introduce new methods to make building templates easier
 * EDIT - Re-Structure libs folder.
 
@@ -259,7 +286,7 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 
 = 0.3 - 26/03/2017 =
 
-* Rename plugin to ImportWP
+* Rename plugin to Import WP
 * Fix Broken unit tests, make it work with WP 4.7.3
 * Simplify Creation Process
 

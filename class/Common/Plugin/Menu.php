@@ -2,6 +2,10 @@
 
 namespace ImportWP\Common\Plugin;
 
+use ImportWP\Common\Exporter\Mapper\CommentMapper;
+use ImportWP\Common\Exporter\Mapper\PostMapper;
+use ImportWP\Common\Exporter\Mapper\TaxMapper;
+use ImportWP\Common\Exporter\Mapper\UserMapper;
 use ImportWP\Common\Importer\ImporterManager;
 use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Migration\Migrations;
@@ -42,7 +46,7 @@ class Menu
 
     public function register_tools_menu()
     {
-        $title = __('ImportWP', $this->properties->plugin_domain);
+        $title = __('Import WP', $this->properties->plugin_domain);
 
         $hook_suffix = add_management_page($title, $title, 'export', $this->properties->plugin_domain, array(
             $this->view_manager,
@@ -107,7 +111,8 @@ class Menu
             'plugin_url' => plugin_dir_url($this->properties->plugin_file_path),
             'version' => $this->properties->plugin_version,
             'encodings' => $this->properties->encodings,
-            'is_pro' => $this->properties->is_pro ? 'yes' : 'no'
+            'is_pro' => $this->properties->is_pro ? 'yes' : 'no',
+            'export_fields' => $this->get_export_fields()
         ));
 
         wp_enqueue_script($this->properties->plugin_domain . '-bundle');
@@ -118,6 +123,53 @@ class Menu
         $this->load_help_tabs();
     }
 
+    private function get_export_fields()
+    {
+
+        $fields = array();
+        $comments = array();
+
+        $post_types = get_post_types();
+        foreach ($post_types as $post_type => $label) {
+            $mapper = new PostMapper($post_type);
+            $fields[] = array(
+                'id' => $post_type,
+                'label' => 'Post Type: ' . $label,
+                'fields' => $mapper->get_fields()
+            );
+
+            if (post_type_supports($post_type, 'comments')) {
+                $mapper = new CommentMapper($post_type);
+                $comments[] = array(
+                    'id' => 'ewp_comment_' . $post_type,
+                    'label' => 'Comments: ' . $label,
+                    'fields' => $mapper->get_fields()
+                );
+            }
+        }
+
+        $fields = array_merge($fields, $comments);
+
+        $mapper = new UserMapper();
+        $fields[] = array(
+            'id' => 'user',
+            'label' => 'Users',
+            'fields' => $mapper->get_fields()
+        );
+
+        $taxonomies = get_taxonomies(array(), 'objects');
+        foreach ($taxonomies as $taxonomy) {
+            $mapper = new TaxMapper($taxonomy->name);
+            $fields[] = array(
+                'id' => 'ewp_tax_' . $taxonomy->name,
+                'label' => 'Taxonomy: ' . $taxonomy->labels->name,
+                'fields' => $mapper->get_fields()
+            );
+        }
+
+        return $fields;
+    }
+
     private function load_help_tabs()
     {
         $screen = get_current_screen();
@@ -125,14 +177,14 @@ class Menu
         $screen->add_help_tab(array(
             'id'    => 'iwp_help_tab',
             'title' => __('Overview'),
-            'content'   => '<p>' . __('ImportWP allows you to import any XML or CSV file into WordPress posts, pages, users, categories and tags.', 'importwp') . '</p>',
+            'content'   => '<p>' . __('Import WP allows you to import any XML or CSV file into WordPress posts, pages, users, categories and tags.', 'importwp') . '</p>',
         ));
 
         $screen->add_help_tab([
             'id' => 'iwp_support_tab',
             'title' => __('Plugin Support', 'importwp'),
-            'content' => '<p>' . __('ImportWP  has the following support:', 'importwp') . '</p>'
-                . '<p>' . __('<strong>Plugin documentation</strong> — Online documentation can be found at <a href="https://www.importwp.com/documentation/" target="_blank">https://www.importwp.com/documentation/</a>', 'importwp') . '</p>'
+            'content' => '<p>' . __('Import WP  has the following support:', 'importwp') . '</p>'
+                . '<p>' . __('<strong>Plugin documentation</strong> — Online documentation can be found at <a href="https://www.importwp.com/documentation/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=help%2Btab" target="_blank">https://www.importwp.com/documentation/</a>', 'importwp') . '</p>'
                 . '<p>' . __('<strong>Support Tickets</strong> — Support requests are handled on our support system at <a href="https://support.jclabs.co.uk/" target="_blank">https://support.jclabs.co.uk/</a>', 'importwp') . '</p>',
         ]);
     }

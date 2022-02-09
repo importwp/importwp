@@ -110,6 +110,20 @@ class ImporterManager
         return false;
     }
 
+    public function set_current_user($id)
+    {
+        $importer_model = $this->get_importer($id);
+        $user_id = $importer_model->getUserId();
+
+        Logger::write(__CLASS__ . '::set_current_user -user=' . $user_id, $importer_model->getId());
+
+        if ($user_id) {
+            return wp_set_current_user($user_id);
+        }
+
+        return false;
+    }
+
     /**
      * Delete Importer
      *
@@ -252,8 +266,9 @@ class ImporterManager
 
     public function upload_file($id, $file)
     {
-
         $importer = $this->get_importer($id);
+        Logger::setId($importer->getId());
+
         $allowed_file_types = $this->event_handler->run('importer.allowed_file_types', [$importer->getAllowedFileTypes()]);
         $result = $this->filesystem->upload_file($file, $allowed_file_types);
 
@@ -272,6 +287,8 @@ class ImporterManager
     public function remote_file($id, $source, $filetype = null)
     {
         $importer = $this->get_importer($id);
+        Logger::setId($importer->getId());
+
         $allowed_file_types = $this->event_handler->run('importer.allowed_file_types', [$importer->getAllowedFileTypes()]);
         $prefix = $this->get_importer_file_prefix($importer);
         $result = $this->filesystem->download_file($source, $filetype, $allowed_file_types, null, $prefix);
@@ -291,6 +308,8 @@ class ImporterManager
     public function local_file($id, $source)
     {
         $importer = $this->get_importer($id);
+        Logger::setId($importer->getId());
+
         $allowed_file_types = $this->event_handler->run('importer.allowed_file_types', [$importer->getAllowedFileTypes()]);
         $prefix = $this->get_importer_file_prefix($importer);
         $result = $this->filesystem->copy_file($source, $allowed_file_types, null, $prefix);
@@ -321,6 +340,7 @@ class ImporterManager
     private function insert_file_attachment($id, $file_path, $file_type)
     {
         $importer_model = $this->get_importer($id);
+        Logger::setId($importer_model->getId());
 
         // Allow the modification of file path
         $file_path = wp_normalize_path($file_path);

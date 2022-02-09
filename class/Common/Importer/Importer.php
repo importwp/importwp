@@ -444,12 +444,12 @@ class Importer
 
                 switch ($row['condition']) {
                     case 'equal':
-                        if ($left !== $right) {
+                        if ($left != $right) {
                             $result = false;
                         }
                         break;
                     case 'contains':
-                        if (strpos($left, $right) === false) {
+                        if (stripos($left, $right) === false) {
                             $result = false;
                         }
                         break;
@@ -459,12 +459,12 @@ class Importer
                         }
                         break;
                     case 'not-equal':
-                        if ($left === $right) {
+                        if ($left == $right) {
                             $result = false;
                         }
                         break;
                     case 'not-contains':
-                        if (strpos($left, $right) !== false) {
+                        if (stripos($left, $right) !== false) {
                             $result = false;
                         }
                         break;
