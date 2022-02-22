@@ -294,6 +294,14 @@ class Template extends AbstractTemplate
                 'condition' => ['_download', '==', 'local'],
                 'tooltip' => __('Enter the base path from this servers root file system, this is prefixed onto the Location field, leave empty to be ignore', 'importwp')
             ]),
+            $this->register_field('Permissions', '_enable_image_hash', [
+                'default' => 'yes',
+                'options' => [
+                    ['value' => 'no', 'label' => 'Always download new files'],
+                    ['value' => 'yes', 'label' => 'Search media library before downloading new files'],
+                ],
+                'tooltip' => __('Enable to stop duplicate images by searching the media library before downloading new files.', 'importwp')
+            ]),
             $this->register_group('Attachment Meta', '_meta', [
                 $this->register_field('Enable Meta', '_enabled', [
                     'default' => 'no',
@@ -417,6 +425,8 @@ class Template extends AbstractTemplate
 
     public function pre_process_groups(ParsedData $data)
     {
+        // Allows virtual groups to be registered
+        $this->groups = $this->event_handler->run('template.pre_process_groups', [$this->groups, $data, $this]);
 
         $map = $data->getData('default');
         foreach ($this->groups as $group) {
@@ -459,6 +469,8 @@ class Template extends AbstractTemplate
         $attachment_captions = isset($row[$row_prefix . '_meta._caption']) ? explode($meta_delimiter, $row[$row_prefix . '_meta._caption']) : null;
         $attachment_descriptions = isset($row[$row_prefix . '_meta._description']) ? explode($meta_delimiter, $row[$row_prefix . '_meta._description']) : null;
 
+        $attachment_enable_image_hash = isset($row[$row_prefix . '_enable_image_hash']) ? $row[$row_prefix . '_enable_image_hash'] : 'yes';
+
         $attachment_ids = [];
         $location_counter = 0;
         foreach ($location_parts as $location) {
@@ -488,7 +500,11 @@ class Template extends AbstractTemplate
 
                     $custom_filename = apply_filters('iwp/attachment/filename', null, $source);
 
-                    $attachment_id = $attachment->get_attachment_by_hash($source);
+                    $attachment_id = 0;
+                    if ($attachment_enable_image_hash == 'yes') {
+                        $attachment_id = $attachment->get_attachment_by_hash($source);
+                    }
+
                     if ($attachment_id <= 0) {
                         Logger::write(__CLASS__ . '::process__attachments -remote=' . $source . ' -filename=' . $custom_filename);
                         $result = $filesystem->download_file($source, null, null, $custom_filename);
@@ -508,7 +524,11 @@ class Template extends AbstractTemplate
 
                     $custom_filename = apply_filters('iwp/attachment/filename', null, $source);
 
-                    $attachment_id = $attachment->get_attachment_by_hash($source);
+                    $attachment_id = 0;
+                    if ($attachment_enable_image_hash == 'yes') {
+                        $attachment_id = $attachment->get_attachment_by_hash($source);
+                    }
+
                     if ($attachment_id <= 0) {
                         Logger::write(__CLASS__ . '::process__attachments -ftp=' . $source . ' -filename=' . $custom_filename);
                         $result = $ftp->download_file($source, $ftp_host, $ftp_user, $ftp_pass, $custom_filename);
@@ -525,7 +545,10 @@ class Template extends AbstractTemplate
 
                     $custom_filename = apply_filters('iwp/attachment/filename', null, $source);
                     $attachment_salt = file_exists($source) ? md5_file($source) : '';
-                    $attachment_id = $attachment->get_attachment_by_hash($source, $attachment_salt);
+                    $attachment_id = 0;
+                    if ($attachment_enable_image_hash == 'yes') {
+                        $attachment_id = $attachment->get_attachment_by_hash($source, $attachment_salt);
+                    }
                     if ($attachment_id <= 0) {
                         Logger::write(__CLASS__ . '::process__attachments -local=' . $source . ' -filename=' . $custom_filename);
                         $result = $filesystem->copy_file($source, null, $custom_filename);

@@ -18,7 +18,7 @@ function iwp_loaded()
         return;
     }
 
-    if (function_exists(('import_wp'))) {
+    if (function_exists('import_wp')) {
         import_wp();
     }
 }

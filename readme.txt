@@ -4,7 +4,7 @@ Tags: wordpress csv import, wordpress xml import, wordpress csv export, wordpres
 Requires at least: 4.0  
 Tested up to: 5.9  
 Requires PHP: 5.4  
-Stable tag: 2.4.0  
+Stable tag: 2.4.1  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -85,6 +85,12 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.4.1 =
+
+* ADD - Attachment fields now have an option to fetch fresh images, instead of always using a found image from media library.
+* ADD - export parent id, slug, and names for taxonomies.
+* FIX - Tweak interface, and add upgrade notice to importer page.
 
 = 2.4.0 =
 

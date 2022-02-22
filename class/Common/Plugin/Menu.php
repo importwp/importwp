@@ -73,12 +73,11 @@ class Menu
 
     public function load_assets()
     {
-        wp_register_script($this->properties->plugin_domain . '-bundle', plugin_dir_url($this->properties->plugin_file_path) . 'dist/js/bundle.js', array(), $this->properties->plugin_version, 'all');
+        wp_register_script($this->properties->plugin_domain . '-bundle', plugin_dir_url($this->properties->plugin_file_path) . 'dist/base/js/bundle.js', array(), $this->properties->plugin_version, 'all');
 
         $matches = false;
         preg_match('/^https?:\/\/[^\/]+(.*?)$/', admin_url('/tools.php?page=' . $this->properties->plugin_domain), $matches);
         $ajax_base = $matches[1];
-
 
         /**
          * Generate template data
@@ -101,7 +100,7 @@ class Menu
         $migrations = new Migrations();
         $is_setup = $migrations->isSetup() ? 'yes' : 'no';
 
-        wp_localize_script($this->properties->plugin_domain . '-bundle', 'wpApiSettings', array(
+        wp_localize_script($this->properties->plugin_domain . '-bundle', 'iwp', array(
             'root' => esc_url_raw(rest_url()),
             'nonce' => wp_create_nonce('wp_rest'),
             'admin_base' => $ajax_base,
@@ -112,13 +111,13 @@ class Menu
             'version' => $this->properties->plugin_version,
             'encodings' => $this->properties->encodings,
             'is_pro' => $this->properties->is_pro ? 'yes' : 'no',
-            'export_fields' => $this->get_export_fields()
+            'export_fields' => $this->get_export_fields(),
+            'registered_addons' => apply_filters('iwp/register_js', [])
         ));
 
         wp_enqueue_script($this->properties->plugin_domain . '-bundle');
-        wp_add_inline_script($this->properties->plugin_domain . '-bundle', '', 'before');
 
-        wp_enqueue_style($this->properties->plugin_domain . '-bundle-styles', plugin_dir_url($this->properties->plugin_file_path) . 'dist/css/style.bundle.css', array(), $this->properties->plugin_version, 'all');
+        wp_enqueue_style($this->properties->plugin_domain . '-bundle-styles', plugin_dir_url($this->properties->plugin_file_path) . 'dist/base/css/style.bundle.css', array(), $this->properties->plugin_version, 'all');
 
         $this->load_help_tabs();
     }

@@ -6,6 +6,7 @@ use ImportWP\Common\Exporter\MapperInterface;
 
 class TaxMapper extends AbstractMapper implements MapperInterface
 {
+
     private $taxonomy;
 
     /**
@@ -18,7 +19,7 @@ class TaxMapper extends AbstractMapper implements MapperInterface
         return array(
             'term_id',
             'name',
-            'slug'
+            'slug',
         );
     }
 
@@ -40,7 +41,18 @@ class TaxMapper extends AbstractMapper implements MapperInterface
             $custom_fields[] = 'ewp_cf_' . $field;
         }
 
-        return array_merge($core, $custom_fields);
+        $custom_fields = apply_filters('iwp/exporter/taxonomy/custom_field_list', $custom_fields, $this->taxonomy);
+
+        $tax_fields = [
+            'parent_id',
+            'parent_slug',
+            'parent_name',
+            'parent_anscestors_id',
+            'parent_anscestors_slug',
+            'parent_anscestors_name',
+        ];
+
+        return array_merge($core, $tax_fields, $custom_fields);
     }
 
     public function have_records()
@@ -95,8 +107,55 @@ class TaxMapper extends AbstractMapper implements MapperInterface
 
             if (in_array($column, $core, true)) {
                 $output = $record->{$column};
+            } else {
+                switch ($column) {
+                    case 'parent_id':
+                        /**
+                         * @var \WP_Term $record
+                         */
+                        $parent = get_term($record->parent, $this->taxonomy);
+                        if (!is_wp_error($parent)) {
+                            $output = $parent->term_id;
+                        }
+                        break;
+                    case 'parent_slug':
+                        $parent = get_term($record->parent, $this->taxonomy);
+                        if (!is_wp_error($parent)) {
+                            $output = $parent->slug;
+                        }
+                        break;
+                    case 'parent_name':
+                        $parent = get_term($record->parent, $this->taxonomy);
+                        if (!is_wp_error($parent)) {
+                            $output = $parent->name;
+                        }
+                        break;
+                    case 'parent_anscestors_id':
+                        $parents = get_ancestors($record->term_id, $this->taxonomy, 'taxonomy');
+                        $output = implode(' > ', $parents);
+                        break;
+                    case 'parent_anscestors_slug':
+                        $parents = get_ancestors($record->term_id, $this->taxonomy, 'taxonomy');
+                        $parents = array_filter(array_map(function ($item) {
+                            $term = get_term($item, $this->taxonomy);
+                            return !is_wp_error($term) ? $term->slug : '';
+                        }, $parents));
+                        $output = implode(' > ', $parents);
+                        break;
+                    case 'parent_anscestors_name':
+                        $parents = get_ancestors($record->term_id, $this->taxonomy, 'taxonomy');
+                        $parents = array_filter(array_map(function ($item) {
+                            $term = get_term($item, $this->taxonomy);
+                            return !is_wp_error($term) ? $term->name : '';
+                        }, $parents));
+
+                        $output = implode(' > ', $parents);
+                        break;
+                }
             }
         }
+
+        $output = apply_filters('iwp/exporter/taxonomy/value', $output, $column, $record, $meta);
         return $output;
     }
 }

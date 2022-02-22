@@ -94,7 +94,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
                     if ($cf_index > 0) {
                         for ($i = 0; $i < $cf_index; $i++) {
                             $row = 'custom_fields.' . $i . '.';
-                            $custom_field_key = apply_filters('iwp/custom_field_key', $cf[$row . 'key'], $this->template);
+                            $custom_field_key = apply_filters('iwp/custom_field_key', $cf[$row . 'key']);
                             if ($custom_field_key !== $field) {
                                 continue;
                             }
