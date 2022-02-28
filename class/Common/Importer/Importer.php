@@ -64,7 +64,10 @@ class Importer
 
     private $filter_data = [];
 
-    public function __construct(ConfigInterface $config)
+    /**
+     * @param ConfigInterface $config
+     */
+    public function __construct($config)
     {
         $this->config = $config;
     }
@@ -76,7 +79,7 @@ class Importer
      *
      * @return $this
      */
-    public function parser(ParserInterface $parser)
+    public function parser($parser)
     {
         $this->parser = $parser;
 
@@ -444,32 +447,75 @@ class Importer
 
                 switch ($row['condition']) {
                     case 'equal':
-                        if ($left != $right) {
+                        if (strcasecmp($left, $right) !== 0) {
                             $result = false;
                         }
                         break;
                     case 'contains':
-                        if (stripos($left, $right) === false) {
+                        if (stripos($right, $left) === false) {
                             $result = false;
                         }
                         break;
                     case 'in':
-                        if (!in_array($left, $right_parts)) {
+                        $found = false;
+                        foreach ($right_parts as $right_part) {
+                            if (strcasecmp($right_part, $left) === 0) {
+                                $found = true;
+                                break 1;
+                            }
+                        }
+
+                        if (!$found) {
+                            $result = false;
+                        }
+                        break;
+                    case 'contains-in':
+                        $found = false;
+                        foreach ($right_parts as $right_part) {
+                            if (stripos($right_part, $left) !== false) {
+                                $found = true;
+                                break 1;
+                            }
+                        }
+
+                        if (!$found) {
                             $result = false;
                         }
                         break;
                     case 'not-equal':
-                        if ($left == $right) {
+                        if (strcasecmp($left, $right) === 0) {
                             $result = false;
                         }
                         break;
                     case 'not-contains':
-                        if (stripos($left, $right) !== false) {
+                        if (stripos($right, $left) !== false) {
                             $result = false;
                         }
                         break;
                     case 'not-in':
-                        if (in_array($left, $right_parts)) {
+                        $found = false;
+                        foreach ($right_parts as $right_part) {
+                            if (strcasecmp($right_part, $left) === 0) {
+                                $found = true;
+                                break 1;
+                            }
+                        }
+
+                        if ($found) {
+                            $result = false;
+                        }
+
+                        break;
+                    case 'not-contains-in':
+                        $found = false;
+                        foreach ($right_parts as $right_part) {
+                            if (stripos($left, $right_part) !== false) {
+                                $found = true;
+                                break 1;
+                            }
+                        }
+
+                        if ($found) {
                             $result = false;
                         }
                         break;
