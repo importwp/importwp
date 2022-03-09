@@ -23,6 +23,8 @@ class UserMapper extends AbstractMapper implements MapperInterface
             $custom_fields[] = 'ewp_cf_' . $field;
         }
 
+        $custom_fields = apply_filters('iwp/exporter/user/custom_field_list', $custom_fields, null);
+
         return array_merge($core_fields, $custom_fields);
     }
 
@@ -96,6 +98,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
             }
         }
 
+        $output = apply_filters('iwp/exporter/user/value', $output, $column, $record, $meta);
         return $output;
     }
 }

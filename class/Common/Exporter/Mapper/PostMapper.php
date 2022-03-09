@@ -72,6 +72,8 @@ class PostMapper extends AbstractMapper implements MapperInterface
             $custom_fields[] = 'ewp_cf_' . $field;
         }
 
+        $custom_fields = apply_filters('iwp/exporter/post_type/custom_field_list', $custom_fields, $this->post_type);
+
         // taxonomies
         $taxonomies = get_object_taxonomies($this->post_type, 'objects');
         foreach ($taxonomies as $tax) {
@@ -79,6 +81,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
             $custom_fields[] = 'ewp_tax_' . $tax->name . '_slug';
             $custom_fields[] = 'ewp_tax_' . $tax->name . '_id';
         }
+
 
         return array_merge($core_fields, $custom_fields);
     }
@@ -239,6 +242,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
             }
         }
 
+        $output = apply_filters('iwp/exporter/post_type/value', $output, $column, $record, $meta);
         return $output;
     }
 }

@@ -52,6 +52,8 @@ class CommentMapper extends AbstractMapper implements MapperInterface
             $custom_fields[] = 'ewp_cf_' . $field;
         }
 
+        $custom_fields = apply_filters('iwp/exporter/comment/custom_field_list', $custom_fields, $this->post_type);
+
         return array_merge($core, $custom_fields);
     }
 
@@ -105,6 +107,8 @@ class CommentMapper extends AbstractMapper implements MapperInterface
                 $output = $record->{$column};
             }
         }
+
+        $output = apply_filters('iwp/exporter/comment/value', $output, $column, $record, $meta);
         return $output;
     }
 }
