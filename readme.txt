@@ -4,7 +4,7 @@ Tags: wordpress csv import, wordpress xml import, wordpress csv export, wordpres
 Requires at least: 4.0  
 Tested up to: 5.9  
 Requires PHP: 5.4  
-Stable tag: 2.4.4  
+Stable tag: 2.4.5  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -85,6 +85,10 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.4.5 =
+
+* ADD - New "Media Library" option added to attachment download field, allowing you to search for attachments previously uploaded to your media library.
 
 = 2.4.4 = 
 

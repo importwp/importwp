@@ -267,6 +267,7 @@ class Template extends AbstractTemplate
                     ['value' => 'remote', 'label' => 'Remote URL'],
                     ['value' => 'ftp', 'label' => 'FTP'],
                     ['value' => 'local', 'label' => 'Local Filesystem'],
+                    ['value' => 'media', 'label' => 'Media Library'],
                 ],
                 'tooltip' => __('Select how the attachment is being downloaded.', 'importwp')
             ]),
@@ -295,6 +296,7 @@ class Template extends AbstractTemplate
                 'tooltip' => __('Enter the base path from this servers root file system, this is prefixed onto the Location field, leave empty to be ignore', 'importwp')
             ]),
             $this->register_field('Permissions', '_enable_image_hash', [
+                'condition' => ['_download', '!=', 'media'],
                 'default' => 'yes',
                 'options' => [
                     ['value' => 'no', 'label' => 'Always download new files'],
@@ -553,6 +555,16 @@ class Template extends AbstractTemplate
                         Logger::write(__CLASS__ . '::process__attachments -local=' . $source . ' -filename=' . $custom_filename);
                         $result = $filesystem->copy_file($source, null, $custom_filename);
                     }
+                    break;
+                case 'media':
+                    $source = $location;
+                    if (empty($source)) {
+                        continue 2;
+                    }
+
+                    $attachment_id = $attachment->attachment_partial_url_to_postid($source);
+                    Logger::write(__CLASS__ . '::process__attachments -media=' . $source);
+
                     break;
             }
 
