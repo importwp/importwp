@@ -649,6 +649,15 @@ class ImporterManager
 
             $template->unregister_hooks();
 
+            /**
+             * @var Properties $properties
+             */
+            $properties = Container::getInstance()->get('properties');
+
+            // rotate files to not fill up server
+            $importer_data->limit_importer_files($properties->file_rotation);
+            $this->importer_status_manager->prune_importer_logs($importer_data, $properties->log_rotation);
+
             Logger::write(__CLASS__ . '::import -complete', $importer_data->getId());
         } catch (\Exception $e) {
 

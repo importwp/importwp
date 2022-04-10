@@ -64,6 +64,53 @@ class ImporterStatusManager
         return $lines;
     }
 
+    public function prune_importer_logs(ImporterModel $importer_data, $limit)
+    {
+        $limit = intval($limit);
+        if ($limit <= -1) {
+            return;
+        }
+
+        $file_path = $this->get_status_file($importer_data->getId());
+        $tmp_file_path = $this->get_status_file($importer_data->getId()) . '.tmp';
+        $lines = $this->get_importer_logs($importer_data);
+
+        if (count($lines) > $limit) {
+
+            require_once(ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php');
+            require_once(ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php');
+            $fileSystemDirect = new \WP_Filesystem_Direct(false);
+
+            $fh = fopen($tmp_file_path, 'w');
+            for ($i = 0; $i < count($lines); $i++) {
+
+                if ($i < count($lines) - $limit) {
+                    $log_file_path = $this->get_log_file($importer_data->getId(), $lines[$i]['session']);
+                    if ($fileSystemDirect->exists($log_file_path)) {
+
+                        $fileSystemDirect->delete($log_file_path);
+
+                        $tmp = $log_file_path;
+                        for ($j = 0; $j < 3; $j++) {
+                            $tmp = dirname($tmp);
+                            $sub_files = $fileSystemDirect->dirlist($log_file_path);
+                            if (empty($sub_files)) {
+                                $fileSystemDirect->rmdir($tmp);
+                            }
+                        }
+                    }
+                } else {
+                    fputs($fh, json_encode($lines[$i]) . "\n");
+                }
+            }
+            fclose($fh);
+
+            if ($fileSystemDirect->move($tmp_file_path, $file_path, true)) {
+                $fileSystemDirect->delete($tmp_file_path);
+            }
+        }
+    }
+
     public function get_importer_log(ImporterModel $importer_data, $session_id, $page = 0, $per_page = -1)
     {
         $file_path = $this->get_log_file($importer_data->getId(), $session_id);

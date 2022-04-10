@@ -115,6 +115,18 @@ class Filesystem
 
         $wp_upload_dir = wp_upload_dir();
         $filename = !empty($override_filename) ? $override_filename : $prefix . basename($remote_url_temp);
+
+        // force extension of file if it doesnt match 
+        if ($filetype === 'xml') {
+            if (preg_match('/\.xml$/', $filename) === 0) {
+                $filename .= '.xml';
+            }
+        } elseif ($filetype === 'csv') {
+            if (preg_match('/\.csv$/', $filename) === 0) {
+                $filename .= '.csv';
+            }
+        }
+
         $dest    = wp_unique_filename($wp_upload_dir['path'], $filename);
         $wp_dest = $wp_upload_dir['path'] . '/' . $dest;
         touch($wp_dest);

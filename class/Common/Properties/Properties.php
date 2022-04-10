@@ -20,6 +20,7 @@ class Properties
     public $chunk_limit;
     public $chunk_size;
     public $file_rotation;
+    public $log_rotation;
 
     public $rest_version;
     public $rest_namespace;
@@ -44,6 +45,7 @@ class Properties
         $this->chunk_limit = absint(apply_filters('iwp/chunk_limit', $this->get_setting('chunk_limit')));
         $this->chunk_size = absint(apply_filters('iwp/chunk_size', $this->get_setting('chunk_size')));
         $this->file_rotation = intval(apply_filters('iwp/file_rotation', $this->get_setting('file_rotation')));
+        $this->log_rotation = intval(apply_filters('iwp/log_rotation', $this->get_setting('log_rotation')));
     }
 
     protected function get_available_encodings()
@@ -70,6 +72,10 @@ class Properties
             'file_rotation' => [
                 'type' => 'number',
                 'value' => 5
+            ],
+            'log_rotation' => [
+                'type' => 'number',
+                'value' => -1
             ],
             'chunk_limit' => [
                 'type' => 'number',
