@@ -118,11 +118,11 @@ class Filesystem
 
         // force extension of file if it doesnt match 
         if ($filetype === 'xml') {
-            if (preg_match('/\.xml$/', $filename) === 0) {
+            if (preg_match('/\.(xml|zip|gz)$/', $filename) === 0) {
                 $filename .= '.xml';
             }
         } elseif ($filetype === 'csv') {
-            if (preg_match('/\.csv$/', $filename) === 0) {
+            if (preg_match('/\.(csv|zip|gz)$/', $filename) === 0) {
                 $filename .= '.csv';
             }
         }

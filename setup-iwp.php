@@ -1,4 +1,5 @@
 <?php
+
 function import_wp()
 {
     global $iwp;
@@ -23,3 +24,17 @@ function iwp_loaded()
     }
 }
 add_action('plugins_loaded', 'iwp_loaded');
+
+/**
+ * Register IWP Addon
+ *
+ * @param string $name
+ * @param string $id
+ * @param callable(AddonInterface) $callback
+ * 
+ * @return ImportWP\Common\Addon\AddonInterface
+ */
+function iwp_register_importer_addon($name, $id, $callback)
+{
+    new ImportWP\Common\Addon\AddonBase($name, $id, $callback);
+}
