@@ -163,7 +163,7 @@ class ImporterModel
                 $this->mapper = isset($json['mapper']) ? $json['mapper'] : null;
                 $this->map = isset($json['map']) ? $json['map'] : [];
                 $this->enabled = isset($json['enabled']) ? $json['enabled'] : [];
-                $this->file_id = intval($json['file']['id']);
+                $this->file_id = isset($json['file'], $json['file']['id']) ? intval($json['file']['id']) : 0;
                 if ($this->file_id > 0) {
                     $this->file = $this->get_attached_file($this->file_id);
                 }

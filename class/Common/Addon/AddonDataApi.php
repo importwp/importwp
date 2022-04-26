@@ -36,8 +36,11 @@ class AddonDataApi
         return $this->_section_id;
     }
 
-    public function data()
+    public function data($key = false)
     {
+        if ($key) {
+            return isset($this->_data[$key]) ? $this->_data[$key] : false;
+        }
         return $this->_data;
     }
 

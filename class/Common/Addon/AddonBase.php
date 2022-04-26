@@ -432,7 +432,7 @@ final class AddonBase implements AddonInterface
         $this->_panels_callback = $callback;
     }
 
-    public function store_meta($section_id, $id, $key, $value, $i = 0)
+    public function store_meta($section_id, $id, $key, $value, $i = false)
     {
         if (!isset($this->_meta[$section_id])) {
             $this->_meta[$section_id] = [];

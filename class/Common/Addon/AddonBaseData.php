@@ -24,8 +24,12 @@ class AddonBaseData
         return $this->_addon;
     }
 
-    public function data()
+    public function data($key = false)
     {
+        if ($key) {
+            return isset($this->_data[$key]) ? $this->_data[$key] : false;
+        }
+
         return $this->_data;
     }
 

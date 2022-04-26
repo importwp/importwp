@@ -441,7 +441,7 @@ class Importer
 
             foreach ($group as $row) {
 
-                $left = $this->parser->query_string($row['left']);
+                $left = trim($this->parser->query_string($row['left']));
                 $right = $row['right'];
                 $right_parts = array_map('trim', explode(',', $right));
 
@@ -452,27 +452,28 @@ class Importer
                         }
                         break;
                     case 'contains':
-                        if (stripos($right, $left) === false) {
+                        if (stripos($left, $right) === false) {
                             $result = false;
                         }
                         break;
                     case 'in':
                         $found = false;
                         foreach ($right_parts as $right_part) {
-                            if (strcasecmp($right_part, $left) === 0) {
+                            if (strcasecmp($left, $right_part) === 0) {
                                 $found = true;
                                 break 1;
                             }
                         }
 
-                        if (!$found) {
+                        if(!$found){
                             $result = false;
                         }
+
                         break;
                     case 'contains-in':
                         $found = false;
                         foreach ($right_parts as $right_part) {
-                            if (stripos($right_part, $left) !== false) {
+                            if (stripos($left, $right_part) !== false) {
                                 $found = true;
                                 break 1;
                             }
@@ -488,7 +489,7 @@ class Importer
                         }
                         break;
                     case 'not-contains':
-                        if (stripos($right, $left) !== false) {
+                        if (stripos($left, $right) !== false) {
                             $result = false;
                         }
                         break;
