@@ -456,6 +456,7 @@ class PostTemplate extends Template implements TemplateInterface
 
         $processed_taxonomies = [];
         $term_hierarchy = [];
+        $term_hierarchy_enabled = [];
 
         // Pre-Process taxonomy data
         for ($i = 0; $i < $total_rows; $i++) {
@@ -514,6 +515,7 @@ class PostTemplate extends Template implements TemplateInterface
                             if (count($hierarchy_parts) > 0) {
                                 $hierarchy_parts = array_filter(array_map('trim', $hierarchy_parts));
                                 $term_hierarchy[$tax][] = $hierarchy_parts;
+                                $term_hierarchy_enabled[$tax] = true;
                             }
                         } else {
                             $term_hierarchy[$tax][] = [$term];
@@ -534,7 +536,9 @@ class PostTemplate extends Template implements TemplateInterface
             }
 
             foreach ($term_hierarchy_list as $hierarchy_list) {
-                $prev_term = null;
+
+                $prev_term = isset($term_hierarchy_enabled[$processed_tax]) ? 0 : null;
+
                 foreach ($hierarchy_list as $term) {
                     if (!isset($this->_taxonomies[$processed_tax])) {
                         $this->_taxonomies[$processed_tax] = [];
@@ -542,64 +546,48 @@ class PostTemplate extends Template implements TemplateInterface
 
                     $term_result = $this->create_or_get_taxonomy_term($post_id, $processed_tax, $term, $prev_term);
                     if ($term_result) {
-                        $prev_term = $term_result;
-                        $this->_taxonomies[$processed_tax][] = $term_result;
+                        $prev_term = $term_result->term_id;
+                        $this->_taxonomies[$processed_tax][] = $term_result->name;
+                    }
+                }
+            }
+        }
+    }
+
+    private function create_or_get_taxonomy_term($post_id, $tax, $term, $parent)
+    {
+
+        if (is_null($parent)) {
+
+            // we do not care about parent, just fetch first
+            $tmp_term = get_term_by('name', $term, $tax);
+            if ($tmp_term) {
+                wp_set_object_terms($post_id, $tmp_term->term_id, $tax, true);
+                return $tmp_term;
+            }
+        } else {
+            $terms = get_terms([
+                'taxonomy' => $tax,
+                'name' => $term,
+                'hide_empty' => false
+            ]);
+            if (!empty($terms)) {
+                foreach ($terms as $tmp_term) {
+                    if (intval($tmp_term->parent) === intval($parent)) {
+
+                        // attach term to post
+                        wp_set_object_terms($post_id, $tmp_term->term_id, $tax, true);
+                        return $tmp_term;
                     }
                 }
             }
         }
 
-        // Process taxonomy data
-        // foreach ($processed_taxonomies as $processed_tax => $processed_terms) {
-
-        //     // clear existing taxonomies
-        //     wp_set_object_terms($post_id, null, $processed_tax);
-
-        //     // insert terms
-        //     if (!empty($processed_terms)) {
-        //         foreach ($processed_terms as $term) {
-
-        //             if (!isset($this->_taxonomies[$processed_tax])) {
-        //                 $this->_taxonomies[$processed_tax] = [];
-        //             }
-
-        //             $term_result = $this->create_or_get_taxonomy_term($post_id, $processed_tax, $term);
-        //             if ($term_result) {
-        //                 $this->_taxonomies[$processed_tax][] = $term_result;
-        //             }
-        //         }
-        //     }
-        // }
-    }
-
-    private function create_or_get_taxonomy_term($post_id, $tax, $term, $parent = null)
-    {
-        $parent_id = false;
-        $args = [];
-        if (!empty($parent)) {
-            $term_obj = get_term_by('name', $parent, $tax);
-            $parent_id = $term_obj->term_id;
-            $args['parent'] = $parent_id;
-        }
-
-        $term_result = term_exists($term, $tax);
-        if ($term_result) {
-
-            if (!empty($args)) {
-                $term_id = $term_result['term_id'];
-                wp_update_term($term_id, $tax, $args);
-            }
-
-            // attach term to post
-            wp_set_object_terms($post_id, $term, $tax, true);
-            return $term;
-        } else {
-            // add term
-            $term_id = wp_insert_term($term, $tax, $args);
-            if (!is_wp_error($term_id)) {
-                wp_set_object_terms($post_id, $term_id, $tax, true);
-                return $term;
-            }
+        // add term
+        $term_id = wp_insert_term($term, $tax, ['parent' => $parent]);
+        if (!is_wp_error($term_id)) {
+            wp_set_object_terms($post_id, $term_id['term_id'], $tax, true);
+            return get_term($term_id['term_id'], $tax);
         }
 
         return false;

@@ -23,13 +23,10 @@ class TermTemplate extends Template implements TemplateInterface
 
     public function register_options()
     {
-        $custom_taxonomies = get_taxonomies(['public' => true, '_builtin' => false], 'names');
         $options = [
-            ['value' => '', 'label' => 'Choose a taxonomy'],
-            ['value' => 'post_tag', 'label' => 'post_tag'],
-            ['value' => 'category', 'label' => 'category'],
+            ['value' => '', 'label' => 'Choose a taxonomy']
         ];
-        foreach ($custom_taxonomies as $key => $tax) {
+        foreach (get_taxonomies(array(), 'names') as $key => $tax) {
             $options[] = ['value' => $key, 'label' => $tax];
         }
 

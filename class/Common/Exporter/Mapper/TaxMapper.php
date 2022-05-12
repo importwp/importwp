@@ -20,6 +20,7 @@ class TaxMapper extends AbstractMapper implements MapperInterface
             'term_id',
             'name',
             'slug',
+            'description',
         );
     }
 

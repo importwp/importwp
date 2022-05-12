@@ -11,7 +11,6 @@ use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Migration\Migrations;
 use ImportWP\Common\Properties\Properties;
 use ImportWP\Common\UI\ViewManager;
-use IWP_Debug;
 
 class Menu
 {

@@ -4,7 +4,7 @@ Tags: wordpress csv import, wordpress xml import, wordpress csv export, wordpres
 Requires at least: 4.0  
 Tested up to: 5.9  
 Requires PHP: 5.4  
-Stable tag: 2.4.8  
+Stable tag: 2.4.9  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -85,6 +85,13 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.4.9 =
+
+* FIX - fix js load issue on some installs with ReferenceError: regeneratorRuntime is not defined.
+* FIX - Add missing term description field to exporter.
+* FIX - Term importer now displays list of private taxonomies. 
+* FIX - Post taxonomies section hierachy follows stricter rules allowing for multiple terms with the same name if nested under a different parent e.g. "Term 1 > Term 1" 
 
 = 2.4.8 =
 

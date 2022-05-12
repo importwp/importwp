@@ -461,7 +461,7 @@ final class AddonBase implements AddonInterface
 
     public function get_meta($section_id)
     {
-        return isset($this->_meta[$section_id]) ? $this->_meta[$section_id] : false;
+        return isset($this->_meta[$section_id]) ? $this->_meta[$section_id] : [];
     }
 
     public function clear_meta()
