@@ -90,7 +90,7 @@ abstract class AbstractParser
 
     public function handle_custom_methods($input)
     {
-        $input = preg_replace_callback('/\[([\w]+)\(([^)]*)\)]/', function ($matches) {
+        $input = preg_replace_callback('/\[([\w]+)\((.*?)\)\]/', function ($matches) {
 
             $method = $matches[1];
 
