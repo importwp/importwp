@@ -26,27 +26,48 @@ class AddonFieldDataApi extends AddonDataApi
         return $this->_field;
     }
 
+    public function get_field_id()
+    {
+        return $this->_field->get_id();
+    }
+
+    public function get_field_data()
+    {
+        return $this->data($this->get_field_id());
+    }
+
     public function row()
     {
         return $this->_row;
     }
 
+    public function process_attachment($object_id = null)
+    {
+
+        if (is_null($object_id)) {
+            $object_id = $this->object_id();
+        }
+
+        return $this->field()->process_attachment($object_id);
+    }
+
     public function processAttachmentField($value, $post_id, $overrides = [])
     {
+
         /**
          * @var Filesystem $filesystem
          */
-        $filesystem = Container::getInstance()->get('filesystem');
+        $filesystem = $this->addon()->get_service_provider('filesystem');
 
         /**
          * @var Ftp $ftp
          */
-        $ftp = Container::getInstance()->get('ftp');
+        $ftp = $this->addon()->get_service_provider('ftp');
 
         /**
          * @var Attachment $attachment
          */
-        $attachment = Container::getInstance()->get('attachment');
+        $attachment = $this->addon()->get_service_provider('attachment');
 
         $raw_records = $this->data();
 

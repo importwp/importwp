@@ -4,23 +4,23 @@ namespace ImportWP\Common\Addon;
 
 class AddonCustomFieldsApi
 {
-    private $_name;
+    protected $_name;
 
-    private $_prefix;
+    protected $_prefix;
 
-    private $_fields = [];
+    protected $_fields = [];
 
-    private $_init_callback;
+    protected $_init_callback;
 
-    private $_reg_fields_callback;
+    protected $_reg_fields_callback;
 
-    private $_save_callback;
+    protected $_save_callback;
 
-    private $_custom_fields;
+    protected $_custom_fields;
 
-    private $_template;
+    protected $_template;
 
-    private $_importer_model;
+    protected $_importer_model;
 
     public function __construct($name, $init_callback)
     {
@@ -30,9 +30,19 @@ class AddonCustomFieldsApi
         add_filter('iwp/custom_field_key', [$this, '_get_custom_field_key'], 10);
     }
 
+    public function get_name()
+    {
+        return $this->_name;
+    }
+
     public function set_prefix($prefix)
     {
         $this->_prefix = $prefix;
+    }
+
+    public function add_prefix($id)
+    {
+        return $this->_prefix !== false ? $this->_prefix . '::' . $id : $id;
     }
 
     /**
@@ -50,8 +60,8 @@ class AddonCustomFieldsApi
 
     public function add_field($name, $id)
     {
-        $value = $this->_prefix !== false ? $this->_prefix . '::' . $id : $id;
-        $this->_fields[] = ['value' => $value, 'label' => $this->_name . ' - ' . $name];
+        $value = $this->add_prefix($id);
+        $this->_fields[] = ['value' => $value, 'label' => $this->get_name() . ' - ' . $name];
     }
 
     public function _get_fields()
@@ -111,6 +121,10 @@ class AddonCustomFieldsApi
     public function _get_custom_field_key($key)
     {
         if (!$this->_key_contains_prefix($key)) {
+            return $key;
+        }
+
+        if (!strpos($key, '::')) {
             return $key;
         }
 

@@ -9,12 +9,12 @@ class AddonBaseField extends AddonBaseData implements AddonFieldInterface
     /**
      * @var callable
      */
-    private $_process_callback;
+    protected $_process_callback;
 
-    private $_is_field_processable = false;
-    private $_process_mapper;
-    private $_process_template;
-    private $_process_data;
+    protected $_is_field_processable = false;
+    protected $_process_mapper;
+    protected $_process_template;
+    protected $_process_data;
 
     public function _enable_processing()
     {
@@ -31,8 +31,8 @@ class AddonBaseField extends AddonBaseData implements AddonFieldInterface
      * @param integer $object_id 
      * @param string $section_id 
      * @param mixed $data 
-     * @param ImportWP\Common\Model\ImporterModel $importer_model 
-     * @param ImportWP\Common\Importer\Template\Template $template 
+     * @param \ImportWP\Common\Model\ImporterModel $importer_model 
+     * @param \ImportWP\Common\Importer\Template\Template $template 
      * @return void 
      */
     public function _process($addon, $object_id, $section_id, $data, $importer_model, $template, $i = false)
@@ -45,7 +45,6 @@ class AddonBaseField extends AddonBaseData implements AddonFieldInterface
         if ($this->_process_callback !== false && !is_null($this->_process_callback) && is_callable($this->_process_callback)) {
             call_user_func($this->_process_callback, new AddonFieldDataApi($addon, $this, $object_id, $section_id, $data, $importer_model, $template, $i));
         } else {
-
 
             $field = $this->data();
 
@@ -68,22 +67,26 @@ class AddonBaseField extends AddonBaseData implements AddonFieldInterface
         $this->_process_data = null;
     }
 
-    public function process_attachment($object_id, $field_id, $section_id)
+    public function process_attachment($object_id, $field_id = false)
     {
+        if ($field_id === false) {
+            $field_id = $this->get_id();
+        }
         /**
          * @var ImportWP\Common\Filesystem\Filesystem $filesystem
          */
-        $filesystem = Container::getInstance()->get('filesystem');
+
+        $filesystem = $this->addon()->get_service_provider('filesystem');
 
         /**
          * @var ImportWP\Common\Ftp\Ftp $ftp
          */
-        $ftp = Container::getInstance()->get('ftp');
+        $ftp = $this->addon()->get_service_provider('ftp');
 
         /**
          * @var ImportWP\Common\Attachment\Attachment $attachment
          */
-        $attachment = Container::getInstance()->get('attachment');
+        $attachment = $this->addon()->get_service_provider('attachment');
 
         $attachment_prefix = '';
         $attachment_data = [];

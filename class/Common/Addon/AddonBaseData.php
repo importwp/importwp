@@ -7,10 +7,13 @@ class AddonBaseData
     /**
      * @var callable
      */
-    private $_run_conditions;
+    protected $_run_conditions;
 
     protected $_data;
 
+    /**
+     * @var AddonBase
+     */
     protected $_addon;
 
     public function __construct($addon, $data)
@@ -47,8 +50,8 @@ class AddonBaseData
     /**
      * Is field allowed to be output?
      *
-     * @param ImportWP\Common\Importer\Template\Template $template
-     * @param ImportWP\Common\Model\ImporterModel $importer_model
+     * @param \ImportWP\Common\Importer\Template\Template $template
+     * @param \ImportWP\Common\Model\ImporterModel $importer_model
      * @return bool
      */
     public function _is_allowed($template, $importer_model)

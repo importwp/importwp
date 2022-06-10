@@ -36,5 +36,5 @@ add_action('plugins_loaded', 'iwp_loaded');
  */
 function iwp_register_importer_addon($name, $id, $callback)
 {
-    new ImportWP\Common\Addon\AddonBase($name, $id, $callback);
+    return new ImportWP\Common\Addon\AddonBase($name, $id, $callback);
 }

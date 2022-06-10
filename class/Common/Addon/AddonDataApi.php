@@ -11,6 +11,14 @@ class AddonDataApi
     protected $_importer_model;
     protected $_template;
 
+    /**
+     * @param AddonBase $addon
+     * @param string $object_id
+     * @param string $section_id
+     * @param string[] $data
+     * @param ImporterModel $importer_model
+     * @param \ImportWP\Common\Importer\Template\Template $template
+     */
     public function __construct($addon, $object_id, $section_id, $data, $importer_model, $template)
     {
         $this->_addon = $addon;
@@ -52,5 +60,33 @@ class AddonDataApi
     public function template()
     {
         return $this->_template;
+    }
+
+    public function get_mapper(){
+        return $this->template()->get_mapper();
+    }
+
+    public function get_panel_id()
+    {
+        return $this->section_id();
+    }
+
+    public function get_meta($section_id = false)
+    {
+        if ($section_id === false) {
+            $section_id = $this->get_panel_id();
+        }
+
+        return $this->addon()->get_meta($section_id);
+    }
+
+    public function store_meta($key, $value, $i = false)
+    {
+        $this->addon()->store_meta($this->get_panel_id(), $this->object_id(), $key, $value, $i);
+    }
+
+    public function update_meta($key, $value, $is_unique = true)
+    {
+        $this->addon()->update_meta($this->object_id(), $key, $value, $is_unique);
     }
 }

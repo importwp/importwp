@@ -43,9 +43,9 @@ class Container
         }
 
         // Addons
-        $potential_classes[] = 'ImportWPAddon\YoastSEO\ServiceProvider';
-        $potential_classes[] = 'ImportWPAddon\XLSX\ServiceProvider';
-        $potential_classes[] = 'ImportWPAddon\WooCommerce\ServiceProvider';
+        // $potential_classes[] = 'ImportWPAddon\YoastSEO\ServiceProvider';
+        // $potential_classes[] = 'ImportWPAddon\XLSX\ServiceProvider';
+        // $potential_classes[] = 'ImportWPAddon\WooCommerce\ServiceProvider';
 
         foreach ($potential_classes as $class) {
             $this->maybeAddProvider($class);

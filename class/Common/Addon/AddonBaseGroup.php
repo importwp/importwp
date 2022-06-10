@@ -7,11 +7,11 @@ class AddonBaseGroup extends AddonBaseContainer implements AddonGroupInterface
     /**
      * @var callable
      */
-    private $_process_callback;
+    protected $_process_callback;
 
-    private $_is_field_processable = false;
+    protected $_is_field_processable = false;
 
-    private $_id;
+    protected $_id;
 
     public function _enable_processing()
     {

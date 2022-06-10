@@ -2,9 +2,9 @@
 Contributors: jcollings  
 Tags: wordpress csv import, wordpress xml import, wordpress csv export, wordpress xml export, csv, xml, bulk edit, migrate, wordpress importer, wordpress exporter, import xml file, import csv file, xml importer, csv importer, csv to wordpress, xml to wordpress
 Requires at least: 4.0  
-Tested up to: 5.9  
+Tested up to: 6.0  
 Requires PHP: 5.4  
-Stable tag: 2.4.10  
+Stable tag: 2.5.0  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -85,6 +85,12 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.5.0 =
+
+* ADD - 1st release of `iwp_register_importer_addon` api
+* ADD - File encoding dropdown added to xml imports under file settings step.
+* FIX - Issue where 2 fields can match with the same prefix on a group e.g. gallery-id vs gallery-id-url.
 
 = 2.4.10 =
 

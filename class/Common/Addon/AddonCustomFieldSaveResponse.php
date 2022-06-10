@@ -2,18 +2,22 @@
 
 namespace ImportWP\Common\Addon;
 
+use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Pro\Importer\Template\CustomFields;
 
 class AddonCustomFieldSaveResponse
 {
-    private $_raw_records = [];
+    protected $_raw_records = [];
 
-    private $_importer_model;
+    /**
+     * @var ImporterModel
+     */
+    protected $_importer_model;
 
     /**
      * @var CustomFields
      */
-    private $_custom_fields;
+    protected $_custom_fields;
 
     public function __construct($importer_model, $custom_fields)
     {
@@ -23,8 +27,9 @@ class AddonCustomFieldSaveResponse
 
     public function template()
     {
-        return $this->_importer_model->template();
+        return $this->_importer_model->getTemplate();
     }
+
     public function importer_model()
     {
         return $this->_importer_model;
@@ -57,7 +62,7 @@ class AddonCustomFieldSaveResponse
 
     public function get_meta($object_id, $key = '', $single = false)
     {
-        switch ($this->importer_model()->getTemplate()) {
+        switch ($this->template()) {
             case 'user':
                 return get_user_meta($object_id, $key, $single);
             case 'term':
@@ -69,7 +74,7 @@ class AddonCustomFieldSaveResponse
 
     public function add_meta($object_id, $meta_key, $meta_value, $unique = false)
     {
-        switch ($this->importer_model()->getTemplate()) {
+        switch ($this->template()) {
             case 'user':
                 return add_user_meta($object_id, $meta_key, $meta_value, $unique);
             case 'term':
@@ -81,7 +86,7 @@ class AddonCustomFieldSaveResponse
 
     public function update_meta($object_id, $meta_key, $meta_value, $prev_value = '')
     {
-        switch ($this->importer_model()->getTemplate()) {
+        switch ($this->template()) {
             case 'user':
                 return update_user_meta($object_id, $meta_key, $meta_value, $prev_value);
             case 'term':
@@ -93,7 +98,7 @@ class AddonCustomFieldSaveResponse
 
     public function delete_meta($object_id, $meta_key, $meta_value = '')
     {
-        switch ($this->importer_model()->getTemplate()) {
+        switch ($this->template()) {
             case 'user':
                 return delete_user_meta($object_id, $meta_key, $meta_value);
             case 'term':

@@ -64,4 +64,9 @@ interface AddonInterface
      * @return Template
      */
     function template();
+
+    /**
+     * @param \Callback $callback
+     */
+    function register_migrations($callback);
 }
