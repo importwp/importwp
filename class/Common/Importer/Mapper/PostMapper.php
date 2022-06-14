@@ -242,10 +242,15 @@ class PostMapper extends AbstractMapper implements MapperInterface
             return false;
         }
 
-        // Check to see if trash flag is set
+        // Check to see if trash flag is set, only the importer that removed it can restore it
         $trash_status = get_post_meta($this->ID, '_iwp_trash_status', true);
         if (!empty($trash_status)) {
-            $post['post_status'] = $trash_status;
+            $trash_importer_id = get_post_meta($this->ID, '_iwp_trash_importer', true);
+            if ($trash_importer_id == $this->importer->getId()) {
+                $post['post_status'] = $trash_status;
+            } else {
+                $trash_status = false;
+            }
         }
 
         // update post type
@@ -306,6 +311,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
         // Delete trash flag once post has been updated.
         if (!empty($trash_status)) {
             delete_post_meta($this->ID, '_iwp_trash_status');
+            delete_post_meta($this->ID, '_iwp_trash_importer');
         }
 
         clean_post_cache($this->ID);
@@ -346,6 +352,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
             // set trash flag
             update_post_meta($id, '_iwp_trash_status', get_post_status($id));
+            update_post_meta($id, '_iwp_trash_importer', $this->importer->getId());
             wp_trash_post($id);
         } else {
             wp_delete_post($id, $force);
