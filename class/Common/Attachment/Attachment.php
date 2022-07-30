@@ -40,17 +40,21 @@ class Attachment
 
     public function store_attachment_hash($attachment_id, $dest, $salt = '')
     {
-        update_post_meta($attachment_id, '_iwp_attachment_src', md5($dest . $salt));
+        $hash = md5($dest . $salt);
+        Logger::write(__CLASS__ . '::store_attachment_hash -hash=' . $hash . ' -dest=' . $dest);
+        update_post_meta($attachment_id, '_iwp_attachment_src', $hash);
     }
 
     public function get_attachment_by_hash($dest, $salt = '')
     {
         global $wpdb;
-        $hash = md5($dest, $salt);
+        $hash = md5($dest . $salt);
         $query = $wpdb->prepare("SELECT p.ID FROM {$wpdb->postmeta} as pm INNER JOIN {$wpdb->posts} as p ON pm.post_id = p.ID WHERE p.post_type='attachment' AND pm.meta_key='_iwp_attachment_src' AND pm.meta_value=%s ORDER BY p.ID DESC LIMIT 1", [$hash]);
         $attachment_id = intval($wpdb->get_var($query));
         if ($attachment_id > 0) {
-            Logger::write(__CLASS__ . '::process__attachments -use-existing=' . $attachment_id . ' -hash' . $hash);
+            Logger::write(__CLASS__ . '::get_attachment_by_hash -use-existing=' . $attachment_id . ' -hash' . $hash);
+        } else {
+            Logger::write(__CLASS__ . '::get_attachment_by_hash -skipped-hash=' . $hash . ' -dest=' . $dest);
         }
         return $attachment_id;
     }

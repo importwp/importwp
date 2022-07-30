@@ -4,7 +4,7 @@ Tags: wordpress csv import, wordpress xml import, wordpress csv export, wordpres
 Requires at least: 4.0  
 Tested up to: 6.0  
 Requires PHP: 5.4  
-Stable tag: 2.5.1  
+Stable tag: 2.5.2  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -85,6 +85,11 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.5.2 = 
+
+* FIX - Hash geneartion on local files now match correctly.
+* ADD - Downloaded media without extensions, attempt to get extension from content-type header.
 
 = 2.5.1 = 
 

@@ -203,6 +203,14 @@ class PostTemplate extends Template implements TemplateInterface
                 'default' => '>',
                 'condition' => ['_hierarchy', '==', 'yes'],
             ]),
+            $this->register_field('Append Terms', '_append', [
+                'default' => 'no',
+                'options' => [
+                    ['value' => 'no', 'label' => 'No'],
+                    ['value' => 'yes', 'label' => 'Yes'],
+                ],
+                'type' => 'select'
+            ]),
         ], ['type' => 'repeatable', 'row_base' => true]);
     }
 
@@ -457,6 +465,7 @@ class PostTemplate extends Template implements TemplateInterface
         $processed_taxonomies = [];
         $term_hierarchy = [];
         $term_hierarchy_enabled = [];
+        $term_append = [];
 
         // Pre-Process taxonomy data
         for ($i = 0; $i < $total_rows; $i++) {
@@ -472,6 +481,8 @@ class PostTemplate extends Template implements TemplateInterface
             foreach ($sub_rows as $row) {
                 $tax = isset($row[$prefix . 'tax']) ? $row[$prefix . 'tax'] : null;
                 $terms = isset($row[$prefix . 'term']) ? $row[$prefix . 'term'] : null;
+
+                $term_append[$tax] = isset($row[$prefix . '_append']) && $row[$prefix . '_append'] == 'yes';
 
                 $delimiter = apply_filters('iwp/taxonomy=' . $tax . '/value_delimiter', $base_delimiter);
 
@@ -529,7 +540,9 @@ class PostTemplate extends Template implements TemplateInterface
         foreach ($term_hierarchy as $processed_tax => $term_hierarchy_list) {
 
             // clear existing taxonomies
-            wp_set_object_terms($post_id, null, $processed_tax);
+            if (!isset($term_append[$processed_tax]) || !$term_append[$processed_tax]) {
+                wp_set_object_terms($post_id, null, $processed_tax);
+            }
 
             if (empty($term_hierarchy_list)) {
                 continue;

@@ -97,6 +97,29 @@ class Http
             return $matches[1];
         }
 
+        // If there is no extension on the file, use the response content-type to add th file extension
+        if (isset($response['filename'])) {
+
+            $filename = basename($response['filename']);
+            $current_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+            if (empty($current_ext)) {
+
+                $content_type = wp_remote_retrieve_header($response, 'content-type');
+
+                if ($content_type) {
+
+                    $mime_types = wp_get_mime_types();
+                    $possible_ext = array_search($content_type, $mime_types);
+                    $allowed_extensions = explode('|', $possible_ext);
+
+                    if ($possible_ext !== false && empty($current_ext) && !empty($allowed_extensions) && !in_array(strtolower($filename), $allowed_extensions)) {
+                        return $filename . '.' . $allowed_extensions[0];
+                    }
+                }
+            }
+        }
+
         return false;
     }
 
