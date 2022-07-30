@@ -100,7 +100,7 @@ class AddonBasePanel extends AddonBaseContainer implements AddonPanelInterface
      * @param ParsedData $data
      * @param string $section_id
      * @param array $data
-     * @param ImporterModel $importer_model
+     * @param \ImportWP\Common\Model\ImporterModel $importer_model
      * @param array $output
      * 
      * @return array
@@ -122,7 +122,7 @@ class AddonBasePanel extends AddonBaseContainer implements AddonPanelInterface
             // section.group_id or section.field_id
             $field_enable_id = false === $enable_id ? "{$section_id}.{$field['id']}" : $enable_id;
 
-            if ($importer_model->isEnabledField($field_enable_id)) {
+            if ($importer_model->isEnabledField($field_enable_id) || (isset($field['settings'], $field['settings']['core']) && $field['settings']['core'] === true)) {
 
                 // Mark field for processing
                 $group_field->_enable_processing();
@@ -153,7 +153,7 @@ class AddonBasePanel extends AddonBaseContainer implements AddonPanelInterface
      * @param ParsedData $data
      * @param string $section_id
      * @param array $data
-     * @param ImporterModel $importer_model
+     * @param \ImportWP\Common\Model\ImporterModel $importer_model
      * @param array $output
      * 
      * @return array
