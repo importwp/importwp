@@ -284,11 +284,14 @@ class Filesystem
     public function get_filetype_from_ext($file)
     {
 
+        $filetype = null;
         if (stripos($file, '.csv')) {
             $filetype = 'csv';
         } elseif (stripos($file, '.xml')) {
             $filetype = 'xml';
         }
+
+        $filetype = apply_filters('iwp/get_filetype_from_ext', $filetype, $file);
 
         return $filetype;
     }
