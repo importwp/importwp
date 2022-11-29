@@ -108,6 +108,8 @@ class ParsedData
 
     public function map()
     {
+        do_action('iwp/importer/mapper/init', $this);
+
         $this->id = $this->mapper->exists($this);
 
         $this->method = false === $this->id ? 'INSERT' : 'UPDATE';
@@ -119,11 +121,17 @@ class ParsedData
             $this->replace($allowed_fields);
         }
 
+        do_action('iwp/importer/mapper/before', $this);
+
         if (false === $this->id) {
+            do_action('iwp/importer/mapper/before_insert', $this);
             $this->id = $this->mapper->insert($this);
         } else {
+            do_action('iwp/importer/mapper/before_update', $this);
             $this->id = $this->mapper->update($this);
         }
+
+        do_action('iwp/importer/mapper/after', $this);
     }
 
     public function getGroupKeys()

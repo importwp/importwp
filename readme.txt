@@ -2,9 +2,9 @@
 Contributors: jcollings  
 Tags: wordpress csv import, wordpress xml import, wordpress csv export, wordpress xml export, csv, xml, bulk edit, migrate, wordpress importer, wordpress exporter, import xml file, import csv file, xml importer, csv importer, csv to wordpress, xml to wordpress
 Requires at least: 4.0  
-Tested up to: 6.0  
+Tested up to: 6.1  
 Requires PHP: 5.4  
-Stable tag: 2.5.4  
+Stable tag: 2.5.5  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -85,6 +85,19 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.5.5 =
+
+* ADD - New action `iwp/importer/mapper/init` run before a record has been imported.
+* ADD - New action `iwp/importer/mapper/before` to modify data before importing a record.
+* ADD - New action `iwp/importer/mapper/before_insert` to modify data before inserting a record.
+* ADD - New action `iwp/importer/mapper/before_update` to modify data before updating a record.
+* ADD - New action `iwp/importer/mapper/after` run after a record has been imported.
+
+= 2.5.4 =
+
+* ADD - New filter `iwp/allowed_file_types` to allow different file types apart from the default xml / csv.
+* ADD - New filter `iwp/get_filetype_from_ext` to allow setting the file type based on the attached file name.
 
 = 2.5.3 =
 
