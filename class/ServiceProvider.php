@@ -3,15 +3,14 @@
 namespace ImportWP;
 
 use ImportWP\Common\Attachment\Attachment;
-use ImportWP\Common\Cli\Cli;
 use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Ftp\Ftp;
 use ImportWP\Common\Http\Http;
-use ImportWP\Common\Importer\ImporterStatusManager;
 use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Properties\Properties;
 use ImportWP\Common\Rest\RestManager;
 use ImportWP\Common\UI\ViewManager;
+use ImportWP\Common\Util\Util;
 
 class ServiceProvider
 {
@@ -45,17 +44,18 @@ class ServiceProvider
     public $rest_manager;
 
     /**
-     * @var ImporterStatusManager
-     */
-    public $importer_status_manager;
-
-    /**
      * @var TemplateManager
      */
     protected $template_manager;
 
+    /**
+     * @var Util
+     */
+    public $util;
+
     public function __construct($event_handler)
     {
+        $this->util = new Util();
         $this->properties = new Properties();
         $this->filesystem = new Filesystem($event_handler);
         $this->attachment = new Attachment();
@@ -63,7 +63,6 @@ class ServiceProvider
         $this->http = new Http($this->properties);
 
         $this->view_manager = new ViewManager($this->properties);
-        $this->importer_status_manager = new ImporterStatusManager();
         $this->template_manager = new TemplateManager($event_handler);
     }
 }

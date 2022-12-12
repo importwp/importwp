@@ -3,7 +3,6 @@
 namespace ImportWP\Common\Migration;
 
 use ImportWP\Common\Importer\ImporterManager;
-use ImportWP\Common\Importer\ImporterStatus;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Util\Logger;
 use ImportWP\Container;
@@ -731,19 +730,6 @@ class Migrations
             if ($data['settings']['import_method'] !== 'schedule') {
                 continue;
             }
-
-            // $iwp_scheduled = get_post_meta($id, '_iwp_scheduled', true);
-            // if ($iwp_scheduled && isset($iwp_scheduled['session'])) {
-            //     $session = $iwp_scheduled['session'];
-
-            //     $status_data = (array) maybe_unserialize($data['post_excerpt']);
-            //     $status = new ImporterStatus($importer->getId(), $status_data);
-            //     $status->stop();
-            // }
-
-            $status_data = (array) maybe_unserialize($importer['post_excerpt']);
-            $status = new ImporterStatus($id, $status_data);
-            $status->stop();
 
             delete_post_meta($id, '_iwp_session');
             delete_post_meta($id, '_iwp_cron_updated');

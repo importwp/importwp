@@ -111,7 +111,8 @@ class Menu
             'encodings' => $this->properties->encodings,
             'is_pro' => $this->properties->is_pro ? 'yes' : 'no',
             'export_fields' => $this->get_export_fields(),
-            'registered_addons' => apply_filters('iwp/register_js', [])
+            'registered_addons' => apply_filters('iwp/register_js', []),
+            'global_notices' => apply_filters('iwp/frontent/notices',  [])
         ));
 
         wp_enqueue_script($this->properties->plugin_domain . '-bundle');

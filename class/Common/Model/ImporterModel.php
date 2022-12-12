@@ -2,7 +2,6 @@
 
 namespace ImportWP\Common\Model;
 
-use ImportWP\Common\Importer\ImporterStatus;
 use ImportWP\Common\Util\Logger;
 
 class ImporterModel
@@ -540,11 +539,6 @@ class ImporterModel
     public function getStatusId()
     {
         return get_post_meta($this->getId(), '_iwp_session', true);
-    }
-
-    public function setStatus(ImporterStatus $status)
-    {
-        return $status->save(true);
     }
 
     public function getTemplate()

@@ -12,6 +12,7 @@ use ImportWP\Common\Importer\Mapper\UserMapper;
 use ImportWP\Common\Importer\Parser\CSVParser;
 use ImportWP\Common\Importer\Parser\XMLParser;
 use ImportWP\Common\Importer\Permission\Permission;
+use ImportWP\Common\Importer\State\ImporterState;
 use ImportWP\Common\Importer\Template\CustomPostTypeTemplate;
 use ImportWP\Common\Importer\Template\PageTemplate;
 use ImportWP\Common\Importer\Template\PostTemplate;
@@ -22,6 +23,7 @@ use ImportWP\Common\Importer\Template\UserTemplate;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Properties\Properties;
 use ImportWP\Common\Util\Logger;
+use ImportWP\Common\Util\Util;
 use ImportWP\Container;
 use ImportWP\EventHandler;
 
@@ -34,11 +36,6 @@ class ImporterManager
     private $filesystem;
 
     /**
-     * @var ImporterStatusManager
-     */
-    private $importer_status_manager;
-
-    /**
      * @var TemplateManager $template_manager
      */
     private $template_manager;
@@ -48,9 +45,8 @@ class ImporterManager
      */
     protected $event_handler;
 
-    public function __construct(ImporterStatusManager $importer_status_manager, Filesystem $filesystem, TemplateManager $template_manager, EventHandler $event_handler)
+    public function __construct(Filesystem $filesystem, TemplateManager $template_manager, EventHandler $event_handler)
     {
-        $this->importer_status_manager = $importer_status_manager;
         $this->filesystem = $filesystem;
         $this->template_manager = $template_manager;
         $this->event_handler = $event_handler;
@@ -115,7 +111,7 @@ class ImporterManager
         $importer_model = $this->get_importer($id);
         $user_id = $importer_model->getUserId();
 
-        Logger::write(__CLASS__ . '::set_current_user -user=' . $user_id, $importer_model->getId());
+        Logger::write('set_current_user -user=' . $user_id, $importer_model->getId());
 
         if ($user_id) {
             return wp_set_current_user($user_id);
@@ -410,13 +406,18 @@ class ImporterManager
 
         $base .= str_pad($id, 2, STR_PAD_LEFT) . DIRECTORY_SEPARATOR;
         if (!file_exists($base)) {
-            mkdir($base);
+            if (!is_writable(dirname($base)) || !mkdir($base)) {
+                throw new \Exception("Unable to create directory: " . $base);
+            }
         }
 
         for ($i = 0; $i < ceil(strlen($session) / 2); $i++) {
             $base .= substr($session, $i * 2, 2) . DIRECTORY_SEPARATOR;
             if (!file_exists($base)) {
-                mkdir($base);
+
+                if (!is_writable(dirname($base)) || !mkdir($base)) {
+                    throw new \Exception("Unable to create directory: " . $base);
+                }
             }
 
             if ($i >= $max_depth - 2) {
@@ -440,36 +441,23 @@ class ImporterManager
         return $base . sprintf($key, $importer->getId());
     }
 
-    public function import($id, $session)
+    public function import($id, $user, $session = null)
     {
-        $importer_data = $this->get_importer($id);
-        Logger::write(__CLASS__ . '::import -session=' . $session, $importer_data->getId());
+        Logger::timer();
 
-        $importer_status = $this->importer_status_manager->get_importer_status($importer_data);
-        Logger::write(__CLASS__ . '::import -status=' . $importer_status->get_status(), $importer_data->getId());
+        $importer_data = $this->get_importer($id);
+        $importer_id = $importer_data->getId();
+
+        $config_data = get_site_option('iwp_importer_config_' . $importer_id, []);
+
+        $state = new ImporterState($importer_id, $user);
 
         try {
 
-            $import_file_exists = $this->filesystem->file_exists($importer_data->getFile());
-            if (is_wp_error($import_file_exists)) {
-                throw new \Exception($import_file_exists->get_error_message());
-            }
+            $state->init($session);
 
-            if (!$importer_status) {
-                $importer_post = get_post($importer_data->getId());
-                $exception_msg = "Unable to read importer session: (" . $importer_post->post_excerpt . ")";
-                Logger::write(__CLASS__ . '::import -error=' . $exception_msg);
-                throw new \Exception($exception_msg);
-            }
-
-            $this->event_handler->run('importer_manager.import', [$importer_data]);
-
-            // clear config before import
-            $is_init = $importer_status->has_status('init');
-            if ($is_init) {
-                $set_time_limit = set_time_limit(0);
-                Logger::write(__CLASS__ . '::import -set-time-limit=' . ($set_time_limit === true ? 'yes' : 'no') . ' -time-limit=' . intval(ini_get('max_execution_time')), $importer_data->getId());
-                $this->clear_config_files($id, false, true);
+            if ($state->has_status('init')) {
+                $this->clear_config_files($importer_id, false, true);
             }
 
             $config = $this->get_config($importer_data);
@@ -484,58 +472,27 @@ class ImporterManager
             // mapper
             $mapper = $this->get_importer_mapper($importer_data, $template, $permission);
 
-            // TODO: allow for field groups to set 'base'
-            //
-            // If base is set on field group, add it to the group `default::$index`
-            // This will allow for it to be processed and put back into the default
-            // group for processing.
+            if ($state->has_status('init')) {
+                $config_data['data'] = $template->config_field_map($importer_data->getMap());
+                $config->set('data', $config_data['data']);
 
-            $template_fields = $template->field_map($importer_data->getMap());
-            $field_groups = [
-                'default' => [
-                    'id' => 'default',
-                    'fields' => []
-                ]
-            ];
+                $config_data['id'] = md5($importer_id . time());
 
-            foreach ($template_fields as $key => $value) {
+                // This is used for storing version on imported records
+                update_post_meta($importer_id, '_iwp_session', $config_data['id']);
 
-                if (empty($value) || preg_match('/\.row_base$/', $key) !== 1) {
-                    continue;
+                // Increase Version
+                $version = get_post_meta($importer_id, '_iwp_version', true);
+                if ($version !== false) {
+                    $version++;
+                } else {
+                    $version = 0;
                 }
-
-                $group_id = substr($key, 0, strlen($key) - strlen('.row_base'));
-
-                $field_groups[$group_id] = [
-                    'id' => $group_id,
-                    'base' => $value,
-                    'fields' => []
-                ];
+                update_post_meta($importer_id, '_iwp_version', $version);
+                $config_data['version'] = $version;
             }
-
-            foreach ($template_fields as $field_id => $field_value) {
-
-                $found = false;
-
-                foreach ($field_groups as $group_prefix => $group_settings) {
-                    if (false === strpos($field_id, $group_prefix) || preg_match('/\.row_base$/', $field_id) === 1) {
-                        continue;
-                    }
-
-                    $field_groups[$group_prefix]['fields'][$field_id] = $field_value;
-                    $found = true;
-                }
-
-                if (false === $found) {
-                    $field_groups['default']['fields'][$field_id] = $field_value;
-                }
-            }
-
-            // get data
-            $config->set('data', $field_groups);
 
             $start = 0;
-            $original_start = 0;
 
             // get parser
             if ($importer_data->getParser() === 'csv') {
@@ -543,134 +500,90 @@ class ImporterManager
                 $parser = new CSVParser($file);
                 if (true === $importer_data->getFileSetting('show_headings')) {
                     $start = 1;
-                    $original_start = 1;
                 }
             } else {
                 $file = $this->get_xml_file($importer_data, $config);
                 $parser = new XMLParser($file);
             }
 
-            // TODO: if end <= start it imports all, should throw an error instead.
-            $original_end = $end = $parser->file()->getRecordCount();
-            Logger::write(__CLASS__ . '::import -record-count=' . $end, $importer_data->getId());
+            if ($state->has_status('init')) {
 
-            if ($importer_status->has_status('init')) {
+                $end = $parser->file()->getRecordCount();
 
-                Logger::write(__CLASS__ . '::import -new', $importer_data->getId());
+                $config_data['start'] = $this->get_start($importer_data, $start);
+                $config_data['end'] = $this->get_end($importer_data, $config_data['start'], $end);
 
-                $tmp_start = $importer_data->getStartRow();
-                if (!is_null($tmp_start) && "" !== $tmp_start) {
-                    $tmp_start = intval($tmp_start);
-                    if ($tmp_start > $start) {
-                        $start = $tmp_start;
-                    }
-                }
+                update_site_option('iwp_importer_config_' . $importer_id, $config_data);
 
-                $tmp_max_row = $importer_data->getMaxRow();
-                if (!is_null($tmp_max_row) && $tmp_max_row !== '') {
-                    $tmp_end = $start + intval($tmp_max_row);
-                    if ($tmp_end < $end) {
-                        $end = $tmp_end;
-                    }
-                }
+                $state->update(function ($state) use ($config_data) {
+                    $state['id'] = $config_data['id'];
+                    $state['status'] = 'running';
+                    $state['progress']['import']['start'] = $config_data['start'];
+                    $state['progress']['import']['end'] = $config_data['end'];
+                    return $state;
+                });
 
-                $importer_status->set_start($start);
-                $importer_status->set_end($end);
-
-                /**
-                 * @var Properties $properties
-                 */
-                $properties = Container::getInstance()->get('properties');
-                $chunk_size = $properties->chunk_size;
-
-                $config->set('chunk_size', $chunk_size);
-
-                Logger::write(__CLASS__ . '::import -start=' . $start . ' -end=' . $end . ' -chunk_size=' . $chunk_size, $importer_data->getId());
-
-                $importer_status->set_status('running');
-                $importer_status->set_section('importing');
-                $importer_status->save();
-            } elseif ($importer_status->has_status('timeout')) { // || $importer_status->has_status('paused')) {
-
-                Logger::write(__CLASS__ . '::import -resume', $importer_data->getId());
-
-                // TODO: continue from where we left off
-                $start = $importer_status->get_counter();
-                $end = $importer_status->get_total();
-
-                if ($importer_data->getParser() === 'csv' && true === $importer_data->getFileSetting('show_headings') && empty($importer_data->getStartRow())) {
-                    $start += 1;
-                    $end += 1;
-                    Logger::write(__CLASS__ . '::import -resume-base=1', $importer_data->getId());
-                } elseif (intval($importer_data->getStartRow()) > 0) {
-                    $start_row_tmp = intval($importer_data->getStartRow());
-                    $start += $start_row_tmp;
-                    $end += $start_row_tmp;
-                    Logger::write(__CLASS__ . '::import -resume-base=' . $start_row_tmp, $importer_data->getId());
-                }
-
-                Logger::write(__CLASS__ . '::import -start=' . $start . ' -end=' . $end, $importer_data->getId());
-
-                $importer_status->set_status('running');
-
-                // clear paused flag
-                delete_post_meta($importer_data->getId(), '_iwp_paused_' . $session);
-
-                $importer_status->save();
-            }
-
-            // chunk we need to get total start
-            $tmp_start = $importer_data->getStartRow();
-            if (!is_null($tmp_start) && "" !== $tmp_start) {
-                $tmp_start = intval($tmp_start);
-
-                if ($tmp_start > $original_start) {
-                    $original_start = $tmp_start;
-                }
-            }
-
-            $tmp_max_row = $importer_data->getMaxRow();
-            if (!is_null($tmp_max_row) && $tmp_max_row !== '') {
-                $tmp_end = $original_start + intval($tmp_max_row);
-                if ($tmp_end < $original_end) {
-                    $original_end = $tmp_end;
-                }
+                Util::write_status_session_to_file($id, $state);
             }
 
             $importer = new \ImportWP\Common\Importer\Importer($config);
             $importer->parser($parser);
             $importer->mapper($mapper);
-            $importer->status($importer_status);
-            $importer->from($start);
-            $importer->to($end);
-            $importer->chunk($config->get('chunk_size'), $original_start, $original_end);
+            $importer->from($config_data['start']);
+            $importer->to($config_data['end']);
             $importer->filter($importer_data->getFilters());
-            $importer->import();
-
-            $template->unregister_hooks();
-
-            /**
-             * @var Properties $properties
-             */
-            $properties = Container::getInstance()->get('properties');
-
-            // rotate files to not fill up server
-            $importer_data->limit_importer_files($properties->file_rotation);
-            $this->importer_status_manager->prune_importer_logs($importer_data, $properties->log_rotation);
-
-            Logger::write(__CLASS__ . '::import -complete', $importer_data->getId());
+            $importer->import($importer_id, $user, $state);
         } catch (\Exception $e) {
 
             // TODO: Missing template errors are currently not being logged to history, possibly others?
-            Logger::write(__CLASS__ . '::import -error=' . $e->getMessage(), $importer_data->getId());
-            $importer_status->record_fatal_error($e->getMessage());
-            $importer_status->save();
-            $importer_status->write_to_file();
+            Logger::error('import -error=' . $e->getMessage(), $importer_id);
+            return $state->error($e)->get_raw();
         }
+
+        /**
+         * @var Properties $properties
+         */
+        $properties = Container::getInstance()->get('properties');
+
+        // rotate files to not fill up server
+        $importer_data->limit_importer_files($properties->file_rotation);
+        $this->prune_importer_logs($importer_data, $properties->log_rotation);
+
+        $template->unregister_hooks();
 
         $this->event_handler->run('importer_manager.import_shutdown', [$importer_data]);
 
-        return $importer_status;
+        return $state->update(function ($data) {
+            $data['duration'] = floatval($data['duration']) + Logger::timer();
+            return $data;
+        })->get_raw();
+    }
+
+    public function get_start($importer_data, $start)
+    {
+        $tmp_start = $importer_data->getStartRow();
+        if (!is_null($tmp_start) && "" !== $tmp_start) {
+            $tmp_start = intval($tmp_start);
+
+            if ($tmp_start > $start) {
+                $start = $tmp_start;
+            }
+        }
+
+        return $start;
+    }
+
+    public function get_end($importer_data, $start, $end)
+    {
+        $tmp_max_row = $importer_data->getMaxRow();
+        if (!is_null($tmp_max_row) && $tmp_max_row !== '') {
+            $tmp_end = $start + intval($tmp_max_row);
+            if ($tmp_end < $end) {
+                $end = $tmp_end;
+            }
+        }
+
+        return $end;
     }
 
     public function get_importer_template($id)
@@ -681,7 +594,7 @@ class ImporterManager
 
         if (!isset($templates[$template_name])) {
             $exception_msg = "Unable to locate importer template: " . $template_name;
-            Logger::write(__CLASS__ . '::import -get_importer_template=' . $exception_msg, $importer_model->getId());
+            Logger::error('import -get_importer_template=' . $exception_msg, $importer_model->getId());
             throw new \Exception($exception_msg);
         }
 
@@ -778,5 +691,130 @@ class ImporterManager
             }
         }
         return $lines;
+    }
+
+    public function prune_importer_logs($importer_model, $limit)
+    {
+        $limit = intval($limit);
+        if ($limit <= -1) {
+            return;
+        }
+
+        $file_path = Util::get_importer_status_file_path($importer_model->getId());
+        $tmp_file_path = Util::get_importer_status_file_path($importer_model->getId()) . '.tmp';
+        $lines = $this->get_importer_logs($importer_model);
+
+        if (count($lines) > $limit) {
+
+            require_once(ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php');
+            require_once(ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php');
+            $fileSystemDirect = new \WP_Filesystem_Direct(false);
+
+            $fh = fopen($tmp_file_path, 'w');
+            for ($i = 0; $i < count($lines); $i++) {
+
+                if ($i < count($lines) - $limit) {
+                    $log_file_path = Util::get_importer_log_file_path($importer_model->getId(), $lines[$i]['id']);
+                    if ($fileSystemDirect->exists($log_file_path)) {
+
+                        $fileSystemDirect->delete($log_file_path);
+
+                        $tmp = $log_file_path;
+                        for ($j = 0; $j < 3; $j++) {
+                            $tmp = dirname($tmp);
+                            $sub_files = $fileSystemDirect->dirlist($log_file_path);
+                            if (empty($sub_files)) {
+                                $fileSystemDirect->rmdir($tmp);
+                            }
+                        }
+                    }
+                } else {
+                    fputs($fh, json_encode($lines[$i]) . "\n");
+                }
+            }
+            fclose($fh);
+
+            if ($fileSystemDirect->move($tmp_file_path, $file_path, true)) {
+                $fileSystemDirect->delete($tmp_file_path);
+            }
+        }
+    }
+
+    public function get_importer_logs(ImporterModel $importer_data, $page = 0, $per_page = -1)
+    {
+        $file_path = Util::get_importer_status_file_path($importer_data->getId());
+
+        $line_counter = 0;
+        $lines = [];
+
+        $start = $end = -1;
+
+        if ($per_page > 0) {
+            $start = ($page - 1) * $per_page;
+            $end =  $start + $per_page;
+        }
+
+        if (file_exists($file_path)) {
+            $fh = fopen($file_path, 'r');
+            if ($fh !== false) {
+                while (($data = fgets($fh)) !== false) {
+                    if ($data[strlen($data) - 1] === "\n") {
+                        $data = substr($data, 0, strlen($data) - 1);
+                    }
+
+                    if ($line_counter === $end) {
+                        return $lines;
+                    } elseif ($per_page === -1 || $line_counter >= $start) {
+                        $lines[] = json_decode($data, true);
+                    }
+
+                    $line_counter++;
+                }
+                fclose($fh);
+            }
+        }
+        return $lines;
+    }
+
+    public function get_importer_log(ImporterModel $importer_data, $session_id, $page = 0, $per_page = -1)
+    {
+        $file_path = Util::get_importer_log_file_path($importer_data->getId(), $session_id);
+
+        $line_counter = 0;
+        $lines = [];
+        $start = $end = -1;
+
+        if ($per_page > 0) {
+            $start = ($page - 1) * $per_page;
+            $end =  $start + $per_page;
+        }
+
+        if (file_exists($file_path)) {
+            $fh = fopen($file_path, 'r');
+            if ($fh !== false) {
+                while (($data = fgetcsv($fh)) !== false) {
+                    if ($line_counter === $end) {
+                        return $lines;
+                    } elseif ($per_page === -1 || $line_counter >= $start) {
+                        $lines[] = $data;
+                    }
+
+                    $line_counter++;
+                }
+                fclose($fh);
+            }
+        }
+        return $lines;
+    }
+
+    public function get_importer_status_report(ImporterModel $immpoter_data, $session)
+    {
+        $logs = $this->get_importer_logs($immpoter_data);
+        foreach ($logs as $log) {
+            if ($log && isset($log['id']) && $log['id'] === $session) {
+                return $log;
+            }
+        }
+        return false;
     }
 }

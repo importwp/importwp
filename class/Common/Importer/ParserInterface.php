@@ -24,4 +24,6 @@ interface ParserInterface
     public function query($query);
 
     public function queryGroup($group);
+
+    public function query_string($query);
 }

@@ -390,6 +390,53 @@ class Template extends AbstractTemplate
         return $fields;
     }
 
+    public function config_field_map($field_map)
+    {
+        $template_fields = $this->field_map($field_map);
+
+        $field_groups = [
+            'default' => [
+                'id' => 'default',
+                'fields' => []
+            ]
+        ];
+
+        foreach ($template_fields as $key => $value) {
+
+            if (empty($value) || preg_match('/\.row_base$/', $key) !== 1) {
+                continue;
+            }
+
+            $group_id = substr($key, 0, strlen($key) - strlen('.row_base'));
+
+            $field_groups[$group_id] = [
+                'id' => $group_id,
+                'base' => $value,
+                'fields' => []
+            ];
+        }
+
+        foreach ($template_fields as $field_id => $field_value) {
+
+            $found = false;
+
+            foreach ($field_groups as $group_prefix => $group_settings) {
+                if (false === strpos($field_id, $group_prefix) || preg_match('/\.row_base$/', $field_id) === 1) {
+                    continue;
+                }
+
+                $field_groups[$group_prefix]['fields'][$field_id] = $field_value;
+                $found = true;
+            }
+
+            if (false === $found) {
+                $field_groups['default']['fields'][$field_id] = $field_value;
+            }
+        }
+
+        return $field_groups;
+    }
+
     /**
      * Process data before record is importer.
      *

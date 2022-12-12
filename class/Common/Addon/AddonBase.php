@@ -81,6 +81,13 @@ class AddonBase implements AddonInterface
             $event_handler->listen('importer.custom_fields.get_fields', [$this, '_custom_fields_get_fields']);
             $event_handler->listen('importer.custom_fields.process_field', [$this, '_custom_fields_process_field']);
         }, 10, 2);
+
+        add_action('iwp/importer/shutdown', function () {
+
+            foreach ($this->_sections as $section) {
+                $section->clear();
+            }
+        });
     }
 
     public function get_service_provider($prop)
@@ -250,6 +257,8 @@ class AddonBase implements AddonInterface
                     update_user_meta($object_id, $key, $value);
                 }
                 break;
+                // TODO: Addon mappers should not be listed here replace with filter?
+            case 'woocommerce-product':
             case 'post':
                 if (!$is_unique) {
                     add_post_meta($object_id, $key, $value);

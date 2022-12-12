@@ -13,11 +13,14 @@ use ImportWP\Common\Importer\MapperInterface;
 use ImportWP\Common\Importer\Parser\CSVParser;
 use ImportWP\Common\Importer\Parser\XMLParser;
 use ImportWP\Common\Importer\ParserInterface;
+use ImportWP\Common\Importer\State\ImporterState;
+use ImportWP\Common\Properties\Properties;
 use ImportWP\Common\Util\Logger;
+use ImportWP\Common\Util\Util;
+use ImportWP\Container;
 
 class Importer
 {
-
     /**
      * @var ConfigInterface $config
      */
@@ -27,11 +30,6 @@ class Importer
      * @var MapperInterface $mapper
      */
     private $mapper;
-
-    /**
-     * @var ImporterStatus $status
-     */
-    private $status;
 
     /**
      * @var int $start
@@ -44,25 +42,30 @@ class Importer
     private $end;
 
     /**
-     * @var int
-     */
-    private $start_time;
-
-    /**
-     * @var int
-     */
-    private $import_start_time;
-
-    /**
      * @var ParserInterface $parser
      */
     private $parser;
 
+    /**
+     * Flag used to determine type of shutdown
+     * 
+     * @var boolean
+     */
     private $graceful_shutdown = true;
 
-    private $chunk_size;
-
+    /**
+     * List of filters that can be applied
+     *
+     * @var array
+     */
     private $filter_data = [];
+
+    /**
+     * Are there any dangling records that need fixed.
+     *
+     * @var boolean
+     */
+    private $is_timeout = false;
 
     /**
      * @param ConfigInterface $config
@@ -98,16 +101,6 @@ class Importer
         $this->mapper = $mapper;
 
         return $this;
-    }
-
-    public function status(ImporterStatus $status)
-    {
-        $this->status = $status;
-        return $this;
-    }
-
-    public function permissions(PermissionInterface $permission)
-    {
     }
 
     /**
@@ -160,13 +153,6 @@ class Importer
         $this->end = $end;
     }
 
-    public function chunk($size, $original_start, $original_end)
-    {
-        $this->chunk_size = $size;
-        $this->original_start = $original_start;
-        $this->original_end = $original_end;
-    }
-
     /**
      * Get Record Start Index
      *
@@ -187,10 +173,34 @@ class Importer
         return isset($this->end) && $this->end >= $this->getRecordStart() ? $this->end : $this->parser->file()->getRecordCount();
     }
 
-    private function register_shutdown()
+    private function register_shutdown($importer_state)
     {
         $this->graceful_shutdown = false;
-        register_shutdown_function([$this, 'shutdown']);
+
+        register_shutdown_function(function () use ($importer_state) {
+            if ($this->is_graceful_shutdown()) {
+                // $this->record_time();
+                return;
+            }
+
+            // TODO: Log errors
+            $error = error_get_last();
+            if (!is_null($error)) {
+
+                $importer_state->update(function ($state) use ($error) {
+                    $state['status'] = 'error';
+                    $state['message'] = $error['message'];
+                    return $state;
+                });
+
+
+                $this->mapper->teardown();
+                echo json_encode($importer_state->get_raw()) . "\n";
+                die();
+            }
+
+            $this->mapper->teardown();
+        });
     }
 
     private function unregister_shutdown()
@@ -205,10 +215,14 @@ class Importer
 
     /**
      * Run Import
+     * 
+     * @param int $id Importer Id
+     * @param string $user Unique user id
+     * @param ImporterState $importer_state 
      *
      * @throws \Exception
      */
-    public function import()
+    public function import($id, $user, $importer_state)
     {
         $this->start_time = time();
         $this->import_start_time = time();
@@ -221,201 +235,323 @@ class Importer
             throw new \Exception("Mapper Not Loaded.");
         }
 
-        if ($this->status == null) {
-            throw new \Exception("Status Not Loaded.");
-        }
+        $this->user = $user;
 
         $this->mapper->setup();
 
-        $this->register_shutdown();
+        $this->register_shutdown($importer_state);
 
-        $start = $this->getRecordStart();
-        $end   = $this->getRecordEnd();
-        $chunk_index = -1;
+        /**
+         * @var Util $util
+         */
+        $util = Container::getInstance()->get('util');
+        $util->set_time_limit();
 
-        Logger::write(__CLASS__ . '::import -start=' . $start . ' -end=' . $end);
+        /**
+         * @var Properties $properties
+         */
+        $properties = Container::getInstance()->get('properties');
 
-        // get next chunk to process
-        if (!is_null($this->chunk_size)) {
-            list($start, $end, $chunk_index) = $this->status->get_next_chunk($this->chunk_size, $this->original_start, $this->original_end);
-            $this->status->set_chunk_index($chunk_index);
-            Logger::write(__CLASS__ . '::import -start=' . $start . ' -end=' . $end . ' -chunk=' . $chunk_index);
+        $time_limit = $properties->get_setting('timeout');
+        $start = microtime(true);
+        $max_record_time = 0;
+
+        // Does this current user have any dangling jobs?
+        $this->try_import_dangling_rows($id, $user, $importer_state, $user);
+
+        $config = get_site_option('iwp_importer_config_' . $id, []);
+
+        while (($time_limit === 0 || ((microtime(true) - $start) < $time_limit - $max_record_time)) && $importer_state && $importer_state->has_section(['import', 'delete', 'timeout'])) {
+
+            $this->is_timeout = false;
+
+            $importer_state = $importer_state->update(function ($state) use ($importer_state, $config, $user, $id) {
+                return $this->setup_importer_state($importer_state, $state, $config, $user, $id);
+            });
+
+            if (!$importer_state || $this->is_timeout || !$importer_state->has_status('running')) {
+                break;
+            }
+
+            $record_time = microtime(true);
+            $this->import_row($id, $user, $importer_state, $importer_state->get_session(), $importer_state->get_section(), $importer_state->get_progress());
+            $max_record_time = max($max_record_time, microtime(true) - $record_time);
+
+            if (!wp_using_ext_object_cache()) {
+                wp_cache_flush();
+            }
+
+            do_action('iwp/importer/shutdown');
         }
 
-        if ($this->status->has_section('importing')) {
+        Util::write_status_session_to_file($id, $importer_state);
 
-            Logger::write(__CLASS__ . '::import -importing');
+        $this->mapper->teardown();
+        $this->unregister_shutdown();
+    }
+
+    function setup_importer_state($importer_state, $state, $config, $user, $id)
+    {
+        $importer_state->populate($state);
+
+        if (!$importer_state->validate($config['id'])) {
+            throw new \Exception("Importer session has changed");
+        }
+
+        if ($importer_state->has_status('running')) {
+
+            $section = $importer_state->get_section();
+            if (isset($state['progress'][$section]) && $state['progress'][$section]['end'] - $state['progress'][$section]['start'] <= $state['progress'][$section]['current_row']) {
+
+                // Does this user or any user have any dangling jobs?
+                $dangling = $this->try_import_dangling_rows($id, $user, $importer_state);
+                if (!$dangling) {
+                    $this->is_timeout = true;
+                    $state['duration'] = floatval($state['duration']) + Logger::timer();
+                    return $state;
+                }
+
+                switch ($importer_state->get_section()) {
+                    case 'import':
+
+                        if ($this->mapper->permission() && $this->mapper->permission()->allowed_method('remove')) {
+
+                            // importer delete
+                            $state['section'] = 'delete';
+
+                            // generate list of items to be deleted
+                            $object_ids = $this->mapper->get_objects_for_removal();
+
+                            $config = get_site_option('iwp_importer_config_' . $id);
+                            $config['delete_ids'] = $object_ids;
+                            update_site_option('iwp_importer_config_' . $id, $config);
+
+                            $state['progress']['delete']['start'] = 0;
+                            $state['progress']['delete']['end'] = $object_ids ? count($object_ids) : 0;
+                        } else {
+                            $state['section'] = '';
+                            $state['status'] = 'complete';
+                        }
+
+                        break;
+                    case 'delete':
+
+                        // importer complete
+                        $state['section'] = '';
+                        $state['status'] = 'complete';
+
+                        break;
+                }
+            }
+
+            // Get increase index, locking record, and saving to user importer state
+            if (!empty($state['section'])) {
+                $state['progress'][$state['section']]['current_row']++;
+                update_site_option('iwp_importer_state_' . $id . '_' . $user, array_merge($state, ['last_modified' => current_time('timestamp')]));
+            }
+        }
+
+        $state['duration'] = floatval($state['duration']) + Logger::timer();
+
+        return $state;
+    }
+
+    function try_import_dangling_rows($id, $user, $importer_state, $user_to_check = null)
+    {
+        $dangling = $this->has_dangling_state($id, $user_to_check);
+        if (!empty($dangling)) {
+            $fixed = 0;
+            foreach ($dangling as $dangling_id) {
+
+                // TODO: Should the option be renamed to the current user first? to make sure its not ran multiple times.
+                // TODO: status should not be overwritten like this.
+                $GLOBALS['wp_object_cache']->delete($dangling_id, 'options');
+                $status = get_site_option($dangling_id);
+                if ($status && $status['last_modified'] < current_time('timestamp') - 30) {
+
+                    Logger::write('try_import_dangling_rows -id=' . $id . ' -user=' . $user . ' -dangling=' . $dangling_id);
+
+                    $GLOBALS['wp_object_cache']->delete($dangling_id, 'options');
+                    $status['last_modified'] = current_time('timestamp');
+                    update_site_option($dangling_id, $status);
+
+
+                    $this->import_row($id, $user, $importer_state, $importer_state->get_session(), $status['section'], $status['progress'][$status['section']]);
+                    delete_site_option($dangling_id);
+                    $fixed++;
+                }
+            }
+
+            if ($fixed !== count($dangling)) {
+                // escape due to dangling records that have not timed out
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function import_row($id, $user, $importer_state, $session, $section, $progress)
+    {
+        $stats = [
+            'inserts' => 0,
+            'updates' => 0,
+            'deletes' => 0,
+            'skips' => 0,
+            'errors' => 0,
+        ];
+
+        if ($section === 'import') {
+
 
             // TODO: Run through field map from config (xml or csv)
             $data_parser = new DataParser($this->parser, $this->mapper, $this->config->getData());
 
-            if ($start < $end) {
-                for ($i = $start; $i < $end; $i++) {
+            $i = $progress['start'] + $progress['current_row'] - 1;
 
-                    $this->status->refresh();
+            /**
+             * @var ParsedData $data
+             */
+            $data = null;
 
-                    // escape if invalid session
-                    if (!$this->status->validate()) {
-                        Logger::write(__CLASS__ . '::import -invalid-session');
-                        $this->mapper->teardown();
-                        $this->unregister_shutdown();
-                        return;
-                    }
+            try {
 
-                    // escape if we are paused or cancelled
-                    if ($this->status->is_paused() || $this->status->is_cancelled()) {
-                        Logger::write(__CLASS__ . '::import -paused');
-                        $this->mapper->teardown();
-                        $this->unregister_shutdown();
-                        return;
-                    }
+                $data = $data_parser->get($i);
 
-                    /**
-                     * @var ParsedData $data
-                     */
+                $skip_record = $this->filterRecords();
+                $skip_record = apply_filters('iwp/importer/skip_record', $skip_record, $data, $this);
+
+                if ($skip_record) {
+
+                    Logger::write('import -skip-record=' . $i);
+
+                    $stats['skips']++;
+
+                    // set data to null, to flag chunk as skipped
+                    Util::write_status_log_file_message($id, $session, "Skipped Record", 'S', $progress['current_row']);
+
                     $data = null;
+                } else {
 
-                    try {
+                    // import
+                    $data = apply_filters('iwp/importer/before_mapper', $data, $this);
+                    $data->map();
 
-                        $data = $data_parser->get($i);
+                    if ($data->isInsert()) {
 
-                        $skip_record = $this->filterRecords();
-                        $skip_record = apply_filters('iwp/importer/skip_record', $skip_record, $data, $this);
+                        Logger::write('import:' . $i . ' -success -insert');
 
-                        if ($skip_record) {
+                        $stats['inserts']++;
 
-                            // skip record
-                            Logger::write(__CLASS__ . '::import -skip-record=' . $i);
-                            $this->record_time();
-                            $this->status->record_skip();
-
-                            // set data to null, to flag chunk as skipped
-                            $data = null;
-                        } else {
-
-                            // import
-                            $data = apply_filters('iwp/importer/before_mapper', $data, $this);
-                            $data->map();
-
-                            Logger::write(__CLASS__ . '::import -success');
-                            $this->status->record_success($data);
-                        }
-                    } catch (ParserException $e) {
-
-                        Logger::write(__CLASS__ . '::import -parser-error=' . $e->getMessage());
-                        $this->status->record_error($e->getMessage());
-                    } catch (MapperException $e) {
-
-                        Logger::write(__CLASS__ . '::import -mapper-error=' . $e->getMessage());
-                        $this->status->record_error($e->getMessage());
-                    } catch (FileException $e) {
-
-                        Logger::write(__CLASS__ . '::import -file-error=' . $e->getMessage());
-                        $this->status->record_error($e->getMessage());
+                        $message = apply_filters('iwp/status/record_inserted', 'Record Inserted: #' . $data->getId(), $data->getId(), $data);
+                        Util::write_status_log_file_message($id, $session, $message, 'S', $progress['current_row']);
                     }
 
-                    if (!is_null($this->chunk_size)) {
-                        Logger::write(__CLASS__ . '::import -record-chunk');
-                        $this->status->record_chunk($chunk_index, $data);
-                    }
+                    if ($data->isUpdate()) {
 
+                        Logger::write('import:' . $i . ' -success -update');
 
-                    $this->record_time();
-                    $this->status->record_finished();
-                    Logger::write(__CLASS__ . '::import -record-finished');
+                        $stats['updates']++;
 
-                    if ($this->timeout()) {
-                        Logger::write(__CLASS__ . '::import -timeout');
-                        $this->unregister_shutdown();
-                        return;
+                        $message = apply_filters('iwp/status/record_updated', 'Record Updated: #' . $data->getId(), $data->getId(), $data);
+                        Util::write_status_log_file_message($id, $session, $message, 'S', $progress['current_row']);
                     }
                 }
+            } catch (ParserException $e) {
+
+                $stats['errors']++;
+                Logger::error('import:' . $i . ' -parser-error=' . $e->getMessage());
+                Util::write_status_log_file_message($id, $session, $e->getMessage(), 'E', $progress['current_row']);
+            } catch (MapperException $e) {
+
+                $stats['errors']++;
+                Logger::error('import:' . $i . ' -mapper-error=' . $e->getMessage());
+                Util::write_status_log_file_message($id, $session, $e->getMessage(), 'E', $progress['current_row']);
+            } catch (FileException $e) {
+
+                $stats['errors']++;
+                Logger::error('import:' . $i . ' -file-error=' . $e->getMessage());
+                Util::write_status_log_file_message($id, $session, $e->getMessage(), 'E', $progress['current_row']);
             }
 
-            // escape if there are more chunks processing
-            Logger::write(__CLASS__ . '::import -chunk-size=' . $this->chunk_size . ' -original-start=' . $this->original_start . ' -original_end=' . $this->original_end);
-            if (!is_null($this->chunk_size)) {
-                $has_more_chunks = $this->status->has_more_chunks($this->chunk_size, $this->original_start, $this->original_end);
+            $this->update_importer_stats($importer_state, $stats);
+            Util::write_status_session_to_file($id, $importer_state);
 
-                Logger::write(__CLASS__ . '::import -has-more-chunks=' . ($has_more_chunks ? 'yes' : 'no'));
-                if ($has_more_chunks) {
-                    Logger::write(__CLASS__ . '::import -chunk-timeout');
-                    $this->status->timeout();
-                    $this->mapper->teardown();
-                    $this->unregister_shutdown();
-                    return;
-                }
-            }
-
-            Logger::write(__CLASS__ . '::import -deleting');
-            $this->status->set_section('deleting');
-
-            $object_ids = $this->mapper->get_objects_for_removal();
-            if (false !== $object_ids && count($object_ids) > 0) {
-                $this->status->set_delete_total(count($object_ids));
-
-                if (!is_null($this->chunk_size)) {
-                    $this->status->setup_chunk_delete_list($object_ids);
-                }
-            }
-
-            $this->status->save();
+            delete_site_option('iwp_importer_state_' . $id . '_' . $user);
+            return;
         }
 
-
-        if ($this->status->has_section('deleting')) {
+        if ($section === 'delete') {
             if ($this->mapper->permission() && $this->mapper->permission()->allowed_method('remove')) {
 
-                if (!is_null($this->chunk_size)) {
-                    list($object_ids, $chunk_index) = $this->status->get_next_delete_chunk($this->chunk_size);
-                }
+                $GLOBALS['wp_object_cache']->delete('iwp_importer_config_' . $id, 'options');
+                $config = get_site_option('iwp_importer_config_' . $id);
+                $i = $progress['current_row'] - 1;
 
-                if (!isset($object_ids)) {
-                    $object_ids = $this->mapper->get_objects_for_removal();
-                }
+                $object_ids = $config['delete_ids'];
+                if ($object_ids && count($object_ids) > $i) {
+                    $object_id = $object_ids[$i];
+                    $this->mapper->delete($object_id);
+                    $stats['deletes']++;
 
-                if (false !== $object_ids && count($object_ids) > 0) {
+                    Logger::write('delete:' . $i . ' -object=' . $object_id);
 
-                    foreach ($object_ids as $object_id) {
-
-                        if ($this->status->is_paused()) {
-                            $this->mapper->teardown();
-                            $this->unregister_shutdown();
-                            return;
-                        }
-
-                        $this->mapper->delete($object_id);
-                        $this->record_time();
-                        $this->status->record_delete($object_id);
-
-                        if (!is_null($this->chunk_size)) {
-                            $this->status->record_chunk_delete($chunk_index);
-                        }
-
-                        if ($this->timeout($this->start_time)) {
-                            $this->unregister_shutdown();
-                            return;
-                        }
-                    }
-                }
-
-                if (!is_null($this->chunk_size)) {
-                    $has_more_chunks = $this->status->has_more_delete_chunks($this->chunk_size);
-                    if ($has_more_chunks) {
-                        $this->unregister_shutdown();
-                        return;
-                    }
+                    $message = apply_filters('iwp/status/record_deleted', 'Record Deleted: #' . $object_id, $object_id);
+                    Util::write_status_log_file_message($id, $session, $message, 'D', $progress['current_row']);
                 }
             }
+
+            $this->update_importer_stats($importer_state, $stats);
+            Util::write_status_session_to_file($id, $importer_state);
+
+            delete_site_option('iwp_importer_state_' . $id . '_' . $user);
+            return;
+        }
+    }
+
+    function update_importer_stats($importer_state, $stats)
+    {
+        $importer_state->update(function ($state) use ($stats) {
+            if (!isset($state['stats'])) {
+                $state['stats'] = [
+                    'inserts' => 0,
+                    'updates' => 0,
+                    'deletes' => 0,
+                    'skips' => 0,
+                    'errors' => 0,
+                ];
+            }
+
+            $state['stats']['inserts'] += $stats['inserts'];
+            $state['stats']['updates'] += $stats['updates'];
+            $state['stats']['deletes'] += $stats['deletes'];
+            $state['stats']['skips'] += $stats['skips'];
+            $state['stats']['errors'] += $stats['errors'];
+
+            return $state;
+        });
+    }
+
+    function has_dangling_state($id, $user = null, $key_prefix = 'iwp_importer_state')
+    {
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+
+        $key_prefix = str_replace('_', '\_', $key_prefix);
+        $query = "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE '{$key_prefix}\_{$id}\_";
+
+        if (!empty($user)) {
+            $query .= $user;
+        } else {
+            $query .= '%';
         }
 
-        $this->status->clear_chunk_data();
+        $query .= "'";
 
-        $this->record_time();
-        $this->status->complete();
-
-        $this->mapper->teardown();
-        $this->unregister_shutdown();
+        $option_names = $wpdb->get_col($query);
+        return $option_names;
     }
 
     /**
@@ -465,7 +601,7 @@ class Importer
                             }
                         }
 
-                        if(!$found){
+                        if (!$found) {
                             $result = false;
                         }
 
@@ -535,53 +671,6 @@ class Importer
     function filter($filter_data = [])
     {
         $this->filter_data = $filter_data;
-    }
-
-    private function record_time()
-    {
-        $current_time = time();
-        $this->status->record_time($current_time - $this->start_time);
-        $this->start_time = $current_time;
-    }
-
-    public function shutdown()
-    {
-        if ($this->is_graceful_shutdown()) {
-            $this->record_time();
-            return;
-        }
-
-        // TODO: Log errors
-        $error = error_get_last();
-        if (!is_null($error)) {
-            $this->status->record_fatal_error($error['message']);
-            $this->mapper->teardown();
-            echo json_encode($this->status->output()) . "\n";
-            die();
-        }
-
-        $this->status->timeout();
-        $this->mapper->teardown();
-    }
-
-    private function timeout()
-    {
-        $limit = intval(ini_get('max_execution_time'));
-        if ($limit > 0) {
-            $limit = ceil($limit * 0.9);
-        } else {
-            $limit = 3600;
-        }
-
-        $limit = apply_filters('iwp/importer/timeout', $limit);
-
-        $current_time = time();
-        if ($current_time - $this->import_start_time >= $limit) {
-            $this->status->timeout();
-            $this->mapper->teardown();
-            return true;
-        }
-        return false;
     }
 
     public function getParser()

@@ -2,8 +2,12 @@
 
 namespace ImportWP\Common\Importer\Parser;
 
+use ImportWP\Common\Importer\File\CSVFile;
 use ImportWP\Common\Importer\ParserInterface;
 
+/**
+ * @property CSVFile $file
+ */
 class CSVParser extends AbstractParser implements ParserInterface
 {
     /**

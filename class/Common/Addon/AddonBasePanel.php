@@ -266,4 +266,9 @@ class AddonBasePanel extends AddonBaseContainer implements AddonPanelInterface
             $group_field->_process($this->addon(), $id, $section_id, $data, $importer_model, $template, $i);
         }
     }
+
+    public function clear()
+    {
+        unset($this->_data);
+    }
 }

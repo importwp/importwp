@@ -6,10 +6,9 @@ use ImportWP\Common\Exporter\ExporterManager;
 use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Http\Http;
 use ImportWP\Common\Importer\ImporterManager;
-use ImportWP\Common\Importer\ImporterStatus;
-use ImportWP\Common\Importer\ImporterStatusManager;
 use ImportWP\Common\Importer\Preview\CSVPreview;
 use ImportWP\Common\Importer\Preview\XMLPreview;
+use ImportWP\Common\Importer\State\ImporterState;
 use ImportWP\Common\Importer\Template\Template;
 use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Migration\Migrations;
@@ -17,6 +16,8 @@ use ImportWP\Common\Model\ExporterModel;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Properties\Properties;
 use ImportWP\Common\Util\Logger;
+use ImportWP\Common\Util\Util;
+use ImportWP\Container;
 use ImportWP\EventHandler;
 
 class RestManager extends \WP_REST_Controller
@@ -47,11 +48,6 @@ class RestManager extends \WP_REST_Controller
     protected $exporter_manager;
 
     /**
-     * @var ImporterStatusManager
-     */
-    protected $importer_status_manager;
-
-    /**
      * @var TemplateManager $template_manager
      */
     protected $template_manager;
@@ -61,11 +57,10 @@ class RestManager extends \WP_REST_Controller
      */
     protected $event_handler;
 
-    public function __construct(ImporterManager $importer_manager, ExporterManager $exporter_manager, ImporterStatusManager $importer_status_manager, Properties $properties, Http $http, Filesystem $filesystem, TemplateManager $template_manager, $event_handler)
+    public function __construct(ImporterManager $importer_manager, ExporterManager $exporter_manager, Properties $properties, Http $http, Filesystem $filesystem, TemplateManager $template_manager, $event_handler)
     {
         $this->importer_manager = $importer_manager;
         $this->exporter_manager = $exporter_manager;
-        $this->importer_status_manager = $importer_status_manager;
         $this->properties = $properties;
         $this->http = $http;
         $this->filesystem = $filesystem;
@@ -199,14 +194,6 @@ class RestManager extends \WP_REST_Controller
             array(
                 'methods'             => \WP_REST_Server::CREATABLE,
                 'callback'            => array($this, 'stop_import'),
-                'permission_callback' => array($this, 'get_permission')
-            )
-        ));
-
-        register_rest_route($namespace, '/importer/(?P<id>\d+)/errors', array(
-            array(
-                'methods'             => \WP_REST_Server::CREATABLE,
-                'callback'            => array($this, 'get_errors'),
                 'permission_callback' => array($this, 'get_permission')
             )
         ));
@@ -635,25 +622,8 @@ class RestManager extends \WP_REST_Controller
     public function get_status(\WP_REST_Request $request)
     {
         $this->http->set_stream_headers();
-        ob_start();
 
         $importer_ids = $request->get_param('ids');
-
-        $default_time = 5;
-        $paused_time = 2;
-        $importing_time = 1;
-
-        $startedAt = time();
-        // do {
-
-        $update_time = $default_time;
-
-        if ((time() - $startedAt) > 10) {
-            if (ob_get_contents()) {
-                ob_end_flush();
-            }
-            die();
-        }
 
         $result = [];
 
@@ -671,141 +641,91 @@ class RestManager extends \WP_REST_Controller
         foreach ($query->posts as $importer_id) {
 
             $importer_model = $this->importer_manager->get_importer($importer_id);
-            $status = new ImporterStatus($importer_model->getId(), $importer_model->getStatus());
-            $output = $status->output();
-            $output['id'] = $importer_id;
 
-            if ($output['b'] !== 'complete' && in_array($output['s'], ['running', 'paused'])) {
-                if ($output['s'] === 'running') {
-                    $update_time = $importing_time;
-                } elseif ($output['s'] === 'paused') {
-                    $update_time = $paused_time;
-                }
+            $output = ImporterState::get_state($importer_id);
+            if (!$output) {
+                // TODO: What should happen if there is no state.
+                $output['version'] = 2;
             }
-
-            $output['msg'] = $this->generate_status_message($status);
+            $output['message'] = $this->generate_status_message($output);
+            $output['importer'] = $importer_id;
 
             $result[] = $this->event_handler->run('iwp/importer/status/output', [$output, $importer_model]);
         }
 
         echo json_encode($result) . "\n";
         die();
-        // ob_flush();
-        // flush();
-
-        // sleep($update_time);
-        // } while (true);
     }
 
     /**
-     * @param ImporterStatus $importer_status
+     * @param array $data
      * @return string
      */
-    protected function generate_status_message($importer_status)
+    protected function generate_status_message($data)
     {
-        $output = 'Status: ';
-        $data = $importer_status->data();
+        $output = '';
 
-        if (is_null($data['status']) || empty($data['status'])) {
+        if (!$data || !isset($data['status']) || is_null($data['status']) || empty($data['status'])) {
             return '';
         }
 
-        $output .= $data['status'] . ', ';
-
-        $output .= 'Records: ' . $data['counter'] . ' / ' . $data['total'];
-
-        if ($data['inserts'] > 0) {
-            $output .= ', Inserts: ' . $data['inserts'];
-        }
-
-        if ($data['updates'] > 0) {
-            $output .= ', Updates: ' . $data['updates'];
-        }
-
-        if ($data['deletes'] > 0) {
-            $output .= ', Deletes: ' . $data['deletes'] . '/' . $data['delete_total'];
-        }
-
-        if ($data['errors'] > 0) {
-            $output .= ', Errors: ' . $data['errors'];
-        }
-
-        if ($data['elapsed_time'] >= 0) {
-
-
-            $time = $data['elapsed_time'];
-            $hours = floor($time / 3600);
-            $time = $time - $hours * 3600;
-            $minutes = floor($time / 60);
-            $seconds = $time - $minutes * 60;
-
-            $output .= ', Time: ';
-            if ($hours > 0) {
-                $output .= ' ' . $hours . 'h';
-            }
-            if ($minutes > 0) {
-                $output .= ' ' . $minutes . 'm';
-            }
-
-            $output .= ' ' . $seconds . 's';
-
-            if (isset($data['memory'])) {
-                $output .= ', Peak Memory: ' . $importer_status->size_formatted($data['memory']);
+        if (isset($data['status'])) {
+            switch ($data['status']) {
+                case 'cancelled':
+                    $output .= 'Import cancelled';
+                    break;
+                case 'complete':
+                    $output .= 'Import complete';
+                    break;
+                case 'error':
+                    $output = $data['message'];
+                    return $output;
+                    break;
             }
         }
 
-        if ($this->importer_manager->is_debug()) {
+        if (isset($data['status']) && $data['status'] === 'running' && isset($data['section'])) {
+            switch ($data['section']) {
+                case 'import':
+                case 'delete':
+                    $output = $data['section'] === 'import' ? 'Importing: ' : 'Deleting: ';
+                    $output .= $data['progress'][$data['section']]['current_row'] . ' / ' . ($data['progress'][$data['section']]['end'] - $data['progress'][$data['section']]['start']);
 
-            list($running, $incomplete, $all) = $importer_status->get_running_chunks();
-            if ($all > 0) {
-                $output .= ', Chunks: ' . $running . '/' . $incomplete . '/' . $all;
+                    break;
             }
         }
 
-        /*
-        {status_txt && (
-          <span>
-            <strong>Status</strong>: {status_txt + ', '}
-          </span>
-        )}
-        <span>
-          <strong>Records</strong>: {status.c} / {status.t}
-        </span>
-        {status.i > 0 && (
-          <span>
-            , <strong>Inserts</strong>: {status.i}
-          </span>
-        )}
-        {status.u > 0 && (
-          <span>
-            , <strong>Updates</strong>: {status.u}
-          </span>
-        )}
-        {status.r > 0 && (
-          <span>
-            , <strong>Deletes</strong>: {status.r}
-          </span>
-        )}
-        {status.e > 0 && (
-          <span>
-            , <strong>Errors</strong>: {status.e}
-          </span>
-        )}
-        {status.z >= 0 && (
-          <span>
-            , <strong>Time:</strong>
-            {hours > 0 && <span> {hours}h </span>}
-            {minutes > 0 && <span> {minutes}m </span>}
-            <span> {seconds}s</span>
-          </span>
-        )}
-        {status.x && (
-          <span>
-            , <strong>Peak Memory:</strong>
-            <span> {status.x}</span>
-          </span>
-        )}
-        */
+        if (isset($data['stats'])) {
+            if ($data['stats']['inserts'] > 0) {
+                $output .= sprintf(', Inserts: %d', $data['stats']['inserts']);
+            }
+            if ($data['stats']['updates'] > 0) {
+                $output .= sprintf(', Updates: %d', $data['stats']['updates']);
+            }
+            if ($data['stats']['deletes'] > 0) {
+                $output .= sprintf(', Deletes: %d', $data['stats']['deletes']);
+            }
+            if ($data['stats']['skips'] > 0) {
+                $output .= sprintf(', Skips: %d', $data['stats']['skips']);
+            }
+            if ($data['stats']['errors'] > 0) {
+                $output .= sprintf(', Errors: %d', $data['stats']['errors']);
+            }
+        }
+
+        if (isset($data['timestamp'], $data['updated'])) {
+            /**
+             * @var Util $util
+             */
+            $util = Container::getInstance()->get('util');
+            $output .= ', Run Time: ' . $util->format_time($data['updated'] - $data['timestamp']);
+        } elseif (isset($data['duration'])) {
+            /**
+             * @var Util $util
+             */
+            $util = Container::getInstance()->get('util');
+            $output .= ', Run Time: ' . $util->format_time($data['duration']);
+        }
 
         return $output;
     }
@@ -1019,40 +939,28 @@ class RestManager extends \WP_REST_Controller
     /**
      * Trigger a new import.
      *
-     * Generate new ImporterStatus.
-     *
      * @param \WP_REST_Request $request
      * @return array
      */
     public function init_import(\WP_REST_Request $request)
     {
-        // new
-        try {
-            $id = intval($request->get_param('id'));
-            Logger::write(__CLASS__  . '::init_import -start', $id);
+        $id = intval($request->get_param('id'));
+        Logger::write(__CLASS__  . '::init_import -start', $id);
 
-            $importer_data = $this->importer_manager->get_importer($id);
+        $importer_data = $this->importer_manager->get_importer($id);
 
-            $status = $this->importer_status_manager->create($importer_data);
+        // clear existing
+        delete_site_option('iwp_importer_config_' . $importer_data->getId());
+        delete_site_option('iwp_importer_state_' . $importer_data->getId());
+        delete_site_option('iwp_importer_lock_' . $importer_data->getId());
+        delete_site_option('iwp_importer_lock_timestamp_' . $importer_data->getId());
 
-            Logger::write(__CLASS__  . '::init_import -status=' . $status->get_status(), $id);
-
-            if (!$status) {
-                Logger::write(__CLASS__  . '::init_import -error=Error: Unable to generate new import session.', $id);
-                return $this->http->end_rest_error('Error: Unable to generate new import session.');
-            }
-        } catch (\Exception $e) {
-            Logger::write(__CLASS__  . '::init_import -error=Error Generating Importer Session: ' . $e->getMessage(), $id);
-            return $this->http->end_rest_error('Error Generating Importer Session: ' . $e->getMessage());
-        }
-
-
-        // continue
-        // $status = $this->importer_status_manager->get_importer_status($importer_data, $importer_data->getStatusId());
-        Logger::write(__CLASS__  . '::init_import -session=' . $status->get_session_id(), $id);
+        // This is used for storing version on imported records
+        $session_id = md5($importer_data->getId() . time());
+        update_post_meta($importer_data->getId(), '_iwp_session', $session_id);
 
         return $this->http->end_rest_success([
-            'session' => $status->get_session_id()
+            'session' => $session_id
         ]);
     }
 
@@ -1060,59 +968,22 @@ class RestManager extends \WP_REST_Controller
     {
         $this->http->set_stream_headers();
 
+        Logger::setRequestType('rest');
+
         $session = $request->get_param('session');
-
-        // add_action('iwp/importer/status/save', array($this, 'render_import_status_update'));
-
+        $user = uniqid('iwp', true);
         $id = intval($request->get_param('id'));
         Logger::write(__CLASS__  . '::run_import -session=' . base64_encode(serialize($session)), $id);
 
         $importer_data = $this->importer_manager->get_importer($id);
         Logger::write(__CLASS__  . '::run_import -import=start', $id);
 
-        $status = $this->importer_manager->import($importer_data, $session);
-        Logger::write(__CLASS__  . '::run_import -import=end -status=' . $status->get_status(), $id);
+        $state = $this->importer_manager->import($importer_data->getId(), $user, $session);
+        $state['message'] = $this->generate_status_message($state);
 
-        if (!empty($this->output_cache)) {
-            echo $this->output_cache;
-            $this->output_cache = '';
-        }
+        Logger::clearRequestType();
 
-        $output = $status->output();
-        $output['msg'] = $this->generate_status_message($status);
-        echo json_encode($output) . "\n";
-        die();
-    }
-
-    private $output_last_time = -1;
-    private $output_cache = '';
-
-    public function render_import_status_update(ImporterStatus $status)
-    {
-        $this->output_cache .= json_encode($status->output()) . "\n";
-        if ($this->output_last_time !== -1 && $this->output_last_time + 1 > time()) {
-
-            // Testing to see what happens when data is returned broken
-
-            // if (!empty($this->output_cache)) {
-
-            //     $index = rand(0, strlen($this->output_cache) - 1);
-            //     echo substr($this->output_cache, 0, $index);
-            //     $this->output_cache = substr($this->output_cache, $index);
-            //     flush();
-            // }
-            return;
-        }
-
-        echo $this->output_cache;
-        $this->output_last_time = time();
-        $this->output_cache = '';
-
-        if (ob_get_level() > 0) {
-            ob_flush();
-        }
-
-        flush();
+        return $this->http->end_rest_success($state);
     }
 
     public function pause_import(\WP_REST_Request $request)
@@ -1121,14 +992,23 @@ class RestManager extends \WP_REST_Controller
         $paused = $this->sanitize($request->get_param('paused'), 'paused');
 
         $importer_data = $this->importer_manager->get_importer($id);
-        $status = $this->importer_status_manager->get_importer_status($importer_data);
+        $user = uniqid('iwp', true);
 
-        if ($paused === 'no') {
-            $status->resume();
-        } else {
-            $status->pause();
-        }
-        return $this->http->end_rest_success($status->output());
+        $state = ImporterState::wait_for_lock($importer_data->getId(), $user, function () use ($importer_data, $paused) {
+            $state = ImporterState::get_state($importer_data->getId());
+
+
+            if ($paused === 'no') {
+                $state['status'] = 'running';
+            } else {
+                $state['status'] = 'paused';
+            }
+
+            ImporterState::set_state($importer_data->getId(), $state);
+            return $state;
+        });
+
+        return $this->http->end_rest_success($state);
     }
 
     public function stop_import(\WP_REST_Request $request)
@@ -1136,27 +1016,17 @@ class RestManager extends \WP_REST_Controller
         $id = intval($request->get_param('id'));
 
         $importer_data = $this->importer_manager->get_importer($id);
-        $status = $this->importer_status_manager->get_importer_status($importer_data);
-        if (!$status) {
-            return $this->http->end_rest_error('Unable to get importer status in stop_import.');
-        }
-        $status->stop();
 
-        return $this->http->end_rest_success($status->output());
-    }
+        $user = uniqid('iwp');
 
-    /**
-     * Get list of importer errors for the current session
-     *
-     * @param \WP_REST_Request $request
-     * @return json
-     */
-    public function get_errors(\WP_REST_Request $request)
-    {
-        $id = intval($request->get_param('id'));
-        $importer_data = $this->importer_manager->get_importer($id);
-        $status = $this->importer_status_manager->get_importer_status($importer_data);
-        return $this->http->end_rest_success($status->get_errors());
+        $state = ImporterState::wait_for_lock($importer_data->getId(), $user, function () use ($importer_data) {
+            $state = ImporterState::get_state($importer_data->getId());
+            $state['status'] = 'cancelled';
+            ImporterState::set_state($importer_data->getId(), $state);
+            return $state;
+        });
+
+        return $this->http->end_rest_success($state);
     }
 
     /**
@@ -1180,7 +1050,7 @@ class RestManager extends \WP_REST_Controller
     {
         $id = intval($request->get_param('id'));
         $importer_data = $this->importer_manager->get_importer($id);
-        $logs = $this->importer_status_manager->get_importer_logs($importer_data);
+        $logs = $this->importer_manager->get_importer_logs($importer_data);
         return $this->http->end_rest_success(array_reverse($logs));
     }
 
@@ -1193,8 +1063,8 @@ class RestManager extends \WP_REST_Controller
             $page = 1;
         }
         $importer_data = $this->importer_manager->get_importer($id);
-        $log = $this->importer_status_manager->get_importer_log($importer_data, $session, $page, 500);
-        $status = $this->importer_status_manager->get_importer_status_report($importer_data, $session);
+        $log = $this->importer_manager->get_importer_log($importer_data, $session, $page, 500);
+        $status = $this->importer_manager->get_importer_status_report($importer_data, $session);
         return $this->http->end_rest_success(['logs' => $log, 'status' => $status]);
     }
 
@@ -1453,7 +1323,7 @@ class RestManager extends \WP_REST_Controller
         // }
 
         // $output = $status->output();
-        // $output['msg'] = $this->generate_exporter_status_message($status);
+        // $output['message'] = $this->generate_exporter_status_message($status);
         // echo json_encode($output) . "\n";
         die();
     }
