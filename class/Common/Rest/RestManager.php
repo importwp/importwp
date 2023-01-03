@@ -950,10 +950,7 @@ class RestManager extends \WP_REST_Controller
         $importer_data = $this->importer_manager->get_importer($id);
 
         // clear existing
-        delete_site_option('iwp_importer_config_' . $importer_data->getId());
-        delete_site_option('iwp_importer_state_' . $importer_data->getId());
-        delete_site_option('iwp_importer_lock_' . $importer_data->getId());
-        delete_site_option('iwp_importer_lock_timestamp_' . $importer_data->getId());
+        ImporterState::clear_options($importer_data->getId());
 
         // This is used for storing version on imported records
         $session_id = md5($importer_data->getId() . time());
@@ -1112,7 +1109,7 @@ class RestManager extends \WP_REST_Controller
             }
         }
 
-        update_option('iwp_settings', $output);
+        update_site_option('iwp_settings', $output);
 
         return $this->http->end_rest_success($this->properties->get_settings());
     }
@@ -1258,12 +1255,12 @@ class RestManager extends \WP_REST_Controller
             $exporter->setFileType($post_data['file_type']);
         }
 
-        if (isset($post_data['fields'])) {
-            $exporter->setFields($post_data['fields']);
+        if (isset($post_data['fields']) || $id > 0) {
+            $exporter->setFields(isset($post_data['fields']) ? $post_data['fields'] : []);
         }
 
-        if (isset($post_data['filters'])) {
-            $exporter->setFilters($post_data['filters']);
+        if (isset($post_data['filters']) || $id > 0) {
+            $exporter->setFilters(isset($post_data['filters']) ? $post_data['filters'] : []);
         }
 
         if (isset($post_data['unique_identifier'])) {

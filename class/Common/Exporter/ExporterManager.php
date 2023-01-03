@@ -124,8 +124,6 @@ class ExporterManager
             $file = new JSONFile($exporter_data);
         }
 
-        $file->start();
-
         $type = $exporter_data->getType();
         $matches = null;
         if (preg_match('/^ewp_tax_(.*?)$/', $type, $matches) == 1) {
@@ -142,7 +140,15 @@ class ExporterManager
 
         $mapper->set_filters($exporter_data->getFilters());
 
+        // Default to showing all fields, if none selected
+        if (empty($exporter_data->getFields(true))) {
+            $exporter_data->setFields($mapper->get_fields());
+        }
+
+        $file->start();
+
         $columns = $exporter_data->getFields();
+
         $total = 0;
         $i = 0;
 

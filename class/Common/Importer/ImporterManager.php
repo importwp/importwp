@@ -450,29 +450,42 @@ class ImporterManager
 
         $config_data = get_site_option('iwp_importer_config_' . $importer_id, []);
 
+        $this->event_handler->run('importer_manager.import', [$importer_data]);
+
         $state = new ImporterState($importer_id, $user);
 
         try {
 
+            Logger::debug('IM -init_state');
             $state->init($session);
 
             if ($state->has_status('init')) {
+                Logger::debug('IM -clear_config_files');
                 $this->clear_config_files($importer_id, false, true);
             }
 
+            Logger::debug('IM -get_config');
             $config = $this->get_config($importer_data);
 
             // template
+            Logger::debug('IM -get_importer_template');
             $template = $this->get_importer_template($importer_data);
+
+            Logger::debug('IM -register_hooks');
             $template->register_hooks($importer_data);
 
             // permission
+            Logger::debug('IM -permissions');
             $permission = new Permission($importer_data);
 
             // mapper
+            Logger::debug('IM -get_importer_mapper');
             $mapper = $this->get_importer_mapper($importer_data, $template, $permission);
 
             if ($state->has_status('init')) {
+
+                Logger::debug('IM -generate_config');
+
                 $config_data['data'] = $template->config_field_map($importer_data->getMap());
                 $config->set('data', $config_data['data']);
 
@@ -496,18 +509,23 @@ class ImporterManager
 
             // get parser
             if ($importer_data->getParser() === 'csv') {
+                Logger::debug('IM -get_csv_file');
                 $file = $this->get_csv_file($importer_data, $config);
+                Logger::debug('IM -load_parser');
                 $parser = new CSVParser($file);
                 if (true === $importer_data->getFileSetting('show_headings')) {
                     $start = 1;
                 }
             } else {
+                Logger::debug('IM -get_xml_file');
                 $file = $this->get_xml_file($importer_data, $config);
+                Logger::debug('IM -load_parser');
                 $parser = new XMLParser($file);
             }
 
             if ($state->has_status('init')) {
 
+                Logger::debug('IM -get_record_count');
                 $end = $parser->file()->getRecordCount();
 
                 $config_data['start'] = $this->get_start($importer_data, $start);
@@ -515,7 +533,11 @@ class ImporterManager
 
                 update_site_option('iwp_importer_config_' . $importer_id, $config_data);
 
+                Logger::debug('IM -update_state');
                 $state->update(function ($state) use ($config_data) {
+
+                    Logger::debug('IM -update_state=running');
+
                     $state['id'] = $config_data['id'];
                     $state['status'] = 'running';
                     $state['progress']['import']['start'] = $config_data['start'];
@@ -523,9 +545,11 @@ class ImporterManager
                     return $state;
                 });
 
+                Logger::debug('IM -write_status_session_to_file');
                 Util::write_status_session_to_file($id, $state);
             }
 
+            Logger::debug('IM -import');
             $importer = new \ImportWP\Common\Importer\Importer($config);
             $importer->parser($parser);
             $importer->mapper($mapper);
@@ -533,6 +557,7 @@ class ImporterManager
             $importer->to($config_data['end']);
             $importer->filter($importer_data->getFilters());
             $importer->import($importer_id, $user, $state);
+            Logger::debug('IM -import_complete');
         } catch (\Exception $e) {
 
             // TODO: Missing template errors are currently not being logged to history, possibly others?

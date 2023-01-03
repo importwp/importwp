@@ -232,9 +232,8 @@ class ImporterState
      */
     public static function set_state($id, $state)
     {
-        $GLOBALS['wp_object_cache']->delete('iwp_importer_state_' . $id, 'options');
         $state['updated'] = time();
-        update_site_option('iwp_importer_state_' . $id, $state);
+        self::update_option('iwp_importer_state_' . $id, maybe_serialize($state));
     }
 
     /**
@@ -244,12 +243,10 @@ class ImporterState
      */
     public static function get_state($id, $default = false)
     {
-        $GLOBALS['wp_object_cache']->delete('iwp_importer_state_' . $id, 'options');
-
-        $state = get_site_option('iwp_importer_state_' . $id);
+        $state = self::get_option('iwp_importer_state_' . $id);
         if (!$state) {
             $state = $default;
-            update_site_option('iwp_importer_state_' . $id, $state);
+            self::update_option('iwp_importer_state_' . $id, maybe_serialize($state));
         }
 
         return $state;
@@ -263,7 +260,29 @@ class ImporterState
          */
         global $wpdb;
 
-        $result = $wpdb->query("UPDATE {$wpdb->options} SET option_value='{$user}' WHERE option_name='iwp_importer_lock_{$id}' AND option_value=''");
+        $lock_option_id = sprintf("iwp_importer_lock_%d", $id);
+        $existing = self::get_option($lock_option_id, false);
+
+        if ($existing !== false) {
+            if (is_multisite()) {
+                $query = $wpdb->prepare(
+                    "UPDATE {$wpdb->sitemeta} SET meta_value=%s WHERE site_id=%d AND meta_key=%s AND meta_value=''",
+                    $user,
+                    $wpdb->siteid,
+                    $lock_option_id,
+                );
+            } else {
+                $query = $wpdb->prepare(
+                    "UPDATE {$wpdb->options} SET option_value=%s WHERE option_name=%s AND option_value=''",
+                    $user,
+                    $lock_option_id,
+                );
+            }
+        } else {
+            return self::update_option($lock_option_id, '');
+        }
+
+        $result = $wpdb->query($query);
 
         if ($result) {
 
@@ -271,7 +290,7 @@ class ImporterState
         } else {
 
             // Clear lock if timestamp is greater than timeout.
-            $last_locked_time = get_site_option('iwp_importer_lock_timestamp_' . $id, 0);
+            $last_locked_time = (int)self::get_option('iwp_importer_lock_timestamp_' . $id, 0);
             if (current_time('timestamp') >  $last_locked_time + $timeout_in_seconds) {
                 self::reset_lock($id);
             }
@@ -282,14 +301,85 @@ class ImporterState
 
     public static function reset_lock($id)
     {
-        $GLOBALS['wp_object_cache']->delete('iwp_importer_lock_' . $id, 'options');
-        update_site_option('iwp_importer_lock_' . $id, '');
+        self::update_option('iwp_importer_lock_' . $id);
         self::touch_lock($id);
     }
 
     public static function touch_lock($id)
     {
-        $GLOBALS['wp_object_cache']->delete('iwp_importer_lock_timestamp_' . $id, 'options');
-        update_site_option('iwp_importer_lock_timestamp_' . $id, current_time('timestamp'));
+        self::update_option('iwp_importer_lock_timestamp_' . $id, current_time('timestamp'));
+    }
+
+    public static function get_option($key, $default = false)
+    {
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+
+        if (is_multisite()) {
+            $query = $wpdb->prepare("SELECT meta_id as id, meta_value as data FROM {$wpdb->sitemeta} WHERE site_id=%s AND meta_key=%s LIMIT 1", [$wpdb->siteid, $key]);
+        } else {
+            $query = $wpdb->prepare("SELECT option_id as id, option_value as data FROM {$wpdb->options} WHERE option_name=%s LIMIT 1", [$key]);
+        }
+
+        $result = $wpdb->get_row($query, ARRAY_A);
+        if (!$result) {
+            return $default;
+        }
+
+        if (is_serialized($result['data'])) {
+            return unserialize($result['data']);
+        }
+
+        return $result['data'];
+    }
+
+    public static function update_option($key, $value = '')
+    {
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+
+        $result = self::get_option($key);
+
+        if (is_multisite()) {
+
+            if ($result !== false) {
+                $result = $wpdb->update($wpdb->sitemeta, ['meta_value' => $value], ['meta_key' => $key, 'site_id' => $wpdb->siteid], ['%s'], ['%s', '%s']);
+            } else {
+                $result = $wpdb->insert($wpdb->sitemeta, ['meta_value' => $value, 'meta_key' => $key, 'site_id' => $wpdb->siteid], ['%s', '%s', '%s']);
+            }
+        } else {
+            if ($result !== false) {
+                $result = $wpdb->update($wpdb->options, ['option_value' => $value], ['option_name' => $key], ['%s'], ['%s']);
+            } else {
+                $result = $wpdb->insert($wpdb->options, ['option_value' => $value, 'option_name' => $key], ['%s', '%s']);
+            }
+        }
+
+        return $result;
+    }
+
+    public static function clear_options($id)
+    {
+
+        // clear existing
+        delete_site_option('iwp_importer_config_' . $id);
+        delete_site_option('iwp_importer_state_' . $id);
+        delete_site_option('iwp_importer_lock_' . $id);
+        delete_site_option('iwp_importer_lock_timestamp_' . $id);
+
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+
+        if (is_multisite()) {
+            $wpdb->query("DELETE FROM {$wpdb->sitemeta} WHERE meta_key LIKE 'iwp\_importer\_state\_" . $id . "\_%'");
+        } else {
+            $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE 'iwp\_importer\_state\_" . $id . "\_%'");
+        }
     }
 }
