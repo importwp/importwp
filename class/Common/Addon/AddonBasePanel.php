@@ -221,7 +221,14 @@ class AddonBasePanel extends AddonBaseContainer implements AddonPanelInterface
             $this->_process_fields($id, $group_fields, $section_id, $rows, $importer_model, $template, false);
         }
 
-        $this->_trigger_process_callback($id, $rows, $importer_model, $template);
+        // check permissions before calling save
+        $permission_key = $section_id;
+        $allowed = $this->_process_data->permission()->validate([$permission_key => ''], $this->_process_data->getMethod(), $section_id);
+        $is_allowed = isset($allowed[$permission_key]) ? true : false;
+
+        if ($is_allowed) {
+            $this->_trigger_process_callback($id, $rows, $importer_model, $template);
+        }
 
         $this->_process_data = null;
     }

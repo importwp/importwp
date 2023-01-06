@@ -4,7 +4,7 @@ Tags: wordpress csv import, wordpress xml import, wordpress csv export, wordpres
 Requires at least: 4.0  
 Tested up to: 6.1  
 Requires PHP: 5.4  
-Stable tag: 2.6.1  
+Stable tag: 2.6.2  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -85,6 +85,12 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.6.2 =
+
+* FIX - AddonBasePanel save callback was not following permission rules.
+* FIX - PHP error caused by , at end of arrays. 
+* FIX - Importer session has changed fatal importer error during import initialization.
 
 = 2.6.1 =
 

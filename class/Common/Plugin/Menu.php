@@ -120,6 +120,8 @@ class Menu
         wp_enqueue_style($this->properties->plugin_domain . '-bundle-styles', plugin_dir_url($this->properties->plugin_file_path) . 'dist/base/css/style.bundle.css', array(), $this->properties->plugin_version, 'all');
 
         $this->load_help_tabs();
+
+        do_action('iwp/enqueue_assets');
     }
 
     private function get_export_fields()

@@ -19,6 +19,7 @@ class ImporterState
     public function init($session)
     {
         $state = self::wait_for_lock_and_get_state($this->importer_id, $this->user, [
+            'id' => md5($this->importer_id . time()),
             'version' => 2,
             'status' => 'init',
             'section' => 'import',
@@ -96,7 +97,11 @@ class ImporterState
 
     public function validate($session_id)
     {
-        return $this->has_status('init') || $this->get_session() == $session_id;
+        $valid = $this->has_status('init') || $this->get_session() == $session_id;
+        if (!$valid) {
+            Logger::write("state -invalid -check={$session_id} -current={$this->get_session()}");
+        }
+        return $valid;
     }
 
     public function get_raw()
@@ -246,7 +251,9 @@ class ImporterState
         $state = self::get_option('iwp_importer_state_' . $id);
         if (!$state) {
             $state = $default;
-            self::update_option('iwp_importer_state_' . $id, maybe_serialize($state));
+            if ($state !== false) {
+                self::update_option('iwp_importer_state_' . $id, maybe_serialize($state));
+            }
         }
 
         return $state;
@@ -269,13 +276,13 @@ class ImporterState
                     "UPDATE {$wpdb->sitemeta} SET meta_value=%s WHERE site_id=%d AND meta_key=%s AND meta_value=''",
                     $user,
                     $wpdb->siteid,
-                    $lock_option_id,
+                    $lock_option_id
                 );
             } else {
                 $query = $wpdb->prepare(
                     "UPDATE {$wpdb->options} SET option_value=%s WHERE option_name=%s AND option_value=''",
                     $user,
-                    $lock_option_id,
+                    $lock_option_id
                 );
             }
         } else {

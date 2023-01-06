@@ -814,6 +814,9 @@ class RestManager extends \WP_REST_Controller
 
                 $count = $this->importer_manager->process_csv_file($id, $delimiter, $enclosure, true);
                 $importer->setFileSetting('count', $count);
+            } else {
+
+                do_action('iwp/file-process/' . $parser, $importer, $post_data);
             }
 
             $importer->setFileSetting('processed', true);
@@ -864,7 +867,7 @@ class RestManager extends \WP_REST_Controller
                 }
 
                 return $this->http->end_rest_success($result[0]);
-            } else {
+            } elseif ($importer->getParser() === 'csv') {
 
                 $config = $this->importer_manager->get_config($importer, true);
                 $file = $this->importer_manager->get_csv_file($importer, $config);
@@ -891,6 +894,14 @@ class RestManager extends \WP_REST_Controller
 
                 $preview = new CSVPreview($file);
                 $result = $preview->data($record_index, $show_headings);
+                if (is_wp_error($result)) {
+                    return $this->http->end_rest_error($result);
+                }
+
+                return $this->http->end_rest_success($result);
+            } else {
+
+                $result = apply_filters('iwp/file-preview/' . $importer->getParser(), null, $importer);
                 if (is_wp_error($result)) {
                     return $this->http->end_rest_error($result);
                 }
@@ -928,6 +939,14 @@ class RestManager extends \WP_REST_Controller
                     $row = 1;
                 }
                 $result = $this->importer_manager->preview_csv_file($importer, $fields, $row);
+            } else {
+
+                $result = apply_filters('iwp/record-preview/' . $parser, [], $importer, $fields);
+                if (is_wp_error($result)) {
+                    return $this->http->end_rest_error($result);
+                }
+
+                return $this->http->end_rest_success($result);
             }
 
             return $this->http->end_rest_success($result);

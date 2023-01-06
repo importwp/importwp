@@ -311,7 +311,7 @@ class ImporterModel
     {
 
         $parser = $this->getParser();
-        $allowed_file_types = apply_filters('iwp/allowed_file_types', ['xml', 'csv'], $this);
+        $allowed_file_types = apply_filters('iwp/importer/datasource/allowed_file_types', ['xml', 'csv'], $this);
 
         if (!is_null($parser)) {
             $allowed_file_types = [$parser];

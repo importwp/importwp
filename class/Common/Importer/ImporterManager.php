@@ -489,7 +489,7 @@ class ImporterManager
                 $config_data['data'] = $template->config_field_map($importer_data->getMap());
                 $config->set('data', $config_data['data']);
 
-                $config_data['id'] = md5($importer_id . time());
+                $config_data['id'] = $state->get_session();
 
                 // This is used for storing version on imported records
                 update_post_meta($importer_id, '_iwp_session', $config_data['id']);
@@ -516,11 +516,13 @@ class ImporterManager
                 if (true === $importer_data->getFileSetting('show_headings')) {
                     $start = 1;
                 }
-            } else {
+            } elseif ($importer_data->getParser() === 'xml') {
                 Logger::debug('IM -get_xml_file');
                 $file = $this->get_xml_file($importer_data, $config);
                 Logger::debug('IM -load_parser');
                 $parser = new XMLParser($file);
+            } else {
+                $parser = apply_filters('iwp/importer/init_parser', false, $importer_data, $config);
             }
 
             if ($state->has_status('init')) {
