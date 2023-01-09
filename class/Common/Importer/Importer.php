@@ -224,9 +224,6 @@ class Importer
      */
     public function import($id, $user, $importer_state)
     {
-        $this->start_time = time();
-        $this->import_start_time = time();
-
         if ($this->parser == null) {
             throw new \Exception("Parser Not Loaded.");
         }
@@ -234,8 +231,6 @@ class Importer
         if ($this->mapper == null) {
             throw new \Exception("Mapper Not Loaded.");
         }
-
-        $this->user = $user;
 
         $this->mapper->setup();
 

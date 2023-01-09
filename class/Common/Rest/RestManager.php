@@ -623,6 +623,8 @@ class RestManager extends \WP_REST_Controller
     {
         $this->http->set_stream_headers();
 
+        Logger::setRequestType('rest::get_status');
+
         $importer_ids = $request->get_param('ids');
 
         $result = [];
@@ -640,6 +642,8 @@ class RestManager extends \WP_REST_Controller
 
         foreach ($query->posts as $importer_id) {
 
+            Logger::write('-start', $importer_id);
+
             $importer_model = $this->importer_manager->get_importer($importer_id);
 
             $output = ImporterState::get_state($importer_id);
@@ -651,7 +655,11 @@ class RestManager extends \WP_REST_Controller
             $output['importer'] = $importer_id;
 
             $result[] = $this->event_handler->run('iwp/importer/status/output', [$output, $importer_model]);
+
+            Logger::write('-end', $importer_id);
         }
+
+        Logger::clearRequestType();
 
         echo json_encode($result) . "\n";
         die();
@@ -964,7 +972,10 @@ class RestManager extends \WP_REST_Controller
     public function init_import(\WP_REST_Request $request)
     {
         $id = intval($request->get_param('id'));
-        Logger::write(__CLASS__  . '::init_import -start', $id);
+
+        Logger::setRequestType('rest::init_import');
+
+        Logger::write('init_import -start', $id);
 
         $importer_data = $this->importer_manager->get_importer($id);
 
@@ -975,6 +986,8 @@ class RestManager extends \WP_REST_Controller
         $session_id = md5($importer_data->getId() . time());
         update_post_meta($importer_data->getId(), '_iwp_session', $session_id);
 
+        Logger::clearRequestType();
+
         return $this->http->end_rest_success([
             'session' => $session_id
         ]);
@@ -984,15 +997,15 @@ class RestManager extends \WP_REST_Controller
     {
         $this->http->set_stream_headers();
 
-        Logger::setRequestType('rest');
+        Logger::setRequestType('rest::run_import');
 
         $session = $request->get_param('session');
         $user = uniqid('iwp', true);
         $id = intval($request->get_param('id'));
-        Logger::write(__CLASS__  . '::run_import -session=' . base64_encode(serialize($session)), $id);
+        Logger::write('run_import -session=' . $session, $id);
 
         $importer_data = $this->importer_manager->get_importer($id);
-        Logger::write(__CLASS__  . '::run_import -import=start', $id);
+        Logger::write('run_import -import=start', $id);
 
         $state = $this->importer_manager->import($importer_data->getId(), $user, $session);
         $state['message'] = $this->generate_status_message($state);
