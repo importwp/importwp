@@ -195,9 +195,10 @@ class Template extends AbstractTemplate
     public function register_group($label, $key, $fields, $args = [])
     {
         if (isset($args['row_base']) && true === $args['row_base']) {
+
             $fields = array_merge(
                 [$this->register_field('Repeater Node', 'row_base', [
-                    'type' => 'select',
+                    'type' => 'text',
                     'options' => 'callback',
                     'tooltip' => 'Select the path to the parent node containing values for this record, The preview when selecting data for each record should show a single record. Please note changing this will require updating references in this record.'
                 ])],

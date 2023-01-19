@@ -33,6 +33,7 @@ class Migrations
         // v2 migrations
         $this->_migrations[] = array($this, 'migration_05_multiple_crons');
         $this->_migrations[] = array($this, 'migration_06_cron_update');
+        $this->_migrations[] = array($this, 'migration_07_add_session_table');
 
         $this->_version = count($this->_migrations);
     }
@@ -738,6 +739,109 @@ class Migrations
             wp_update_post(['ID' => $id, 'post_excerpt' => '']);
 
             Logger::write(__CLASS__ . '::migration_06_cron_update -rest', $id);
+        }
+    }
+
+    public function migration_07_add_session_table($migrate_data = true)
+    {
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+        $charset_collate = $this->get_charset();
+
+        $sql = "CREATE TABLE `" . $wpdb->prefix . "iwp_sessions` (
+					  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+                      `site_id` int(11) DEFAULT NULL,
+					  `importer_id` int(11) DEFAULT NULL,
+					  `item_id` int(11) DEFAULT NULL,
+					  `item_type` varchar(255) DEFAULT NULL,
+					  `session` varchar(255) DEFAULT NULL,
+					  PRIMARY KEY (`id`)
+					) $charset_collate; ";
+
+        dbDelta($sql);
+
+        if (!$migrate_data) {
+            return;
+        }
+
+        // Migrate post sessions
+        $posts = $wpdb->get_results("SELECT {$wpdb->postmeta}.*, {$wpdb->posts}.post_type FROM {$wpdb->postmeta} INNER JOIN {$wpdb->posts} ON {$wpdb->postmeta}.post_id = {$wpdb->posts}.ID WHERE meta_key LIKE '\_iwp\_session\_%'", ARRAY_A);
+        if (!empty($posts)) {
+            foreach ($posts as $post) {
+
+                if (preg_match('/_iwp_session_(\d+)/', $post['meta_key'], $matches) !== 1) {
+                    continue;
+                }
+
+                $data = [
+                    'importer_id' => $matches[1],
+                    'item_id' => $post['post_id'],
+                    'item_type' =>  'pt-' . $post['post_type'],
+                    'session' => $post['meta_value']
+                ];
+                $format = ['%d', '%d', '%s', '%s'];
+
+                if (is_multisite()) {
+                    $data['site_id'] = $wpdb->siteid;
+                    $format[] = '%d';
+                }
+
+                $wpdb->insert($wpdb->prefix . 'iwp_sessions', $data, $format);
+            }
+        }
+
+        // Migrate term sessions
+        $terms = $wpdb->get_results("SELECT {$wpdb->termmeta}.*, {$wpdb->term_taxonomy}.taxonomy FROM {$wpdb->termmeta}  INNER JOIN {$wpdb->term_taxonomy} ON {$wpdb->termmeta}.term_id = {$wpdb->term_taxonomy}.term_id WHERE meta_key LIKE '\_iwp\_session\_%'", ARRAY_A);
+        if (!empty($terms)) {
+            foreach ($terms as $post) {
+
+                if (preg_match('/_iwp_session_(\d+)/', $post['meta_key'], $matches) !== 1) {
+                    continue;
+                }
+
+                $data = [
+                    'importer_id' => $matches[1],
+                    'item_id' => $post['term_id'],
+                    'item_type' => 't-' . $post['taxonomy'],
+                    'session' => $post['meta_value']
+                ];
+                $format = ['%d', '%d', '%s', '%s'];
+
+                if (is_multisite()) {
+                    $data['site_id'] = $wpdb->siteid;
+                    $format[] = '%d';
+                }
+
+                $wpdb->insert($wpdb->prefix . 'iwp_sessions', $data, $format);
+            }
+        }
+
+        // Migrate user sessions
+        $users = $wpdb->get_results("SELECT * FROM {$wpdb->usermeta} WHERE meta_key LIKE '\_iwp\_session\_%'", ARRAY_A);
+        if (!empty($users)) {
+            foreach ($users as $post) {
+
+                if (preg_match('/_iwp_session_(\d+)/', $post['meta_key'], $matches) !== 1) {
+                    continue;
+                }
+
+                $data = [
+                    'importer_id' => $matches[1],
+                    'item_id' => $post['user_id'],
+                    'item_type' =>  'user',
+                    'session' => $post['meta_value']
+                ];
+                $format = ['%d', '%d', '%s', '%s'];
+
+                if (is_multisite()) {
+                    $data['site_id'] = $wpdb->siteid;
+                    $format[] = '%d';
+                }
+
+                $wpdb->insert($wpdb->prefix . 'iwp_sessions', $data, $format);
+            }
         }
     }
 }

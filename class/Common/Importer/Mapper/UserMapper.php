@@ -225,21 +225,25 @@ class UserMapper extends AbstractMapper implements MapperInterface
 
     public function get_objects_for_removal()
     {
-        $wp_user_query = new \WP_User_Query([
-            'fields' => 'ID',
-            'meta_query' => array(
-                array(
-                    'key' => '_iwp_session_' . $this->importer->getId(),
-                    'value' => $this->importer->getStatusId(),
-                    'compare' => '!='
-                )
-            ),
-            'number' => -1
-        ]);
+        if ($this->is_session_tag_enabled()) {
+            return $this->get_ids_without_session_tag('user');
+        } else {
+            $wp_user_query = new \WP_User_Query([
+                'fields' => 'ID',
+                'meta_query' => array(
+                    array(
+                        'key' => '_iwp_session_' . $this->importer->getId(),
+                        'value' => $this->importer->getStatusId(),
+                        'compare' => '!='
+                    )
+                ),
+                'number' => -1
+            ]);
 
-        $results = $wp_user_query->get_results();
-        if (!empty($results)) {
-            return $results;
+            $results = $wp_user_query->get_results();
+            if (!empty($results)) {
+                return $results;
+            }
         }
 
         return false;
@@ -249,6 +253,8 @@ class UserMapper extends AbstractMapper implements MapperInterface
     {
         require_once(ABSPATH . 'wp-admin/includes/user.php');
         wp_delete_user($id);
+
+        $this->remove_session_tag($id, 'user');
     }
 
     public function get_custom_field($id, $key, $single = true)
@@ -294,6 +300,10 @@ class UserMapper extends AbstractMapper implements MapperInterface
 
     public function add_version_tag()
     {
-        update_user_meta($this->ID, '_iwp_session_' . $this->importer->getId(), $this->importer->getStatusId());
+        if ($this->is_session_tag_enabled()) {
+            $this->add_session_tag('user');
+        } else {
+            update_user_meta($this->ID, '_iwp_session_' . $this->importer->getId(), $this->importer->getStatusId());
+        }
     }
 }

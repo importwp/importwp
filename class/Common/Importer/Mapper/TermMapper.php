@@ -180,27 +180,35 @@ class TermMapper extends AbstractMapper implements MapperInterface
 
     public function add_version_tag()
     {
-        update_term_meta($this->ID, '_iwp_session_' . $this->importer->getId(), $this->importer->getStatusId());
+        if ($this->is_session_tag_enabled()) {
+            $this->add_session_tag('t-' . $this->importer->getSetting('taxonomy'));
+        } else {
+            update_term_meta($this->ID, '_iwp_session_' . $this->importer->getId(), $this->importer->getStatusId());
+        }
     }
 
     public function get_objects_for_removal()
     {
-        $taxonomy = $this->importer->getSetting('taxonomy');
-        $terms = get_terms([
-            'taxonomy' => $taxonomy,
-            'fields' => 'ids',
-            'hide_empty' => false,
-            'meta_query' => [
-                [
-                    'key' =>  '_iwp_session_' . $this->importer->getId(),
-                    'value' => $this->importer->getStatusId(),
-                    'compare' => '!='
+        if ($this->is_session_tag_enabled()) {
+            return $this->get_ids_without_session_tag('t-' . $this->importer->getSetting('taxonomy'));
+        } else {
+            $taxonomy = $this->importer->getSetting('taxonomy');
+            $terms = get_terms([
+                'taxonomy' => $taxonomy,
+                'fields' => 'ids',
+                'hide_empty' => false,
+                'meta_query' => [
+                    [
+                        'key' =>  '_iwp_session_' . $this->importer->getId(),
+                        'value' => $this->importer->getStatusId(),
+                        'compare' => '!='
+                    ]
                 ]
-            ]
-        ]);
+            ]);
 
-        if (!is_wp_error($terms)) {
-            return $terms;
+            if (!is_wp_error($terms)) {
+                return $terms;
+            }
         }
 
         return false;
@@ -209,6 +217,8 @@ class TermMapper extends AbstractMapper implements MapperInterface
     public function delete($id)
     {
         wp_delete_term($id, $this->importer->getSetting('taxonomy'));
+
+        $this->remove_session_tag($id, 't-' . $this->importer->getSetting('taxonomy'));
     }
 
     /**

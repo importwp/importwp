@@ -462,6 +462,9 @@ class ImporterManager
             if ($state->has_status('init')) {
                 Logger::debug('IM -clear_config_files');
                 $this->clear_config_files($importer_id, false, true);
+                $config_data['features'] = [
+                    'session_table' => true
+                ];
             }
 
             Logger::debug('IM -get_config');

@@ -321,24 +321,28 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
     public function get_objects_for_removal()
     {
-        $q = new \WP_Query(array(
-            'post_type' => $this->importer->getSetting('post_type'),
-            'meta_query' => array(
-                array(
-                    'key' => '_iwp_session_' . $this->importer->getId(),
-                    'value' => $this->importer->getStatusId(),
-                    'compare' => '!='
-                )
-            ),
-            'fields' => 'ids',
-            'posts_per_page' => -1,
-            'cache_results' => false,
-            'update_post_meta_cache' => false,
-            'post_status' => 'any'
-        ));
+        if ($this->is_session_tag_enabled()) {
+            return $this->get_ids_without_session_tag('pt-' . $this->importer->getSetting('post_type'));
+        } else {
+            $q = new \WP_Query(array(
+                'post_type' => $this->importer->getSetting('post_type'),
+                'meta_query' => array(
+                    array(
+                        'key' => '_iwp_session_' . $this->importer->getId(),
+                        'value' => $this->importer->getStatusId(),
+                        'compare' => '!='
+                    )
+                ),
+                'fields' => 'ids',
+                'posts_per_page' => -1,
+                'cache_results' => false,
+                'update_post_meta_cache' => false,
+                'post_status' => 'any'
+            ));
 
-        if ($q->have_posts()) {
-            return $q->posts;
+            if ($q->have_posts()) {
+                return $q->posts;
+            }
         }
 
         return false;
@@ -357,6 +361,8 @@ class PostMapper extends AbstractMapper implements MapperInterface
         } else {
             wp_delete_post($id, $force);
         }
+
+        $this->remove_session_tag($id, 'pt-' . $this->importer->getSetting('post_type'));
     }
 
     /**
@@ -437,6 +443,10 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
     public function add_version_tag()
     {
-        update_post_meta($this->ID, '_iwp_session_' . $this->importer->getId(), $this->importer->getStatusId());
+        if ($this->is_session_tag_enabled()) {
+            $this->add_session_tag('pt-' . $this->importer->getSetting('post_type'));
+        } else {
+            update_post_meta($this->ID, '_iwp_session_' . $this->importer->getId(), $this->importer->getStatusId());
+        }
     }
 }
