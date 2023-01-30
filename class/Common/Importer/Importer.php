@@ -68,6 +68,11 @@ class Importer
     private $is_timeout = false;
 
     /**
+     * @var int
+     */
+    private $memory_limit;
+
+    /**
      * @param ConfigInterface $config
      */
     public function __construct($config)
@@ -250,13 +255,16 @@ class Importer
         $time_limit = $properties->get_setting('timeout');
         $start = microtime(true);
         $max_record_time = 0;
+        $memory_max_usage = 0;
 
         // Does this current user have any dangling jobs?
         $this->try_import_dangling_rows($id, $user, $importer_state, $user);
 
         $config = get_site_option('iwp_importer_config_' . $id, []);
 
-        while (($time_limit === 0 || ((microtime(true) - $start) < $time_limit - $max_record_time)) && $importer_state && $importer_state->has_section(['import', 'delete', 'timeout'])) {
+        while (($time_limit === 0 || ((microtime(true) - $start) < $time_limit - $max_record_time)) && $this->has_enough_memory($memory_max_usage) && $importer_state && $importer_state->has_section(['import', 'delete', 'timeout'])) {
+
+            $memory_usage = $this->get_memory_usage();
 
             $this->is_timeout = false;
 
@@ -277,12 +285,55 @@ class Importer
             }
 
             do_action('iwp/importer/shutdown');
+
+            // keep track of largest memory change
+            $memory_delta = $this->get_memory_usage() - $memory_usage;
+            if ($memory_delta > $memory_max_usage) {
+                $memory_max_usage = $memory_delta;
+            }
         }
 
         Util::write_status_session_to_file($id, $importer_state);
 
         $this->mapper->teardown();
         $this->unregister_shutdown();
+    }
+
+    function get_memory_usage()
+    {
+        return memory_get_usage(true);
+    }
+
+    function has_enough_memory($memory_max_usage)
+    {
+        $limit = $this->get_memory_limit() * 0.9;
+        $current_usage = $this->get_memory_usage();
+
+        if ($current_usage + $memory_max_usage < $limit) {
+            return true;
+        }
+
+        Logger::error(sprintf("Not Enough Memory left to use %s,  %s/%s", Logger::formatBytes($memory_max_usage, 2), Logger::formatBytes($current_usage, 2), Logger::formatBytes($limit, 2)));
+
+        return false;
+    }
+
+    function get_memory_limit($force = false)
+    {
+        if ($force || is_null($this->memory_limit)) {
+            $memory_limit = ini_get('memory_limit');
+            if (preg_match('/^(\d+)(.)$/', $memory_limit, $matches)) {
+                if ($matches[2] == 'M') {
+                    $memory_limit = $matches[1] * 1024 * 1024; // nnnM -> nnn MB
+                } else if ($matches[2] == 'K') {
+                    $memory_limit = $matches[1] * 1024; // nnnK -> nnn KB
+                }
+            }
+
+            $this->memory_limit = $memory_limit;
+        }
+
+        return $this->memory_limit;
     }
 
     function setup_importer_state($importer_state, $state, $config, $user, $id)
