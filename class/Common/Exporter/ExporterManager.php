@@ -6,6 +6,7 @@ use ImportWP\Common\Exporter\File\CSVFile;
 use ImportWP\Common\Exporter\File\JSONFile;
 use ImportWP\Common\Exporter\File\XMLFile;
 use ImportWP\Common\Exporter\Mapper\CommentMapper;
+use ImportWP\Common\Exporter\Mapper\MapperData;
 use ImportWP\Common\Exporter\Mapper\PostMapper;
 use ImportWP\Common\Exporter\Mapper\TaxMapper;
 use ImportWP\Common\Exporter\Mapper\UserMapper;
@@ -135,14 +136,31 @@ class ExporterManager
         } elseif ($type === 'user') {
             $mapper = new UserMapper();
         } else {
-            $mapper = new PostMapper($type);
+
+            $mapper = apply_filters('iwp/exporter/load_mapper', false, $type);
+            if (!$mapper) {
+                $mapper = new PostMapper($type);
+            }
         }
 
         $mapper->set_filters($exporter_data->getFilters());
 
         // Default to showing all fields, if none selected
         if (empty($exporter_data->getFields(true))) {
-            $exporter_data->setFields($mapper->get_fields());
+
+            $fields = $mapper->get_fields();
+
+            switch ($exporter_data->getFileType()) {
+                case 'csv':
+                    $fields = $this->flattenFields($fields);
+                    break;
+                default:
+                    $fields = $this->nestedFields($fields);
+                    break;
+            }
+
+
+            $exporter_data->setFields($fields);
         }
 
         $file->start();
@@ -156,16 +174,11 @@ class ExporterManager
 
             $total = $mapper->found_records();
 
-            // echo json_encode($exporter_data->set_status('running', $i, $total)) . "\n";
-            // flush();
-            // ob_flush();
-
             for ($i = 0; $i < $total; $i++) {
 
-                // TODO: add filter to get_record()
-                $data = $mapper->get_record($i, $columns);
-                if ($data) {
-                    $file->add($data);
+                $mapper_data = new MapperData($mapper, $i);
+                if (!$mapper_data->skip()) {
+                    $file->add($mapper_data);
                 }
 
                 $current_time = microtime(true);
@@ -173,9 +186,6 @@ class ExporterManager
 
                 if ($delta_time > 0.1) {
                     $exporter_data->set_status('running', $i, $total);
-                    // echo json_encode($exporter_data->set_status('running', $i, $total)) . "\n";
-                    // flush();
-                    // ob_flush();
                     $previous_time = $current_time;
                 }
             }
@@ -198,5 +208,122 @@ class ExporterManager
         // flush();
         // ob_flush();
         // die();
+    }
+
+    public function flattenFields($fields, $prefix = '')
+    {
+        $output = [];
+
+        $output = array_merge($output, array_reduce($fields['fields'], function ($carry, $item) use ($prefix) {
+
+            $carry[] = [
+                'parent' => 0,
+                'id' => count($carry) + 1,
+                'selection' => $prefix . $item,
+                'loop' => false,
+                'custom' => false
+            ];
+
+            return $carry;
+        }, []));
+
+        if (!empty($fields['children'])) {
+            foreach ($fields['children'] as $child) {
+                $output = array_merge($output, $this->flattenFields($child, $child['key'] . '.'));
+            }
+        }
+
+        return $output;
+    }
+
+    private $nested_field_counter = 0;
+
+    public function nestedFields($fields, $prefix = '', $parent = 0)
+    {
+        $output = [];
+
+        if ($parent == 0) {
+
+            $this->nested_field_counter = 1;
+            $output[] = [
+                'parent' => 0,
+                'id' => 1,
+                'selection' => '',
+                'label' => 'records',
+                'loop' => false,
+            ];
+
+            $this->nested_field_counter++;
+            $output[] = [
+                'parent' => 1,
+                'id' => 2,
+                'selection' => 'main',
+                'label' => 'record',
+                'loop' => true,
+            ];
+
+            $parent = 2;
+        } elseif ($fields['loop'] == true) {
+            $this->nested_field_counter++;
+            $output[] = [
+                'parent' => $parent,
+                'id' => $this->nested_field_counter,
+                'selection' => '',
+                'label' => $fields['key'] . '_wrapper',
+                'loop' => false,
+            ];
+            $parent = $this->nested_field_counter;
+
+            $this->nested_field_counter++;
+            $output[] = [
+                'parent' => $parent,
+                'id' => $this->nested_field_counter,
+                'selection' => $fields['key'],
+                'label' => $fields['key'],
+                'loop' => true,
+            ];
+
+            $parent = $this->nested_field_counter;
+        }
+
+        if (isset($fields['loop_fields']) && !empty($fields['loop_fields'])) {
+
+            $output = array_merge($output, array_reduce($fields['loop_fields'], function ($carry, $item) use ($parent) {
+
+                $this->nested_field_counter++;
+                $carry[] = [
+                    'parent' => $parent,
+                    'id' => $this->nested_field_counter,
+                    'selection' => $item,
+                    'loop' => false,
+                    'custom' => false
+                ];
+
+                return $carry;
+            }, []));
+        } else {
+
+            $output = array_merge($output, array_reduce($fields['fields'], function ($carry, $item) use ($prefix, $parent) {
+
+                $this->nested_field_counter++;
+                $carry[] = [
+                    'parent' => $parent,
+                    'id' => $this->nested_field_counter,
+                    'selection' => $prefix . $item,
+                    'loop' => false,
+                    'custom' => false
+                ];
+
+                return $carry;
+            }, []));
+        }
+
+        if (!empty($fields['children'])) {
+            foreach ($fields['children'] as $child) {
+                $output = array_merge($output, $this->nestedFields($child, $child['key'] . '.', $parent));
+            }
+        }
+
+        return $output;
     }
 }

@@ -106,6 +106,7 @@ class Attachment
     public function generate_image_sizes($attachment_id, $source)
     {
         require_once ABSPATH . 'wp-admin/includes/image.php';
+        require_once ABSPATH . 'wp-admin/includes/media.php';
         $attach_data = wp_generate_attachment_metadata($attachment_id, $source);
         wp_update_attachment_metadata($attachment_id, $attach_data);
     }

@@ -7,12 +7,11 @@ use ImportWP\Common\Exporter\MapperInterface;
 class TaxMapper extends AbstractMapper implements MapperInterface
 {
 
-    private $taxonomy;
-
     /**
      * @var \WP_Term_Query
      */
     private $query;
+    private $taxonomy;
 
     private function get_core_fields()
     {
@@ -31,29 +30,69 @@ class TaxMapper extends AbstractMapper implements MapperInterface
 
     public function get_fields()
     {
+        /**
+         * @var \WPDB
+         */
+        global $wpdb;
 
-        $core = $this->get_core_fields();
-        $custom_fields = array();
+        $fields = [
+            'key' => 'main',
+            'label' => $this->taxonomy,
+            'loop' => true,
+            'fields' => [],
+            'children' => [
+                'parent' => [
+                    'key' => 'parent',
+                    'label' => 'Parent',
+                    'loop' => false,
+                    'fields' => [],
+                    'children' => []
+                ],
+                'anscestors' => [
+                    'key' => 'anscestors',
+                    'label' => 'Anscestors',
+                    'loop' => true,
+                    'fields' => [],
+                    'children' => []
+                ],
+                'custom_fields' => [
+                    'key' => 'custom_fields',
+                    'label' => 'Custom Fields',
+                    'loop' => true,
+                    'loop_fields' => ['meta_key', 'meta_value'],
+                    'fields' => [],
+                    'children' => []
+                ]
+            ]
+
+        ];
+
+        $fields['fields'] = $this->get_core_fields();
 
         // get taxonomy custom fields
         global $wpdb;
         $meta_fields = $wpdb->get_col($wpdb->prepare("SELECT DISTINCT meta_key FROM " . $wpdb->termmeta . " as tm INNER JOIN " . $wpdb->term_taxonomy . " as tt ON tm.term_id = tt.term_id WHERE tt.taxonomy = %s", [$this->taxonomy]));
         foreach ($meta_fields as $field) {
-            $custom_fields[] = 'ewp_cf_' . $field;
+            $fields['children']['custom_fields']['fields'][] = $field;
         }
 
-        $custom_fields = apply_filters('iwp/exporter/taxonomy/custom_field_list', $custom_fields, $this->taxonomy);
-
-        $tax_fields = [
-            'parent_id',
-            'parent_slug',
-            'parent_name',
-            'parent_anscestors_id',
-            'parent_anscestors_slug',
-            'parent_anscestors_name',
+        $fields['children']['parent']['fields'] = [
+            'term_id',
+            'slug',
+            'name',
+            'parent'
         ];
 
-        return array_merge($core, $tax_fields, $custom_fields);
+        $fields['children']['anscestors']['fields'] = [
+            'term_id',
+            'slug',
+            'name',
+            'parent'
+        ];
+
+        $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/taxonomy/custom_field_list',  $fields['children']['custom_fields']['fields'], $this->taxonomy);
+
+        return $fields;
     }
 
     public function have_records()
@@ -71,24 +110,49 @@ class TaxMapper extends AbstractMapper implements MapperInterface
         return count($this->query->terms);
     }
 
-    public function get_record($i, $columns)
+    public function setup($i)
     {
+        $this->record = (array)$this->query->terms[$i];
+        $this->record['custom_fields'] = get_term_meta($this->record['term_id']);
 
-        $record = $this->query->terms[$i];
-
-        // Meta data
-        $meta = get_term_meta($record->term_id);
-
-        $row = array();
-        foreach ($columns as $column) {
-            $row[$column] = $this->get_field($column, $record, $meta);
+        $parent = get_term($this->record['parent'], $this->taxonomy);
+        if (!is_wp_error($parent)) {
+            $this->record['parent'] = [
+                'term_id' => $parent->term_id,
+                'slug' => $parent->slug,
+                'name' => $parent->name,
+                'parent' => $parent->parent
+            ];
+        } else {
+            $this->record['parent'] = [
+                'term_id' => '',
+                'slug' => '',
+                'name' => '',
+                'parent' => ''
+            ];
         }
 
-        if ($this->filter($row, $record, $meta)) {
-            return false;
+        $ancestor_ids = get_ancestors($this->record['term_id'], $this->taxonomy, 'taxonomy');
+        $ancestor_ids = array_reverse($ancestor_ids);
+
+        $this->record['anscestors'] = [];
+
+        if ($ancestor_ids) {
+            foreach ($ancestor_ids as $ancestor_id) {
+
+                $ancestor = get_term($ancestor_id, $this->taxonomy);
+                if (!is_wp_error($ancestor)) {
+                    $this->record['anscestors'][] = [
+                        'term_id' => $ancestor->term_id,
+                        'slug' => $ancestor->slug,
+                        'name' => $ancestor->name,
+                        'parent' => $ancestor->parent
+                    ];
+                }
+            }
         }
 
-        return $row;
+        return true;
     }
 
     public function get_field($column, $record, $meta)

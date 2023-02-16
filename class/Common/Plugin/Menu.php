@@ -168,6 +168,9 @@ class Menu
             );
         }
 
+
+        $fields = apply_filters('iwp/exporter/export_field_list', $fields);
+
         return $fields;
     }
 

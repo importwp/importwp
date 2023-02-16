@@ -2,6 +2,8 @@
 
 namespace ImportWP\Common\Exporter\File;
 
+use ImportWP\Common\Model\ExporterModel;
+
 class File
 {
     /**
@@ -10,24 +12,44 @@ class File
     protected $fh;
 
     /**
-     * @var EWP_Exporter $exporter
+     * @var ExporterModel $exporter
      */
     protected $exporter;
 
     /**
      * EWP_File constructor.
      *
-     * @param EWP_Exporter $exporter
+     * @param ExporterModel $exporter
      *
      * @throws Exception
      */
     public function __construct($exporter)
     {
-
         $this->exporter = $exporter;
 
         $file_path = $this->get_file_path();
         $this->fh = fopen($file_path, 'w');
+    }
+
+    public function getFieldLabel($field)
+    {
+        $label = '';
+        if (isset($field['label']) && !empty($field['label'])) {
+            $label = $field['label'];
+        } elseif (isset($field['selection']) && !empty($field['selection'])) {
+            $label =  $field['selection'];
+        }
+        return $label;
+    }
+
+    public function getValue($item, $data)
+    {
+        $value = isset($data[$item['id']]) ? $data[$item['id']] : '';
+        if (is_array($value)) {
+            return implode('|', $value);
+        }
+
+        return $value;
     }
 
     public function get_file_name()

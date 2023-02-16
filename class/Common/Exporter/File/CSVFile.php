@@ -2,26 +2,35 @@
 
 namespace ImportWP\Common\Exporter\File;
 
+use ImportWP\Common\Exporter\Mapper\MapperData;
+
 class CSVFile extends File
 {
+    private $columns;
     public function start()
     {
+        $fields = $this->exporter->getFields();
+
+        $this->columns = array_reduce($fields, function ($carry, $item) {
+            $carry[$this->getFieldLabel($item)] = isset($item['selection']) ? $item['selection'] : '';
+            return $carry;
+        }, []);
         // write headers
-        fputcsv($this->fh, $this->exporter->getFields());
+        fputcsv($this->fh, array_keys($this->columns));
     }
 
-    public function add($data)
+    /**
+     * @param MapperData $mapper
+     * @return void
+     */
+    public function add($mapper)
     {
-
-        $data = array_map(
-            function ($value) {
-                if (is_array($value)) {
-                    $value = implode('|', $value);
-                }
-                return $value;
-            },
-            $data
-        );
+        $data = [];
+        $data = array_map(function ($item) use ($mapper) {
+            $record = $mapper->data([]);
+            $tmp = $mapper->get_value($item, $record[0]);
+            return is_array($tmp) ? implode('|', $tmp) : $tmp;
+        }, $this->columns);
 
         fputcsv($this->fh, $data);
     }

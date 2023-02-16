@@ -90,7 +90,10 @@ abstract class AbstractParser
 
     public function handle_custom_methods($input)
     {
-        $input = preg_replace_callback('/\[([\w]+)\((.*?)\)\]/', function ($matches) {
+        // m: Multiline modifier
+        // s: matches all characters including newlines
+        // U: non-greedy matching
+        $input = preg_replace_callback('/\[([\w]+)\((.*?)\)\]/msU', function ($matches) {
 
             $method = $matches[1];
 

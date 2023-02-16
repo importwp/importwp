@@ -5,8 +5,33 @@ namespace ImportWP\Common\Exporter\Mapper;
 abstract class AbstractMapper
 {
     protected $filters;
+    protected $record = [];
 
-    abstract function get_field($column, $record, $meta);
+    public function get_value($column, $template_data = null)
+    {
+        if (is_null($template_data)) {
+            $template_data = $this->record();
+        }
+
+        $parts = explode('.', $column);
+        if (count($parts) == 2) {
+
+            // handle looped data
+            if (isset($template_data[$parts[0]], $template_data[$parts[0]][0], $template_data[$parts[0]][0][$parts[1]])) {
+                return array_reduce($template_data[$parts[0]], function ($carry, $item) use ($parts) {
+                    if (isset($item[$parts[1]])) {
+                        $carry[] = $item[$parts[1]];
+                    }
+                    return $carry;
+                }, []);
+            }
+
+            // handled grouped data or single
+            return isset($template_data[$parts[0]], $template_data[$parts[0]][$parts[1]]) ? $template_data[$parts[0]][$parts[1]] : '';
+        }
+
+        return isset($template_data[$column]) ? $template_data[$column] : '';
+    }
 
     public function set_filters($filters = [])
     {
@@ -19,7 +44,7 @@ abstract class AbstractMapper
      * @param array $post
      * @return boolean
      */
-    public function filter($row, $record, $meta)
+    public function filter()
     {
         $result = false;
 
@@ -37,7 +62,7 @@ abstract class AbstractMapper
 
             foreach ($group as $row) {
 
-                $left = $this->get_field($row['left'], $record, $meta);
+                $left = $this->get_value($row['left']);
                 $right = $row['right'];
                 $right_parts = array_map('trim', explode(',', $right));
 
@@ -82,5 +107,10 @@ abstract class AbstractMapper
 
 
         return $result;
+    }
+
+    public function record()
+    {
+        return $this->record;
     }
 }

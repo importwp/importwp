@@ -218,10 +218,70 @@ class ExporterModel
     public function getFields($public = false)
     {
         $output = $this->fields;
+
         if (!$public) {
+            // nest files, make sure there is a main loop
+            if ($this->getFileType() !== 'csv' && !empty($output)) {
+                $found = false;
+                foreach ($output as $row) {
+                    if (isset($row['loop']) && $row['loop'] == true && $row['loop'] == 'true' && $row['selection'] == 'main') {
+                        $found = true;
+                    }
+                }
+
+                if (!$found) {
+                    foreach ($output as $i => $row) {
+                        if ($output[$i]['parent'] == 0) {
+                            $output[$i]['parent'] = 2;
+                        } else {
+                            $output[$i]['parent'] = intval($row['id']) + 2;
+                        }
+
+                        $output[$i]['id'] = intval($row['id']) + 2;
+                    }
+
+                    if ($this->getFileType() === 'xml') {
+                        $output[] = ['id' => 2, 'parent' => 1, 'selection' => 'main', 'loop' => true, 'label' => 'record'];
+                        $output[] = ['id' => 1, 'parent' => 0, 'selection' => '', 'loop' => false, 'label' => 'records'];
+                    } elseif ($this->getFileType() === 'json') {
+                        $output[] = ['id' => 2, 'parent' => 0, 'selection' => 'main', 'loop' => true, 'label' => 'records'];
+                    }
+                }
+            }
+
+            // make sure there is unique identifier within the main loop / flat file
+
             $unique_identifier = $this->getUniqueIdentifier();
-            if (!empty($unique_identifier) && !in_array($unique_identifier, $output)) {
-                array_unshift($output, $unique_identifier);
+
+            $found = array_reduce($output, function ($carry, $item) use ($unique_identifier) {
+
+                if (isset($item['selection']) && $item['selection'] == $unique_identifier) {
+                    return true;
+                }
+
+                return $carry;
+            }, false);
+
+            if (!$found) {
+                switch ($this->getFileType()) {
+                    case 'csv':
+                        $output[] = ['id' => -1, 'parent' => 0, 'selection' => $unique_identifier];
+                        break;
+                    default:
+                        // search fields for main loop and insert.
+                        $tmp = false;
+                        foreach ($output as $row) {
+                            if (isset($row['loop']) && $row['loop'] == true && $row['loop'] == 'true' && $row['selection'] == 'main') {
+                                $tmp = ['id' => -1, 'parent' => $row['id'], 'selection' => $unique_identifier];
+                                break;
+                            }
+                        }
+
+                        if ($tmp) {
+                            array_unshift($output, $tmp);
+                        }
+                        break;
+                }
             }
         }
 

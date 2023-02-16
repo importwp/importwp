@@ -13,6 +13,11 @@ class CommentMapper extends AbstractMapper implements MapperInterface
      */
     private $query;
 
+    public function __construct($post_type)
+    {
+        $this->post_type = $post_type;
+    }
+
     private function get_core_fields()
     {
         return array(
@@ -34,27 +39,44 @@ class CommentMapper extends AbstractMapper implements MapperInterface
         );
     }
 
-    public function __construct($post_type)
-    {
-        $this->post_type = $post_type;
-    }
 
     public function get_fields()
     {
 
-        $core = $this->get_core_fields();
-        $custom_fields = array();
+        /**
+         * @var \WPDB
+         */
+        global $wpdb;
+
+        $fields = [
+            'key' => 'main',
+            'label' => 'Comment',
+            'loop' => true,
+            'fields' => [],
+            'children' => [
+                'custom_fields' => [
+                    'key' => 'custom_fields',
+                    'label' => 'Custom Fields',
+                    'loop' => true,
+                    'loop_fields' => ['meta_key', 'meta_value'],
+                    'fields' => [],
+                    'children' => []
+                ]
+            ]
+
+        ];
+
+        $fields['fields'] = $this->get_core_fields();
 
         // get comment custom fields
-        global $wpdb;
         $meta_fields = $wpdb->get_col($wpdb->prepare("SELECT DISTINCT cm.meta_key FROM " . $wpdb->comments . " as c INNER JOIN " . $wpdb->commentmeta . " as cm ON c.comment_ID = cm.comment_id WHERE c.comment_post_ID IN (SELECT ID from " . $wpdb->posts . " WHERE post_type=%s)", [$this->post_type]));
         foreach ($meta_fields as $field) {
-            $custom_fields[] = 'ewp_cf_' . $field;
+            $fields['children']['custom_fields']['fields'][] = $field;
         }
 
-        $custom_fields = apply_filters('iwp/exporter/comment/custom_field_list', $custom_fields, $this->post_type);
+        $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/comment/custom_field_list', $fields['children']['custom_fields']['fields'], $this->post_type);
 
-        return array_merge($core, $custom_fields);
+        return $fields;
     }
 
     public function have_records()
@@ -71,44 +93,11 @@ class CommentMapper extends AbstractMapper implements MapperInterface
         return count($this->query->comments);
     }
 
-    public function get_record($i, $columns)
+    public function setup($i)
     {
+        $this->record = (array)$this->query->comments[$i];
+        $this->record['custom_fields'] = get_comment_meta($this->record['comment_ID']);
 
-        $record = $this->query->comments[$i];
-
-        // Meta data
-        $meta = get_comment_meta($record->comment_ID);
-
-        $row = array();
-        foreach ($columns as $column) {
-            $row[$column] = $this->get_field($column, $record, $meta);
-        }
-
-        if ($this->filter($row, $record, $meta)) {
-            return false;
-        }
-
-        return $row;
-    }
-
-    public function get_field($column, $record, $meta)
-    {
-        $output = '';
-
-        if (preg_match('/^ewp_cf_(.*?)$/', $column, $matches) == 1) {
-
-            $meta_key = $matches[1];
-            if (isset($meta[$meta_key])) {
-                $output = $meta[$meta_key];
-            }
-        } else {
-
-            if (in_array($column, $core, true)) {
-                $output = $record->{$column};
-            }
-        }
-
-        $output = apply_filters('iwp/exporter/comment/value', $output, $column, $record, $meta);
-        return $output;
+        return true;
     }
 }

@@ -7,8 +7,11 @@ use ImportWP\Common\Exporter\MapperInterface;
 class PostMapper extends AbstractMapper implements MapperInterface
 {
 
-    private $post_type;
-    private $user_data;
+    /**
+     * @var WP_Query
+     */
+    protected $query;
+    protected $post_type;
 
     public function __construct($post_type = 'post')
     {
@@ -46,50 +49,99 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
     public function get_fields()
     {
-
+        /**
+         * @var \WPDB
+         */
         global $wpdb;
 
-        $core_fields = $this->get_core_fields();
+        $fields = [
+            'key' => 'main',
+            'label' => 'Post',
+            'loop' => true,
+            'fields' => [],
+            'children' => [
+                'author' => [
+                    'key' => 'author',
+                    'label' => 'Author',
+                    'loop' => false,
+                    'fields' => [],
+                    'children' => []
+                ],
+                'image' => [
+                    'key' => 'image',
+                    'label' => 'Featured Image',
+                    'loop' => false,
+                    'fields' => ['id', 'url', 'title', 'alt', 'caption', 'description'],
+                    'children' => []
+                ],
+                'parent' => [
+                    'key' => 'parent',
+                    'label' => 'Parent',
+                    'loop' => false,
+                    'fields' => ['id', 'name', 'slug'],
+                    'children' => []
+                ],
+                'custom_fields' => [
+                    'key' => 'custom_fields',
+                    'label' => 'Custom Fields',
+                    'loop' => true,
+                    'loop_fields' => ['meta_key', 'meta_value'],
+                    'fields' => [],
+                    'children' => []
+                ]
+            ]
 
-        $custom_fields = array();
+        ];
+
+        $fields['fields'] = $this->get_core_fields();
+
+        $post_types = is_string($this->post_type) ? explode(',', $this->post_type) : (array)$this->post_type;
+        $post_types = array_values(array_filter(array_map('trim', $post_types)));
 
         // add post_thumbnail
-        if (post_type_supports($this->post_type, 'thumbnail')) {
-            $custom_fields[] = 'post_thumbnail';
+        if (post_type_supports($post_types[0], 'thumbnail')) {
+            $fields['fields'][] = 'post_thumbnail';
         }
 
         // post author
-        $custom_fields[] = 'ewp_author_nicename';
-        $custom_fields[] = 'ewp_author_nickname';
-        $custom_fields[] = 'ewp_author_first_name';
-        $custom_fields[] = 'ewp_author_last_name';
-        $custom_fields[] = 'ewp_author_login';
-        $custom_fields[] = 'ewp_author_desc';
+        $fields['children']['author']['fields'][] = 'ID';
+        $fields['children']['author']['fields'][] = 'user_login';
+        $fields['children']['author']['fields'][] = 'user_nicename';
+        $fields['children']['author']['fields'][] = 'user_email';
+        $fields['children']['author']['fields'][] = 'user_url';
+        $fields['children']['author']['fields'][] = 'display_name';
 
         // post_meta
-        $meta_fields = $wpdb->get_col($wpdb->prepare("SELECT DISTINCT meta_key FROM " . $wpdb->postmeta . " WHERE post_id IN (SELECT DISTINCT ID FROM " . $wpdb->posts . " WHERE post_type='%s')", [$this->post_type]));
+        $meta_fields = $wpdb->get_col(sprintf("SELECT DISTINCT meta_key FROM " . $wpdb->postmeta . " WHERE post_id IN (SELECT DISTINCT ID FROM " . $wpdb->posts . " WHERE post_type IN ('%s'))", implode("','", $post_types)));
         foreach ($meta_fields as $field) {
-            $custom_fields[] = 'ewp_cf_' . $field;
+            $fields['children']['custom_fields']['fields'][] = $field;
         }
-
-        $custom_fields = apply_filters('iwp/exporter/post_type/custom_field_list', $custom_fields, $this->post_type);
 
         // taxonomies
-        $taxonomies = get_object_taxonomies($this->post_type, 'objects');
+        $taxonomies = get_object_taxonomies($post_types[0], 'objects');
         foreach ($taxonomies as $tax) {
-            $custom_fields[] = 'ewp_tax_' . $tax->name;
-            $custom_fields[] = 'ewp_tax_' . $tax->name . '_slug';
-            $custom_fields[] = 'ewp_tax_' . $tax->name . '_id';
+            $fields['children']['tax_' . $tax->name] = [
+                'key' => 'tax_' . $tax->name,
+                'label' => $tax->label,
+                'loop' => true,
+                'loop_fields' => ['id', 'name', 'slug'],
+                'fields' => [
+                    'name',
+                    'slug',
+                    'id',
+                    'hierarchy::id',
+                    'hierarchy::name',
+                    'hierarchy::slug',
+                ]
+            ];
         }
 
+        $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/post_type/custom_field_list',  $fields['children']['custom_fields']['fields'], $this->post_type);
+        $fields = apply_filters('iwp/exporter/post_type/fields', $fields, $this->post_type);
 
-        return array_merge($core_fields, $custom_fields);
+        return $fields;
     }
 
-    /**
-     * @var WP_Query
-     */
-    private $query;
 
     public function have_records()
     {
@@ -102,6 +154,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
             'update_post_meta_cache' => false,
             'update_post_term_cache' => false,
             'no_found_rows' => true,
+            'order' => 'ASC'
         ));
 
         return $this->found_records() > 0;
@@ -112,137 +165,123 @@ class PostMapper extends AbstractMapper implements MapperInterface
         return $this->query->post_count;
     }
 
-    public function get_record($i, $columns)
-    {
 
-        $post = get_post($this->query->posts[$i]);
+    public function setup($i)
+    {
+        $post = get_post($this->query->posts[$i], ARRAY_A);
         if (!$post) {
             return false;
         }
 
-        // Meta data
-        $meta = get_post_meta($post->ID);
+        $this->record = $post;
+        $this->record['post_thumbnail'] = wp_get_attachment_url(get_post_thumbnail_id($this->record['ID']));
+        $this->record['custom_fields'] = get_post_meta($post['ID']);
 
-        // Author Details
-        $author = $post->post_author;
-        $this->user_data = get_userdata($author);
+        $user = get_userdata($post['post_author']);
+        $this->record['author'] = (array)$user->data;
 
-        $row = array();
-        foreach ($columns as $column) {
-            $row[$column] = $this->get_field($column, $post, $meta);
-        }
+        $thumbnail_id = intval(get_post_thumbnail_id($this->record['ID']));
+        if ($thumbnail_id > 0) {
 
-        if ($this->filter($row, $post, $meta)) {
-            return false;
-        }
+            $attachment = get_post($thumbnail_id, ARRAY_A);
+            $alt = get_post_meta($thumbnail_id, '_wp_attachment_image_alt', true);
 
-        return $row;
-    }
-
-    public function get_field($column, $record, $meta)
-    {
-        // Core fields
-        $core = $this->get_core_fields();
-
-        $output = '';
-
-        $matches = null;
-        if (preg_match('/^ewp_tax_(.*?)/', $column) == 1) {
-
-            if (preg_match('/^ewp_tax_(.*?)_slug$/', $column, $matches) == 1) {
-
-                $taxonomy    = $matches[1];
-                $found_terms = array();
-                $terms       = wp_get_object_terms($record->ID, $taxonomy);
-                if (!empty($terms)) {
-                    foreach ($terms as $term) {
-
-                        /**
-                         * @var WP_Term $term
-                         */
-                        $found_terms[] = $term->slug;
-                    }
-                }
-
-                $output = $found_terms;
-            } elseif (preg_match('/^ewp_tax_(.*?)_id$/', $column, $matches) == 1) {
-
-                $taxonomy    = $matches[1];
-                $found_terms = array();
-                $terms       = wp_get_object_terms($record->ID, $taxonomy);
-                if (!empty($terms)) {
-                    foreach ($terms as $term) {
-
-                        /**
-                         * @var WP_Term $term
-                         */
-                        $found_terms[] = $term->term_id;
-                    }
-                }
-
-                $output = $found_terms;
-            } elseif (preg_match('/^ewp_tax_(.*?)$/', $column, $matches) == 1) {
-
-                $taxonomy    = $matches[1];
-                $found_terms = array();
-                $terms       = wp_get_object_terms($record->ID, $taxonomy);
-                if (!empty($terms)) {
-                    foreach ($terms as $term) {
-
-                        /**
-                         * @var WP_Term $term
-                         */
-                        $found_terms[] = $term->name;
-                    }
-                }
-
-                $output = $found_terms;
-            }
-        } elseif (preg_match('/^ewp_cf_(.*?)$/', $column, $matches) == 1) {
-
-            $meta_key = $matches[1];
-            if (isset($meta[$meta_key])) {
-                $output = $meta[$meta_key];
-            }
+            $this->record['image'] = [
+                'id' => $thumbnail_id,
+                'url' => wp_get_attachment_url($thumbnail_id),
+                'title' => $attachment['post_title'],
+                'alt' => $alt,
+                'caption' => $attachment['post_excerpt'],
+                'description' => $attachment['post_content']
+            ];
         } else {
-
-            if (in_array($column, $core, true)) {
-                $output = $record->{$column};
-            } else {
-                switch ($column) {
-                    case 'post_thumbnail':
-                        if (has_post_thumbnail($record)) {
-                            $output = wp_get_attachment_url(get_post_thumbnail_id($record));
-                        }
-                        break;
-                }
-
-                if ($this->user_data) {
-                    switch ($column) {
-                        case 'ewp_author_nicename':
-                            $output = $this->user_data->user_nicename;
-                            break;
-                        case 'ewp_author_nickname':
-                            $output = $this->user_data->nickname;
-                            break;
-                        case 'ewp_author_first_name':
-                            $output = $this->user_data->first_name;
-                            break;
-                        case 'ewp_author_last_name':
-                            $output = $this->user_data->last_name;
-                            break;
-                        case 'ewp_author_login':
-                            $output = $this->user_data->user_login;
-                            break;
-                        case 'ewp_author_desc':
-                            $output = $this->user_data->description;
-                            break;
-                    }
-                }
-            }
+            $this->record['image'] = [
+                'id' => '',
+                'url' => '',
+                'title' => '',
+                'alt' => '',
+                'caption' => '',
+                'description' => ''
+            ];
         }
 
-        $output = apply_filters('iwp/exporter/post_type/value', $output, $column, $record, $meta);
-        return $output;
+        $parent = get_post_parent($this->record['ID']);
+        if ($parent) {
+            $this->record['parent'] = [
+                'id' => $parent->ID,
+                'name' => $parent->post_title,
+                'slug' => $parent->post_name
+            ];
+        } else {
+            $this->record['parent'] = [
+                'id' => '',
+                'name' => '',
+                'slug' => ''
+            ];
+        }
+
+        // taxonomies
+        $taxonomies = get_object_taxonomies($this->record['post_type'], 'objects');
+        foreach (array_keys($taxonomies) as $taxonomy) {
+            $tmp = [];
+
+            $terms       = wp_get_object_terms($post['ID'], $taxonomy);
+            $tmp = [
+                'id' => [],
+                'slug' => [],
+                'name' => [],
+                'hierarchy::id' => [],
+                'hierarchy::name' => [],
+                'hierarchy::slug' => [],
+            ];
+
+            if (!empty($terms)) {
+                foreach ($terms as $term) {
+
+                    /**
+                     * @var \WP_Term $term
+                     */
+                    $tmp['id'][] = $term->term_id;
+                    $tmp['slug'][] = $term->slug;
+                    $tmp['name'][] = $term->name;
+
+                    $ancestor_ids = get_ancestors($term->term_id, $taxonomy, 'taxonomy');
+                    // $ancestor_ids = array_reverse($ancestor_ids);
+
+                    $ancestor_tmp = [
+                        'id' => [$term->term_id],
+                        'name' => [$term->name],
+                        'slug' => [$term->slug]
+                    ];
+
+                    foreach ($ancestor_ids as $ancestor_id) {
+
+                        $ancestor = get_term($ancestor_id, $taxonomy);
+                        if (is_wp_error($ancestor)) {
+                            continue;
+                        }
+
+                        $ancestor_tmp['id'][] = $ancestor->term_id;
+                        $ancestor_tmp['name'][] = $ancestor->name;
+                        $ancestor_tmp['slug'][] = $ancestor->slug;
+                    }
+
+                    $ancestor_tmp['id'] = array_reverse($ancestor_tmp['id']);
+                    $tmp['hierarchy::id'][] = implode(' > ', $ancestor_tmp['id']);
+
+                    $ancestor_tmp['name'] = array_reverse($ancestor_tmp['name']);
+                    $tmp['hierarchy::name'][] = implode(' > ', $ancestor_tmp['name']);
+
+                    $ancestor_tmp['slug'] = array_reverse($ancestor_tmp['slug']);
+                    $tmp['hierarchy::slug'][] = implode(' > ', $ancestor_tmp['slug']);
+                }
+            }
+
+            $this->record['tax_' . $taxonomy] = $tmp;
+        }
+
+        $this->record = apply_filters('iwp/exporter/post_type/setup_data', $this->record, $this->post_type);
+
+        return true;
     }
 }

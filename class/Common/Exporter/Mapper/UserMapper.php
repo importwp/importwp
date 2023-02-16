@@ -11,21 +11,57 @@ class UserMapper extends AbstractMapper implements MapperInterface
      */
     private $query;
 
+    private function get_core_fields()
+    {
+        return array(
+            'ID',
+            'user_login',
+            'user_nicename',
+            'user_email',
+            'user_url',
+            'user_registered',
+            'user_status',
+            'display_name'
+        );
+    }
+
     public function get_fields()
     {
-        $core_fields = $this->get_core_fields();
-
-        $custom_fields = array();
-
+        /**
+         * @var \WPDB
+         */
         global $wpdb;
+
+        $fields = [
+            'key' => 'main',
+            'label' => 'User',
+            'loop' => true,
+            'fields' => [],
+            'children' => [
+                'custom_fields' => [
+                    'key' => 'custom_fields',
+                    'label' => 'Custom Fields',
+                    'loop' => true,
+                    'loop_fields' => ['meta_key', 'meta_value'],
+                    'fields' => [],
+                    'children' => []
+                ]
+            ]
+
+        ];
+
+        $fields['fields'] = $this->get_core_fields();
+
+
+        // user meta
         $meta_fields = $wpdb->get_col("SELECT DISTINCT meta_key FROM " . $wpdb->usermeta . " WHERE user_id IN (SELECT DISTINCT ID FROM " . $wpdb->users . " )");
         foreach ($meta_fields as $field) {
-            $custom_fields[] = 'ewp_cf_' . $field;
+            $fields['children']['custom_fields']['fields'][] = $field;
         }
 
-        $custom_fields = apply_filters('iwp/exporter/user/custom_field_list', $custom_fields, null);
+        $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/user/custom_field_list', $fields['children']['custom_fields']['fields'], null);
 
-        return array_merge($core_fields, $custom_fields);
+        return $fields;
     }
 
     public function have_records()
@@ -42,63 +78,11 @@ class UserMapper extends AbstractMapper implements MapperInterface
         return $this->query->get_total();
     }
 
-    public function get_record($i, $columns)
+    public function setup($i)
     {
-
-        /**
-         * @var WP_User $record
-         */
-        $record = $this->query->results[$i];
-        $meta = get_user_meta($record->ID);
-
-        $row = array();
-
-        foreach ($columns as $column) {
-            $row[$column] = $this->get_field($column, $record, $meta);
-        }
-
-        if ($this->filter($row, $record, $meta)) {
-            return false;
-        }
-
-        return $row;
-    }
-
-    private function get_core_fields()
-    {
-        return array(
-            'ID',
-            'user_login',
-            'user_nicename',
-            'user_email',
-            'user_url',
-            'user_registered',
-            'user_status',
-            'display_name'
-        );
-    }
-
-    public function get_field($column, $record, $meta)
-    {
-
-        $output = '';
-        $core = $this->get_core_fields();
-
-
-        if (preg_match('/^ewp_cf_(.*?)$/', $column, $matches) == 1) {
-
-            $meta_key = $matches[1];
-            if (isset($meta[$meta_key])) {
-                $output = $meta[$meta_key];
-            }
-        } else {
-
-            if (in_array($column, $core, true)) {
-                $output = $record->{$column};
-            }
-        }
-
-        $output = apply_filters('iwp/exporter/user/value', $output, $column, $record, $meta);
-        return $output;
+        $user = $this->query->results[$i];
+        $this->record = (array)$user->data;
+        $this->record['custom_fields'] = get_user_meta($this->record['ID']);
+        return true;
     }
 }
