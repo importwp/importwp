@@ -46,7 +46,7 @@ class File
     {
         $value = isset($data[$item['id']]) ? $data[$item['id']] : '';
         if (is_array($value)) {
-            return implode('|', $value);
+            return implode(',', $value);
         }
 
         return $value;

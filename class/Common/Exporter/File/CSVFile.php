@@ -29,7 +29,7 @@ class CSVFile extends File
         $data = array_map(function ($item) use ($mapper) {
             $record = $mapper->data([]);
             $tmp = $mapper->get_value($item, $record[0]);
-            return is_array($tmp) ? implode('|', $tmp) : $tmp;
+            return is_array($tmp) ? implode(',', $tmp) : $tmp;
         }, $this->columns);
 
         fputcsv($this->fh, $data);
