@@ -89,9 +89,7 @@ class AddonBaseField extends AddonBaseData implements AddonFieldInterface
         $attachment = $this->addon()->get_service_provider('attachment');
 
         $attachment_prefix = '';
-        $attachment_data = [];
         $attachment_keys = [
-            'location',
             '_meta._title',
             '_meta._alt',
             '_meta._caption',
@@ -107,9 +105,18 @@ class AddonBaseField extends AddonBaseData implements AddonFieldInterface
             '_local_url',
             '_meta._enabled'
         ];
+        $attachment_data = [
+            'location' => $this->_process_data[$field_id . '.location'],
+        ];
 
         foreach ($attachment_keys as $k) {
-            $attachment_data[$k] = $this->_process_data[$field_id . '.' . $k];
+            if (isset($this->_process_data[$field_id . '.settings.' . $k])) {
+                $attachment_data[$k] = $this->_process_data[$field_id . '.settings.' . $k];
+            } elseif (isset($this->_process_data[$field_id . '.' . $k])) {
+                $attachment_data[$k] = $this->_process_data[$field_id . '.' . $k];
+            } else {
+                $attachment_data[$k] = '';
+            }
         }
         return $this->_process_template->process_attachment($object_id, $attachment_data, $attachment_prefix, $filesystem, $ftp, $attachment);
     }

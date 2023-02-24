@@ -34,6 +34,8 @@ class Migrations
         $this->_migrations[] = array($this, 'migration_05_multiple_crons');
         $this->_migrations[] = array($this, 'migration_06_cron_update');
         $this->_migrations[] = array($this, 'migration_07_add_session_table');
+        $this->_migrations[] = array($this, 'migration_08_migrate_taxonomy_settings');
+        $this->_migrations[] = array($this, 'migration_09_migrate_attachment_settings');
 
         $this->_version = count($this->_migrations);
     }
@@ -842,6 +844,100 @@ class Migrations
 
                 $wpdb->insert($wpdb->prefix . 'iwp_sessions', $data, $format);
             }
+        }
+    }
+
+    public function migration_08_migrate_taxonomy_settings($migrate_data = true)
+    {
+        /**
+         * @var \wpdb $wpdb
+         */
+        global $wpdb;
+
+        // TODO: loop through serialsed post_content, switching from single cron to array
+        $importers = $wpdb->get_results("SELECT * FROM {$wpdb->posts} WHERE post_type='" . IWP_POST_TYPE . "'", ARRAY_A);
+
+        foreach ($importers as $importer) {
+
+            $data = maybe_unserialize($importer['post_content']);
+            $modified = false;
+
+            $tmp = [];
+            foreach ($data['map'] as $field_id => $field_value) {
+                $count = 0;
+                $tmp[preg_replace('/^(taxonomies\.\d+\.)(_.*?)$/', '$1settings.$2', $field_id, -1, $count)] = $field_value;
+                if ($count > 0) {
+                    $modified = true;
+                }
+            }
+
+            if (!$modified) {
+                continue;
+            }
+
+            $data['map'] = $tmp;
+
+
+            remove_filter('content_save_pre', 'wp_filter_post_kses');
+            wp_update_post(['ID' => $importer['ID'], 'post_content' => serialize($data)]);
+            add_filter('content_save_pre', 'wp_filter_post_kses');
+        }
+    }
+
+    // TODO: do we need this? can we get around this with manipulating the data if it exists?
+    public function migration_09_migrate_attachment_settings($migrate_data = true)
+    {
+        /**
+         * @var \wpdb $wpdb
+         */
+        global $wpdb;
+
+        $importers = $wpdb->get_results("SELECT * FROM {$wpdb->posts} WHERE post_type='" . IWP_POST_TYPE . "'", ARRAY_A);
+
+        foreach ($importers as $importer) {
+
+            $data = maybe_unserialize($importer['post_content']);
+            $modified = false;
+
+            $tmp = [];
+            foreach ($data['map'] as $field_id => $field_value) {
+                $count = 0;
+
+                $ends_with = [
+                    '_download',
+                    '_enable_image_hash',
+                    '_featured',
+                    '_ftp_host',
+                    '_ftp_pass',
+                    '_ftp_path',
+                    '_ftp_user',
+                    '_local_url',
+                    '_meta\._alt',
+                    '_meta\._caption',
+                    '_meta\._description',
+                    '_meta\._enabled',
+                    '_meta\._title',
+                    '_remote_url',
+                    '_return'
+                ];
+
+                $tmp[preg_replace('/^(.+)(?<!\.settings)\.(' . implode('|', $ends_with) . ')$/', '$1.settings.$2', $field_id, -1, $count)] = $field_value;
+
+                if ($count > 0) {
+                    $modified = true;
+                }
+            }
+
+            if (!$modified) {
+                continue;
+            }
+
+            $data['map'] = $tmp;
+
+
+            remove_filter('content_save_pre', 'wp_filter_post_kses');
+            wp_update_post(['ID' => $importer['ID'], 'post_content' => serialize($data)]);
+            add_filter('content_save_pre', 'wp_filter_post_kses');
         }
     }
 }

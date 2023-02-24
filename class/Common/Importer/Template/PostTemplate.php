@@ -191,26 +191,32 @@ class PostTemplate extends Template implements TemplateInterface
             $this->register_field('Terms', 'term', [
                 'tooltip' => __('Name of the taxonomy term or terms (entered as a comma seperated list).', 'importwp')
             ]),
-            $this->register_field('Enable Hierarchy', '_hierarchy', [
-                'default' => 'no',
-                'options' => [
-                    ['value' => 'no', 'label' => 'No'],
-                    ['value' => 'yes', 'label' => 'Yes'],
-                ],
-                'type' => 'select'
-            ]),
-            $this->register_field('Hierarchy Character', '_hierarchy_character', [
-                'default' => '>',
-                'condition' => ['_hierarchy', '==', 'yes'],
-            ]),
-            $this->register_field('Append Terms', '_append', [
-                'default' => 'no',
-                'options' => [
-                    ['value' => 'no', 'label' => 'No'],
-                    ['value' => 'yes', 'label' => 'Yes'],
-                ],
-                'type' => 'select'
-            ]),
+            $this->register_group('Settings', 'settings', [
+                $this->register_field('Delimiter', '_delimiter', [
+                    'type' => 'text',
+                    'tooltip' => 'A single character used to seperate terms when listing multiple, Leave empty to use default: ,'
+                ]),
+                $this->register_field('Enable Hierarchy', '_hierarchy', [
+                    'default' => 'no',
+                    'options' => [
+                        ['value' => 'no', 'label' => 'No'],
+                        ['value' => 'yes', 'label' => 'Yes'],
+                    ],
+                    'type' => 'select'
+                ]),
+                $this->register_field('Hierarchy Character', '_hierarchy_character', [
+                    'default' => '>',
+                    'condition' => ['_hierarchy', '==', 'yes'],
+                ]),
+                $this->register_field('Append Terms', '_append', [
+                    'default' => 'no',
+                    'options' => [
+                        ['value' => 'no', 'label' => 'No'],
+                        ['value' => 'yes', 'label' => 'Yes'],
+                    ],
+                    'type' => 'select'
+                ]),
+            ], ['type' => 'settings'])
         ], ['type' => 'repeatable', 'row_base' => true]);
     }
 
@@ -482,12 +488,14 @@ class PostTemplate extends Template implements TemplateInterface
                 $tax = isset($row[$prefix . 'tax']) ? $row[$prefix . 'tax'] : null;
                 $terms = isset($row[$prefix . 'term']) ? $row[$prefix . 'term'] : null;
 
-                $term_append[$tax] = isset($row[$prefix . '_append']) && $row[$prefix . '_append'] == 'yes';
+                $term_append[$tax] = isset($row[$prefix . 'settings._append']) && $row[$prefix . 'settings._append'] == 'yes';
 
                 $delimiter = apply_filters('iwp/taxonomy=' . $tax . '/value_delimiter', $base_delimiter);
 
-                $hierarchy_enabled = isset($row[$prefix . '_hierarchy']) && $row[$prefix . '_hierarchy'] === 'yes' ? true : false;
-                $hierarchy_character = isset($row[$prefix . '_hierarchy_character']) ? $row[$prefix . '_hierarchy_character'] : null;
+                $hierarchy_enabled = isset($row[$prefix . 'settings._hierarchy']) && $row[$prefix . 'settings._hierarchy'] === 'yes' ? true : false;
+                $hierarchy_character = isset($row[$prefix . 'settings._hierarchy_character']) ? $row[$prefix . 'settings._hierarchy_character'] : null;
+
+                $delimiter = isset($row[$prefix . 'settings._delimiter']) && strlen(trim($row[$prefix . 'settings._delimiter'])) === 1 ? trim($row[$prefix . 'settings._delimiter']) : $delimiter;
 
                 if (empty($hierarchy_character)) {
                     $hierarchy_enabled = false;

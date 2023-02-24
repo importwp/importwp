@@ -1,10 +1,10 @@
 === Import WP - Import and Export WordPress data to XML or CSV files ===
 Contributors: jcollings  
-Tags: wordpress csv import, wordpress xml import, wordpress csv export, wordpress xml export, csv, xml, bulk edit, migrate, wordpress importer, wordpress exporter, import xml file, import csv file, xml importer, csv importer, csv to wordpress, xml to wordpress
+Tags: import, csv, xml, importer, woocommerce, product import, post import, export, datafeed, bulk import, bulk export, schedule
 Requires at least: 4.0  
 Tested up to: 6.1  
-Requires PHP: 5.4  
-Stable tag: 2.7.1  
+Requires PHP: 5.6  
+Stable tag: 2.7.2  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -13,9 +13,7 @@ Import WP is a powerful Importer & Exporter with a visual data selection tool th
 
 == Description ==
 
-Import WP makes it easy to import any xml or csv files to WordPress, and export any wordpress data to xml, csv or json.
-
-Import WP is a WordPress Importer and Exporter plugin that makes importing and exporting wordpress content easy, fast and straightforward.
+Import WP makes it easy to **Export and Import any XML or CSV file** into WordPress, simplifying Importing data and images into WordPress with our custom visual data selector tools making it straightfoward to setup and import and XML or CSV file.
 
 Each import has been optimised to the following steps:
 
@@ -24,32 +22,61 @@ Each import has been optimised to the following steps:
 3. Set what is used to identify each record, and select what the importer can insert, update and delete.
 4. Run the importer.
 
-Import WP importer fully supports all core WordPress data types such as Posts, Pages, Attachments, Tags, Categories, and Users. This means you can easily import data from any xml or csv into all core WordPress data types using our data selection tool to visually map every field.
+**Import WP XML & CSV importer** fully supports all core WordPress data types such as Posts, Pages, Attachments, Tags, Categories, and Users. This means you can easily import data from any XML or CSV into all core WordPress data types using our data selection tool to visually map every field.
 
-Each export is comprised of the following steps:
+Each export consists of the following steps:
 
 1. Select what WordPress fields should be exported.
 2. Select the desired output format.
 3. Run the exporter.
 
-Import WP exporter allows you to export posts, pages, custom post types, attachment urls and details, tags, categories, custom taxonomies, users, and custom fields. This means you can easily generate csv, xml or json files containing only the data you need.
+**Import WP XML & CSV exporter** allows you to export posts, pages, custom post types, attachment urls and details, tags, categories, custom taxonomies, users, and custom fields. This means you can easily generate CSV, XML or JSON files containing only the data you need.
 
-**What if you want to import xml or csv to custom post types, custom fields or custom taxonomies?**
+**What if you want to import XML or CSV to custom post types, custom fields or custom taxonomies?**
 
-[With the pro version of Import WP](https://www.importwp.com/pricing/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting), you can import xml or csv to any custom post types, custom fields or custom taxonomies created by themes or plugins.
+[With the pro version of Import WP](https://www.importwp.com/pricing/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting), you can import XML or CSV to any custom post types, custom fields or custom taxonomies created by themes or plugins.
 
+= Product Import Export for WooCommerce Add-on =
 
-**What is Pro?**
+The free [Import WP WooCommerce add-on extends](https://www.importwp.com/integrations/import-export-woocommerce-plugin/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting) Import WP's XML and CSV import capabilities allowing the Import and Export of the following WooCommerce product types:
 
-The Pro version adds the following extra features:
+- Simple Product
+- Grouped Product
+- External / Affiliate products
+- Variable products and variations
 
-* Import any post type, taxonomy or user custom fields.
-* Import WordPress custom post types.
-* Import WordPress custom taxonomies
-* Speed imports by importing chunks in parallel using the WordPress cron system.
+**WooCommerce Import Export features:**
+
+- Export WooCommerce products into CSV, XML or JSON files
+- Import products from CSV to WooCommerce
+- Import and Export simple, grouped, external and variable products.
+- Export and import WooCommerce products and images including featured product images and gallery images.
+- Export and Import product categories including hierarchy.
+- Export and Import WooCommerce product attributes, categories and tags
+- Export and import product prices and stock levels.
+
+A number of add-ons are available to add functionality to the importer / exporter.
+
+* Advanced Custom Fields ACF Add-on - ACF XML & CSV data importer and exporter.
+* JetEngine Add-on - JetEngine XML & CSV data importer and exporter.
+* WooCommerce Add-on - XML & CSV Importer and Exporter for all WooCommerce product types.
+* Rank Math SEO - XML & CSV Importer for Rank Math SEO metadata.
+* Yoast SEO - XML & CSV Importer for Yoast SEO metadata.
+* Polylang - XML & CSV Importer for Polylang translations.
+* BLM file importer - BLM file and media Importer.
+
+Find out more [about Import WP Add-ons](https://www.importwp.com/integrations/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting).
+
+= What is Import WP Pro? =
+
+Import WP Pro is a paid upgrade that includes premium support and adds the following extra features:
+
+* Import data to custom fields - used by themes and plugins to store custom data associated with posts.
+* Import data to WordPress custom post types.
+* Import data to WordPress custom taxonomies
 * Schedule importers
 
-Find out more [about Import WP Pro on our websie](https://www.importwp.com/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting).
+Find out more [about Import WP Pro on our website](https://www.importwp.com/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting).
 
 == Installation ==
 
@@ -85,6 +112,11 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.7.2 = 
+
+* ADD - new delimiter field to attachments and taxonomy settings.
+* FIX - fix UI speed issue.
 
 = 2.7.1 = 
 

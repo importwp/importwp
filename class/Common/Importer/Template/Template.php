@@ -206,12 +206,18 @@ class Template extends AbstractTemplate
             );
         }
 
-        return [
+        $tmp = [
             'id' => $key,
             'heading' => $label,
             'type' => isset($args['type']) ? $args['type'] : 'group',
             'fields' => $fields
         ];
+
+        if (isset($args['condition']) && !empty($args['condition'])) {
+            $tmp['condition'] = $args['condition'];
+        }
+
+        return $tmp;
     }
 
     public function register_core_field($label, $key, $args = [])
@@ -245,15 +251,10 @@ class Template extends AbstractTemplate
         return $data;
     }
 
-    public function register_attachment_fields($label = 'Attachments', $name = 'attachments', $field_label = 'Location', $group_args = null)
+    public function _register_attachment_setting_fields($display_conditions = [], $extra_fields = [])
     {
-        if (is_null($group_args)) {
-            $group_args = ['type' => 'repeatable', 'row_base' => true];
-        }
-        return $this->register_group($label, $name, [
-            $this->register_field($field_label, 'location', [
-                'tooltip' => __('The source location of the file being attached.', 'importwp')
-            ]),
+        return $this->register_group('Settings', 'settings', array_merge($extra_fields, [
+
             $this->register_field('Is Featured?', '_featured', [
                 'default' => 'no',
                 'options' => [
@@ -296,6 +297,7 @@ class Template extends AbstractTemplate
                 'condition' => ['_download', '==', 'local'],
                 'tooltip' => __('Enter the base path from this servers root file system, this is prefixed onto the Location field, leave empty to be ignore', 'importwp')
             ]),
+
             $this->register_field('Permissions', '_enable_image_hash', [
                 'condition' => ['_download', '!=', 'media'],
                 'default' => 'yes',
@@ -304,6 +306,10 @@ class Template extends AbstractTemplate
                     ['value' => 'yes', 'label' => 'Search media library before downloading new files'],
                 ],
                 'tooltip' => __('Enable to stop duplicate images by searching the media library before downloading new files.', 'importwp')
+            ]),
+            $this->register_field('Delimiter', '_delimiter', [
+                'type' => 'text',
+                'tooltip' => 'A single character used to seperate attachments when listing multiple, Leave empty to use default: ,'
             ]),
             $this->register_group('Attachment Meta', '_meta', [
                 $this->register_field('Enable Meta', '_enabled', [
@@ -332,6 +338,19 @@ class Template extends AbstractTemplate
                     'tooltip' => __('Attachments description text.', 'importwp')
                 ])
             ]),
+        ]), ['type' => 'settings', 'condition' => $display_conditions]);
+    }
+
+    public function register_attachment_fields($label = 'Attachments', $name = 'attachments', $field_label = 'Location', $group_args = null)
+    {
+        if (is_null($group_args)) {
+            $group_args = ['type' => 'repeatable', 'row_base' => true];
+        }
+        return $this->register_group($label, $name, [
+            $this->register_field($field_label, 'location', [
+                'tooltip' => __('The source location of the file being attached.', 'importwp')
+            ]),
+            $this->_register_attachment_setting_fields()
         ], $group_args);
     }
 
@@ -508,18 +527,64 @@ class Template extends AbstractTemplate
     {
         $delimiter = apply_filters('iwp/value_delimiter', ',');
         $delimiter = apply_filters('iwp/attachment/value_delimiter', $delimiter);
+
+        if (isset($row[$row_prefix . 'settings._delimiter'])) {
+
+            if (strlen(trim($row[$row_prefix . 'settings._delimiter'])) === 1) {
+                $delimiter = trim($row[$row_prefix . 'settings._delimiter']);
+            }
+        } elseif (isset($row[$row_prefix . '_delimiter'])) {
+
+            if (strlen(trim($row[$row_prefix . '_delimiter'])) === 1) {
+                $delimiter = trim($row[$row_prefix . '_delimiter']);
+            }
+        }
+
         $meta_delimiter = apply_filters('iwp/attachment/meta_delimiter', $delimiter);
 
         $locations = isset($row[$row_prefix . 'location']) ? $row[$row_prefix . 'location'] : null;
         $location_parts = explode($delimiter, $locations);
         $location_parts = array_filter(array_map('trim', $location_parts));
 
-        $attachment_titles = isset($row[$row_prefix . '_meta._title']) ? explode($meta_delimiter, $row[$row_prefix . '_meta._title']) : null;
-        $attachment_alts = isset($row[$row_prefix . '_meta._alt']) ? explode($meta_delimiter, $row[$row_prefix . '_meta._alt']) : null;
-        $attachment_captions = isset($row[$row_prefix . '_meta._caption']) ? explode($meta_delimiter, $row[$row_prefix . '_meta._caption']) : null;
-        $attachment_descriptions = isset($row[$row_prefix . '_meta._description']) ? explode($meta_delimiter, $row[$row_prefix . '_meta._description']) : null;
+        if (isset($row[$row_prefix . 'settings._meta._title'])) {
+            $attachment_titles = explode($meta_delimiter, $row[$row_prefix . 'settings._meta._title']);
+        } elseif ($row[$row_prefix . '_meta._title']) {
+            $attachment_titles = explode($meta_delimiter, $row[$row_prefix . '_meta._title']);
+        } else {
+            $attachment_titles = null;
+        }
 
-        $attachment_enable_image_hash = isset($row[$row_prefix . '_enable_image_hash']) ? $row[$row_prefix . '_enable_image_hash'] : 'yes';
+        if (isset($row[$row_prefix . 'settings._meta._alt'])) {
+            $attachment_alts = explode($meta_delimiter, $row[$row_prefix . 'settings._meta._alt']);
+        } elseif (isset($row[$row_prefix . '_meta._alt'])) {
+            $attachment_alts = explode($meta_delimiter, $row[$row_prefix . '_meta._alt']);
+        } else {
+            $attachment_alts = null;
+        }
+
+        if (isset($row[$row_prefix . 'settings._meta._caption'])) {
+            $attachment_captions = explode($meta_delimiter, $row[$row_prefix . 'settings._meta._caption']);
+        } elseif (isset($row[$row_prefix . '_meta._caption'])) {
+            $attachment_captions = explode($meta_delimiter, $row[$row_prefix . '_meta._caption']);
+        } else {
+            $attachment_captions = null;
+        }
+
+        if (isset($row[$row_prefix . 'settings._meta._description'])) {
+            $attachment_descriptions = explode($meta_delimiter, $row[$row_prefix . 'settings._meta._description']);
+        } elseif (isset($row[$row_prefix . '_meta._description'])) {
+            $attachment_descriptions = explode($meta_delimiter, $row[$row_prefix . '_meta._description']);
+        } else {
+            $attachment_descriptions = null;
+        }
+
+        if (isset($row[$row_prefix . 'settings._enable_image_hash'])) {
+            $attachment_enable_image_hash = $row[$row_prefix . 'settings._enable_image_hash'];
+        } elseif (isset($row[$row_prefix . '_enable_image_hash'])) {
+            $attachment_enable_image_hash = $row[$row_prefix . '_enable_image_hash'];
+        } else {
+            $attachment_enable_image_hash = 'yes';
+        }
 
         $attachment_ids = [];
         $location_counter = 0;
@@ -529,8 +594,23 @@ class Template extends AbstractTemplate
                 continue;
             }
 
-            $download = isset($row[$row_prefix . '_download']) ? $row[$row_prefix . '_download'] : null;
-            $featured = isset($row[$row_prefix . '_featured']) ? $row[$row_prefix . '_featured'] : null;
+            if (isset($row[$row_prefix . 'settings._download'])) {
+                $download = $row[$row_prefix . 'settings._download'];
+            } elseif (isset($row[$row_prefix . '_download'])) {
+                $download = $row[$row_prefix . '_download'];
+            } else {
+                $download = null;
+            }
+
+            if (isset($row[$row_prefix . 'settings._featured'])) {
+                $featured = $row[$row_prefix . 'settings._featured'];
+            } elseif (isset($row[$row_prefix . '_featured'])) {
+                $featured = $row[$row_prefix . '_featured'];
+            } else {
+                $featured = null;
+            }
+
+
             $source = null;
             $result = false;
             $attachment_id = null;
@@ -540,7 +620,14 @@ class Template extends AbstractTemplate
 
             switch ($download) {
                 case 'remote':
-                    $base_url = isset($row[$row_prefix . '_remote_url']) ? $row[$row_prefix . '_remote_url'] : null;
+
+                    if (isset($row[$row_prefix . 'settings._remote_url'])) {
+                        $base_url = $row[$row_prefix . 'settings._remote_url'];
+                    } elseif (isset($row[$row_prefix . '_remote_url'])) {
+                        $base_url = $row[$row_prefix . '_remote_url'];
+                    } else {
+                        $base_url = null;
+                    }
 
                     // check if file hash is already stored
                     $source = $base_url . $location;
@@ -561,10 +648,38 @@ class Template extends AbstractTemplate
                     }
                     break;
                 case 'ftp':
-                    $ftp_user = isset($row[$row_prefix . '_ftp_user']) ? $row[$row_prefix . '_ftp_user'] : null;
-                    $ftp_host = isset($row[$row_prefix . '_ftp_host']) ? $row[$row_prefix . '_ftp_host'] : null;
-                    $ftp_pass = isset($row[$row_prefix . '_ftp_pass']) ? $row[$row_prefix . '_ftp_pass'] : null;
-                    $base_url = isset($row[$row_prefix . '_ftp_path']) ? $row[$row_prefix . '_ftp_path'] : null;
+
+                    if (isset($row[$row_prefix . 'settings._ftp_user'])) {
+                        $ftp_user = $row[$row_prefix . 'settings._ftp_user'];
+                    } elseif (isset($row[$row_prefix . '_ftp_user'])) {
+                        $ftp_user = $row[$row_prefix . '_ftp_user'];
+                    } else {
+                        $ftp_user = null;
+                    }
+
+                    if (isset($row[$row_prefix . 'settings._ftp_host'])) {
+                        $ftp_host = $row[$row_prefix . 'settings._ftp_host'];
+                    } elseif (isset($row[$row_prefix . '_ftp_host'])) {
+                        $ftp_host = $row[$row_prefix . '_ftp_host'];
+                    } else {
+                        $ftp_host = null;
+                    }
+
+                    if (isset($row[$row_prefix . 'settings._ftp_pass'])) {
+                        $ftp_pass = $row[$row_prefix . 'settings._ftp_pass'];
+                    } elseif (isset($row[$row_prefix . '_ftp_pass'])) {
+                        $ftp_pass = $row[$row_prefix . '_ftp_pass'];
+                    } else {
+                        $ftp_pass = null;
+                    }
+
+                    if (isset($row[$row_prefix . 'settings._ftp_path'])) {
+                        $base_url = $row[$row_prefix . 'settings._ftp_path'];
+                    } elseif (isset($row[$row_prefix . '_ftp_path'])) {
+                        $base_url = $row[$row_prefix . '_ftp_path'];
+                    } else {
+                        $base_url = null;
+                    }
 
                     // check if file hash is already stored
                     $source = $base_url . $location;
@@ -585,7 +700,14 @@ class Template extends AbstractTemplate
                     }
                     break;
                 case 'local':
-                    $base_url = isset($row[$row_prefix . '_local_url']) ? $row[$row_prefix . '_local_url'] : null;
+
+                    if (isset($row[$row_prefix . 'settings._local_url'])) {
+                        $base_url = $row[$row_prefix . 'settings._local_url'];
+                    } elseif (isset($row[$row_prefix . '_local_url'])) {
+                        $base_url = $row[$row_prefix . '_local_url'];
+                    } else {
+                        $base_url = null;
+                    }
 
                     // check if file hash is already stored
                     $source = $base_url . $location;
@@ -616,7 +738,13 @@ class Template extends AbstractTemplate
                     break;
             }
 
-            $meta_enabled = isset($row[$row_prefix . '_meta._enabled']) && $row[$row_prefix . '_meta._enabled'] === 'yes' ? true : false;
+            if (isset($row[$row_prefix . 'settings._meta._enabled'])) {
+                $meta_enabled = $row[$row_prefix . 'settings._meta._enabled'] === 'yes' ? true : false;
+            } elseif (isset($row[$row_prefix . '_meta._enabled'])) {
+                $meta_enabled = $row[$row_prefix . '_meta._enabled'] === 'yes' ? true : false;
+            } else {
+                $meta_enabled = false;
+            }
 
             // insert attachment
             if ($attachment_id <= 0) {
