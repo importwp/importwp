@@ -170,7 +170,7 @@ class ExporterManager
         $total = 0;
         $i = 0;
 
-        if ($mapper->have_records()) {
+        if ($mapper->have_records($exporter_data->getId())) {
 
             $total = $mapper->found_records();
 

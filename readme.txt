@@ -4,7 +4,7 @@ Tags: import, csv, xml, importer, woocommerce, product import, post import, expo
 Requires at least: 4.0  
 Tested up to: 6.1  
 Requires PHP: 5.6  
-Stable tag: 2.7.3  
+Stable tag: 2.7.4  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -112,6 +112,12 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.7.4 =
+
+* FIX - issue with schedule interface, once saved you were not able to add new rows.
+* ADD - Add filters to modify export query.
+* ADD - Add helper function iwp_fn_prefix_items
 
 = 2.7.3 =
 

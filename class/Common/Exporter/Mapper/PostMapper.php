@@ -47,6 +47,13 @@ class PostMapper extends AbstractMapper implements MapperInterface
         );
     }
 
+    public function get_post_types_array()
+    {
+        $post_types = is_string($this->post_type) ? explode(',', $this->post_type) : (array)$this->post_type;
+        $post_types = array_values(array_filter(array_map('trim', $post_types)));
+        return $post_types;
+    }
+
     public function get_fields()
     {
         /**
@@ -95,8 +102,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
         $fields['fields'] = $this->get_core_fields();
 
-        $post_types = is_string($this->post_type) ? explode(',', $this->post_type) : (array)$this->post_type;
-        $post_types = array_values(array_filter(array_map('trim', $post_types)));
+        $post_types = $this->get_post_types_array();
 
         // add post_thumbnail
         if (post_type_supports($post_types[0], 'thumbnail')) {
@@ -143,10 +149,21 @@ class PostMapper extends AbstractMapper implements MapperInterface
     }
 
 
-    public function have_records()
+    public function have_records($exporter_id)
     {
-        $this->query = new \WP_Query(array(
-            'post_type' => $this->post_type,
+        $post_types = $this->get_post_types_array();
+
+        $query_args = [];
+        $query_args = apply_filters('iwp/exporter/post_query', $query_args);
+        $query_args = apply_filters(sprintf('iwp/exporter/%d/post_query', $exporter_id), $query_args);
+
+        foreach ($post_types as $post_type) {
+            $query_args = apply_filters(sprintf('iwp/exporter/post_query/%s', $post_type), $query_args);
+            $query_args = apply_filters(sprintf('iwp/exporter/%d/post_query/%s', $exporter_id, $post_type), $query_args);
+        }
+
+        $query_args = wp_parse_args($query_args, [
+            'post_type' => $post_types,
             'posts_per_page' => -1,
             'post_status' => 'any, trash, future',
             'fields' => 'ids',
@@ -155,7 +172,9 @@ class PostMapper extends AbstractMapper implements MapperInterface
             'update_post_term_cache' => false,
             'no_found_rows' => true,
             'order' => 'ASC'
-        ));
+        ]);
+
+        $this->query = new \WP_Query($query_args);
 
         return $this->found_records() > 0;
     }

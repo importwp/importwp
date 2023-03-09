@@ -79,11 +79,19 @@ class CommentMapper extends AbstractMapper implements MapperInterface
         return $fields;
     }
 
-    public function have_records()
+    public function have_records($exporter_id)
     {
-        $this->query = new \WP_Comment_Query(array(
+        $query_args = [];
+        $query_args = apply_filters('iwp/exporter/comment_query', $query_args);
+        $query_args = apply_filters(sprintf('iwp/exporter/%d/comment_query', $exporter_id), $query_args);
+        $query_args = apply_filters('iwp/exporter/comment_query/' . $this->post_type, $query_args);
+        $query_args = apply_filters(sprintf('iwp/exporter/%d/comment_query/%s', $exporter_id, $this->post_type), $query_args);
+
+        $query_args = wp_parse_args($query_args, [
             'post_type' => $this->post_type
-        ));
+        ]);
+
+        $this->query = new \WP_Comment_Query($query_args);
 
         return $this->found_records() > 0;
     }

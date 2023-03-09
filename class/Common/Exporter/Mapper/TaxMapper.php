@@ -95,12 +95,20 @@ class TaxMapper extends AbstractMapper implements MapperInterface
         return $fields;
     }
 
-    public function have_records()
+    public function have_records($exporter_id)
     {
-        $this->query = new \WP_Term_Query(array(
+        $query_args = [];
+        $query_args = apply_filters('iwp/exporter/tax_query', $query_args);
+        $query_args = apply_filters(sprintf('iwp/exporter/%d/tax_query', $exporter_id), $query_args);
+        $query_args = apply_filters(sprintf('iwp/exporter/tax_query/%s', $this->taxonomy), $query_args);
+        $query_args = apply_filters(sprintf('iwp/exporter/%d/tax_query/%s', $exporter_id, $this->taxonomy), $query_args);
+
+        $query_args = wp_parse_args($query_args, [
             'taxonomy' => $this->taxonomy,
             'hide_empty' => false
-        ));
+        ]);
+
+        $this->query = new \WP_Term_Query($query_args);
 
         return $this->found_records() > 0;
     }

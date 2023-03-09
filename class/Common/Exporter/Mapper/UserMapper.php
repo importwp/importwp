@@ -74,11 +74,17 @@ class UserMapper extends AbstractMapper implements MapperInterface
         return $fields;
     }
 
-    public function have_records()
+    public function have_records($exporter_id)
     {
-        $this->query = new \WP_User_Query(array(
+        $query_args = [];
+        $query_args = apply_filters('iwp/exporter/user_query', $query_args);
+        $query_args = apply_filters(sprintf('iwp/exporter/%d/user_query', $exporter_id), $query_args);
+
+        $query_args = wp_parse_args($query_args, [
             'number' => -1
-        ));
+        ]);
+
+        $this->query = new \WP_User_Query($query_args);
 
         return $this->found_records() > 0;
     }

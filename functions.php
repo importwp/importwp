@@ -77,3 +77,14 @@ function iwp_fn_get_posts_by($input = '', $field = 'post_title', $post_type = 'p
 
     return implode(',', $output);
 }
+
+function iwp_fn_prefix_items($input = '', $prefix = '', $output_delimiter = ',', $input_delimter = ',')
+{
+    $items = explode($input_delimter, $input);
+
+    $items = array_map(function ($item) use ($prefix) {
+        return $prefix . trim($item);
+    }, $items);
+
+    return implode($output_delimiter, $items);
+}
