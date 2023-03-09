@@ -31,6 +31,18 @@ class PostTemplate extends Template implements TemplateInterface
         'post_parent' => 'post._parent.parent',
     ];
 
+    protected $optional_fields = [
+        'ID',
+        'post_excerpt',
+        'post_name',
+        'post_status',
+        'menu_order',
+        'post_password',
+        'post_date',
+        'comment_status',
+        'ping_status'
+    ];
+
     protected $_taxonomies = [];
     protected $_attachments = [];
 
@@ -270,18 +282,7 @@ class PostTemplate extends Template implements TemplateInterface
             }
         }
 
-        $optional_fields = [
-            'ID',
-            'post_excerpt',
-            'post_name',
-            'post_status',
-            'menu_order',
-            'post_password',
-            'post_date',
-            'comment_status',
-            'ping_status'
-        ];
-        foreach ($optional_fields as $optional_field) {
+        foreach ($this->optional_fields as $optional_field) {
             if (true !== $this->importer->isEnabledField('post.' . $optional_field)) {
                 unset($post_field_map[$optional_field]);
             }
@@ -728,5 +729,256 @@ class PostTemplate extends Template implements TemplateInterface
         }
 
         return $result;
+    }
+
+    /**
+     * Convert fields/headings to data map
+     * 
+     * @param mixed $fields
+     * @param ImporterModel $importer
+     * @return array 
+     */
+    public function generate_field_map($fields, $importer)
+    {
+        $result = parent::generate_field_map($fields, $importer);
+        $map = $result['map'];
+        $enabled = $result['enabled'];
+
+        $taxonomies = [];
+        $attachments = [];
+        $author = [];
+        $parent = [];
+
+        foreach ($fields as $index => $field) {
+
+            if (preg_match('/^image\.(.*?)$/', $field, $matches) === 1) {
+
+                // Capture featured image.
+                // image.id,url, title, alt, caption, description
+                if (!isset($attachments['image'])) {
+                    $attachments['image'] = [
+                        'map' => []
+                    ];
+                }
+
+                $attachments['image']['map'][$matches[1]] = sprintf('{%d}', $index);
+                $attachments['image']['map']['featured'] = 'yes';
+            } elseif (preg_match('/^tax_([a-zA-Z0-9_]+)\.(.*?)$/', $field, $matches) === 1) {
+
+                // Capture Taxonomies.
+                // tax_{taxonomy}.name,slug,id,hierarchy::id,hierarchy::name,hierarchy::slug
+
+                $taxonomy = $matches[1];
+                if (!isset($taxonomies[$taxonomy])) {
+                    $taxonomies[$taxonomy] = [
+                        'map' => []
+                    ];
+                }
+
+                $taxonomies[$taxonomy]['map'][$matches[2]] = sprintf('{%d}', $index);
+            } elseif (preg_match('/^author\.(.*?)$/', $field, $matches) === 1) {
+
+                // Capture author.
+                // author.ID, author.user_login,author.user_nicename,author.user_email,author.user_url,author.display_name
+                if (!isset($author['map'])) {
+                    $author['map'] = [];
+                }
+
+                $author['map'][$matches[1]] = sprintf('{%d}', $index);
+            } elseif (preg_match('/^parent\.(.*?)$/', $field, $matches) === 1) {
+
+                // Capture parent
+                // parent.id,parent.name,parent.slug
+                if (!isset($parent['map'])) {
+                    $parent['map'] = [];
+                }
+
+                $parent['map'][$matches[1]] = sprintf('{%d}', $index);
+            } elseif (isset($this->field_map[$field])) {
+
+                // Handle core fields
+                $field_key = $this->field_map[$field];
+                $map[$field_key] = sprintf('{%d}', $index);
+
+                if (in_array($field, $this->optional_fields)) {
+                    $enabled[] = $field_key;
+                }
+
+                if (in_array($field, ['post_status', 'comment_status', 'ping_status'])) {
+                    $map[$field_key . '._enable_text'] = 'yes';
+                }
+            }
+        }
+
+        $taxonomies = apply_filters('iwp/importer/generate_field_map/taxonomies', $taxonomies, $fields, $importer);
+        $attachments = apply_filters('iwp/importer/generate_field_map/attachments', $attachments, $fields, $importer);
+        $author = apply_filters('iwp/importer/generate_field_map/author', $author, $fields, $importer);
+        $parent = apply_filters('iwp/importer/generate_field_map/parent', $parent, $fields, $importer);
+
+        if (!empty($taxonomies)) {
+
+            $taxonomy_counter = 0;
+            $defaults = [
+                'row_base' => '',
+                'tax' => '',
+                'term' => '',
+                'settings._append' => 'no',
+                'settings._delimiter' => '',
+                'settings._hierarchy' => 'no',
+                'settings._hierarchy_character' => '>',
+            ];
+
+            foreach ($taxonomies as $taxonomy => $taxonomy_data) {
+                $data = [];
+
+                if (isset($taxonomy_data['map']['hierarchy::name'])) {
+                    $data['term'] = $taxonomy_data['map']['hierarchy::name'];
+                    $data['settings._hierarchy'] = 'yes';
+                } elseif (isset($taxonomy_data['map']['hierarchy::slug'])) {
+                    $data['term'] = $taxonomy_data['map']['hierarchy::slug'];
+                    $data['settings._hierarchy'] = 'yes';
+                } elseif (isset($taxonomy_data['map']['name'])) {
+                    $data['term'] = $taxonomy_data['map']['name'];
+                } elseif (isset($taxonomy_data['map']['slug'])) {
+                    $data['term'] = $taxonomy_data['map']['slug'];
+                } else {
+                    continue;
+                }
+
+                $data['tax'] = $taxonomy;
+
+                $data = wp_parse_args($data, $defaults);
+
+                $map = array_merge($map, array_reduce(array_keys($data), function ($carry, $key) use ($data, $taxonomy_counter) {
+                    $carry[sprintf('taxonomies.%d.%s', $taxonomy_counter, $key)] = $data[$key];
+                    return $carry;
+                }, []));
+
+                $taxonomy_counter++;
+            }
+
+            $map['taxonomies._index'] = $taxonomy_counter;
+        }
+
+        if (!empty($attachments)) {
+
+            $attachment_counter = 0;
+            $defaults = [
+                'row_base' => '',
+                'location' => '',
+                'settings._delimiter' => '',
+                'settings._download' => 'remote',
+                'settings._enable_image_hash' => 'yes',
+                'settings._featured' => 'no',
+                'settings._ftp_host' => '',
+                'settings._ftp_pass' => '',
+                'settings._ftp_path' => '',
+                'settings._ftp_user' => '',
+                'settings._local_url' => '',
+                'settings._meta._alt' => '',
+                'settings._meta._caption' => '',
+                'settings._meta._description' => '',
+                'settings._meta._enabled' => 'no',
+                'settings._meta._title' => '',
+                'settings._remote_url' => '',
+            ];
+
+            foreach ($attachments as $attachment_data) {
+
+                $data = [];
+
+                if (!isset($attachment_data['map']['url'])) {
+                    continue;
+                }
+
+                // location
+                $data['location'] = $attachment_data['map']['url'];
+
+                if (isset($attachment_data['map']['featured'])) {
+                    $data['settings._featured'] = $attachment_data['map']['featured'];
+                }
+
+                // Meta
+                if (isset($attachment_data['map']['title'])) {
+                    $data['settings._meta._title'] = $attachment_data['map']['title'];
+                    $data['settings._meta._enabled'] = 'yes';
+                }
+                if (isset($attachment_data['map']['alt'])) {
+                    $data['settings._meta._alt'] = $attachment_data['map']['alt'];
+                    $data['settings._meta._enabled'] = 'yes';
+                }
+                if (isset($attachment_data['map']['description'])) {
+                    $data['settings._meta._description'] = $attachment_data['map']['description'];
+                    $data['settings._meta._enabled'] = 'yes';
+                }
+                if (isset($attachment_data['map']['caption'])) {
+                    $data['settings._meta._caption'] = $attachment_data['map']['caption'];
+                    $data['settings._meta._enabled'] = 'yes';
+                }
+
+                $data = wp_parse_args($data, $defaults);
+
+                $map = array_merge($map, array_reduce(array_keys($data), function ($carry, $key) use ($data, $attachment_counter) {
+                    $carry[sprintf('attachments.%d.%s', $attachment_counter, $key)] = $data[$key];
+                    return $carry;
+                }, []));
+
+                $attachment_counter++;
+            }
+
+            $map['attachments._index'] = $attachment_counter;
+        }
+
+        if (!empty($author)) {
+
+            // TODO: enable field? this is a seperate field list
+            $enabled_key = 'post._author';
+            if (isset($author['map']['user_email'])) {
+
+                $enabled[] = $enabled_key;
+                $map['post._author.post_author'] = $author['map']['user_email'];
+                $map['post._author._author_type'] = 'email';
+            } elseif (isset($author['map']['user_login'])) {
+
+                $enabled[] = $enabled_key;
+                $map['post._author.post_author'] = $author['map']['user_login'];
+                $map['post._author._author_type'] = 'login';
+            } elseif (isset($author['map']['ID'])) {
+
+                $enabled[] = $enabled_key;
+                $map['post._author.post_author'] = $author['map']['ID'];
+                $map['post._author._author_type'] = 'id';
+            }
+        }
+
+        if (!empty($parent)) {
+
+            // parent.id,parent.name,parent.slug
+            $enabled_key = 'post._parent';
+            if (isset($parent['map']['name'])) {
+
+                $enabled[] = $enabled_key;
+                $map['post._parent.parent'] = $parent['map']['name'];
+                $map['post._parent.parent._enable_text'] = 'yes';
+                $map['post._parent._parent_type'] = 'name';
+            } elseif (isset($parent['map']['slug'])) {
+
+                $enabled[] = $enabled_key;
+                $map['post._parent.parent'] = $parent['map']['slug'];
+                $map['post._parent.parent._enable_text'] = 'yes';
+                $map['post._parent._parent_type'] = 'slug';
+            } elseif (isset($parent['map']['id'])) {
+
+                $enabled[] = $enabled_key;
+                $map['post._parent.parent'] = $parent['map']['name'];
+                $map['post._parent.parent._enable_text'] = 'yes';
+                $map['post._parent._parent_type'] = 'id';
+            }
+        }
+
+        return [
+            'map' => $map,
+            'enabled' => $enabled
+        ];
     }
 }

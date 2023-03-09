@@ -21,7 +21,9 @@ class UserMapper extends AbstractMapper implements MapperInterface
             'user_url',
             'user_registered',
             'user_status',
-            'display_name'
+            'display_name',
+            'first_name',
+            'last_name'
         );
     }
 
@@ -51,11 +53,19 @@ class UserMapper extends AbstractMapper implements MapperInterface
         ];
 
         $fields['fields'] = $this->get_core_fields();
-
+        $fields['fields'][] = 'role';
+        $fields['fields'][] = 'first_name';
+        $fields['fields'][] = 'last_name';
+        $fields['fields'][] = 'description';
 
         // user meta
         $meta_fields = $wpdb->get_col("SELECT DISTINCT meta_key FROM " . $wpdb->usermeta . " WHERE user_id IN (SELECT DISTINCT ID FROM " . $wpdb->users . " )");
         foreach ($meta_fields as $field) {
+
+            if (in_array($field, ['first_name', 'last_name', 'description'])) {
+                continue;
+            }
+
             $fields['children']['custom_fields']['fields'][] = $field;
         }
 
@@ -83,6 +93,22 @@ class UserMapper extends AbstractMapper implements MapperInterface
         $user = $this->query->results[$i];
         $this->record = (array)$user->data;
         $this->record['custom_fields'] = get_user_meta($this->record['ID']);
+
+        $userdata = get_userdata($this->record['ID']);
+        $this->record['role'] = (array)$userdata->roles;
+
+        foreach (['first_name', 'last_name', 'description'] as $field) {
+
+            if (isset($this->record['custom_fields'][$field])) {
+
+                $this->record[$field] = $this->record['custom_fields'][$field][0];
+                unset($this->record['custom_fields'][$field]);
+            } else {
+
+                $this->record[$field] = '';
+            }
+        }
+
         return true;
     }
 }

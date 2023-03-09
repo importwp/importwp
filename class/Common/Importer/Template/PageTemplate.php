@@ -3,6 +3,7 @@
 namespace ImportWP\Common\Importer\Template;
 
 use ImportWP\Common\Importer\ParsedData;
+use ImportWP\Common\Model\ImporterModel;
 use ImportWP\EventHandler;
 
 class PageTemplate extends PostTemplate
@@ -55,5 +56,31 @@ class PageTemplate extends PostTemplate
         }
 
         return parent::pre_process($data);
+    }
+
+    /**
+     * Convert fields/headings to data map
+     * 
+     * @param mixed $fields
+     * @param ImporterModel $importer
+     * @return array 
+     */
+    public function generate_field_map($fields, $importer)
+    {
+        $result = parent::generate_field_map($fields, $importer);
+        $map = $result['map'];
+        $enabled = $result['enabled'];
+
+        $template_index = array_search('custom_fields._wp_page_template', $fields);
+        if ($template_index !== false) {
+            $enabled[] = 'post._wp_page_template';
+            $map['post._wp_page_template'] = sprintf('{%d}', $template_index);
+            $map['post._wp_page_template._enable_text'] = 'yes';
+        }
+
+        return [
+            'map' => $map,
+            'enabled' => $enabled
+        ];
     }
 }

@@ -276,6 +276,7 @@ class AddonBasePanel extends AddonBaseContainer implements AddonPanelInterface
 
     public function clear()
     {
-        unset($this->_data);
+        // Removed due to clearing setitngs and other important data.
+        // unset($this->_data);
     }
 }

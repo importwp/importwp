@@ -821,6 +821,9 @@ class RestManager extends \WP_REST_Controller
                 }
 
                 $count = $this->importer_manager->process_csv_file($id, $delimiter, $enclosure, true);
+
+                // Need fresh importer, due to process_csv_file importer modifications might get overwritten.
+                $importer = $this->importer_manager->get_importer($id);
                 $importer->setFileSetting('count', $count);
             } else {
 

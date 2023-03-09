@@ -4,7 +4,7 @@ Tags: import, csv, xml, importer, woocommerce, product import, post import, expo
 Requires at least: 4.0  
 Tested up to: 6.1  
 Requires PHP: 5.6  
-Stable tag: 2.7.2  
+Stable tag: 2.7.3  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -112,6 +112,12 @@ A guide to running and pausing an import can be viewed [here](https://www.import
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.7.3 =
+
+* ADD - exported CSV files with default column names will autofill template fields when creating a new importer.
+* FIX - fixed issue with addon data being cleared.
+* FIX - fixed issue with importer status not being displayed correctly.
 
 = 2.7.2 = 
 

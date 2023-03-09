@@ -4,12 +4,28 @@ namespace ImportWP\Common\Importer\Template;
 
 use ImportWP\Common\Importer\ParsedData;
 use ImportWP\Common\Importer\TemplateInterface;
+use ImportWP\Common\Model\ImporterModel;
 use ImportWP\EventHandler;
 
 class TermTemplate extends Template implements TemplateInterface
 {
     protected $name = 'Term';
     protected $mapper = 'term';
+
+    protected $field_map = [
+        'term_id' => 'term.term_id',
+        'name' => 'term.name',
+        'description' => 'term.description',
+        'slug' => 'term.slug',
+        'alias_of' => 'term.alias_of'
+    ];
+
+    protected $optional_fields = [
+        'term_id',
+        'description',
+        'slug',
+        'alias_of',
+    ];
 
     public function __construct(EventHandler $event_handler)
     {
@@ -255,5 +271,77 @@ class TermTemplate extends Template implements TemplateInterface
             ];
         }
         return $result;
+    }
+
+    /**
+     * Convert fields/headings to data map
+     * 
+     * @param mixed $fields
+     * @param ImporterModel $importer
+     * @return array 
+     */
+    public function generate_field_map($fields, $importer)
+    {
+        $result = parent::generate_field_map($fields, $importer);
+        $map = $result['map'];
+        $enabled = $result['enabled'];
+
+        $parent = [];
+
+        foreach ($fields as $index => $field) {
+            if (preg_match('/^parent\.(.*?)$/', $field, $matches) === 1) {
+
+                // Capture parent
+                // parent.id,parent.name,parent.slug
+                if (!isset($parent['map'])) {
+                    $parent['map'] = [];
+                }
+
+                $parent['map'][$matches[1]] = sprintf('{%d}', $index);
+            } elseif (isset($this->field_map[$field])) {
+
+                // Handle core fields
+                $field_key = $this->field_map[$field];
+                $map[$field_key] = sprintf('{%d}', $index);
+
+                if (in_array($field, $this->optional_fields)) {
+                    $enabled[] = $field_key;
+                }
+
+                if (in_array($field, ['role'])) {
+                    $map[$field_key . '._enable_text'] = 'yes';
+                }
+            }
+        }
+
+        if (!empty($parent)) {
+
+            // parent.id,parent.name,parent.slug
+            $enabled_key = 'term._parent';
+            if (isset($parent['map']['name'])) {
+
+                $enabled[] = $enabled_key;
+                $map['term._parent.parent'] = $parent['map']['name'];
+                $map['term._parent.parent._enable_text'] = 'yes';
+                $map['term._parent._parent_type'] = 'name';
+            } elseif (isset($parent['map']['slug'])) {
+
+                $enabled[] = $enabled_key;
+                $map['term._parent.parent'] = $parent['map']['slug'];
+                $map['term._parent.parent._enable_text'] = 'yes';
+                $map['term._parent._parent_type'] = 'slug';
+            } elseif (isset($parent['map']['id'])) {
+
+                $enabled[] = $enabled_key;
+                $map['term._parent.parent'] = $parent['map']['name'];
+                $map['term._parent.parent._enable_text'] = 'yes';
+                $map['term._parent._parent_type'] = 'id';
+            }
+        }
+
+        return [
+            'map' => $map,
+            'enabled' => $enabled
+        ];
     }
 }

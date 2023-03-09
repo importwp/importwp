@@ -12,6 +12,30 @@ class UserTemplate extends Template implements TemplateInterface
     protected $name = 'User';
     protected $mapper = 'user';
 
+    protected $field_map = [
+        'ID' => 'user.ID',
+        'user_login' => 'user.user_login',
+        'user_email' => 'user.user_email',
+        'first_name' => 'user.first_name',
+        'last_name' => 'user.last_name',
+        'role' => 'user.role',
+        'user_url' => 'user.user_url',
+        'user_pass' => 'user.user_pass',
+        'user_nicename' => 'user.user_nicename',
+        'display_name' => 'user.display_name',
+        'description' => 'user.description',
+    ];
+
+    protected $optional_fields = [
+        'ID',
+        'user_url',
+        'user_pass',
+        'role',
+        'user_nicename',
+        'display_name',
+        'description'
+    ];
+
     public function __construct(EventHandler $event_handler)
     {
         parent::__construct($event_handler);
@@ -124,17 +148,7 @@ class UserTemplate extends Template implements TemplateInterface
             }
         }
 
-        $optional_fields = [
-            'ID',
-            'user_url',
-            'user_pass',
-            'role',
-            'user_nicename',
-            'display_name',
-            'description'
-        ];
-
-        foreach ($optional_fields as $optional_field) {
+        foreach ($this->optional_fields as $optional_field) {
             if (true !== $this->importer->isEnabledField('user.' . $optional_field)) {
                 unset($user_field_map[$optional_field]);
             }
@@ -205,5 +219,40 @@ class UserTemplate extends Template implements TemplateInterface
         }
 
         return $result;
+    }
+
+    /**
+     * Convert fields/headings to data map
+     * 
+     * @param mixed $fields
+     * @return array 
+     */
+    public function generate_field_map($fields, $importer)
+    {
+        $result = parent::generate_field_map($fields, $importer);
+        $map = $result['map'];
+        $enabled = $result['enabled'];
+
+        foreach ($fields as $index => $field) {
+            if (isset($this->field_map[$field])) {
+
+                // Handle core fields
+                $field_key = $this->field_map[$field];
+                $map[$field_key] = sprintf('{%d}', $index);
+
+                if (in_array($field, $this->optional_fields)) {
+                    $enabled[] = $field_key;
+                }
+
+                if (in_array($field, ['role'])) {
+                    $map[$field_key . '._enable_text'] = 'yes';
+                }
+            }
+        }
+
+        return [
+            'map' => $map,
+            'enabled' => $enabled
+        ];
     }
 }

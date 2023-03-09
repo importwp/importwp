@@ -835,4 +835,16 @@ class Template extends AbstractTemplate
 
         $this->errors[] = $error;
     }
+
+    /**
+     * Convert fields/headings to data map
+     * 
+     * @param mixed $fields
+     * @param ImporterModel $importer
+     * @return array 
+     */
+    public function generate_field_map($fields, $importer)
+    {
+        return ['enabled' => [], 'map' => []];
+    }
 }
