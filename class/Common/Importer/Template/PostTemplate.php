@@ -288,6 +288,10 @@ class PostTemplate extends Template implements TemplateInterface
             }
         }
 
+        if (isset($post_field_map['post_date'])) {
+            $post_field_map['post_date_gmt'] = get_gmt_from_date($post_field_map['post_date']);
+        }
+
         if (true !== $this->importer->isEnabledField('post._parent')) {
             unset($post_field_map['post_parent']);
         }

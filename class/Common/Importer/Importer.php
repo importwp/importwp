@@ -256,13 +256,21 @@ class Importer
         $start = microtime(true);
         $max_record_time = 0;
         $memory_max_usage = 0;
+        $i = 0;
 
         // Does this current user have any dangling jobs?
         $this->try_import_dangling_rows($id, $user, $importer_state, $user);
 
         $config = get_site_option('iwp_importer_config_' . $id, []);
 
-        while (($time_limit === 0 || ((microtime(true) - $start) < $time_limit - $max_record_time)) && $this->has_enough_memory($memory_max_usage) && $importer_state && $importer_state->has_section(['import', 'delete', 'timeout'])) {
+        while (
+            ($i = 0 || (
+                ($time_limit === 0 || $this->has_enough_time($start, $time_limit, $max_record_time))
+                && $this->has_enough_memory($memory_max_usage))
+            )
+            && $importer_state
+            && $importer_state->has_section(['import', 'delete', 'timeout'])
+        ) {
 
             $memory_usage = $this->get_memory_usage();
 
@@ -291,12 +299,19 @@ class Importer
             if ($memory_delta > $memory_max_usage) {
                 $memory_max_usage = $memory_delta;
             }
+
+            $i++;
         }
 
         Util::write_status_session_to_file($id, $importer_state);
 
         $this->mapper->teardown();
         $this->unregister_shutdown();
+    }
+
+    function has_enough_time($start, $time_limit, $max_record_time)
+    {
+        return (microtime(true) - $start) < $time_limit - $max_record_time;
     }
 
     function get_memory_usage()
@@ -321,9 +336,12 @@ class Importer
     function get_memory_limit($force = false)
     {
         if ($force || is_null($this->memory_limit)) {
+
             $memory_limit = ini_get('memory_limit');
             if (preg_match('/^(\d+)(.)$/', $memory_limit, $matches)) {
-                if ($matches[2] == 'M') {
+                if ($matches[2] == 'G') {
+                    $memory_limit = $matches[1] * 1024 * 1024 * 1024; // nnnM -> nnn MB
+                } elseif ($matches[2] == 'M') {
                     $memory_limit = $matches[1] * 1024 * 1024; // nnnM -> nnn MB
                 } else if ($matches[2] == 'K') {
                     $memory_limit = $matches[1] * 1024; // nnnK -> nnn KB
