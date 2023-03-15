@@ -239,7 +239,6 @@ class ImporterState
     {
         $state['updated'] = time();
         self::update_option('iwp_importer_state_' . $id, maybe_serialize($state));
-        Logger::info('set_state -current=' . $state['id']);
     }
 
     /**
@@ -255,12 +254,6 @@ class ImporterState
             if ($state !== false) {
                 self::set_state($id, $state);
             }
-        }
-
-        if (isset($state['id'])) {
-            Logger::info('get_state -current=' . $state['id']);
-        } else {
-            Logger::info('get_state -current=n/a');
         }
 
         return $state;

@@ -51,7 +51,7 @@ class AddonBaseField extends AddonBaseData implements AddonFieldInterface
             if ($field['type'] === 'attachment') {
                 $meta_value = $this->process_attachment($object_id, $field['id'], $section_id);
             } else {
-                $meta_value = $data[$field['id']];
+                $meta_value = isset($data[$field['id']]) ? $data[$field['id']] : '';
             }
 
             if ($this->_process_callback === false) {

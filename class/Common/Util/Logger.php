@@ -12,10 +12,16 @@ class Logger
     private static $id = null;
     private static $requestType = null;
     private static $time = -1;
+    private static $disabled = false;
 
     public static function setId($id = null)
     {
         self::$id = $id;
+    }
+
+    public static function disable()
+    {
+        self::$disabled = true;
     }
 
     public static function setRequestType($requestType = null)
@@ -52,6 +58,10 @@ class Logger
     }
     public static function write($message, $id = null, $type = 'DEBUG')
     {
+        if (self::$disabled) {
+            return;
+        }
+
         if (is_null($id) && !is_null(self::$id) && intval(self::$id) > 0) {
             $id = self::$id;
         }

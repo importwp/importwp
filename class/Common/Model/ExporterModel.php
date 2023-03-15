@@ -42,6 +42,16 @@ class ExporterModel
     protected $filters;
 
     /**
+     * @var array $cron
+     */
+    protected $cron;
+
+    /**
+     * @var string
+     */
+    protected $export_method = 'run';
+
+    /**
      * @var bool
      */
     protected $debug;
@@ -65,6 +75,8 @@ class ExporterModel
             $this->fields    = $data['fields'];
             $this->filters    = $data['filters'];
             $this->unique_identifier = $data['unique_identifier'];
+            $this->export_method = isset($data['export_method']) ? $data['export_method'] : 'run';
+            $this->cron = isset($data['cron']) ? $data['cron'] : [];
         } elseif (!is_null($data)) {
 
             $post = false;
@@ -90,6 +102,8 @@ class ExporterModel
                 $this->file_type = $json['file_type'];
                 $this->filters = $json['filters'];
                 $this->unique_identifier = $json['unique_identifier'];
+                $this->export_method = isset($json['export_method']) ? $json['export_method'] : 'run';
+                $this->cron = isset($json['cron']) ? $json['cron'] : [];
             }
         }
 
@@ -98,8 +112,6 @@ class ExporterModel
 
     public function data($view = 'public')
     {
-
-
         $result = array(
             'id' => $this->id,
             'name' => '' . $this->getName(),
@@ -107,7 +119,9 @@ class ExporterModel
             'file_type' => '' . $this->file_type,
             'fields'    => $this->fields,
             'filters'    => $this->filters,
-            'unique_identifier' => '' . $this->unique_identifier
+            'unique_identifier' => '' . $this->unique_identifier,
+            'export_method' => '' . $this->export_method,
+            'cron' => $this->cron
         );
 
         if (true === $this->debug) {
@@ -133,7 +147,9 @@ class ExporterModel
                 'fields'    => (array) $this->fields,
                 'file_type' => $this->file_type,
                 'filters' => (array)$this->filters,
-                'unique_identifier' => '' . $this->unique_identifier
+                'unique_identifier' => '' . $this->unique_identifier,
+                'export_method' => '' . $this->export_method,
+                'cron' => $this->cron
             )),
         );
 
@@ -373,5 +389,25 @@ class ExporterModel
         update_post_meta($this->getId(), '_ewp_status', $data);
 
         return $data;
+    }
+
+    public function setExportMethod($method)
+    {
+        $this->export_method = $method;
+    }
+
+    public function getExportMethod()
+    {
+        return $this->export_method;
+    }
+
+    public function setCron($settings)
+    {
+        $this->cron = $settings;
+    }
+
+    public function getCron()
+    {
+        return $this->cron;
     }
 }

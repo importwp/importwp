@@ -580,6 +580,8 @@ class ImporterManager
 
                 Logger::debug('IM -write_status_session_to_file');
                 Util::write_status_session_to_file($id, $state);
+
+                do_action('iwp/importer/init', $importer_data);
             }
 
             Logger::debug('IM -import');

@@ -253,6 +253,9 @@ class Importer
         $properties = Container::getInstance()->get('properties');
 
         $time_limit = $properties->get_setting('timeout');
+
+        Logger::info('time_limit ' . $time_limit . 's');
+
         $start = microtime(true);
         $max_record_time = 0;
         $memory_max_usage = 0;
@@ -264,7 +267,7 @@ class Importer
         $config = get_site_option('iwp_importer_config_' . $id, []);
 
         while (
-            ($i = 0 || (
+            ($i == 0 || (
                 ($time_limit === 0 || $this->has_enough_time($start, $time_limit, $max_record_time))
                 && $this->has_enough_memory($memory_max_usage))
             )
@@ -321,7 +324,14 @@ class Importer
 
     function has_enough_memory($memory_max_usage)
     {
-        $limit = $this->get_memory_limit() * 0.9;
+        $limit = $this->get_memory_limit();
+
+        // Has unlimited memory
+        if ($limit == '-1') {
+            return true;
+        }
+
+        $limit *= 0.9;
         $current_usage = $this->get_memory_usage();
 
         if ($current_usage + $memory_max_usage < $limit) {
@@ -349,6 +359,8 @@ class Importer
             }
 
             $this->memory_limit = $memory_limit;
+
+            Logger::info('memory_limit ' . $this->memory_limit . ' bytes');
         }
 
         return $this->memory_limit;

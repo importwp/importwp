@@ -444,7 +444,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
     public function add_version_tag()
     {
         if ($this->is_session_tag_enabled()) {
-            $this->add_session_tag('pt-' . $this->importer->getSetting('post_type'));
+            $this->add_session_tag('pt-' . implode('|', (array)$this->importer->getSetting('post_type')));
         } else {
             update_post_meta($this->ID, '_iwp_session_' . $this->importer->getId(), $this->importer->getStatusId());
         }

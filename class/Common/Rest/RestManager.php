@@ -416,6 +416,8 @@ class RestManager extends \WP_REST_Controller
 
     public function get_importer(\WP_REST_Request $request)
     {
+        Logger::setRequestType('get_importer');
+
         $id = intval($request->get_param('id'));
         $importer_data = $this->importer_manager->get_importer($id);
         $response = $importer_data->data('public');
@@ -424,6 +426,8 @@ class RestManager extends \WP_REST_Controller
 
     public function save_importer(\WP_REST_Request $request)
     {
+        Logger::setRequestType('save_importer');
+
         $post_data = $request->get_body_params();
         $id = isset($post_data['id']) ? intval($post_data['id']) : null;
 
@@ -623,7 +627,7 @@ class RestManager extends \WP_REST_Controller
     {
         $this->http->set_stream_headers();
 
-        Logger::setRequestType('rest::get_status');
+        Logger::disable();
 
         $importer_ids = $request->get_param('ids');
 
@@ -642,24 +646,15 @@ class RestManager extends \WP_REST_Controller
 
         foreach ($query->posts as $importer_id) {
 
-            Logger::write('-start', $importer_id);
-
             $importer_model = $this->importer_manager->get_importer($importer_id);
 
             $output = ImporterState::get_state($importer_id);
-            if (!$output) {
-                // TODO: What should happen if there is no state.
-                $output['version'] = 2;
-            }
+            $output['version'] = 2;
             $output['message'] = $this->generate_status_message($output);
             $output['importer'] = $importer_id;
 
             $result[] = $this->event_handler->run('iwp/importer/status/output', [$output, $importer_model]);
-
-            Logger::write('-end', $importer_id);
         }
-
-        Logger::clearRequestType();
 
         echo json_encode($result) . "\n";
         die();
@@ -740,6 +735,8 @@ class RestManager extends \WP_REST_Controller
 
     public function delete_importer(\WP_REST_Request $request)
     {
+        Logger::setRequestType('delete_importer');
+
         $id = intval($request->get_param('id'));
         $this->importer_manager->delete_importer($id);
         return $this->http->end_rest_success(true);
@@ -1157,6 +1154,8 @@ class RestManager extends \WP_REST_Controller
 
     public function get_template(\WP_REST_Request $request = null)
     {
+        Logger::setRequestType('get_template');
+
         $importer_id = $request->get_param('id');
         $importer_model = $this->importer_manager->get_importer($importer_id);
         $importer_template = $importer_model->getTemplate();
@@ -1182,6 +1181,8 @@ class RestManager extends \WP_REST_Controller
 
     public function export_importers(\WP_REST_Request $request = null)
     {
+        Logger::setRequestType('export_importers');
+
         $importer_ids = $request->get_param('ids');
 
         $sql_ids = array_map(function ($v) {
@@ -1232,6 +1233,8 @@ class RestManager extends \WP_REST_Controller
 
     public function import_exporters(\WP_REST_Request $request = null)
     {
+        Logger::setRequestType('import_exporters');
+
         $upload = $this->filesystem->upload_file($_FILES['file']);
         if (is_wp_error($upload)) {
             return $this->http->end_rest_error($upload->get_error_message());
@@ -1272,6 +1275,8 @@ class RestManager extends \WP_REST_Controller
 
     public function save_exporter(\WP_REST_Request $request = null)
     {
+        Logger::setRequestType('save_exporter');
+
         $post_data = $request->get_body_params();
         $id = isset($post_data['id']) ? intval($post_data['id']) : null;
 
@@ -1302,6 +1307,18 @@ class RestManager extends \WP_REST_Controller
             $exporter->setUniqueIdentifier($post_data['unique_identifier']);
         }
 
+        if (isset($post_data['export_method'])) {
+            $exporter->setExportMethod($post_data['export_method']);
+        }
+
+        if (isset($post_data['cron'])) {
+
+            // TODO: Save cron settings
+
+            $cron = $this->sanitize_setting($post_data['cron']);
+            $exporter->setCron($cron);
+        }
+
         $result = $exporter->save();
         if (is_wp_error($result)) {
             return $this->http->end_rest_error($result->get_error_message());
@@ -1311,6 +1328,8 @@ class RestManager extends \WP_REST_Controller
 
     public function get_exporters(\WP_REST_Request $request = null)
     {
+        Logger::setRequestType('get_exporters');
+
         $exporters = $this->exporter_manager->get_exporters();
         $result = [];
 
@@ -1323,6 +1342,8 @@ class RestManager extends \WP_REST_Controller
 
     public function get_exporter(\WP_REST_Request $request = null)
     {
+        Logger::setRequestType('get_exporter');
+
         $id = intval($request->get_param('id'));
         $exporter_data = $this->exporter_manager->get_exporter($id);
         $response = $exporter_data->data('public');
@@ -1331,6 +1352,8 @@ class RestManager extends \WP_REST_Controller
 
     public function delete_exporter(\WP_REST_Request $request = null)
     {
+        Logger::setRequestType('delete_exporter');
+
         $id = intval($request->get_param('id'));
         $this->exporter_manager->delete_exporter($id);
         return $this->http->end_rest_success(true);
@@ -1338,6 +1361,8 @@ class RestManager extends \WP_REST_Controller
 
     public function run_exporter(\WP_REST_Request $request)
     {
+        Logger::setRequestType('run_exporter');
+
         $this->http->set_stream_headers();
 
         $id       = intval($request->get_param('id'));
@@ -1362,6 +1387,8 @@ class RestManager extends \WP_REST_Controller
 
     public function get_exporter_status(\WP_REST_Request $request)
     {
+        Logger::setRequestType('get_exporter_status');
+
         $exporter_ids = $request->get_param('ids');
         $result = array();
         $query_data = array(
@@ -1382,8 +1409,25 @@ class RestManager extends \WP_REST_Controller
                 $exporter = $this->exporter_manager->get_exporter($post_id);
                 $status = $exporter->get_status();
                 $status['id'] = $post_id;
+                $status['version'] = 2;
 
-                $result[] = $status;
+                $output = '';
+
+                switch ($status['status']) {
+                    case 'cancelled':
+                        $output .= 'Export cancelled';
+                        break;
+                    case 'complete':
+                        $output .= 'Export complete';
+                        break;
+                    case 'running':
+                        $output .= 'Exporting: ' . $status['count'] . '/' . $status['total'];
+                        break;
+                }
+
+                $status['message'] = $output;
+
+                $result[] = $this->event_handler->run('iwp/exporter/status/output', [$status, $exporter]);
             }
         }
 
