@@ -48,8 +48,83 @@ abstract class AbstractParser
         $output = [];
 
         if (isset($group['fields'])) {
+
+            // find files matching ._mapped._index
+
+            $maps = [];
             foreach ($group['fields'] as $field_key => $field_value) {
-                $output[$field_key] = $this->query_string($field_value);
+
+                $matches = [];
+                if (
+                    // post.post_name._mapped._index
+                    // custom_fields.0.value._mapped._index
+                    preg_match('/^(.*?)\._mapped\._index$/', $field_key, $matches) === 1 &&
+                    // ignore custom_fields.0._mapped._index old style FieldMapper
+                    preg_match('/^custom_fields\.(?:[0-9]+)\._mapped\._index$/', $field_key) === 0 &&
+                    intval($field_value) > 0
+                ) {
+                    $maps[$matches[1]] = $field_value;
+                } else {
+                    $output[$field_key] = $this->query_string($field_value);
+                }
+            }
+        }
+
+        if (!empty($maps)) {
+            foreach ($maps as $field_key => $field_rows) {
+
+                $data = [];
+                $delimiter = false;
+
+                if (isset($output[$field_key . '._mapped._delimiter']) && !empty($output[$field_key . '._mapped._delimiter'])) {
+
+                    // get delimiter from FieldMap delimiter field, this has priority
+                    $delimiter = $output[$field_key . '._mapped._delimiter'];
+                } else {
+
+                    // get delimiter from parent section settings. e.g. taxonomies and attachments
+                    $lastPos = strrpos($field_key, '.');
+                    if ($lastPos !== false) {
+                        $tmp = substr($field_key, 0, $lastPos);
+                        if (isset($output[$tmp . '.settings._delimiter'])) {
+                            $delimiter = !empty($output[$tmp . '.settings._delimiter']) ? $output[$tmp . '.settings._delimiter'] : ',';
+                        }
+                    }
+                }
+
+                foreach ($output as $item_key => $item_value) {
+                    $matches = [];
+                    if (preg_match('/^' . $field_key . '\._mapped\.([0-9]+)\.(.*?)$/', $item_key, $matches) === 1) {
+
+                        // row is to high
+                        if (intval($matches[1]) >= intval($field_rows)) {
+
+                            unset($output[$matches[0]]);
+                            continue;
+                        }
+
+                        if (!isset($data[$matches[1]])) {
+                            $data[$matches[1]] = [];
+                        }
+
+                        $data[$matches[1]][$matches[2]] = $item_value;
+
+                        unset($output[$matches[0]]);
+                    }
+                }
+
+                if (!empty($delimiter)) {
+
+                    if (!empty($output[$field_key])) {
+                        $field_parts = explode($delimiter, $output[$field_key]);
+                        foreach ($field_parts as $k => $field_part) {
+                            $field_parts[$k] = $this->map_field_data($field_part, array_values($data));
+                        }
+                        $output[$field_key] = implode($delimiter, $field_parts);
+                    }
+                } else {
+                    $output[$field_key] = $this->map_field_data($output[$field_key], array_values($data));
+                }
             }
         }
 
@@ -92,8 +167,7 @@ abstract class AbstractParser
     {
         // m: Multiline modifier
         // s: matches all characters including newlines
-        // U: non-greedy matching
-        $input = preg_replace_callback('/\[([\w]+)\((.*?)\)\]/msU', function ($matches) {
+        $input = preg_replace_callback('/\[([\w]+)\((.*?)\)\]/ms', function ($matches) {
 
             $method = $matches[1];
 
@@ -116,6 +190,79 @@ abstract class AbstractParser
 
             return $matches[0];
         }, $input);
+        return $input;
+    }
+
+    public function map_field_data($input, $map)
+    {
+        foreach ($map as $map_data) {
+
+            $condition = isset($map_data['_condition']) && !empty($map_data['_condition']) ? $map_data['_condition'] : 'equal';
+            $key = isset($map_data['key']) ? $map_data['key'] : '';
+            $output = isset($map_data['value']) ? $map_data['value'] : '';
+
+            switch ($condition) {
+
+                case 'gt':
+                    $left = intval($input);
+                    $right = intval($key);
+                    if ($left > $right) {
+                        return $output;
+                    }
+                    break;
+                case 'gte':
+                    $left = intval($input);
+                    $right = intval($key);
+                    if ($left >= $right) {
+                        return $output;
+                    }
+                    break;
+                case 'lt':
+                    $left = intval($input);
+                    $right = intval($key);
+                    if ($left < $right) {
+                        return $output;
+                    }
+                    break;
+                case 'lte':
+                    $left = intval($input);
+                    $right = intval($key);
+                    if ($left <= $right) {
+                        return $output;
+                    }
+                    break;
+                case 'contains':
+                    if (stripos($input, trim($key)) !== false) {
+                        return $output;
+                    }
+                    break;
+                case 'in':
+                    if (in_array($input, explode(',', $key))) {
+                        return $output;
+                    }
+                    break;
+                case 'not-equal':
+                    if (trim($key) !== trim($input)) {
+                        return $output;
+                    }
+                    break;
+                case 'not-contains':
+                    if (stripos($input, trim($key)) === false) {
+                        return $output;
+                    }
+                    break;
+                case 'not-in':
+                    if (!in_array($input, explode(',', $key))) {
+                        return $output;
+                    }
+                    break;
+                default:
+                    if (trim($key) === trim($input)) {
+                        return $output;
+                    }
+                    break;
+            }
+        }
         return $input;
     }
 }

@@ -4,7 +4,7 @@ Tags: import, csv, xml, importer, woocommerce, product import, post import, expo
 Requires at least: 4.0  
 Tested up to: 6.1  
 Requires PHP: 5.6  
-Stable tag: 2.7.6  
+Stable tag: 2.7.7  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -101,6 +101,19 @@ For further documentation on installing and using Import WP features can be foun
 
 == Frequently Asked Questions ==
 
+= How to Import XML files using our XML Importer =
+
+Our **XML importer** allows you to easily **import xml files** made up from any XML schema / structure. 
+
+When **importing XML files** you first need to set the document base path, the XML base path defines what makes up a record and is used when calculating how many records will be imported.
+
+Using our XML visual data selector you can choose what data to be imported from each record's XML nodes attributes or text, or you can manually select data using custom written XPath queries.
+
+= How to Import CSV files using our CSV Importer =
+Our **CSV importer** makes it possible to **import CSV files** containing any number of columns or rows, with settings to set the CSV delimiter character that is used to separate each data cells defaulting to a comma, set the CSV enclosure character that is used to wrap around each data cell defaulting to a quotation mark, and set what character encoding was used when creating the csv.
+
+Using our CSV data selector you can visually choose what columns should be used when importing each record.
+
 = What documentation is available =
 
 Documentation can be found online on [importwp.com](https://www.importwp.com/docs/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting).
@@ -117,6 +130,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.7.7 =
+
+* ADD - Add continue button to manually ran imports.
+* ADD - field map ability to all fields, mapped field type has been deprecated.
 
 = 2.7.6 =
 
