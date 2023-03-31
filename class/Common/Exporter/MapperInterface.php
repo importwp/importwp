@@ -8,4 +8,5 @@ interface MapperInterface
     public function have_records($exporter_id);
     public function found_records();
     public function set_filters($filters);
+    public function setup($i);
 }

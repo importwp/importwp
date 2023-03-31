@@ -1,10 +1,10 @@
 === Import WP – Export and Import CSV and XML files to WordPress ===
-Contributors: jcollings  
+Contributors: jcollings,importwp  
 Tags: import, csv, xml, importer, woocommerce, product import, post import, export, datafeed, bulk import, bulk export, schedule
 Requires at least: 4.0  
-Tested up to: 6.1  
+Tested up to: 6.2  
 Requires PHP: 5.6  
-Stable tag: 2.7.7  
+Stable tag: 2.7.8  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -130,6 +130,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.7.8 =
+
+* FIX - Changing delimiter or enclosure was previously not reindexing the temp config file.
+* ADD - Allow csv exporter to add subrows.
 
 = 2.7.7 =
 

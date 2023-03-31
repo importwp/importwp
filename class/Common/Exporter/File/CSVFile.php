@@ -26,13 +26,21 @@ class CSVFile extends File
     public function add($mapper)
     {
         $data = [];
-        $data = array_map(function ($item) use ($mapper) {
-            $record = $mapper->data([]);
-            $tmp = $mapper->get_value($item, $record[0]);
-            return is_array($tmp) ? implode(',', $tmp) : $tmp;
-        }, $this->columns);
 
-        fputcsv($this->fh, $data);
+        $max = $mapper->get_total_records();
+        if ($max <= 0) {
+            $max = 1;
+        }
+        for ($i = 0; $i < $max; $i++) {
+
+            $data = array_map(function ($item) use ($mapper, $i) {
+                $record = $mapper->data([], $i);
+                $tmp = $mapper->get_value($item, $record[0]);
+                return is_array($tmp) ? implode(',', $tmp) : $tmp;
+            }, $this->columns);
+
+            fputcsv($this->fh, $data);
+        }
     }
 
     public function end()

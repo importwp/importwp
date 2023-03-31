@@ -6,6 +6,7 @@ abstract class AbstractMapper
 {
     protected $filters;
     protected $record = [];
+    protected $records = [];
 
     public function get_value($column, $template_data = null)
     {
@@ -109,8 +110,12 @@ abstract class AbstractMapper
         return $result;
     }
 
-    public function record()
+    public function record($index = 0)
     {
+        if (isset($this->records[$index])) {
+            return $this->records[$index];
+        }
+
         return $this->record;
     }
 }

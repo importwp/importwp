@@ -525,14 +525,29 @@ class RestManager extends \WP_REST_Controller
         }
 
         if ($parser === 'csv') {
+
+            $clear_config = false;
             if (isset($post_data['file_settings_delimiter'])) {
+
+                $old_delimiter = $importer->getFileSetting('delimiter');
+                if ($old_delimiter !== $post_data['file_settings_delimiter']) {
+                    $clear_config = true;
+                }
                 $importer->setFileSetting('delimiter', $post_data['file_settings_delimiter']);
             }
             if (isset($post_data['file_settings_enclosure'])) {
+                $old_enclosure = $importer->getFileSetting('enclosure');
+                if ($old_enclosure !== $post_data['file_settings_enclosure']) {
+                    $clear_config = true;
+                }
                 $importer->setFileSetting('enclosure', $post_data['file_settings_enclosure']);
             }
             if (isset($post_data['file_settings_show_headings'])) {
                 $importer->setFileSetting('show_headings', $post_data['file_settings_show_headings'] === 'true' || $post_data['file_settings_show_headings'] === true ? true : false);
+            }
+
+            if ($clear_config) {
+                $this->importer_manager->clear_config_files($importer->getId(), true);
             }
         } elseif ($parser === 'xml') {
             if (isset($post_data['file_settings_base_path'])) {
@@ -879,6 +894,19 @@ class RestManager extends \WP_REST_Controller
 
                 $config = $this->importer_manager->get_config($importer, true);
                 $file = $this->importer_manager->get_csv_file($importer, $config);
+
+                $clear_config = false;
+                if (!is_null($post_data['delimiter']) && $post_data['delimiter'] !== $file->getDelimiter()) {
+                    $clear_config = true;
+                } elseif (!is_null($post_data['enclosure']) && $post_data['enclosure'] !== $file->getEnclosure()) {
+                    $clear_config = true;
+                }
+
+                if ($clear_config) {
+                    $this->importer_manager->clear_config_files($importer->getId(), true);
+                    $config = $this->importer_manager->get_config($importer, true);
+                    $file = $this->importer_manager->get_csv_file($importer, $config);
+                }
 
                 $delimiter = $post_data['delimiter'];
                 if (!is_null($delimiter)) {

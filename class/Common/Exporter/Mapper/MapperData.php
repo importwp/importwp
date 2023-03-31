@@ -5,14 +5,14 @@ namespace ImportWP\Common\Exporter\Mapper;
 class MapperData
 {
     /**
-     * @var PostMapper
+     * @var MapperInterface
      */
     private $_mapper;
 
     private $template_data;
 
     /**
-     * @param PostMapper $mapper
+     * @param MapperInterface $mapper
      * @param int $i
      */
     public function __construct($mapper, $i)
@@ -26,9 +26,14 @@ class MapperData
         return $this->_mapper->filter();
     }
 
-    public function data($args)
+    public function get_total_records()
     {
-        $record = $this->_mapper->record();
+        return count($this->_mapper->records);
+    }
+
+    public function data($args, $index = 0)
+    {
+        $record = $this->_mapper->record($index);
 
         if (empty($args)) {
             return [$record];
