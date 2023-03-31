@@ -6,7 +6,7 @@ abstract class AbstractMapper
 {
     protected $filters;
     protected $record = [];
-    protected $records = [];
+    public $records = [];
 
     public function get_value($column, $template_data = null)
     {
