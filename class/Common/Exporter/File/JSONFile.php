@@ -10,6 +10,7 @@ class JSONFile extends File
         'close' => PHP_EOL . '}',
         'parent' => 0
     ];
+    private $setup = false;
 
     public function start()
     {
@@ -30,6 +31,19 @@ class JSONFile extends File
 
         fputs($this->fh, $this->parts['open'] . PHP_EOL);
         $this->counter = 0;
+
+        update_site_option('iwp_exporter_json_config', [
+            'parts' => $this->parts
+        ]);
+    }
+
+    public function loadConfig()
+    {
+        if (!$this->setup) {
+            $config = get_site_option('iwp_exporter_json_config', []);
+            $this->parts = $config['parts'];
+            $this->setup = true;
+        }
     }
 
     public function generate_wrapper($fields, $output = [], $parent = 0, $depth = 0)
@@ -59,6 +73,7 @@ class JSONFile extends File
 
     public function add($mapper)
     {
+        $this->loadConfig();
 
         //		$data = array_map(function($value){
         //			if(is_array($value)){
@@ -78,6 +93,8 @@ class JSONFile extends File
 
     public function end()
     {
+        $this->loadConfig();
+
         fputs($this->fh, PHP_EOL . $this->parts['close']);
         fclose($this->fh);
     }

@@ -3,6 +3,7 @@
 namespace ImportWP\Common\Rest;
 
 use ImportWP\Common\Exporter\ExporterManager;
+use ImportWP\Common\Exporter\State\ExporterState;
 use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Http\Http;
 use ImportWP\Common\Importer\ImporterManager;
@@ -298,6 +299,14 @@ class RestManager extends \WP_REST_Controller
                 'callback'            => array($this, 'delete_exporter'),
                 'permission_callback' => array($this, 'get_permission')
             ),
+        ));
+
+        register_rest_route($namespace, '/exporter/(?P<id>\d+)/init', array(
+            array(
+                'methods'             => \WP_REST_Server::READABLE,
+                'callback'            => array($this, 'init_export'),
+                'permission_callback' => array($this, 'get_permission')
+            )
         ));
 
         register_rest_route($namespace, '/exporter/(?P<id>\d+)/run', array(
@@ -1387,6 +1396,36 @@ class RestManager extends \WP_REST_Controller
         return $this->http->end_rest_success(true);
     }
 
+    /**
+     * Trigger a new export.
+     *
+     * @param \WP_REST_Request $request
+     * @return array
+     */
+    public function init_export(\WP_REST_Request $request)
+    {
+        $id = intval($request->get_param('id'));
+
+        Logger::setRequestType('rest::init_export');
+
+        Logger::write('init_import -start', $id);
+
+        $exporter_data = $this->exporter_manager->get_exporter($id);
+
+        // clear existing
+        ExporterState::clear_options($exporter_data->getId());
+
+        // This is used for storing version on imported records
+        $session_id = md5($exporter_data->getId() . time());
+        update_post_meta($exporter_data->getId(), '_iwp_session', $session_id);
+
+        Logger::clearRequestType();
+
+        return $this->http->end_rest_success([
+            'session' => $session_id
+        ]);
+    }
+
     public function run_exporter(\WP_REST_Request $request)
     {
         Logger::setRequestType('run_exporter');
@@ -1395,10 +1434,11 @@ class RestManager extends \WP_REST_Controller
 
         $id       = intval($request->get_param('id'));
         $session = $request->get_param('session');
+        $user = uniqid('iwp', true);
 
         $exporter_data = $this->exporter_manager->get_exporter($id);
 
-        $status = $this->exporter_manager->export($exporter_data, $session);
+        $status = $this->exporter_manager->export($exporter_data, $user, $session);
         echo json_encode($status);
         // Logger::write(__CLASS__  . '::run_import -import=end -status=' . $status->get_status(), $id);
 
@@ -1435,9 +1475,13 @@ class RestManager extends \WP_REST_Controller
             foreach ($query->posts as $post_id) {
 
                 $exporter = $this->exporter_manager->get_exporter($post_id);
-                $status = $exporter->get_status();
-                $status['id'] = $post_id;
+                $status = ExporterState::get_state($post_id);
+                $status['exporter'] = $post_id;
                 $status['version'] = 2;
+
+                $current = $status['progress']['export']['current_row'];
+                $end = $status['progress']['export']['end'] - $status['progress']['export']['start'];
+                $status['progress'] = ($current / $end) * 100;
 
                 $output = '';
 
@@ -1449,7 +1493,7 @@ class RestManager extends \WP_REST_Controller
                         $output .= 'Export complete';
                         break;
                     case 'running':
-                        $output .= 'Exporting: ' . $status['count'] . '/' . $status['total'];
+                        $output .= 'Exporting: ' . $current . '/' . $end;
                         break;
                 }
 

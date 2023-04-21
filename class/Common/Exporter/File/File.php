@@ -28,6 +28,13 @@ class File
         $this->exporter = $exporter;
 
         $file_path = $this->get_file_path();
+        $this->fh = fopen($file_path, 'a+');
+    }
+
+    public function wipe()
+    {
+        fclose($this->fh);
+        $file_path = $this->get_file_path();
         $this->fh = fopen($file_path, 'w');
     }
 

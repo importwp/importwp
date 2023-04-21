@@ -11,6 +11,7 @@ class XMLFile extends File
     private $template_sections = [];
     private $template_data = [];
     private $i = -1;
+    private $setup = false;
 
     public function start()
     {
@@ -29,8 +30,25 @@ class XMLFile extends File
 
         $data = $this->buildTemplateDataStructure([]);
         $this->template_data = $data[0];
+
+        update_site_option('iwp_exporter_xml_config', [
+            'template' => $this->template,
+            'template_sections' => $this->template_sections,
+            'template_data' => $this->template_data
+        ]);
     }
 
+    public function loadConfig()
+    {
+
+        if (!$this->setup) {
+            $config = get_site_option('iwp_exporter_xml_config');
+            $this->template = $config['template'];
+            $this->template_sections = $config['template_sections'];
+            $this->template_data = $config['template_data'];
+            $this->setup = true;
+        }
+    }
 
     public function buildTemplateDataStructure($data)
     {
@@ -226,6 +244,7 @@ class XMLFile extends File
      */
     public function add($mapper)
     {
+        $this->loadConfig();
         $output = $this->processLoop($this->template_data, $mapper);
         fputs($this->fh, $output);
     }
@@ -299,6 +318,7 @@ class XMLFile extends File
 
     public function end()
     {
+        $this->loadConfig();
         fputs($this->fh, $this->template_sections['end'] . PHP_EOL);
         fclose($this->fh);
     }

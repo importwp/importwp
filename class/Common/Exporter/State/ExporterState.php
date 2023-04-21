@@ -1,12 +1,12 @@
 <?php
 
-namespace ImportWP\Common\Importer\State;
+namespace ImportWP\Common\Exporter\State;
 
 use ImportWP\Common\Runner\RunnerState;
 
-class ImporterState extends RunnerState
+class ExporterState extends RunnerState
 {
-    protected static $object_type = 'importer';
+    protected static $object_type = 'exporter';
 
     public function is_running()
     {
@@ -15,20 +15,15 @@ class ImporterState extends RunnerState
 
     public function is_resumable()
     {
-        return $this->has_section(['import', 'delete', 'timeout']);
+        return $this->has_section(['export', 'timeout']);
     }
 
     protected function default($session)
     {
         return array_merge(parent::default($session), [
-            'section' => 'import',
+            'section' => 'export',
             'progress' => [
-                'import' => [
-                    'start' => 0,
-                    'end' => 0,
-                    'current_row' => 0,
-                ],
-                'delete' => [
+                'export' => [
                     'start' => 0,
                     'end' => 0,
                     'current_row' => 0,

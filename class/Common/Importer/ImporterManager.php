@@ -22,6 +22,7 @@ use ImportWP\Common\Importer\Template\TermTemplate;
 use ImportWP\Common\Importer\Template\UserTemplate;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Properties\Properties;
+use ImportWP\Common\Runner\ImporterRunnerState;
 use ImportWP\Common\Util\Logger;
 use ImportWP\Common\Util\Util;
 use ImportWP\Container;

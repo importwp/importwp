@@ -7,6 +7,8 @@ use ImportWP\Common\Exporter\Mapper\MapperData;
 class CSVFile extends File
 {
     private $columns;
+    private $setup = false;
+
     public function start()
     {
         $fields = $this->exporter->getFields();
@@ -15,8 +17,22 @@ class CSVFile extends File
             $carry[$this->getFieldLabel($item)] = isset($item['selection']) ? $item['selection'] : '';
             return $carry;
         }, []);
+
         // write headers
         fputcsv($this->fh, array_keys($this->columns));
+
+        update_site_option('iwp_exporter_csv_config', [
+            'columns' => $this->columns
+        ]);
+    }
+
+    public function loadConfig()
+    {
+        if (!$this->setup) {
+            $config = get_site_option('iwp_exporter_csv_config', []);
+            $this->columns = $config['columns'];
+            $this->setup = true;
+        }
     }
 
     /**
@@ -25,6 +41,7 @@ class CSVFile extends File
      */
     public function add($mapper)
     {
+        $this->loadConfig();
         $data = [];
 
         $max = $mapper->get_total_records();

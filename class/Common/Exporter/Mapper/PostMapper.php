@@ -175,19 +175,25 @@ class PostMapper extends AbstractMapper implements MapperInterface
         ]);
 
         $this->query = new \WP_Query($query_args);
+        $this->items = $this->query->posts;
 
         return $this->found_records() > 0;
     }
 
     public function found_records()
     {
-        return $this->query->post_count;
+        return count($this->items);
+    }
+
+    public function get_records()
+    {
+        return $this->items;
     }
 
 
     public function setup($i)
     {
-        $post = get_post($this->query->posts[$i], ARRAY_A);
+        $post = get_post($this->items[$i], ARRAY_A);
         if (!$post) {
             return false;
         }
@@ -197,7 +203,9 @@ class PostMapper extends AbstractMapper implements MapperInterface
         $this->record['custom_fields'] = get_post_meta($post['ID']);
 
         $user = get_userdata($post['post_author']);
-        $this->record['author'] = (array)$user->data;
+        if ($user) {
+            $this->record['author'] = (array)$user->data;
+        }
 
         $thumbnail_id = intval(get_post_thumbnail_id($this->record['ID']));
         if ($thumbnail_id > 0) {
