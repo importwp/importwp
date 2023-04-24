@@ -122,7 +122,7 @@ class ImporterRunner extends Runner
                 $data = $data_parser->get($i);
 
                 $skip_record = $this->importer->filterRecords();
-                $skip_record = apply_filters('iwp/importer/skip_record', $skip_record, $data, $this);
+                $skip_record = apply_filters('iwp/importer/skip_record', $skip_record, $data, $this->importer);
 
                 if ($skip_record) {
 
@@ -137,7 +137,7 @@ class ImporterRunner extends Runner
                 } else {
 
                     // import
-                    $data = apply_filters('iwp/importer/before_mapper', $data, $this);
+                    $data = apply_filters('iwp/importer/before_mapper', $data, $this->importer);
                     $data->map();
 
                     if ($data->isInsert()) {
