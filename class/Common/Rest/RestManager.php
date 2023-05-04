@@ -1481,7 +1481,7 @@ class RestManager extends \WP_REST_Controller
 
                 $current = $status['progress']['export']['current_row'];
                 $end = $status['progress']['export']['end'] - $status['progress']['export']['start'];
-                $status['progress'] = ($current / $end) * 100;
+                $status['progress'] = $end > 0 ? ($current / $end) * 100 : 0;
 
                 $output = '';
 

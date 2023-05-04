@@ -34,6 +34,7 @@ abstract class RunnerState
             'status' => 'init',
             'version' => 2,
             'message' => '',
+            'timestamp' => time(),
             'duration' => 0
         ];
     }

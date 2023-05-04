@@ -4,7 +4,7 @@ Tags: import, csv, xml, importer, woocommerce, product import, post import, expo
 Requires at least: 4.0  
 Tested up to: 6.2  
 Requires PHP: 5.6  
-Stable tag: 2.7.11  
+Stable tag: 2.7.12  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -130,6 +130,13 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.7.12 =
+
+* FIX - Stop XML File reader parsing tags as xml in CDATA tags.
+* FIX - Importer history date previously recording date as NaN... 
+* FIX - Exporter status throwing DivisionByZeroError.
+* FIX - Issue exporting User, Tax, and Comment Exports.
 
 = 2.7.11 =
 

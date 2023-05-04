@@ -18,7 +18,7 @@ class CommentMapper extends AbstractMapper implements MapperInterface
         $this->post_type = $post_type;
     }
 
-    private function get_core_fields()
+    public function get_core_fields()
     {
         return array(
             'comment_ID',
@@ -88,22 +88,29 @@ class CommentMapper extends AbstractMapper implements MapperInterface
         $query_args = apply_filters(sprintf('iwp/exporter/%d/comment_query/%s', $exporter_id, $this->post_type), $query_args);
 
         $query_args = wp_parse_args($query_args, [
-            'post_type' => $this->post_type
+            'post_type' => $this->post_type,
+            'fields' => 'ids'
         ]);
 
         $this->query = new \WP_Comment_Query($query_args);
+        $this->items = $this->query->comments;
 
         return $this->found_records() > 0;
     }
 
     public function found_records()
     {
-        return count($this->query->comments);
+        return count($this->items);
+    }
+
+    public function get_records()
+    {
+        return $this->items;
     }
 
     public function setup($i)
     {
-        $this->record = (array)$this->query->comments[$i];
+        $this->record = get_comment($this->items[$i], ARRAY_A);
         $this->record['custom_fields'] = get_comment_meta($this->record['comment_ID']);
 
         return true;

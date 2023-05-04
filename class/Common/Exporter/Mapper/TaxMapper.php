@@ -13,7 +13,7 @@ class TaxMapper extends AbstractMapper implements MapperInterface
     private $query;
     private $taxonomy;
 
-    private function get_core_fields()
+    public function get_core_fields()
     {
         return array(
             'term_id',
@@ -105,22 +105,29 @@ class TaxMapper extends AbstractMapper implements MapperInterface
 
         $query_args = wp_parse_args($query_args, [
             'taxonomy' => $this->taxonomy,
-            'hide_empty' => false
+            'hide_empty' => false,
+            'fields' => 'ids'
         ]);
 
         $this->query = new \WP_Term_Query($query_args);
+        $this->items = (array)$this->query->terms;
 
         return $this->found_records() > 0;
     }
 
     public function found_records()
     {
-        return count($this->query->terms);
+        return count($this->items);
+    }
+
+    public function get_records()
+    {
+        return $this->items;
     }
 
     public function setup($i)
     {
-        $this->record = (array)$this->query->terms[$i];
+        $this->record = get_term($this->items[$i], '', ARRAY_A);
         $this->record['custom_fields'] = get_term_meta($this->record['term_id']);
 
         $parent = get_term($this->record['parent'], $this->taxonomy);

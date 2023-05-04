@@ -11,7 +11,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
      */
     private $query;
 
-    private function get_core_fields()
+    public function get_core_fields()
     {
         return array(
             'ID',
@@ -81,22 +81,29 @@ class UserMapper extends AbstractMapper implements MapperInterface
         $query_args = apply_filters(sprintf('iwp/exporter/%d/user_query', $exporter_id), $query_args);
 
         $query_args = wp_parse_args($query_args, [
-            'number' => -1
+            'number' => -1,
+            'fields' => 'ids'
         ]);
 
         $this->query = new \WP_User_Query($query_args);
+        $this->items = $this->query->results;
 
         return $this->found_records() > 0;
     }
 
     public function found_records()
     {
-        return $this->query->get_total();
+        return count($this->items);
+    }
+
+    public function get_records()
+    {
+        return $this->items;
     }
 
     public function setup($i)
     {
-        $user = $this->query->results[$i];
+        $user = get_user_by('id', $this->items[$i]);
         $this->record = (array)$user->data;
         $this->record['custom_fields'] = get_user_meta($this->record['ID']);
 
