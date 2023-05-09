@@ -316,7 +316,38 @@ class ImporterManager
 
         $allowed_file_types = $this->event_handler->run('importer.allowed_file_types', [$importer->getAllowedFileTypes()]);
         $prefix = $this->get_importer_file_prefix($importer);
-        $result = $this->filesystem->download_file($source, $filetype, $allowed_file_types, null, $prefix);
+
+        if (preg_match('/^s?ftp?:\/\//', $source) === 1) {
+
+            if (preg_match('/^(?<protocol>s?ftp):\/\/(?:(?<user>[^\:@]+)(?:\:(?<pass>[^@]+))?@)?(?<host>[^\:\/]+)(?:\:(?<port>[0-9]+))?(?:\/(?<path>.*))$/', $source, $matches) !== 1) {
+
+                return new \WP_Error("IM_RM_FTP_PARSE", "Unable to parse FTP connection string");
+            }
+
+            $user = isset($matches['user']) ? $matches['user'] : '';
+            $pass = isset($matches['pass']) ? $matches['pass'] : '';
+            $host = isset($matches['host']) ? $matches['host'] : false;
+            $port = isset($matches['port']) ? $matches['port'] : intval(21);
+            $path = isset($matches['path']) ? $matches['path'] : false;
+
+            if (!$host) {
+                return new \WP_Error("IM_RM_FTP_HOST", "Unable to parse ftp host from connection string");
+            }
+
+            if (!$path) {
+                return new \WP_Error("IM_RM_FTP_HOST", "Unable to parse ftp host from connection string");
+            }
+
+            /**
+             * @var \ImportWP\Common\Ftp\Ftp $ftp
+             */
+            $ftp = Container::getInstance()->get('ftp');
+            $result = $ftp->download_file($path, $host, $user, $pass, false, $port);
+        } else {
+
+            $result = $this->filesystem->download_file($source, $filetype, $allowed_file_types, null, $prefix);
+        }
+
 
         if (is_wp_error($result)) {
             return $result;

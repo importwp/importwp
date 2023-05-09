@@ -29,19 +29,25 @@ class Ftp
         $this->disconnect();
     }
 
-    public function download_file($url, $host, $user, $pass, $override_filename)
+    public function download_file($url, $host, $user, $pass, $override_filename, $port = 21)
     {
         if ($this->_conn && $this->conn_hash !== md5($host . $user . $pass)) {
             $this->disconnect();
         }
 
         if (!$this->_conn) {
-            $this->login($host, $user, $pass);
+            if (!$this->login($host, $user, $pass, $port)) {
+                return new \WP_Error('IWP_FTP_0', "Unable to login to ftp server");
+            }
+        }
+
+        if (!$this->_conn) {
+            return new \WP_Error('IWP_FTP_0', "Unable to connect to ftp server");
         }
 
         $size = ftp_size($this->_conn, $url);
         if ($size === -1) {
-            return new \WP_Error('IWP_FTP_1', 'Could not get ftp file size.');
+            return new \WP_Error('IWP_FTP_1', 'File doesn\'t exist on ftp server.');
         }
 
 
@@ -66,9 +72,9 @@ class Ftp
         );
     }
 
-    public function connect($host)
+    public function connect($host, $port = 21)
     {
-        $this->_conn = ftp_connect($host);
+        $this->_conn = ftp_connect($host, $port);
     }
 
     public function disconnect()
@@ -79,16 +85,19 @@ class Ftp
         }
     }
 
-    public function login($host, $user, $pass)
+    public function login($host, $user, $pass, $port = 21)
     {
         if (!$this->_conn) {
-            $this->connect($host);
+            $this->connect($host, $port);
         }
 
         if ($this->_conn) {
             if (true === ftp_login($this->_conn, $user, $pass)) {
                 $this->conn_hash = md5($host . $user . $pass);
+                return true;
             }
         }
+
+        return false;
     }
 }
