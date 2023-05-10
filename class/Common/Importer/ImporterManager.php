@@ -324,10 +324,10 @@ class ImporterManager
                 return new \WP_Error("IM_RM_FTP_PARSE", "Unable to parse FTP connection string");
             }
 
-            $user = isset($matches['user']) ? $matches['user'] : '';
-            $pass = isset($matches['pass']) ? $matches['pass'] : '';
+            $user = isset($matches['user']) ? urldecode($matches['user']) : '';
+            $pass = isset($matches['pass']) ? urldecode($matches['pass']) : '';
             $host = isset($matches['host']) ? $matches['host'] : false;
-            $port = isset($matches['port']) ? $matches['port'] : intval(21);
+            $port = isset($matches['port']) && !empty($matches['port']) ? $matches['port'] : intval(21);
             $path = isset($matches['path']) ? $matches['path'] : false;
 
             if (!$host) {

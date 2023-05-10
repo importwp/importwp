@@ -60,6 +60,9 @@ class Ftp
         $dest    = wp_unique_filename($wp_upload_dir['path'], basename($url));
         $wp_dest = $wp_upload_dir['path'] . '/' . $dest;
 
+        $passive_mode = apply_filters('iwp/ftp/passive_mode', true);
+        ftp_pasv($this->_conn, $passive_mode);
+
         $result = ftp_get($this->_conn, $wp_dest, $url, FTP_BINARY);
         if (false === $result) {
             return new \WP_Error('IWP_FTP_2', 'Unable to download: ' . $url . '  file via ftp.');

@@ -4,7 +4,7 @@ Tags: import, csv, xml, importer, woocommerce, product import, post import, expo
 Requires at least: 4.0  
 Tested up to: 6.2  
 Requires PHP: 5.6  
-Stable tag: 2.7.13  
+Stable tag: 2.7.14  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -130,6 +130,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.7.14 =
+
+* FIX - Ftp username and passwords needed to be url encoded if they contain special characters.
+* FIX - Add filter `iwp/ftp/passive_mode` to enable/disable ftp passive mode.
 
 = 2.7.13 =
 
