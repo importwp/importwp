@@ -6,6 +6,7 @@ use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Importer\Config\Config;
 use ImportWP\Common\Importer\File\CSVFile;
 use ImportWP\Common\Importer\File\XMLFile;
+use ImportWP\Common\Importer\Mapper\AttachmentMapper;
 use ImportWP\Common\Importer\Mapper\PostMapper;
 use ImportWP\Common\Importer\Mapper\TermMapper;
 use ImportWP\Common\Importer\Mapper\UserMapper;
@@ -13,6 +14,7 @@ use ImportWP\Common\Importer\Parser\CSVParser;
 use ImportWP\Common\Importer\Parser\XMLParser;
 use ImportWP\Common\Importer\Permission\Permission;
 use ImportWP\Common\Importer\State\ImporterState;
+use ImportWP\Common\Importer\Template\AttachmentTemplate;
 use ImportWP\Common\Importer\Template\CustomPostTypeTemplate;
 use ImportWP\Common\Importer\Template\PageTemplate;
 use ImportWP\Common\Importer\Template\PostTemplate;
@@ -508,6 +510,9 @@ class ImporterManager
         $importer_data = $this->get_importer($id);
         $importer_id = $importer_data->getId();
 
+        // store current importer
+        iwp()->importer = $importer_data;
+
         $config_data = get_site_option('iwp_importer_config_' . $importer_id, []);
 
         $this->event_handler->run('importer_manager.import', [$importer_data]);
@@ -592,6 +597,12 @@ class ImporterManager
 
                 Logger::debug('IM -get_record_count');
                 $end = $parser->file()->getRecordCount();
+
+                // Capture cancelled status from file processor
+                $raw_state = ImporterState::get_state($importer_data->getId());
+                if ($raw_state['status'] === 'cancelled') {
+                    return $raw_state;
+                }
 
                 $config_data['start'] = $this->get_start($importer_data, $start);
                 $config_data['end'] = $this->get_end($importer_data, $config_data['start'], $end);
@@ -716,7 +727,8 @@ class ImporterManager
         $mappers = array_merge($mappers, [
             'post' => PostMapper::class,
             'user' => UserMapper::class,
-            'term' => TermMapper::class
+            'term' => TermMapper::class,
+            'attachment' => AttachmentMapper::class
         ]);
         return $mappers;
     }
@@ -739,6 +751,7 @@ class ImporterManager
             'page' => PageTemplate::class,
             'user' => UserTemplate::class,
             'term' => TermTemplate::class,
+            'attachment' => AttachmentTemplate::class,
             'custom-post-type' => CustomPostTypeTemplate::class,
         ]);
         return $templates;

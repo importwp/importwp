@@ -13,6 +13,15 @@ function import_wp()
     return $iwp;
 }
 
+/**
+ * @return \ImportWP\ImportWP
+ */
+function iwp()
+{
+    global $iwp;
+    return $iwp;
+}
+
 function iwp_is_pro_disabled()
 {
     return defined('IWP_PRO_VERSION') && version_compare(IWP_PRO_VERSION, IWP_CORE_MIN_PRO_VERSION, '<');

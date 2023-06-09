@@ -208,6 +208,16 @@ class PostTemplate extends Template implements TemplateInterface
                     'type' => 'text',
                     'tooltip' => 'A single character used to seperate terms when listing multiple, Leave empty to use default: ,'
                 ]),
+                $this->register_field('Term Type', '_type', [
+                    'tooltip' => 'Select what type the term values are (e.g. Name, Slug, or ID)',
+                    'default' => 'name',
+                    'options' => [
+                        ['value' => 'name', 'label' => 'Name'],
+                        ['value' => 'slug', 'label' => 'Slug'],
+                        ['value' => 'term_id', 'label' => 'ID'],
+                    ],
+                    'type' => 'select'
+                ]),
                 $this->register_field('Enable Hierarchy', '_hierarchy', [
                     'default' => 'no',
                     'options' => [
@@ -476,6 +486,7 @@ class PostTemplate extends Template implements TemplateInterface
         $processed_taxonomies = [];
         $term_hierarchy = [];
         $term_hierarchy_enabled = [];
+        $term_types = [];
         $term_append = [];
 
         // Pre-Process taxonomy data
@@ -496,6 +507,8 @@ class PostTemplate extends Template implements TemplateInterface
                 $term_append[$tax] = isset($row[$prefix . 'settings._append']) && $row[$prefix . 'settings._append'] == 'yes';
 
                 $delimiter = apply_filters('iwp/taxonomy=' . $tax . '/value_delimiter', $base_delimiter);
+
+                $term_types[$tax] = isset($row[$prefix . 'settings._type']) && !empty($row[$prefix . 'settings._type']) ? $row[$prefix . 'settings._type'] : 'name';
 
                 $hierarchy_enabled = isset($row[$prefix . 'settings._hierarchy']) && $row[$prefix . 'settings._hierarchy'] === 'yes' ? true : false;
                 $hierarchy_character = isset($row[$prefix . 'settings._hierarchy_character']) ? $row[$prefix . 'settings._hierarchy_character'] : null;
@@ -564,13 +577,14 @@ class PostTemplate extends Template implements TemplateInterface
             foreach ($term_hierarchy_list as $hierarchy_list) {
 
                 $prev_term = isset($term_hierarchy_enabled[$processed_tax]) ? 0 : null;
+                $type = $term_types[$processed_tax];
 
                 foreach ($hierarchy_list as $term) {
                     if (!isset($this->_taxonomies[$processed_tax])) {
                         $this->_taxonomies[$processed_tax] = [];
                     }
 
-                    $term_result = $this->create_or_get_taxonomy_term($post_id, $processed_tax, $term, $prev_term);
+                    $term_result = $this->create_or_get_taxonomy_term($post_id, $processed_tax, $term, $prev_term, $type);
                     if ($term_result) {
                         $prev_term = $term_result->term_id;
                         $this->_taxonomies[$processed_tax][] = $term_result->name;
@@ -580,23 +594,46 @@ class PostTemplate extends Template implements TemplateInterface
         }
     }
 
-    private function create_or_get_taxonomy_term($post_id, $tax, $term, $parent)
+    private function create_or_get_taxonomy_term($post_id, $tax, $term, $parent, $term_type = 'name')
     {
+        if (!in_array($term_type, ['slug', 'name', 'term_id'])) {
+            $term_type = 'name';
+        }
 
         if (is_null($parent)) {
 
             // we do not care about parent, just fetch first
-            $tmp_term = get_term_by('name', $term, $tax);
+            $tmp_term = get_term_by($term_type, $term, $tax);
             if ($tmp_term) {
                 wp_set_object_terms($post_id, $tmp_term->term_id, $tax, true);
                 return $tmp_term;
             }
         } else {
-            $terms = get_terms([
-                'taxonomy' => $tax,
-                'name' => $term,
-                'hide_empty' => false
-            ]);
+
+            if ($term_type === 'slug') {
+
+                $terms = get_terms([
+                    'taxonomy' => $tax,
+                    'slug' => $term,
+                    'hide_empty' => false
+                ]);
+            } elseif ($term_type === 'term_id') {
+
+                // ID will only return a single record
+                $terms = [];
+                $tmp_term = get_term_by($term_type, $term, $tax);
+                if ($tmp_term) {
+                    $terms[] = $tmp_term;
+                }
+            } else {
+
+                $terms = get_terms([
+                    'taxonomy' => $tax,
+                    'name' => $term,
+                    'hide_empty' => false
+                ]);
+            }
+
             if (!empty($terms)) {
                 foreach ($terms as $tmp_term) {
                     if (intval($tmp_term->parent) === intval($parent)) {
@@ -607,6 +644,11 @@ class PostTemplate extends Template implements TemplateInterface
                     }
                 }
             }
+        }
+
+        // should not create new term since we are using the term_id
+        if ($term_type === 'term_id') {
+            return false;
         }
 
         // add term

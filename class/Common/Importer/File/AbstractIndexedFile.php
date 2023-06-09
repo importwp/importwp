@@ -93,7 +93,7 @@ abstract class AbstractIndexedFile extends AbstractFile
      *
      * @return array
      */
-    protected function getIndex($record)
+    public function getIndex($record)
     {
         if (!$this->loadIndex()) {
             $this->generateIndex();
@@ -112,7 +112,7 @@ abstract class AbstractIndexedFile extends AbstractFile
      *
      * @internal param $index
      */
-    protected function setIndex($record, $start, $end)
+    public function setIndex($record, $start, $end)
     {
         if (!$this->loadIndex()) {
             $this->generateIndex();
@@ -130,7 +130,7 @@ abstract class AbstractIndexedFile extends AbstractFile
      *
      * @return bool
      */
-    protected function loadIndex()
+    public function loadIndex()
     {
         if ($this->loaded) {
             return true;
@@ -195,7 +195,7 @@ abstract class AbstractIndexedFile extends AbstractFile
         return false;
     }
 
-    protected function storeIndexes()
+    public function storeIndexes()
     {
         if (null === $this->config) {
             return false;
@@ -204,7 +204,7 @@ abstract class AbstractIndexedFile extends AbstractFile
         return $this->config->storeIndexes($this->getFileIndexKey());
     }
 
-    private function readIndexes()
+    public function readIndexes()
     {
         if (null === $this->config) {
             return false;
@@ -215,7 +215,7 @@ abstract class AbstractIndexedFile extends AbstractFile
         //	    return $this->index = $this->config->get( $this->getFileIndexKey() );
     }
 
-    protected function getFileIndexKey()
+    public function getFileIndexKey()
     {
         return 'file_index';
     }
@@ -223,5 +223,21 @@ abstract class AbstractIndexedFile extends AbstractFile
     public function processing($processing = false)
     {
         $this->is_processing = true;
+    }
+
+    /**
+     * Read file size from handle and reset pointer back to current position
+     *
+     * @param resource $handle
+     * @return void
+     */
+    public function get_file_size($handle)
+    {
+        $current  = ftell($handle);
+        fseek($handle, 0, SEEK_END);
+        $size = ftell($handle);
+        fseek($handle, $current);
+
+        return $size;
     }
 }

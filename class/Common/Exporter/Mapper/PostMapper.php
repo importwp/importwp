@@ -145,6 +145,10 @@ class PostMapper extends AbstractMapper implements MapperInterface
         $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/post_type/custom_field_list',  $fields['children']['custom_fields']['fields'], $this->post_type);
         $fields = apply_filters('iwp/exporter/post_type/fields', $fields, $this->post_type);
 
+        if (in_array('attachment', $post_types)) {
+            $fields['fields'][] = 'url';
+        }
+
         return $fields;
     }
 
@@ -305,6 +309,10 @@ class PostMapper extends AbstractMapper implements MapperInterface
             }
 
             $this->record['tax_' . $taxonomy] = $tmp;
+        }
+
+        if ($post['post_type'] === 'attachment') {
+            $this->record['url'] = wp_get_attachment_url($post['ID']);
         }
 
         $this->record = apply_filters('iwp/exporter/post_type/setup_data', $this->record, $this->post_type);

@@ -671,11 +671,13 @@ class RestManager extends \WP_REST_Controller
         foreach ($query->posts as $importer_id) {
 
             $importer_model = $this->importer_manager->get_importer($importer_id);
+            $config = $this->importer_manager->get_config($importer_model);
 
             $output = ImporterState::get_state($importer_id);
             $output['version'] = 2;
             $output['message'] = $this->generate_status_message($output);
             $output['importer'] = $importer_id;
+            $output['process'] = intval($config->get('process'));
 
             $result[] = $this->event_handler->run('iwp/importer/status/output', [$output, $importer_model]);
         }

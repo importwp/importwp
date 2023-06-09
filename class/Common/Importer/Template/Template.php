@@ -251,18 +251,23 @@ class Template extends AbstractTemplate
         return $data;
     }
 
-    public function _register_attachment_setting_fields($display_conditions = [], $extra_fields = [])
+    public function _register_attachment_setting_fields($display_conditions = [], $extra_fields = [], $disabled_fields = [])
     {
-        return $this->register_group('Settings', 'settings', array_merge($extra_fields, [
 
-            $this->register_field('Is Featured?', '_featured', [
+        $fields = [];
+
+        if (!in_array('_featured', $disabled_fields)) {
+            $fields[] = $this->register_field('Is Featured?', '_featured', [
                 'default' => 'no',
                 'options' => [
                     ['value' => 'no', 'label' => 'No'],
                     ['value' => 'yes', 'label' => 'Yes'],
                 ],
                 'tooltip' => __('Is the attachment the featured image for the current post.', 'importwp')
-            ]),
+            ]);
+        }
+
+        $fields = array_merge($fields, [
             $this->register_field('Download', '_download', [
                 'default' => 'remote',
                 'options' => [
@@ -311,7 +316,11 @@ class Template extends AbstractTemplate
                 'type' => 'text',
                 'tooltip' => 'A single character used to seperate attachments when listing multiple, Leave empty to use default: ,'
             ]),
-            $this->register_group('Attachment Meta', '_meta', [
+
+        ]);
+
+        if (!in_array('_meta', $disabled_fields)) {
+            $fields[] = $this->register_group('Attachment Meta', '_meta', [
                 $this->register_field('Enable Meta', '_enabled', [
                     'default' => 'no',
                     'options' => [
@@ -337,20 +346,27 @@ class Template extends AbstractTemplate
                     'condition' => ['_enabled', '==', 'yes'],
                     'tooltip' => __('Attachments description text.', 'importwp')
                 ])
-            ]),
-        ]), ['type' => 'settings', 'condition' => $display_conditions]);
+            ]);
+        }
+
+        return $this->register_group('Settings', 'settings', array_merge($extra_fields, $fields), ['type' => 'settings', 'condition' => $display_conditions]);
     }
 
-    public function register_attachment_fields($label = 'Attachments', $name = 'attachments', $field_label = 'Location', $group_args = null)
+    public function register_attachment_fields($label = 'Attachments', $name = 'attachments', $field_label = 'Location', $group_args = null, $attachment_args = [])
     {
         if (is_null($group_args)) {
             $group_args = ['type' => 'repeatable', 'row_base' => true];
         }
+
+        $display_conditions = isset($attachment_args['conditions']) ? $attachment_args['conditions'] : [];
+        $extra_fields = isset($attachment_args['extra_fields']) ? $attachment_args['extra_fields'] : [];
+        $disabled_fields = isset($attachment_args['disabled_fields']) ? $attachment_args['disabled_fields'] : [];
+
         return $this->register_group($label, $name, [
             $this->register_field($field_label, 'location', [
                 'tooltip' => __('The source location of the file being attached.', 'importwp')
             ]),
-            $this->_register_attachment_setting_fields()
+            $this->_register_attachment_setting_fields($display_conditions, $extra_fields, $disabled_fields)
         ], $group_args);
     }
 
@@ -635,13 +651,54 @@ class Template extends AbstractTemplate
                         continue 2;
                     }
 
-                    $custom_filename = apply_filters('iwp/attachment/filename', null, $source);
 
+                    $attachment_salt = file_exists($source) ? md5_file($source) : '';
                     $attachment_id = 0;
                     if ($attachment_enable_image_hash == 'yes') {
                         $attachment_id = $attachment->get_attachment_by_hash($source);
                     }
 
+                    if ($attachment_id <= 0) {
+
+                        $main_zip_file = false;
+                        if ($base_url === 'iwp_zip') {
+                            $main_zip = get_post_meta($this->importer->getId(), '_iwp_zip', true);
+                            if ($main_zip && file_exists($main_zip)) {
+                                $base_url .= '://' . $main_zip;
+                                $main_zip_file = $main_zip;
+                            }
+                        }
+
+                        $zip = $this->get_zip_source($base_url, $filesystem);
+                        if ($zip !== false) {
+
+                            if (!$main_zip_file && isset($zip['src'])) {
+
+                                /**
+                                 * @var \ImportWP\Common\Http\Http $http
+                                 */
+                                $http = Container::getInstance()->get('http');
+                                $result = $http->download_file($zip['src'], $zip['name']);
+                                if (is_wp_error($result)) {
+                                    break;
+                                }
+
+                                if (!$result) {
+                                    $result = new \WP_Error('IWP_HTTP_2', 'Error downloading zip file');
+                                    break;
+                                }
+                            }
+
+                            $result = $this->get_file_from_zip($main_zip_file ? $main_zip_file : $zip['name'], $location, $filesystem);
+                            if (!$result) {
+                                continue 2;
+                            }
+
+                            break;
+                        }
+                    }
+
+                    $custom_filename = apply_filters('iwp/attachment/filename', null, $source);
                     if ($attachment_id <= 0) {
                         Logger::write(__CLASS__ . '::process__attachments -remote=' . $source . ' -filename=' . $custom_filename);
                         $result = $filesystem->download_file($source, null, null, $custom_filename);
@@ -687,13 +744,43 @@ class Template extends AbstractTemplate
                         continue 2;
                     }
 
-                    $custom_filename = apply_filters('iwp/attachment/filename', null, $source);
-
+                    $attachment_salt = file_exists($source) ? md5_file($source) : '';
                     $attachment_id = 0;
                     if ($attachment_enable_image_hash == 'yes') {
-                        $attachment_id = $attachment->get_attachment_by_hash($source);
+                        $attachment_id = $attachment->get_attachment_by_hash($source, $attachment_salt);
                     }
 
+                    if ($attachment_id <= 0) {
+
+                        $main_zip_file = false;
+                        if ($base_url === 'iwp_zip') {
+                            $main_zip = get_post_meta($this->importer->getId(), '_iwp_zip', true);
+                            if ($main_zip && file_exists($main_zip)) {
+                                $base_url .= '://' . $main_zip;
+                                $main_zip_file = $main_zip;
+                            }
+                        }
+
+                        $zip = $this->get_zip_source($base_url, $filesystem);
+                        if ($zip !== false) {
+
+                            if (!$main_zip_file && isset($zip['src'])) {
+                                $result = $ftp->download_file($zip['src'], $ftp_host, $ftp_user, $ftp_pass, $zip['name']);
+                                if (is_wp_error($result)) {
+                                    break;
+                                }
+                            }
+
+                            $result = $this->get_file_from_zip($main_zip_file ? $main_zip_file : $zip['name'], $location, $filesystem);
+                            if (!$result) {
+                                continue 2;
+                            }
+
+                            break;
+                        }
+                    }
+
+                    $custom_filename = apply_filters('iwp/attachment/filename', null, $source);
                     if ($attachment_id <= 0) {
                         Logger::write(__CLASS__ . '::process__attachments -ftp=' . $source . ' -filename=' . $custom_filename);
                         $result = $ftp->download_file($source, $ftp_host, $ftp_user, $ftp_pass, $custom_filename);
@@ -715,12 +802,43 @@ class Template extends AbstractTemplate
                         continue 2;
                     }
 
-                    $custom_filename = apply_filters('iwp/attachment/filename', null, $source);
                     $attachment_salt = file_exists($source) ? md5_file($source) : '';
                     $attachment_id = 0;
                     if ($attachment_enable_image_hash == 'yes') {
                         $attachment_id = $attachment->get_attachment_by_hash($source, $attachment_salt);
                     }
+
+                    if ($attachment_id <= 0) {
+
+                        $main_zip_file = false;
+                        if ($base_url === 'iwp_zip') {
+                            $main_zip = get_post_meta($this->importer->getId(), '_iwp_zip', true);
+                            if ($main_zip && file_exists($main_zip)) {
+                                $base_url .= '://' . $main_zip;
+                                $main_zip_file = $main_zip;
+                            }
+                        }
+
+                        $zip = $this->get_zip_source($base_url, $filesystem);
+                        if ($zip !== false) {
+
+                            if (!$main_zip_file && isset($zip['src'])) {
+                                $result = $filesystem->copy($zip['src'], $zip['name']);
+                                if (is_wp_error($result)) {
+                                    break;
+                                }
+                            }
+
+                            $result = $this->get_file_from_zip($main_zip_file ? $main_zip_file : $zip['name'], $location, $filesystem);
+                            if (!$result) {
+                                continue 2;
+                            }
+
+                            break;
+                        }
+                    }
+
+                    $custom_filename = apply_filters('iwp/attachment/filename', null, $source);
                     if ($attachment_id <= 0) {
                         Logger::write(__CLASS__ . '::process__attachments -local=' . $source . ' -filename=' . $custom_filename);
                         $result = $filesystem->copy_file($source, null, $custom_filename);
@@ -846,5 +964,54 @@ class Template extends AbstractTemplate
     public function generate_field_map($fields, $importer)
     {
         return ['enabled' => [], 'map' => []];
+    }
+
+    public function get_zip_source($base_url, $filesystem)
+    {
+        $zip_parts = [];
+        if (preg_match('/^iwp_zip:\/\/(.*?)$/', $base_url, $zip_parts) === 1) {
+
+            $iwp_tmp = $filesystem->get_temp_directory();
+
+            $iwp_tmp .= DIRECTORY_SEPARATOR . 'zip';
+            if (!is_dir($iwp_tmp)) {
+                mkdir($iwp_tmp);
+            }
+
+            $hash = md5($base_url);
+            $iwp_tmp .= DIRECTORY_SEPARATOR . $hash . '.zip';
+            if (!file_exists($iwp_tmp)) {
+                return ['src' => $zip_parts[1], 'name' => $iwp_tmp];
+            }
+
+            return ['name' => $iwp_tmp];
+        }
+
+        return false;
+    }
+
+    public function get_file_from_zip($zip_path, $filename, $filesystem)
+    {
+        $zip = new \ZipArchive();
+        if ($zip->open($zip_path) === true) {
+            $output_data = $zip->getFromName($filename);
+            if ($output_data === false) {
+                return false;
+            }
+
+            return $filesystem->string_to_file($output_data, $filename);
+        }
+
+        return false;
+    }
+
+    public function try_use_main_zip($base_url, $location)
+    {
+        if ($base_url === 'iwp_zip') {
+
+            $main_zip = get_post_meta($this->importer->getId(), '_iwp_zip', true);
+            $source = $main_zip . $location;
+            $base_url .= $main_zip;
+        }
     }
 }

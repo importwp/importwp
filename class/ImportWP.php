@@ -2,6 +2,7 @@
 
 namespace ImportWP;
 
+use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Rest\RestManager;
 
 class ImportWP
@@ -10,6 +11,11 @@ class ImportWP
      * @var RestManager
      */
     private $rest_manager;
+
+    /**
+     * @var ImporterModel
+     */
+    public $importer;
 
     public function __construct($is_pro = false)
     {

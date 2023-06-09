@@ -29,7 +29,7 @@ class Ftp
         $this->disconnect();
     }
 
-    public function download_file($url, $host, $user, $pass, $override_filename, $port = 21)
+    public function download_file($url, $host, $user, $pass, $override_filename = null, $port = 21)
     {
         if ($this->_conn && $this->conn_hash !== md5($host . $user . $pass)) {
             $this->disconnect();
@@ -55,10 +55,16 @@ class Ftp
             return false;
         }
 
-        $wp_upload_dir = wp_upload_dir();
+        if (!empty($override_filename)) {
 
-        $dest    = wp_unique_filename($wp_upload_dir['path'], basename($url));
-        $wp_dest = $wp_upload_dir['path'] . '/' . $dest;
+            $wp_dest = $override_filename;
+        } else {
+
+            $wp_upload_dir = wp_upload_dir();
+
+            $dest    = wp_unique_filename($wp_upload_dir['path'], basename($url));
+            $wp_dest = $wp_upload_dir['path'] . '/' . $dest;
+        }
 
         $passive_mode = apply_filters('iwp/ftp/passive_mode', true);
         ftp_pasv($this->_conn, $passive_mode);
