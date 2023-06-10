@@ -1,0 +1,51 @@
+.iwp-field-selector-group {
+  display: block;
+}
+
+.iwp-field-selector-group .iwp-field-selector-group {
+  margin-left: 20px;
+  border-left: 5px solid #efefef;
+  padding-left: 20px;
+}
+
+.iwp-field-selector-group {
+  margin-bottom: 5px;
+}
+
+.iwp-field-selector-item {
+  display: block;
+  background: #f0f0f0;
+  box-sizing: border-box;
+  padding: 5px;
+  margin-bottom: 10px;
+  border-radius: 0;
+  min-height: 38px;
+}
+
+.iwp-field-selector-grid {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.iwp-field-selector-col--fields {
+  max-width: 270px;
+  flex-grow: 1;
+}
+
+.iwp-field-selector-col .iwp-form__label {
+  margin-bottom: 0;
+}
+
+.iwp-field-selector-col--flex {
+  display: flex;
+  gap: 10px;
+}
+
+.iwp-field-selector-col .iwp-form__select {
+  min-width: 200px;
+}
+
+.iwp-field-selector-group .iwp-field-selector-group .iwp-field-selector-button {
+  margin-bottom: 10px;
+}

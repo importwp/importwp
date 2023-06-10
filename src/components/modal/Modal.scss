@@ -1,0 +1,74 @@
+.iwp- {
+  &modal {
+    position: fixed;
+    top: 32px;
+    left: 160px;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    .spinner {
+      margin-right: 0;
+    }
+  }
+  &modal__wrapper {
+    width: 80%;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    margin-left: -40%;
+    max-height: 100%;
+    overflow: auto;
+
+    border-top: none;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    background: #fff;
+    color: #23282d;
+
+    box-sizing: border-box;
+  }
+  &modal__content {
+    position: relative;
+  }
+  &modal__inside {
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  &modal__backdrop {
+    background: #000;
+    opacity: 0.3;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+  &modal__close {
+    position: absolute;
+    padding: 20px;
+    top: 0;
+    right: 0;
+    font-size: 20px;
+    cursor: pointer;
+  }
+  &modal__title {
+    padding-top: 0 !important;
+    margin-top: 0;
+  }
+}
+
+@media only screen and (max-width: 960px) {
+  .iwp- {
+    &modal {
+      left: 36px;
+    }
+  }
+}
+
+@media only screen and (max-width: 782px) {
+  .iwp- {
+    &modal {
+      left: 0;
+    }
+  }
+}

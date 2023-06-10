@@ -1,0 +1,3 @@
+*.sh eol=lf
+*.diff eol=lf
+crontab eol=lf
