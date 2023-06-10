@@ -2,15 +2,12 @@
 
 namespace ImportWP\Common\Importer\Mapper;
 
-use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\MapperInterface;
 use ImportWP\Common\Importer\ParsedData;
 
 class PostMapper extends AbstractMapper implements MapperInterface
 {
-    use ArraySubsetAsserts;
-
     /**
      * Reserved Field Names for post table
      * @var array
