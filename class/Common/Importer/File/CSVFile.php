@@ -91,7 +91,7 @@ class CSVFile extends AbstractIndexedFile implements FileInterface
 
 					if (!is_null(iwp()->importer)) {
 						$state = ImporterState::get_state(iwp()->importer->getId());
-						if ($state['status'] === 'cancelled') {
+						if (isset($state['status']) && $state['status'] === 'cancelled') {
 							return;
 						}
 					}

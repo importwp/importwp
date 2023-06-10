@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<special-root special-attribute="123">
+    <specialNode test-attribute-1="456" test-attribute-2="asdf">
+        <child-a attr-int="123" attr-word="Baz">Foo</child-a>
+        <child-b>Bar</child-b>
+        <child-c>
+            <child-d>Lorem ipsum</child-d>
+            <child-e>
+                Multiple Multiple Multiple
+                Paragraph Paragraph Paragraph
+                Texts Texts Texts Texts Texts
+            </child-e>
+        </child-c>
+    </specialNode>
+</special-root>

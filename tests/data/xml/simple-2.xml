@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<posts>
+    <post id="1">
+        <name>Post One</name>
+        <content>Post One content</content>
+        <parent id=""></parent>
+    </post>
+    <post id="2">
+        <name>Post Two</name>
+        <content>Post Two content</content>
+        <parent id=""></parent>
+    </post>
+    <post id="3">
+        <name>Post Three</name>
+        <content>Post Three content</content>
+        <parent id=""></parent>
+    </post>
+    <post id="4">
+        <name>Post Four</name>
+        <content>Post Four content</content>
+        <parent id="3">Post Three</parent>
+    </post>
+    <post id="5">
+        <name>Post Five</name>
+        <content>Post Five content</content>
+        <parent id="3">Post Three</parent>
+    </post>
+</posts>
