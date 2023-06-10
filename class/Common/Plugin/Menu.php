@@ -72,7 +72,9 @@ class Menu
 
     public function load_assets()
     {
-        wp_register_script($this->properties->plugin_domain . '-bundle', plugin_dir_url($this->properties->plugin_file_path) . 'dist/index.js', array('wp-element'), $this->properties->plugin_version, 'all');
+        $asset_file = include(plugin_dir_path($this->properties->plugin_file_path) . 'dist/index.asset.php');
+
+        wp_register_script($this->properties->plugin_domain . '-bundle', plugin_dir_url($this->properties->plugin_file_path) . 'dist/index.js', $asset_file['dependencies'], $asset_file['version'], 'all');
 
         $matches = false;
         preg_match('/^https?:\/\/[^\/]+(.*?)$/', admin_url('/tools.php?page=' . $this->properties->plugin_domain), $matches);
@@ -117,7 +119,7 @@ class Menu
 
         wp_enqueue_script($this->properties->plugin_domain . '-bundle');
 
-        wp_enqueue_style($this->properties->plugin_domain . '-bundle-styles', plugin_dir_url($this->properties->plugin_file_path) . 'dist/index.css', array(), $this->properties->plugin_version, 'all');
+        wp_enqueue_style($this->properties->plugin_domain . '-bundle-styles', plugin_dir_url($this->properties->plugin_file_path) . 'dist/index.css', array(), $asset_file['version'], 'all');
 
         $this->load_help_tabs();
 
