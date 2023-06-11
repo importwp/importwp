@@ -1,8 +1,0 @@
-<root>
-    <capture>
-        <node>foo</node>
-    </capture>
-    <capture>
-        <node>bar</node>
-    </capture>
-</root>

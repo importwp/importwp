@@ -1,7 +1,0 @@
-node_modules/
-vendor/
-build/
-dist/
-.phpunit.result.cache
-phpunit.xml
-tests/tmp/
