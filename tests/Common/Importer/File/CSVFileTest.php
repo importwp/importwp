@@ -10,9 +10,8 @@ class CSVFileTest extends \WP_UnitTestCase
 {
     public function testBasicCSV()
     {
-        $config_file = IWP_TEST_ROOT . "/tmp/config_CSVFileTest_testBasicCSV.json";
-        @unlink($config_file);
-        @unlink($config_file . '.file_index');
+        $config_file = tempnam(sys_get_temp_dir(), 'config_CSVFileTest_testBasicCSV.json');
+        tempnam(sys_get_temp_dir(), 'config_CSVFileTest_testBasicCSV.json.file_index');
 
         $file        = new CSVFile(IWP_TEST_ROOT . "/data/csv/test.csv", new Config($config_file));
         $this->assertEquals(2, $file->getRecordCount());
@@ -22,9 +21,8 @@ class CSVFileTest extends \WP_UnitTestCase
 
     public function testDogsCSV()
     {
-        $config_file = IWP_TEST_ROOT . "/tmp/config_CSVFileTest_testDogsCSV.json";
-        @unlink($config_file);
-        @unlink($config_file . '.file_index');
+        $config_file = tempnam(sys_get_temp_dir(), 'config_CSVFileTest_testBasicCSV.json');
+        tempnam(sys_get_temp_dir(), 'config_CSVFileTest_testBasicCSV.json.file_index');
 
         $test_filepath = IWP_TEST_ROOT . "/data/csv/4956-332-dogs.csv";
         $tmp_filepath = tempnam(sys_get_temp_dir(), '4956-332-dogs');
