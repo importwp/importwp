@@ -1,0 +1,47 @@
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (x.x.x)'
+        required: true
+
+jobs:
+  build:
+    name: "Build"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current repo
+        uses: actions/checkout@v3
+        with:
+          path: build
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 'lts'
+          cache: 'yarn'
+
+      - name: Build plugin
+        run : |
+          cd build
+          yarn install
+          yarn build
+          rm -rf .github
+          rm -rf bin
+          rm -rf node_modules
+          rm -rf src
+          rm -rf tests
+          rm -rf .babelrc
+          rm -rf .gitattributes
+          rm -rf .gitignore
+          rm -rf .phpcs.xml.dist
+          rm -rf .travis.yml
+          rm -rf composer.json
+          rm -rf composer.lock
+          rm -rf package-lock.json
+          rm -rf package.json
+          rm -rf phpunit.xml.dist
+          rm -rf webpack.config.js
+          ls -la
+
