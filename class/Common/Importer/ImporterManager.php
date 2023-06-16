@@ -319,37 +319,55 @@ class ImporterManager
         $allowed_file_types = $this->event_handler->run('importer.allowed_file_types', [$importer->getAllowedFileTypes()]);
         $prefix = $this->get_importer_file_prefix($importer);
 
-        if (preg_match('/^s?ftp?:\/\//', $source) === 1) {
+        try {
 
-            if (preg_match('/^(?<protocol>s?ftp):\/\/(?:(?<user>[^\:@]+)(?:\:(?<pass>[^@]+))?@)?(?<host>[^\:\/]+)(?:\:(?<port>[0-9]+))?(?:\/(?<path>.*))$/', $source, $matches) !== 1) {
+            if (preg_match('/^s?ftp?:\/\//', $source) === 1) {
 
-                return new \WP_Error("IM_RM_FTP_PARSE", "Unable to parse FTP connection string");
+                if (preg_match('/^(?<protocol>s?ftp):\/\/(?:(?<user>[^\:@]+)(?:\:(?<pass>[^@]+))?@)?(?<host>[^\:\/]+)(?:\:(?<port>[0-9]+))?(?:\/(?<path>.*))$/', $source, $matches) !== 1) {
+
+                    return new \WP_Error("IM_RM_FTP_PARSE", "Unable to parse FTP connection string");
+                }
+
+                $user = isset($matches['user']) ? urldecode($matches['user']) : '';
+                $pass = isset($matches['pass']) ? urldecode($matches['pass']) : '';
+                $host = isset($matches['host']) ? $matches['host'] : false;
+                $port = isset($matches['port']) && !empty($matches['port']) ? $matches['port'] : intval(21);
+                $path = isset($matches['path']) ? $matches['path'] : false;
+
+                if (!$host) {
+                    return new \WP_Error("IM_RM_FTP_HOST", "Unable to parse ftp host from connection string");
+                }
+
+                if (!$path) {
+                    return new \WP_Error("IM_RM_FTP_HOST", "Unable to parse ftp host from connection string");
+                }
+
+                /**
+                 * @var \ImportWP\Common\Ftp\Ftp $ftp
+                 */
+                $ftp = Container::getInstance()->get('ftp');
+
+                $path = apply_filters('iwp/importer/remote_file', $path, $importer);
+                $path = apply_filters(sprintf('iwp/importer=%d/remote_file', $importer->getId()), $path, $importer);
+
+                $filter_connection_args = [
+                    'user' => $user,
+                    'pass' => $pass,
+                    'host' => $host,
+                    'port' => $port,
+                    'path' => $path,
+                ];
+                $path = apply_filters(sprintf('iwp/importer/remote_file/source=%s', 'ftp'), $path, $importer, $filter_connection_args);
+                $path = apply_filters(sprintf('iwp/importer=%d/remote_file/source=ftp', $importer->getId(), 'ftp'), $path, $importer, $filter_connection_args);
+
+                $result = $ftp->download_file($path, $host, $user, $pass, false, $port);
+            } else {
+
+                $result = $this->filesystem->download_file($source, $filetype, $allowed_file_types, null, $prefix);
             }
-
-            $user = isset($matches['user']) ? urldecode($matches['user']) : '';
-            $pass = isset($matches['pass']) ? urldecode($matches['pass']) : '';
-            $host = isset($matches['host']) ? $matches['host'] : false;
-            $port = isset($matches['port']) && !empty($matches['port']) ? $matches['port'] : intval(21);
-            $path = isset($matches['path']) ? $matches['path'] : false;
-
-            if (!$host) {
-                return new \WP_Error("IM_RM_FTP_HOST", "Unable to parse ftp host from connection string");
-            }
-
-            if (!$path) {
-                return new \WP_Error("IM_RM_FTP_HOST", "Unable to parse ftp host from connection string");
-            }
-
-            /**
-             * @var \ImportWP\Common\Ftp\Ftp $ftp
-             */
-            $ftp = Container::getInstance()->get('ftp');
-            $result = $ftp->download_file($path, $host, $user, $pass, false, $port);
-        } else {
-
-            $result = $this->filesystem->download_file($source, $filetype, $allowed_file_types, null, $prefix);
+        } catch (\Exception $e) {
+            return new \WP_Error($e->getCode(), $e->getMessage());
         }
-
 
         if (is_wp_error($result)) {
             return $result;

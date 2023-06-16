@@ -109,4 +109,9 @@ class Ftp
 
         return false;
     }
+
+    public function get_connection()
+    {
+        return $this->_conn;
+    }
 }
