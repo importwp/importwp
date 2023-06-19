@@ -6,8 +6,6 @@
  * @package Importwp
  */
 
-use ImportWP\Common\Migration\Migrations;
-
 $_tests_dir = getenv('WP_TESTS_DIR');
 
 if (!$_tests_dir) {
@@ -44,7 +42,7 @@ function _manually_load_plugin()
 	require dirname(dirname(__FILE__)) . '/jc-importer.php';
 
 	// run migrations
-	$migration = new Migrations();
+	$migration = new \ImportWP\Common\Migration\Migrations();
 	$result = $migration->migrate();
 }
 
