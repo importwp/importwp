@@ -368,7 +368,8 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
                         }
                     } else {
                         // We need to load next chunk to find
-                        return;
+                        $this->chunk_offset += $offset;
+                        return substr($chunk, $offset);
                     }
                     break;
                 }

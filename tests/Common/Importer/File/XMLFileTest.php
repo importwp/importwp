@@ -354,4 +354,30 @@ class XMLFileTest extends \WP_UnitTestCase
 
         $this->assertEquals('</tegevusala_emtak_versioon_tekst', $testA);
     }
+
+    public function test_read_chunk_xml_nodes_with_cdata_chunks()
+    {
+        $chunk0 = "<nodes><node><![CDATA[one, two <br />";
+        $chunk1 = "]]></node></nodes>";
+
+        /**
+         * @var \PHPUnit\Framework\MockObject\MockObject | XMLFile
+         */
+        $mock_file = $this->createPartialMock(XMLFile::class, ['setIndex']);
+        $mock_file->expects($this->exactly(1))->method('setIndex');
+
+        $this->setProtectedProperty($mock_file, 'base_path', 'node');
+        $this->setProtectedProperty($mock_file, 'base_path_segments', ['nodes']);
+
+        $testA = $mock_file->read_chunk_xml_nodes($chunk0);
+        $this->assertEquals('<![CDATA[one, two <br />', $testA);
+
+        $testB = $mock_file->read_chunk_xml_nodes($testA . $chunk1);
+        $this->assertEmpty($testB);
+
+        $this->assertEquals([
+            '/nodes',
+            '/nodes/node'
+        ], $this->getProtectedProperty($mock_file, 'node_list'));
+    }
 }
