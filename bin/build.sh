@@ -13,10 +13,10 @@ SCRIPT=$(readlink -f "$0")
 # Absolute path this script is in, thus /home/user/bin
 SCRIPTPATH=$(dirname "$SCRIPT")
 
-cd $SCRIPTPATH/..
+cd "$SCRIPTPATH/.."
 
 # Build plugin
-npm install
+npm i --include=dev
 npm run build
 
 BRANCH=release
@@ -36,7 +36,7 @@ sed -i -e "s/__STABLE_TAG__/$TAG/g" jc-importer.php
 # Confirm pushing of build.
 while true; do
 
-read -p "Do you want to push build v$TAG? (y/n) " yn
+read -p "Do you want to push build ImportWP v$TAG? (y/n) " yn
 
 case $yn in 
 	[yY] ) echo ok, we will proceed;
