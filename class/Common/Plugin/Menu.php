@@ -190,8 +190,8 @@ class Menu
             'id' => 'iwp_support_tab',
             'title' => __('Plugin Support', 'importwp'),
             'content' => '<p>' . __('Import WP  has the following support:', 'importwp') . '</p>'
-                . '<p>' . __('<strong>Plugin documentation</strong> — Online documentation can be found at <a href="https://www.importwp.com/documentation/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=help%2Btab" target="_blank">https://www.importwp.com/documentation/</a>', 'importwp') . '</p>'
-                . '<p>' . __('<strong>Support Tickets</strong> — Support requests are handled on our support system at <a href="https://support.jclabs.co.uk/" target="_blank">https://support.jclabs.co.uk/</a>', 'importwp') . '</p>',
+                . '<p>' . __('<strong>Plugin documentation</strong> — Online documentation can be found at <a href="https://www.importwp.com/docs/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=help%2Btab" target="_blank">https://www.importwp.com/docs/</a>', 'importwp') . '</p>'
+                . '<p>' . __('<strong>Support Tickets</strong> — Support requests are handled on our support system at <a href="https://helpdesk.importwp.com/" target="_blank">https://helpdesk.importwp.com/</a>', 'importwp') . '</p>',
         ]);
     }
 }

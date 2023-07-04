@@ -91,6 +91,7 @@ class TaxMapper extends AbstractMapper implements MapperInterface
         ];
 
         $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/taxonomy/custom_field_list',  $fields['children']['custom_fields']['fields'], $this->taxonomy);
+        $fields = apply_filters('iwp/exporter/taxonomy/fields', $fields, $this->taxonomy);
 
         return $fields;
     }
@@ -167,6 +168,7 @@ class TaxMapper extends AbstractMapper implements MapperInterface
             }
         }
 
+        $this->record = apply_filters('iwp/exporter/taxonomy/setup_data', $this->record, $this->taxonomy);
         return true;
     }
 

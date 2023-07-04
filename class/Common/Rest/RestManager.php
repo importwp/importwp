@@ -5,6 +5,7 @@ namespace ImportWP\Common\Rest;
 use ImportWP\Common\Exporter\ExporterManager;
 use ImportWP\Common\Exporter\State\ExporterState;
 use ImportWP\Common\Filesystem\Filesystem;
+use ImportWP\Common\Filesystem\ZipArchive;
 use ImportWP\Common\Http\Http;
 use ImportWP\Common\Importer\ImporterManager;
 use ImportWP\Common\Importer\Preview\CSVPreview;
@@ -399,6 +400,9 @@ class RestManager extends \WP_REST_Controller
                 'status' => version_compare(phpversion(), '5.5.0') ? 'yes' : 'no',
                 'message' => '',
             ],
+            'zip_archive' => [
+                'status' => ZipArchive::has_requirements_met() ? 'yes' : 'no'
+            ]
         ];
         return $this->http->end_rest_success($result);
     }

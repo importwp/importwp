@@ -4,6 +4,7 @@ namespace ImportWP;
 
 use ImportWP\Common\Attachment\Attachment;
 use ImportWP\Common\Filesystem\Filesystem;
+use ImportWP\Common\Filesystem\ZipArchive;
 use ImportWP\Common\Ftp\Ftp;
 use ImportWP\Common\Http\Http;
 use ImportWP\Common\Importer\Template\TemplateManager;
@@ -49,6 +50,11 @@ class ServiceProvider
     protected $template_manager;
 
     /**
+     * @var ZipArchive
+     */
+    protected $zip_archive;
+
+    /**
      * @var Util
      */
     public $util;
@@ -64,5 +70,6 @@ class ServiceProvider
 
         $this->view_manager = new ViewManager($this->properties);
         $this->template_manager = new TemplateManager($event_handler);
+        $this->zip_archive = new ZipArchive();
     }
 }
