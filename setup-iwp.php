@@ -80,7 +80,7 @@ function iwp_has_required_version_of_pro()
                     background-color: #f7fcfe;
                 }
             </style>
-<?php
+        <?php
         };
         add_action('after_plugin_row_' . plugin_basename(dirname(__FILE__) . '/importwp-pro.php'), $upgrade_mesasge);
         add_action('after_plugin_row_' . plugin_basename(dirname(__FILE__) . '/jc-importer.php'), $upgrade_mesasge);
@@ -92,6 +92,46 @@ function iwp_has_required_version_of_pro()
     }
 }
 add_action('plugins_loaded', 'iwp_has_required_version_of_pro', 0);
+
+
+function iwp_check_installed_plugins()
+{
+
+    // Check and disable loading of zip archive plugin
+    if (function_exists('iwp_zip_archive_setup') && has_filter('plugins_loaded', 'iwp_zip_archive_setup')) {
+        remove_action('plugins_loaded', 'iwp_zip_archive_setup', 9);
+
+        $upgrade_mesasge = function () {
+        ?>
+            <tr class="iwp-zip-remove-row-error iwp-invalid">
+                <td colspan="4">Import WP - Zip Archive Importer Addon is now included in ImportWP, please deactivate and remove this plugin.</td>
+            </tr>
+            <style>
+                .iwp-zip-remove-row-error td {
+                    -webkit-box-shadow: 0px -1px 0 rgba(255, 255, 255, 0.1),
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+                    box-shadow: 0px -1px 0 rgba(255, 255, 255, 0.1),
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+                    border-left: 4px solid #ffb900;
+                    background-color: #fff8e5;
+                }
+
+                .iwp-zip-remove-row-error.iwp-invalid td {
+                    border-left: 4px solid #dc3232;
+                    background-color: #fef1f1;
+                }
+
+                .iwp-zip-remove-row-error.iwp-valid td {
+                    border-left: 4px solid #00a0d2;
+                    background-color: #f7fcfe;
+                }
+            </style>
+<?php
+        };
+        add_action('after_plugin_row_importwp-zip-archive/zip-archive.php', $upgrade_mesasge);
+    }
+}
+add_action('plugins_loaded', 'iwp_check_installed_plugins', 0);
 
 function iwp_loaded()
 {

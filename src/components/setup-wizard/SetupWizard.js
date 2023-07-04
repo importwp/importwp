@@ -134,6 +134,10 @@ class SetupWizard extends Component {
         label: 'PHP Module: XML Reader',
         key: 'ext_xmlreader',
       },
+      {
+        label: 'PHP Module: Zip Archive',
+        key: 'zip_archive'
+      }
     ];
     return (
       <React.Fragment>
@@ -165,7 +169,7 @@ class SetupWizard extends Component {
                           <td style={colStyles(0)}>{data.label}</td>
                           <td style={colStyles(1)}>
                             {this.state.system[data.key] &&
-                            this.state.system[data.key].status === 'yes' ? (
+                              this.state.system[data.key].status === 'yes' ? (
                               <span style={{ color: 'green' }}>Yes</span>
                             ) : (
                               <span style={{ color: 'red' }}>No</span>
@@ -227,7 +231,7 @@ SetupWizard.propTypes = {
 };
 
 SetupWizard.defaultProps = {
-  onComplete: () => {},
+  onComplete: () => { },
 };
 
 export default SetupWizard;
