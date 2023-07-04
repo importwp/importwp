@@ -131,13 +131,16 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
-= 2.7.15 =
+= 2.8.0 =
 
 * FIX - Issue with parsing xml file swith duplicate node names.
 * ADD - Allow importing of attachments from zip files using 'iwp_zip'.
-* ADD - new Attachment template allows you to import and update attachment files and meta data.
-* ADD - new url field when exporting attachment post type, contains full url of file.
-* ADD - new term type field on post template.
+* ADD - New Attachment template allows you to import and update attachment files and meta data.
+* ADD - New url field when exporting attachment post type, contains full url of file.
+* ADD - New term type field on post template.
+* ADD - Merge zip archive import code into core plugin.
+* ADD - Attachments can now be imported from the main zip file by setting the attachment base url/path to iwp_zip.
+* FIX - Reduce plugin size by using @wordpress/scripts.
 
 = 2.7.14 =
 
