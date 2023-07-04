@@ -316,8 +316,7 @@ class _FieldSet extends React.PureComponent {
                       type="button"
                       title="Delete Row"
                       data-tooltip-content="Delete Row"
-                      data-tip
-                      data-for={'iwp-delete-tooltip-' + id + '-' + index}
+                      data-tooltip-id={'iwp-delete-tooltip-' + id + '-' + index}
                     >
                       Delete Row
                     </button>

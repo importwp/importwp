@@ -16,12 +16,10 @@ class FieldLabel extends Component {
         {tooltip ? (
           <label className={'iwp-form__label iwp-label--has-tooltip ' + field_class} htmlFor={field}>
             {label}:
-            <span className="iwp-label__tooltip" data-tip data-for={'iwp-tooltip_' + id}>
+            <span className="iwp-label__tooltip" data-tooltip-content={tooltip} data-tooltip-id={'iwp-tooltip_' + id}>
               ?
             </span>
-            <Tooltip id={'iwp-tooltip_' + id} effect="solid" delayHide={300} className="iwp-react-tooltip">
-              {tooltip}
-            </Tooltip>
+            <Tooltip id={'iwp-tooltip_' + id} effect="solid" delayHide={300} className="iwp-react-tooltip" />
           </label>
         ) : (
           <label htmlFor={field} className={'iwp-form__label ' + field_class}>{label}:</label>

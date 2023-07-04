@@ -1,3 +1,11 @@
+@mixin clearfix {
+  &:after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+}
+
 .iwp- {
   &permission__block {
     border: 1px solid #e2e2e2;
@@ -7,7 +15,7 @@
     }
 
     .iwp-field {
-      overflow: hidden;
+      @include clearfix;
       padding-left: 0;
       padding-right: 0;
     }
@@ -23,7 +31,7 @@
       -webkit-box-sizing: border-box;
       -moz-box-sizing: border-box;
       box-sizing: border-box;
-      overflow: hidden;
+      @include clearfix;
 
       p {
         padding: 0;
