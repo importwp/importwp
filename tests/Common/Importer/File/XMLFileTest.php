@@ -82,25 +82,8 @@ class XMLFileTest extends \WP_UnitTestCase
         $file->setRecordPath('rss/item');
         $count = $file->getRecordCount();
         $this->assertEquals(1, $count);
-    }
 
-    public function test_get_record()
-    {
-        /**
-         * @var \PHPUnit\Framework\MockObject\MockObject | XMLFile
-         */
-        $mock_file = $this->createPartialMock(XMLFile::class, ['getIndex', 'getFileHandle', 'getRecordCount']);
-
-        $mock_file->method('getFileHandle')
-            ->willReturn(fopen(IWP_TEST_ROOT . '/data/xml/data-error-cdata-attr-colon.xml', 'a+'));
-
-        $mock_file->method('getIndex')
-            ->willReturn([52, 39]);
-
-        $mock_file->method('getRecordCount')
-            ->willReturn(1);
-
-        $this->assertEquals("<record><item><![CDATA[<a b=':'>c</a>]]></item></record>", $mock_file->getRecord());
+        $this->assertEquals("<record><item><![CDATA[<a b=':'>c</a>]]></item></record>", $file->getRecord());
     }
 
     public function test_wrap_with_record_tag()
