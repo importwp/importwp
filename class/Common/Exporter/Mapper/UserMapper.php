@@ -60,6 +60,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
 
         // user meta
         $meta_fields = $wpdb->get_col("SELECT DISTINCT meta_key FROM " . $wpdb->usermeta . " WHERE user_id IN (SELECT DISTINCT ID FROM " . $wpdb->users . " )");
+        $custom_file_fields = apply_filters('iwp/exporter/user/custom_file_id_fields', []);
         foreach ($meta_fields as $field) {
 
             if (in_array($field, ['first_name', 'last_name', 'description'])) {
@@ -67,6 +68,15 @@ class UserMapper extends AbstractMapper implements MapperInterface
             }
 
             $fields['children']['custom_fields']['fields'][] = $field;
+
+            if (in_array($field, $custom_file_fields)) {
+                $fields['children']['custom_fields']['fields'][] = $field . '::id';
+                $fields['children']['custom_fields']['fields'][] = $field . '::url';
+                $fields['children']['custom_fields']['fields'][] = $field . '::title';
+                $fields['children']['custom_fields']['fields'][] = $field . '::alt';
+                $fields['children']['custom_fields']['fields'][] = $field . '::caption';
+                $fields['children']['custom_fields']['fields'][] = $field . '::description';
+            }
         }
 
         $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/user/custom_field_list', $fields['children']['custom_fields']['fields'], null);
@@ -106,6 +116,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
         $user = get_user_by('id', $this->items[$i]);
         $this->record = (array)$user->data;
         $this->record['custom_fields'] = get_user_meta($this->record['ID']);
+        $this->record = $this->modify_custom_field_data($this->record, 'user');
 
         $userdata = get_userdata($this->record['ID']);
         $this->record['role'] = (array)$userdata->roles;
