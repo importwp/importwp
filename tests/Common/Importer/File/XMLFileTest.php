@@ -86,7 +86,6 @@ class XMLFileTest extends \WP_UnitTestCase
 
     public function test_get_record()
     {
-
         /**
          * @var \PHPUnit\Framework\MockObject\MockObject | XMLFile
          */
@@ -96,7 +95,7 @@ class XMLFileTest extends \WP_UnitTestCase
             ->willReturn(fopen(IWP_TEST_ROOT . '/data/xml/data-error-cdata-attr-colon.xml', 'a+'));
 
         $mock_file->method('getIndex')
-            ->willReturn([50, 39]);
+            ->willReturn([52, 39]);
 
         $mock_file->method('getRecordCount')
             ->willReturn(1);
