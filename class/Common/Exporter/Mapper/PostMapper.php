@@ -119,8 +119,19 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
         // post_meta
         $meta_fields = $wpdb->get_col(sprintf("SELECT DISTINCT meta_key FROM " . $wpdb->postmeta . " WHERE post_id IN (SELECT DISTINCT ID FROM " . $wpdb->posts . " WHERE post_type IN ('%s'))", implode("','", $post_types)));
+        $custom_file_fields = apply_filters('iwp/exporter/post_type/custom_file_id_fields', []);
         foreach ($meta_fields as $field) {
+
             $fields['children']['custom_fields']['fields'][] = $field;
+
+            if (in_array($field, $custom_file_fields)) {
+                $fields['children']['custom_fields']['fields'][] = $field . '::id';
+                $fields['children']['custom_fields']['fields'][] = $field . '::url';
+                $fields['children']['custom_fields']['fields'][] = $field . '::title';
+                $fields['children']['custom_fields']['fields'][] = $field . '::alt';
+                $fields['children']['custom_fields']['fields'][] = $field . '::caption';
+                $fields['children']['custom_fields']['fields'][] = $field . '::description';
+            }
         }
 
         // taxonomies
@@ -205,6 +216,8 @@ class PostMapper extends AbstractMapper implements MapperInterface
         $this->record = $post;
         $this->record['post_thumbnail'] = wp_get_attachment_url(get_post_thumbnail_id($this->record['ID']));
         $this->record['custom_fields'] = get_post_meta($post['ID']);
+
+        $this->record = $this->modify_custom_field_data($this->record, 'post_type');
 
         $user = get_userdata($post['post_author']);
         if ($user) {

@@ -70,8 +70,18 @@ class CommentMapper extends AbstractMapper implements MapperInterface
 
         // get comment custom fields
         $meta_fields = $wpdb->get_col($wpdb->prepare("SELECT DISTINCT cm.meta_key FROM " . $wpdb->comments . " as c INNER JOIN " . $wpdb->commentmeta . " as cm ON c.comment_ID = cm.comment_id WHERE c.comment_post_ID IN (SELECT ID from " . $wpdb->posts . " WHERE post_type=%s)", [$this->post_type]));
+        $custom_file_fields = apply_filters('iwp/exporter/comment/custom_file_id_fields', []);
         foreach ($meta_fields as $field) {
             $fields['children']['custom_fields']['fields'][] = $field;
+
+            if (in_array($field, $custom_file_fields)) {
+                $fields['children']['custom_fields']['fields'][] = $field . '::id';
+                $fields['children']['custom_fields']['fields'][] = $field . '::url';
+                $fields['children']['custom_fields']['fields'][] = $field . '::title';
+                $fields['children']['custom_fields']['fields'][] = $field . '::alt';
+                $fields['children']['custom_fields']['fields'][] = $field . '::caption';
+                $fields['children']['custom_fields']['fields'][] = $field . '::description';
+            }
         }
 
         $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/comment/custom_field_list', $fields['children']['custom_fields']['fields'], $this->post_type);
@@ -112,6 +122,7 @@ class CommentMapper extends AbstractMapper implements MapperInterface
     {
         $this->record = get_comment($this->items[$i], ARRAY_A);
         $this->record['custom_fields'] = get_comment_meta($this->record['comment_ID']);
+        $this->record = $this->modify_custom_field_data($this->record, 'comment');
 
         return true;
     }

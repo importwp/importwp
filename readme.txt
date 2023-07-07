@@ -4,7 +4,7 @@ Tags: import, csv, xml, importer, woocommerce, product import, post import, expo
 Requires at least: 4.0  
 Tested up to: 6.2  
 Requires PHP: 5.6  
-Stable tag: 2.7.15-dev7  
+Stable tag: 2.7.15-dev8  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -131,13 +131,16 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
-= 2.7.15 =
+= 2.8.0 =
 
 * FIX - Issue with parsing xml file swith duplicate node names.
 * ADD - Allow importing of attachments from zip files using 'iwp_zip'.
-* ADD - new Attachment template allows you to import and update attachment files and meta data.
-* ADD - new url field when exporting attachment post type, contains full url of file.
-* ADD - new term type field on post template.
+* ADD - New Attachment template allows you to import and update attachment files and meta data.
+* ADD - New url field when exporting attachment post type, contains full url of file.
+* ADD - New term type field on post template.
+* ADD - Merge zip archive import code into core plugin.
+* ADD - Attachments can now be imported from the main zip file by setting the attachment base url/path to iwp_zip.
+* FIX - Reduce plugin size by using @wordpress/scripts.
 
 = 2.7.14 =
 
