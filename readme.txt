@@ -141,6 +141,7 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 * ADD - Merge zip archive import code into core plugin.
 * ADD - Attachments can now be imported from the main zip file by setting the attachment base url/path to iwp_zip.
 * FIX - Reduce plugin size by using @wordpress/scripts.
+* ADD - New import setting to automatically download new files before being manually run.
 
 = 2.7.14 =
 

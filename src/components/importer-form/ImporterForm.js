@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import Switch from 'react-switch';
 
 import './ImporterForm.scss';
 import { importer } from '../../services/importer.service';
@@ -14,6 +15,7 @@ const default_schedule = {
   setting_cron_day: 0,
   setting_cron_hour: 0,
   setting_cron_minute: 0,
+  setting_run_fetch: false,
 };
 
 class ImporterForm extends Component {
@@ -61,6 +63,10 @@ class ImporterForm extends Component {
         props.settings && props.settings.cron_disabled
           ? props.settings.cron_disabled
           : false,
+      setting_run_fetch:
+        props.settings && props.settings.run_fetch
+          ? props.settings.run_fetch
+          : false,
       setting_cron:
         props.settings && props.settings.cron
           ? props.settings.cron
@@ -90,6 +96,8 @@ class ImporterForm extends Component {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
+
+    console.log(name, value);
 
     this.setState(
       {
@@ -229,6 +237,7 @@ class ImporterForm extends Component {
       setting_max_row,
       setting_cron,
       setting_filters,
+      setting_run_fetch
     } = this.state;
     return (
       <React.Fragment>
@@ -313,6 +322,30 @@ class ImporterForm extends Component {
                   Run Now - <em>Start the import straight away.</em>
                 </label>
               </div>
+              {setting_import_method === 'run' && (
+                <div className="iwp-block__content">
+                  <label className="iwp-form__label iwp-form__label--switch">
+                    <span>Download new file before import.</span>
+                    <Switch
+                      checked={setting_run_fetch}
+                      name='setting_run_fetch'
+                      height={20}
+                      width={40}
+                      onColor="#22c48f"
+                      onChange={checked => {
+
+                        this.onChange({
+                          target: {
+                            name: 'setting_run_fetch',
+                            type: 'checkbox',
+                            checked
+                          }
+                        });
+                      }}
+                    />
+                  </label>
+                </div>
+              )}
             </div>
             <div className="iwp-accordion__block">
               <div className="iwp-block__handle">
