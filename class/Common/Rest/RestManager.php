@@ -482,7 +482,7 @@ class RestManager extends \WP_REST_Controller
         }
 
         if (isset($post_data['local_url'])) {
-            $importer->setDatasourceSetting('local_url', $post_data['local_url']);
+            $importer->setDatasourceSetting('local_url', wp_normalize_path($post_data['local_url']));
         }
 
         if (isset($post_data['existing_id'])) {
