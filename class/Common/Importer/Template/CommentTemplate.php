@@ -34,35 +34,20 @@ class CommentTemplate extends Template implements TemplateInterface
 
         return [
             $this->register_group('Comment', 'comment', [
+
+                // Comment
                 $this->register_field('ID', 'comment_ID', [
                     'tooltip' => __('ID is only used to reference existing records', 'importwp')
                 ]),
                 $this->register_field('Content', 'comment_content', [
-                    'tooltip' => __('Main WYSIWYG editor content of the comment.', 'importwp')
+                    'tooltip' => __('The content of the comment.', 'importwp')
                 ]),
-                $this->register_field('Author ID', 'user_id', [
-                    'tooltip' => __('Author user id.', 'importwp')
-                ]),
-                $this->register_field('Author Name', 'comment_author', [
-                    'tooltip' => __('Author display name.', 'importwp')
-                ]),
-                $this->register_field('Author Email', 'comment_author_email', [
-                    'tooltip' => __('Author email address.', 'importwp')
-                ]),
-
-                $this->register_field('Author Url', 'comment_author_url', [
-                    'tooltip' => __('Author url.', 'importwp')
-                ]),
-                $this->register_field('Comment Karma', 'comment_karma', [
-                    'default' => '0'
-                ]),
-
                 $this->register_group('Comment Parent', '_parent', [
 
                     $this->register_field('Comment Parent', 'id', [
                         'default' => '',
                         'options' => 'callback',
-                        'tooltip' => __('Set this for the comment it belongs to', 'importwp')
+                        'tooltip' => __('ID of this comment\'s parent, if any.', 'importwp')
                     ]),
                     $this->register_field('Comment Post Field Type', '_id_type', [
                         'default' => 'id',
@@ -80,16 +65,10 @@ class CommentTemplate extends Template implements TemplateInterface
                     ])
 
                 ]),
-
-                $this->register_field('Comment Type', 'comment_type', [
-                    'default' => 'comment'
-                ]),
-                $this->register_field('Comment Agent', 'comment_agent'),
-                $this->register_field('Comment Date', 'comment_date'),
                 $this->register_group('Comment Post', '_post', [
                     $this->register_field('Comment Post', 'id', [
                         'default' => '',
-                        'tooltip' => __('Set this for the comment it belongs to', 'importwp')
+                        'tooltip' => __('ID of the post that relates to the comment, if any.', 'importwp')
                     ]),
                     $this->register_field('Comment Post Field Type', '_id_type', [
                         'default' => 'id',
@@ -107,19 +86,55 @@ class CommentTemplate extends Template implements TemplateInterface
                         'tooltip' => __('Enter the name of the post\'s custom field.', 'importwp')
                     ])
                 ]),
-                $this->register_field('Comment Author IP', 'comment_author_IP'),
+                $this->register_field('Comment Type', 'comment_type', [
+                    'default' => 'comment',
+                    'tooltip' => __('Comment type.', 'importwp')
+                ]),
+
+                // Author
+                $this->register_field('Author ID', 'user_id', [
+                    'tooltip' => __('Author user id.', 'importwp')
+                ]),
+                $this->register_field('Author Name', 'comment_author', [
+                    'tooltip' => __('The name of the author of the comment.', 'importwp')
+                ]),
+                $this->register_field('Author Email', 'comment_author_email', [
+                    'tooltip' => __('The email address of the Comment Author', 'importwp')
+                ]),
+                $this->register_field('Author Url', 'comment_author_url', [
+                    'tooltip' => __('The URL address of the Comment Author.', 'importwp')
+                ]),
+                $this->register_field('Comment Author IP', 'comment_author_IP', [
+                    'tooltip' => __('The IP address of the Comment Author.', 'importwp')
+                ]),
+
+                // Meta
+                $this->register_field('Ref', '_iwp_ref_id', [
+                    'tooltip' => __('A custom field to uniquely identify the comment.', 'importwp')
+                ]),
+                $this->register_field('Post Type', 'post_type', [
+                    'options' => $post_type_options,
+                    'default' => '',
+                    'tooltip' => __('The post type the comment belongs to.', 'importwp')
+                ]),
                 $this->register_field('Comment Approved', 'comment_approved', [
                     'options' => [
                         ['value' => '0', 'label' => 'Disapproved'],
                         ['value' => '1', 'label' => 'Approved']
                     ],
                     'default' => '1',
+                    'tooltip' => __('Whether the comment has been approved. 1 = Approved, 0 = Disapproved', 'importwp')
                 ]),
-                $this->register_field('Ref', '_iwp_ref_id'),
-                $this->register_field('Post Type', 'post_type', [
-                    'options' => $post_type_options,
-                    'default' => ''
-                ])
+                $this->register_field('Comment Karma', 'comment_karma', [
+                    'default' => '0',
+                    'tooltip' => __('The karma of the comment.', 'importwp')
+                ]),
+                $this->register_field('Comment Agent', 'comment_agent', [
+                    'tooltip' => __('The HTTP user agent of the Comment Author when the comment was submitted.', 'importwp')
+                ]),
+                $this->register_field('Comment Date', 'comment_date', [
+                    'tooltip' => __('The date the comment was submitted.', 'importwp')
+                ]),
             ])
         ];
     }
