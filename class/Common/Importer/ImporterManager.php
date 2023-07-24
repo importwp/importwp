@@ -7,6 +7,7 @@ use ImportWP\Common\Importer\Config\Config;
 use ImportWP\Common\Importer\File\CSVFile;
 use ImportWP\Common\Importer\File\XMLFile;
 use ImportWP\Common\Importer\Mapper\AttachmentMapper;
+use ImportWP\Common\Importer\Mapper\CommentMapper;
 use ImportWP\Common\Importer\Mapper\PostMapper;
 use ImportWP\Common\Importer\Mapper\TermMapper;
 use ImportWP\Common\Importer\Mapper\UserMapper;
@@ -15,6 +16,7 @@ use ImportWP\Common\Importer\Parser\XMLParser;
 use ImportWP\Common\Importer\Permission\Permission;
 use ImportWP\Common\Importer\State\ImporterState;
 use ImportWP\Common\Importer\Template\AttachmentTemplate;
+use ImportWP\Common\Importer\Template\CommentTemplate;
 use ImportWP\Common\Importer\Template\CustomPostTypeTemplate;
 use ImportWP\Common\Importer\Template\PageTemplate;
 use ImportWP\Common\Importer\Template\PostTemplate;
@@ -589,6 +591,39 @@ class ImporterManager
                 }
                 update_post_meta($importer_id, '_iwp_version', $version);
                 $config_data['version'] = $version;
+
+                /**
+                 * Fetch new file if setting is checked
+                 * @since 2.7.15 
+                 */
+                $run_fetch_file = $importer_data->getSetting('run_fetch') || false;
+                $run_fetch_file = apply_filters('iwp/importer/run_fetch_file',  $run_fetch_file);
+                if ($run_fetch_file) {
+
+                    $datasource = $importer_data->getDatasource();
+                    switch ($datasource) {
+                        case 'remote':
+                            $raw_source = $importer_data->getDatasourceSetting('remote_url');
+                            $source = apply_filters('iwp/importer/datasource', $raw_source, $raw_source, $importer_data);
+                            $source = apply_filters('iwp/importer/datasource/remote', $source, $raw_source, $importer_data);
+                            $attachment_id = $this->remote_file($importer_data, $source, $importer_data->getParser());
+                            break;
+                        case 'local':
+                            $raw_source = $importer_data->getDatasourceSetting('local_url');
+                            $source = apply_filters('iwp/importer/datasource', $raw_source, $raw_source, $importer_data);
+                            $source = apply_filters('iwp/importer/datasource/local', $source, $raw_source, $importer_data);
+                            $attachment_id = $this->local_file($importer_data, $source);
+                            break;
+                        default:
+                            // TODO: record error 
+                            $attachment_id = new \WP_Error('IWP_CRON_1', 'Unable to get new file using datasource: ' . $datasource);
+                            break;
+                    }
+
+                    if (is_wp_error($attachment_id)) {
+                        throw new \Exception('Importer Datasource: ' . $attachment_id->get_error_message());
+                    }
+                }
             }
 
             $start = 0;
@@ -746,7 +781,8 @@ class ImporterManager
             'post' => PostMapper::class,
             'user' => UserMapper::class,
             'term' => TermMapper::class,
-            'attachment' => AttachmentMapper::class
+            'attachment' => AttachmentMapper::class,
+            'comment' => CommentMapper::class,
         ]);
         return $mappers;
     }
@@ -770,6 +806,7 @@ class ImporterManager
             'user' => UserTemplate::class,
             'term' => TermTemplate::class,
             'attachment' => AttachmentTemplate::class,
+            'comment' => CommentTemplate::class,
             'custom-post-type' => CustomPostTypeTemplate::class,
         ]);
         return $templates;

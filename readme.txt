@@ -2,9 +2,9 @@
 Contributors: jcollings,importwp  
 Tags: import, csv, xml, importer, woocommerce, product import, post import, export, datafeed, bulk import, bulk export, schedule
 Requires at least: 4.0  
-Tested up to: 6.2  
+Tested up to: 6.3  
 Requires PHP: 5.6  
-Stable tag: 2.7.15-dev8  
+Stable tag: 2.8.0-rc1  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -141,6 +141,8 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 * ADD - Merge zip archive import code into core plugin.
 * ADD - Attachments can now be imported from the main zip file by setting the attachment base url/path to iwp_zip.
 * FIX - Reduce plugin size by using @wordpress/scripts.
+* ADD - New import setting to automatically download new files before being manually run.
+* ADD - New Comment import template.
 
 = 2.7.14 =
 
