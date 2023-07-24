@@ -7,6 +7,7 @@ use ImportWP\Common\Importer\Config\Config;
 use ImportWP\Common\Importer\File\CSVFile;
 use ImportWP\Common\Importer\File\XMLFile;
 use ImportWP\Common\Importer\Mapper\AttachmentMapper;
+use ImportWP\Common\Importer\Mapper\CommentMapper;
 use ImportWP\Common\Importer\Mapper\PostMapper;
 use ImportWP\Common\Importer\Mapper\TermMapper;
 use ImportWP\Common\Importer\Mapper\UserMapper;
@@ -15,6 +16,7 @@ use ImportWP\Common\Importer\Parser\XMLParser;
 use ImportWP\Common\Importer\Permission\Permission;
 use ImportWP\Common\Importer\State\ImporterState;
 use ImportWP\Common\Importer\Template\AttachmentTemplate;
+use ImportWP\Common\Importer\Template\CommentTemplate;
 use ImportWP\Common\Importer\Template\CustomPostTypeTemplate;
 use ImportWP\Common\Importer\Template\PageTemplate;
 use ImportWP\Common\Importer\Template\PostTemplate;
@@ -779,7 +781,8 @@ class ImporterManager
             'post' => PostMapper::class,
             'user' => UserMapper::class,
             'term' => TermMapper::class,
-            'attachment' => AttachmentMapper::class
+            'attachment' => AttachmentMapper::class,
+            'comment' => CommentMapper::class,
         ]);
         return $mappers;
     }
@@ -803,6 +806,7 @@ class ImporterManager
             'user' => UserTemplate::class,
             'term' => TermTemplate::class,
             'attachment' => AttachmentTemplate::class,
+            'comment' => CommentTemplate::class,
             'custom-post-type' => CustomPostTypeTemplate::class,
         ]);
         return $templates;
