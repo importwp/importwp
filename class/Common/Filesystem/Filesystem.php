@@ -220,6 +220,23 @@ class Filesystem
         );
     }
 
+    public function string_to_file($string, $filename)
+    {
+        $wp_upload_dir = wp_upload_dir();
+        $dest    = wp_unique_filename($wp_upload_dir['path'], $filename);
+        $wp_dest = $wp_upload_dir['path'] . '/' . $dest;
+
+        if (file_put_contents($wp_dest, $string) === false) {
+            return new \WP_Error('IWP_FS_SF', "Unable to write string to file");
+        }
+
+        return array(
+            'dest' => $wp_dest,
+            'type' => $this->get_filetype($wp_dest),
+            'mime' => $this->get_file_mime($wp_dest)
+        );
+    }
+
 
 
     /**

@@ -72,7 +72,9 @@ class Menu
 
     public function load_assets()
     {
-        wp_register_script($this->properties->plugin_domain . '-bundle', plugin_dir_url($this->properties->plugin_file_path) . 'dist/base/js/bundle.js', array(), $this->properties->plugin_version, 'all');
+        $asset_file = include(plugin_dir_path($this->properties->plugin_file_path) . 'dist/index.asset.php');
+
+        wp_register_script($this->properties->plugin_domain . '-bundle', plugin_dir_url($this->properties->plugin_file_path) . 'dist/index.js', $asset_file['dependencies'], $asset_file['version'], 'all');
 
         $matches = false;
         preg_match('/^https?:\/\/[^\/]+(.*?)$/', admin_url('/tools.php?page=' . $this->properties->plugin_domain), $matches);
@@ -117,7 +119,7 @@ class Menu
 
         wp_enqueue_script($this->properties->plugin_domain . '-bundle');
 
-        wp_enqueue_style($this->properties->plugin_domain . '-bundle-styles', plugin_dir_url($this->properties->plugin_file_path) . 'dist/base/css/style.bundle.css', array(), $this->properties->plugin_version, 'all');
+        wp_enqueue_style($this->properties->plugin_domain . '-bundle-styles', plugin_dir_url($this->properties->plugin_file_path) . 'dist/index.css', array(), $asset_file['version'], 'all');
 
         $this->load_help_tabs();
 
@@ -188,8 +190,8 @@ class Menu
             'id' => 'iwp_support_tab',
             'title' => __('Plugin Support', 'importwp'),
             'content' => '<p>' . __('Import WP  has the following support:', 'importwp') . '</p>'
-                . '<p>' . __('<strong>Plugin documentation</strong> — Online documentation can be found at <a href="https://www.importwp.com/documentation/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=help%2Btab" target="_blank">https://www.importwp.com/documentation/</a>', 'importwp') . '</p>'
-                . '<p>' . __('<strong>Support Tickets</strong> — Support requests are handled on our support system at <a href="https://support.jclabs.co.uk/" target="_blank">https://support.jclabs.co.uk/</a>', 'importwp') . '</p>',
+                . '<p>' . __('<strong>Plugin documentation</strong> — Online documentation can be found at <a href="https://www.importwp.com/docs/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=help%2Btab" target="_blank">https://www.importwp.com/docs/</a>', 'importwp') . '</p>'
+                . '<p>' . __('<strong>Support Tickets</strong> — Support requests are handled on our support system at <a href="https://helpdesk.importwp.com/" target="_blank">https://helpdesk.importwp.com/</a>', 'importwp') . '</p>',
         ]);
     }
 }

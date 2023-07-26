@@ -25,7 +25,7 @@ class JSONFile extends AbstractIndexedFile implements FileInterface
      *
      * Loop through each record and save each position
      */
-    protected function generateIndex()
+    public function generateIndex()
     {
         $this->record_counter     = 0;
         $this->record_start_index = 0;
@@ -43,12 +43,12 @@ class JSONFile extends AbstractIndexedFile implements FileInterface
      *
      * @return bool|string
      */
-    private function getChunk()
+    public function getChunk()
     {
         return fread($this->getFileHandle(), $this->chunk_size);
     }
 
-    private function processChunk()
+    public function processChunk()
     {
 
         $regex_parts = [

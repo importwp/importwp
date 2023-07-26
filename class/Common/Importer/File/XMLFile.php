@@ -3,25 +3,60 @@
 namespace ImportWP\Common\Importer\File;
 
 use ImportWP\Common\Importer\FileInterface;
+use ImportWP\Common\Importer\State\ImporterState;
 
 class XMLFile extends AbstractIndexedFile implements FileInterface
 {
 
-    private $base_path;
-    private $base_path_segments = array();
-    private $record_offset = 0;
-    private $chunk_size = 8192;
-    private $depth = 0;
-    private $open_nodes = array();
-    private $node_list = array();
-    private $chunk;
-    private $chunk_offset = 0;
+    /**
+     * Base path
+     * 
+     * Name of the files base path node, added onto the end of base_path_segments.
+     * e.g. if record path is 'records/record', base_path would be 'record'.
+     *
+     * @var string
+     */
+    protected $base_path;
 
-    private $record_counter = 0;
-    private $record_start_index = 0;
-    private $record_opened = false;
-    private $last_record_incomplete = false;
-    private $record_patch_cache_key = '';
+    /**
+     * Base path segments
+     * 
+     * Stores a list of nodes up to and not including the final base_path
+     * e.g. if base_path is 'records/record' , base_path_node would be ['records']
+     *
+     * @var string[]
+     */
+    protected $base_path_segments = array();
+
+    /**
+     * Open nodes
+     * 
+     * List of nodes that have not been opened so far while parsing the file.
+     *
+     * @var string[]
+     */
+    protected $open_nodes = array();
+
+    protected $record_offset = 0;
+    protected $chunk_size = 8192;
+    protected $depth = 0;
+    protected $node_list = array();
+    protected $chunk;
+    protected $chunk_offset = 0;
+
+    protected $record_counter = 0;
+    protected $record_start_index = 0;
+
+    /**
+     * Record Opened
+     * 
+     * Flag to say we are parsing data within the chosen record path.
+     *
+     * @var boolean
+     */
+    protected $record_opened = false;
+    protected $last_record_incomplete = false;
+    protected $record_patch_cache_key = '';
 
     /**
      * Set base path for records
@@ -74,7 +109,7 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
      *
      * @return bool|string
      */
-    private function fixRecord($record)
+    public function fixRecord($record)
     {
         $open       = "/<[^\/][^>]+[^\/]>/";
         $close      = "/<\/[^>]+[^\/]>/";
@@ -130,7 +165,7 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
      *
      * @return bool|string
      */
-    private function getNodeName($node)
+    public function getNodeName($node)
     {
 
         preg_match("/<\/?([a-zA-Z0-9\-_\.:]+)[ ]*[^>]*>/", $node, $matches);
@@ -150,20 +185,43 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
      *
      * @return mixed
      */
-    protected function generateIndex()
+    public function generateIndex()
     {
         $this->record_counter     = 0;
         $this->record_start_index = 0;
 
+        $last_percent = 0;
+        $size = intval($this->get_file_size($this->getFileHandle()));
+        $this->config->set('process', 0);
+
         rewind($this->getFileHandle());
+
         while (!feof($this->getFileHandle())) {
 
             $this->chunk .= $this->getChunk();
-            $this->readChunkXmlNodes();
+            $this->chunk = $this->read_chunk_xml_nodes($this->chunk);
 
             // only read the first 1mb of file
             if ($this->is_processing && ($this->record_counter > 0 || ftell($this->getFileHandle()) > $this->process_max_size)) {
                 break;
+            }
+
+            $current_pos = intval(ftell($this->getFileHandle()));
+            if ($size > 0 && $current_pos > 0) {
+                $percent = round($current_pos / $size, 2);
+                if ($percent > $last_percent) {
+
+                    do_action('iwp/importer/process', $last_percent * 100);
+                    $this->config->set('process', $last_percent * 100);
+                    $last_percent = $percent;
+
+                    if (!is_null(iwp()->importer)) {
+                        $state = ImporterState::get_state(iwp()->importer->getId());
+                        if (isset($state['status']) && $state['status'] === 'cancelled') {
+                            return;
+                        }
+                    }
+                }
             }
         }
 
@@ -184,7 +242,7 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
      *
      * @return bool|string
      */
-    private function getChunk()
+    public function getChunk()
     {
         return fread($this->getFileHandle(), $this->chunk_size);
     }
@@ -192,7 +250,7 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
     /**
      * Read all xml nodes in chunk
      */
-    private function readChunkXmlNodes()
+    public function readChunkXmlNodes()
     {
         $tags = [
             ["<?", "?>", true, 0],
@@ -242,56 +300,92 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
             $this->chunk_offset += $string_offset;
             $this->chunk        = substr($this->chunk, $string_offset);
         }
-        return;
-
-        // TODO: Match xmlns: <[^>]+xmlns:(.*?)="(.*?)"[^>]+>
-        /*$open      = "/<[^\/][^>]*[^\/]>/s";
-        $close     = "/<\/[^>]*[^\/]>/";
-        $openclose = "/<[^\/][^>]+\/>/s";
-
-        while (preg_match("/<[^?|!\-\-][^>]*>/s", $this->chunk, $matches,
-                PREG_OFFSET_CAPTURE) !== 0) {
-            if (isset($matches[0]) && isset($matches[0][0])) {
-                list($captured, $offset) = $matches[0];
-
-                $this->record_offset = $offset;
-
-                if (preg_match($close, $captured) === 1) {
-                    $this->depth--;
-
-                    $node = array_pop($this->open_nodes);
-
-                    if ($this->isRecordEnd($node)) {
-                        $this->record_opened = false;
-                        $temp                = $this->chunk_offset + $this->record_offset + strlen($captured);
-                        $this->setIndex($this->record_counter,
-                            $this->record_start_index, $temp);
-                        $this->record_counter++;
-                    }
-                }elseif (preg_match($open, $captured) === 1) {
-                    $this->depth++;
-
-                    $node_name = $this->getNodeName($captured);
-
-                    if ($this->isRecordStart($node_name)) {
-                        $this->record_opened      = true;
-                        $temp                     = $this->chunk_offset + $this->record_offset;
-                        $this->record_start_index = $temp;
-                    }
-
-                    $this->open_nodes[] = $node_name;
-                    $this->record_open_nodes();
-
-                }
-                $string_offset      = $offset + strlen($captured);
-                $this->chunk_offset += $string_offset;
-                $this->chunk        = substr($this->chunk, $string_offset);
-            }
-        }*/
     }
 
-    private function record_node($node, $depth_delta)
+    /**
+     * Optimised version of readChunkXMLNodes
+     *
+     * @param string $chunk
+     * @return string
+     */
+    public function read_chunk_xml_nodes($chunk)
     {
+        $tags = [
+            "<?" => ["<?", "?>", true, 0],
+            "<!--" => ["<!--", "-->", true, 0],
+            "<![CDATA[" => ["<![CDATA[", "]]>", true, 0],
+            "<!" => ["<!", ">", true, 0],
+            "</" => ["</", ">", false, -1],
+            "<" => ["<", "/>", false, 0],
+            "<" => ["<", ">", false, 1],
+        ];
+
+        // 1.Loop through the file, each node at a time
+        $chunk_offset = 0;
+
+        while (preg_match("/<[^>]+>/", $chunk, $matches, PREG_OFFSET_CAPTURE, $chunk_offset) !== 0) {
+            list($captured, $offset) = $matches[0];
+
+            // length of content between last and current tag
+            $content_length = ($offset - $chunk_offset);
+            $chunk_offset += $content_length + strlen($captured);
+
+            if (preg_match('/^(<\?|<!--|<!\[CDATA\[|<!|<\/|<)/', $captured, $tag_matches) !== 1) {
+                continue;
+            }
+
+            $tags_test = [];
+            if ($tag_matches[0] === '<') {
+                $tags_test[] = ["<", "/>", false, 0];
+                $tags_test[] = ["<", ">", false, 1];
+            } else {
+                $tags_test[] = $tags[$tag_matches[0]];
+            }
+
+            // print_r($tag_matches);
+
+            foreach ($tags_test as $tag) {
+                list($open_tag, $close_tag, $search_for_close, $depth_delta) = $tag;
+
+                // if (strpos($captured, $open_tag) !== 0) {
+                //     continue;
+                // }
+
+                if (strlen($captured) - strlen($close_tag) === strpos($captured, $close_tag)) {
+                    // Tag Found
+                    if ($search_for_close === false) {
+                        $this->record_node($captured, $depth_delta, $this->chunk_offset + $offset);
+                    }
+                    break;
+                } elseif ($search_for_close === true) {
+                    $close_tag_position = strpos($chunk, $close_tag, $offset);
+                    if ($close_tag_position !== false) {
+                        // Close tag is found in current chunk
+                        $captured = substr($chunk, $offset, $close_tag_position + strlen($close_tag) - $offset);
+                        $chunk_offset = $close_tag_position + strlen($close_tag);
+                        if ($search_for_close === false) {
+                            $this->record_node($captured, $depth_delta, $this->chunk_offset + $offset);
+                        }
+                    } else {
+                        // We need to load next chunk to find
+                        $this->chunk_offset += $offset;
+                        return substr($chunk, $offset);
+                    }
+                    break;
+                }
+            }
+        }
+
+        $this->chunk_offset += $chunk_offset;
+
+        return substr($chunk, $chunk_offset);
+    }
+
+    public function record_node($node, $depth_delta, $offset = null)
+    {
+        if (is_null($offset)) {
+            $offset = $this->chunk_offset + $this->record_offset;
+        }
 
         $this->depth += $depth_delta;
         $node_name = $this->getNodeName($node);
@@ -300,7 +394,7 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
 
             if ($this->isRecordStart($node_name)) {
                 $this->record_opened = true;
-                $this->record_start_index = $this->chunk_offset + $this->record_offset;
+                $this->record_start_index = $offset;
             }
 
             $this->open_nodes[] = $node_name;
@@ -314,13 +408,11 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
                 $this->setIndex(
                     $this->record_counter,
                     $this->record_start_index,
-                    $this->chunk_offset + $this->record_offset + strlen($node)
+                    $offset + strlen($node)
                 );
                 $this->record_counter++;
             }
         }
-
-        //        echo sprintf("%s %s - %d\n", str_repeat("\t", $this->depth), $node_name, $depth_delta);
     }
 
     /**
@@ -330,7 +422,7 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
      *
      * @return bool
      */
-    private function isRecordStart($node_name)
+    public function isRecordStart($node_name)
     {
 
         if ($this->base_path_segments === $this->open_nodes && $node_name === $this->base_path) {
@@ -347,22 +439,21 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
      *
      * @return bool
      */
-    private function isRecordEnd($node_name)
+    public function isRecordEnd($node_name)
     {
-        if ($this->record_opened === true && $node_name === $this->base_path) {
-
-            // check to see if we are a nested duplicate node name /Events/Event/Instance and we are closing Event
-            if (in_array($node_name, $this->open_nodes)) {
-                $array_counts = array_count_values($this->open_nodes);
-                if (isset($array_counts[$node_name]) && $array_counts[$node_name] > 0) {
-                    return false;
-                }
-            }
-
-            return true;
+        if ($this->record_opened === false) {
+            return false;
         }
 
-        return false;
+        if ($this->base_path_segments !== $this->open_nodes) {
+            return false;
+        }
+
+        if ($node_name !== $this->base_path) {
+            return false;
+        }
+
+        return true;
     }
 
     public function wrapWithRecordTag($record)
@@ -403,7 +494,7 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
         return $open_tag . $record . $close_tag;
     }
 
-    private function record_open_nodes()
+    public function record_open_nodes()
     {
         $key = '/' . implode('/', $this->open_nodes);
         if (!in_array($key, $this->node_list, true)) {
@@ -430,7 +521,7 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
         return $this->node_list;
     }
 
-    protected final function getFileIndexKey()
+    public final function getFileIndexKey()
     {
         $key = sprintf('file_index-%s', $this->record_patch_cache_key);
 

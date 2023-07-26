@@ -22,6 +22,7 @@ class Properties
     public $file_rotation;
     public $log_rotation;
     public $timeout;
+    public $is_pro;
 
     public $rest_version;
     public $rest_namespace;

@@ -5,6 +5,7 @@ namespace ImportWP\Common\Rest;
 use ImportWP\Common\Exporter\ExporterManager;
 use ImportWP\Common\Exporter\State\ExporterState;
 use ImportWP\Common\Filesystem\Filesystem;
+use ImportWP\Common\Filesystem\ZipArchive;
 use ImportWP\Common\Http\Http;
 use ImportWP\Common\Importer\ImporterManager;
 use ImportWP\Common\Importer\Preview\CSVPreview;
@@ -399,6 +400,9 @@ class RestManager extends \WP_REST_Controller
                 'status' => version_compare(phpversion(), '5.5.0') ? 'yes' : 'no',
                 'message' => '',
             ],
+            'zip_archive' => [
+                'status' => ZipArchive::has_requirements_met() ? 'yes' : 'no'
+            ]
         ];
         return $this->http->end_rest_success($result);
     }
@@ -478,7 +482,7 @@ class RestManager extends \WP_REST_Controller
         }
 
         if (isset($post_data['local_url'])) {
-            $importer->setDatasourceSetting('local_url', $post_data['local_url']);
+            $importer->setDatasourceSetting('local_url', wp_normalize_path($post_data['local_url']));
         }
 
         if (isset($post_data['existing_id'])) {
@@ -671,11 +675,13 @@ class RestManager extends \WP_REST_Controller
         foreach ($query->posts as $importer_id) {
 
             $importer_model = $this->importer_manager->get_importer($importer_id);
+            $config = $this->importer_manager->get_config($importer_model);
 
             $output = ImporterState::get_state($importer_id);
             $output['version'] = 2;
             $output['message'] = $this->generate_status_message($output);
             $output['importer'] = $importer_id;
+            $output['process'] = intval($config->get('process'));
 
             $result[] = $this->event_handler->run('iwp/importer/status/output', [$output, $importer_model]);
         }

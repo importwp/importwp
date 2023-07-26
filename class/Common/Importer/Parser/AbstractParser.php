@@ -115,13 +115,11 @@ abstract class AbstractParser
 
                 if (!empty($delimiter)) {
 
-                    if (!empty($output[$field_key])) {
-                        $field_parts = explode($delimiter, $output[$field_key]);
-                        foreach ($field_parts as $k => $field_part) {
-                            $field_parts[$k] = $this->map_field_data($field_part, array_values($data));
-                        }
-                        $output[$field_key] = implode($delimiter, $field_parts);
+                    $field_parts = explode($delimiter, $output[$field_key]);
+                    foreach ($field_parts as $k => $field_part) {
+                        $field_parts[$k] = $this->map_field_data($field_part, array_values($data));
                     }
+                    $output[$field_key] = implode($delimiter, $field_parts);
                 } else {
                     $output[$field_key] = $this->map_field_data($output[$field_key], array_values($data));
                 }

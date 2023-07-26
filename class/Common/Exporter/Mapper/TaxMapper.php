@@ -72,8 +72,18 @@ class TaxMapper extends AbstractMapper implements MapperInterface
         // get taxonomy custom fields
         global $wpdb;
         $meta_fields = $wpdb->get_col($wpdb->prepare("SELECT DISTINCT meta_key FROM " . $wpdb->termmeta . " as tm INNER JOIN " . $wpdb->term_taxonomy . " as tt ON tm.term_id = tt.term_id WHERE tt.taxonomy = %s", [$this->taxonomy]));
+        $custom_file_fields = apply_filters('iwp/exporter/taxonomy/custom_file_id_fields', []);
         foreach ($meta_fields as $field) {
             $fields['children']['custom_fields']['fields'][] = $field;
+
+            if (in_array($field, $custom_file_fields)) {
+                $fields['children']['custom_fields']['fields'][] = $field . '::id';
+                $fields['children']['custom_fields']['fields'][] = $field . '::url';
+                $fields['children']['custom_fields']['fields'][] = $field . '::title';
+                $fields['children']['custom_fields']['fields'][] = $field . '::alt';
+                $fields['children']['custom_fields']['fields'][] = $field . '::caption';
+                $fields['children']['custom_fields']['fields'][] = $field . '::description';
+            }
         }
 
         $fields['children']['parent']['fields'] = [
@@ -91,6 +101,7 @@ class TaxMapper extends AbstractMapper implements MapperInterface
         ];
 
         $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/taxonomy/custom_field_list',  $fields['children']['custom_fields']['fields'], $this->taxonomy);
+        $fields = apply_filters('iwp/exporter/taxonomy/fields', $fields, $this->taxonomy);
 
         return $fields;
     }
@@ -129,6 +140,7 @@ class TaxMapper extends AbstractMapper implements MapperInterface
     {
         $this->record = get_term($this->items[$i], '', ARRAY_A);
         $this->record['custom_fields'] = get_term_meta($this->record['term_id']);
+        $this->record = $this->modify_custom_field_data($this->record, 'taxonomy');
 
         $parent = get_term($this->record['parent'], $this->taxonomy);
         if (!is_wp_error($parent)) {
@@ -167,6 +179,7 @@ class TaxMapper extends AbstractMapper implements MapperInterface
             }
         }
 
+        $this->record = apply_filters('iwp/exporter/taxonomy/setup_data', $this->record, $this->taxonomy);
         return true;
     }
 

@@ -6,6 +6,8 @@ use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Importer\Config\Config;
 use ImportWP\Common\Importer\File\CSVFile;
 use ImportWP\Common\Importer\File\XMLFile;
+use ImportWP\Common\Importer\Mapper\AttachmentMapper;
+use ImportWP\Common\Importer\Mapper\CommentMapper;
 use ImportWP\Common\Importer\Mapper\PostMapper;
 use ImportWP\Common\Importer\Mapper\TermMapper;
 use ImportWP\Common\Importer\Mapper\UserMapper;
@@ -13,6 +15,8 @@ use ImportWP\Common\Importer\Parser\CSVParser;
 use ImportWP\Common\Importer\Parser\XMLParser;
 use ImportWP\Common\Importer\Permission\Permission;
 use ImportWP\Common\Importer\State\ImporterState;
+use ImportWP\Common\Importer\Template\AttachmentTemplate;
+use ImportWP\Common\Importer\Template\CommentTemplate;
 use ImportWP\Common\Importer\Template\CustomPostTypeTemplate;
 use ImportWP\Common\Importer\Template\PageTemplate;
 use ImportWP\Common\Importer\Template\PostTemplate;
@@ -317,37 +321,55 @@ class ImporterManager
         $allowed_file_types = $this->event_handler->run('importer.allowed_file_types', [$importer->getAllowedFileTypes()]);
         $prefix = $this->get_importer_file_prefix($importer);
 
-        if (preg_match('/^s?ftp?:\/\//', $source) === 1) {
+        try {
 
-            if (preg_match('/^(?<protocol>s?ftp):\/\/(?:(?<user>[^\:@]+)(?:\:(?<pass>[^@]+))?@)?(?<host>[^\:\/]+)(?:\:(?<port>[0-9]+))?(?:\/(?<path>.*))$/', $source, $matches) !== 1) {
+            if (preg_match('/^s?ftp?:\/\//', $source) === 1) {
 
-                return new \WP_Error("IM_RM_FTP_PARSE", "Unable to parse FTP connection string");
+                if (preg_match('/^(?<protocol>s?ftp):\/\/(?:(?<user>[^\:@]+)(?:\:(?<pass>[^@]+))?@)?(?<host>[^\:\/]+)(?:\:(?<port>[0-9]+))?(?:\/(?<path>.*))$/', $source, $matches) !== 1) {
+
+                    return new \WP_Error("IM_RM_FTP_PARSE", "Unable to parse FTP connection string");
+                }
+
+                $user = isset($matches['user']) ? urldecode($matches['user']) : '';
+                $pass = isset($matches['pass']) ? urldecode($matches['pass']) : '';
+                $host = isset($matches['host']) ? $matches['host'] : false;
+                $port = isset($matches['port']) && !empty($matches['port']) ? $matches['port'] : intval(21);
+                $path = isset($matches['path']) ? $matches['path'] : false;
+
+                if (!$host) {
+                    return new \WP_Error("IM_RM_FTP_HOST", "Unable to parse ftp host from connection string");
+                }
+
+                if (!$path) {
+                    return new \WP_Error("IM_RM_FTP_HOST", "Unable to parse ftp host from connection string");
+                }
+
+                /**
+                 * @var \ImportWP\Common\Ftp\Ftp $ftp
+                 */
+                $ftp = Container::getInstance()->get('ftp');
+
+                $path = apply_filters('iwp/importer/remote_file', $path, $importer);
+                $path = apply_filters(sprintf('iwp/importer=%d/remote_file', $importer->getId()), $path, $importer);
+
+                $filter_connection_args = [
+                    'user' => $user,
+                    'pass' => $pass,
+                    'host' => $host,
+                    'port' => $port,
+                    'path' => $path,
+                ];
+                $path = apply_filters(sprintf('iwp/importer/remote_file/source=%s', 'ftp'), $path, $importer, $filter_connection_args);
+                $path = apply_filters(sprintf('iwp/importer=%d/remote_file/source=ftp', $importer->getId(), 'ftp'), $path, $importer, $filter_connection_args);
+
+                $result = $ftp->download_file($path, $host, $user, $pass, false, $port);
+            } else {
+
+                $result = $this->filesystem->download_file($source, $filetype, $allowed_file_types, null, $prefix);
             }
-
-            $user = isset($matches['user']) ? urldecode($matches['user']) : '';
-            $pass = isset($matches['pass']) ? urldecode($matches['pass']) : '';
-            $host = isset($matches['host']) ? $matches['host'] : false;
-            $port = isset($matches['port']) && !empty($matches['port']) ? $matches['port'] : intval(21);
-            $path = isset($matches['path']) ? $matches['path'] : false;
-
-            if (!$host) {
-                return new \WP_Error("IM_RM_FTP_HOST", "Unable to parse ftp host from connection string");
-            }
-
-            if (!$path) {
-                return new \WP_Error("IM_RM_FTP_HOST", "Unable to parse ftp host from connection string");
-            }
-
-            /**
-             * @var \ImportWP\Common\Ftp\Ftp $ftp
-             */
-            $ftp = Container::getInstance()->get('ftp');
-            $result = $ftp->download_file($path, $host, $user, $pass, false, $port);
-        } else {
-
-            $result = $this->filesystem->download_file($source, $filetype, $allowed_file_types, null, $prefix);
+        } catch (\Exception $e) {
+            return new \WP_Error($e->getCode(), $e->getMessage());
         }
-
 
         if (is_wp_error($result)) {
             return $result;
@@ -508,6 +530,9 @@ class ImporterManager
         $importer_data = $this->get_importer($id);
         $importer_id = $importer_data->getId();
 
+        // store current importer
+        iwp()->importer = $importer_data;
+
         $config_data = get_site_option('iwp_importer_config_' . $importer_id, []);
 
         $this->event_handler->run('importer_manager.import', [$importer_data]);
@@ -566,6 +591,39 @@ class ImporterManager
                 }
                 update_post_meta($importer_id, '_iwp_version', $version);
                 $config_data['version'] = $version;
+
+                /**
+                 * Fetch new file if setting is checked
+                 * @since 2.7.15 
+                 */
+                $run_fetch_file = $importer_data->getSetting('run_fetch') || false;
+                $run_fetch_file = apply_filters('iwp/importer/run_fetch_file',  $run_fetch_file);
+                if ($run_fetch_file) {
+
+                    $datasource = $importer_data->getDatasource();
+                    switch ($datasource) {
+                        case 'remote':
+                            $raw_source = $importer_data->getDatasourceSetting('remote_url');
+                            $source = apply_filters('iwp/importer/datasource', $raw_source, $raw_source, $importer_data);
+                            $source = apply_filters('iwp/importer/datasource/remote', $source, $raw_source, $importer_data);
+                            $attachment_id = $this->remote_file($importer_data, $source, $importer_data->getParser());
+                            break;
+                        case 'local':
+                            $raw_source = $importer_data->getDatasourceSetting('local_url');
+                            $source = apply_filters('iwp/importer/datasource', $raw_source, $raw_source, $importer_data);
+                            $source = apply_filters('iwp/importer/datasource/local', $source, $raw_source, $importer_data);
+                            $attachment_id = $this->local_file($importer_data, $source);
+                            break;
+                        default:
+                            // TODO: record error 
+                            $attachment_id = new \WP_Error('IWP_CRON_1', 'Unable to get new file using datasource: ' . $datasource);
+                            break;
+                    }
+
+                    if (is_wp_error($attachment_id)) {
+                        throw new \Exception('Importer Datasource: ' . $attachment_id->get_error_message());
+                    }
+                }
             }
 
             $start = 0;
@@ -592,6 +650,12 @@ class ImporterManager
 
                 Logger::debug('IM -get_record_count');
                 $end = $parser->file()->getRecordCount();
+
+                // Capture cancelled status from file processor
+                $raw_state = ImporterState::get_state($importer_data->getId());
+                if ($raw_state['status'] === 'cancelled') {
+                    return $raw_state;
+                }
 
                 $config_data['start'] = $this->get_start($importer_data, $start);
                 $config_data['end'] = $this->get_end($importer_data, $config_data['start'], $end);
@@ -716,7 +780,9 @@ class ImporterManager
         $mappers = array_merge($mappers, [
             'post' => PostMapper::class,
             'user' => UserMapper::class,
-            'term' => TermMapper::class
+            'term' => TermMapper::class,
+            'attachment' => AttachmentMapper::class,
+            'comment' => CommentMapper::class,
         ]);
         return $mappers;
     }
@@ -739,6 +805,8 @@ class ImporterManager
             'page' => PageTemplate::class,
             'user' => UserTemplate::class,
             'term' => TermTemplate::class,
+            'attachment' => AttachmentTemplate::class,
+            'comment' => CommentTemplate::class,
             'custom-post-type' => CustomPostTypeTemplate::class,
         ]);
         return $templates;

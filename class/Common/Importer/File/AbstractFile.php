@@ -71,12 +71,12 @@ abstract class AbstractFile
         return $this->getRecord($this->current_record - 1);
     }
 
-    protected function saveFilePosition()
+    public function saveFilePosition()
     {
         $this->current_file_position = ftell($this->file_handle);
     }
 
-    protected function loadFilePosition($record = 0)
+    public function loadFilePosition($record = 0)
     {
 
         if ($this->current_file_position >= 0) {
@@ -88,7 +88,7 @@ abstract class AbstractFile
      * @return resource
      * @throws FileException
      */
-    protected function getFileHandle()
+    public function getFileHandle()
     {
         if (!in_array(get_resource_type($this->file_handle), array('stream', 'file'), true)) {
             throw new FileException("File not found: " . $this->file_path);
@@ -96,7 +96,7 @@ abstract class AbstractFile
         return $this->file_handle;
     }
 
-    protected function setCurrentRecord($index)
+    public function setCurrentRecord($index)
     {
         $this->current_record = $index;
     }
