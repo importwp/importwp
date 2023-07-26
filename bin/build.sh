@@ -6,6 +6,7 @@ if [ $# -lt 1 ]; then
 fi
 
 TAG=${1-latest}
+BRANCH=${2-release}
 
 # Absolute path to this script, e.g. /home/user/bin/foo.sh
 SCRIPT=$(readlink -f "$0")
@@ -19,7 +20,6 @@ cd "$SCRIPTPATH/.."
 npm i --include=dev
 npm run build
 
-BRANCH=release
 FOLDER=build
 
 # Move to other directory
@@ -27,7 +27,7 @@ if [ -d "$FOLDER" ]; then rm -Rf $FOLDER; fi
 git clone --branch $BRANCH git@github.com:importwp/importwp.git $FOLDER
 cd $FOLDER
 git rm -rf .
-rsync -av .. . --exclude '.git' --exclude '.github' --exclude 'bin' --exclude "$FOLDER" --exclude 'node_modules' --exclude 'src' --exclude 'tests' --exclude 'vendor' --exclude '.babelrc' --exclude '.gitattributes' --exclude '.gitignore' --exclude '.phpcs.xml.dist' --exclude '.phpunit.result.cache' --exclude '.travis.yml' --exclude 'composer.json' --exclude 'composer.lock' --exclude 'package-lock.json' --exclude 'package.json' --exclude 'phpunit.xml.dist' --exclude 'webpack.config.js'
+rsync -av .. . --exclude '.git' --exclude 'bin' --exclude "$FOLDER" --exclude 'node_modules' --exclude 'src' --exclude 'tests' --exclude 'vendor' --exclude '.babelrc' --exclude '.gitignore' --exclude '.phpcs.xml.dist' --exclude '.phpunit.result.cache' --exclude '.travis.yml' --exclude 'composer.json' --exclude 'composer.lock' --exclude 'package-lock.json' --exclude 'package.json' --exclude 'phpunit.xml.dist' --exclude 'webpack.config.js'
 
 # Set version numbers
 sed -i -e "s/__STABLE_TAG__/$TAG/g" readme.txt
