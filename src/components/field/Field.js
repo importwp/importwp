@@ -261,7 +261,7 @@ class Field extends React.PureComponent {
                     onClose={() => this.setState({ show_map: false })}
                     name={name + '.' + id}
                     field={this.props.field}
-                    delimiter={this.props.map.hasOwnProperty(`${name}.settings._delimiter`) ? (this.props.map[`${name}.settings._delimiter`].length ? this.props.map[`${name}.settings._delimiter`] : ',') : false}
+                    delimiter={this.props.map.hasOwnProperty(`${name}.settings._delimiter`) ? (this.props.map[`${name}.settings._delimiter`]?.length ? this.props.map[`${name}.settings._delimiter`] : ',') : false}
                   />
                   <div className="iwp-field__input-wrapper">
                     <input

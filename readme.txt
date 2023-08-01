@@ -131,6 +131,10 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.8.1 =
+
+* FIX - Error displayed when removing custom field during loading of its data.
+
 = 2.8.0 =
 
 * FIX - Issue with parsing xml file swith duplicate node names.
