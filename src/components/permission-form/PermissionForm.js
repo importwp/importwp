@@ -109,7 +109,7 @@ class PermissionForm extends Component {
     }
   }
 
-  save(callback = () => {}) {
+  save(callback = () => { }) {
     const { id } = this.props;
 
     const {
@@ -190,28 +190,26 @@ class PermissionForm extends Component {
           <form>
             <p className="iwp-heading">Permissions.</p>
 
-            {this.props.template !== 'term' && (
-              <div className="iwp-form__grid">
-                <div className="iwp-form__row iwp-form__row--left">
-                  <FieldLabel
-                    label="Unique Identifier"
-                    field="setting_unique_identifier"
-                    id="setting_unique_identifier"
-                    tooltip="Set the field to be used to uniquely identify each record."
-                    display="inline-block"
-                  />
-                  <input
-                    type="text"
-                    className="iwp-form__input"
-                    id="setting_unique_identifier"
-                    name="setting_unique_identifier"
-                    placeholder="Leave empty to use the templates default."
-                    onChange={this.onChange}
-                    value={setting_unique_identifier}
-                  />
-                </div>
+            <div className="iwp-form__grid">
+              <div className="iwp-form__row iwp-form__row--left">
+                <FieldLabel
+                  label="Unique Identifier"
+                  field="setting_unique_identifier"
+                  id="setting_unique_identifier"
+                  tooltip="Set the field to be used to uniquely identify each record."
+                  display="inline-block"
+                />
+                <input
+                  type="text"
+                  className="iwp-form__input"
+                  id="setting_unique_identifier"
+                  name="setting_unique_identifier"
+                  placeholder="Leave empty to use the templates default."
+                  onChange={this.onChange}
+                  value={setting_unique_identifier}
+                />
               </div>
-            )}
+            </div>
 
             <p className="iwp-form__label">
               Restrict which fields can be imported:
@@ -425,7 +423,7 @@ PermissionForm.propTypes = {
 PermissionForm.defaultProps = {
   permissions: {},
   settings: {},
-  onError: () => {},
+  onError: () => { },
 };
 
 export default PermissionForm;

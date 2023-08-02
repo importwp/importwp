@@ -82,6 +82,7 @@ class TermTemplate extends Template implements TemplateInterface
                             ['value' => 'slug', 'label' => 'Slug'],
                             ['value' => 'name', 'label' => 'Name'],
                             ['value' => 'column', 'label' => 'Reference Column'],
+                            ['value' => 'custom_field', 'label' => 'Custom Field'],
                         ],
                         'type' => 'select',
                         'tooltip' => __('Select how the parent field should be handled', 'importwp')
@@ -89,6 +90,10 @@ class TermTemplate extends Template implements TemplateInterface
                     $this->register_field('Parent Reference Column', '_parent_ref', [
                         'condition' => ['_parent_type', '==', 'column'],
                         'tooltip' => __('Select the column/node that the parent field is referencing', 'importwp')
+                    ]),
+                    $this->register_field('Custom Field Key', '_custom_field', [
+                        'condition' => ['_parent_type', '==', 'custom_field'],
+                        'tooltip' => __('Enter the name of the custom field.', 'importwp')
                     ])
                 ]),
                 $this->register_field('Alias of', 'alias_of', [
@@ -197,7 +202,14 @@ class TermTemplate extends Template implements TemplateInterface
             } elseif ($parent_field_type === 'column') {
 
                 // reference column
-                $temp_id = $this->get_term_by_cf('term_parent', $term_field_map['parent']);
+                $temp_id = $this->get_term_by_cf('_iwp_ref_term_parent', $term_field_map['parent']);
+                if (intval($temp_id > 0)) {
+                    $parent_id = intval($temp_id);
+                }
+            } elseif ($parent_field_type === 'custom_field') {
+
+                $parent_custom_field = $data->getValue('term._parent._custom_field');
+                $temp_id = $this->get_term_by_cf($parent_custom_field, $term_field_map['parent']);
                 if (intval($temp_id > 0)) {
                     $parent_id = intval($temp_id);
                 }
@@ -233,7 +245,7 @@ class TermTemplate extends Template implements TemplateInterface
             'hide_empty' => false,
             'meta_query' => [
                 [
-                    'key' =>  '_iwp_ref_' . $field,
+                    'key' =>  $field,
                     'value' => $value,
                     'compare' => '='
                 ]

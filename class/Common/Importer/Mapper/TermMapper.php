@@ -27,29 +27,92 @@ class TermMapper extends AbstractMapper implements MapperInterface
 
     public function exists(ParsedData $data)
     {
-        $fields = $data->getData('default');
-        $term = !empty($fields['name']) ? $fields['name'] : false;
-        $slug = !empty($fields['slug']) ? $fields['slug'] : false;
-        $term_id = !empty($fields['term_id']) ? $fields['term_id'] : false;
+        $unique_fields = ['term_id', 'slug', 'name'];
+
+        // allow user to set unique field name, get from importer setting
+        $unique_field = $this->importer->getSetting('unique_field');
+        if ($unique_field !== null) {
+            $unique_fields = is_string($unique_field) ? [$unique_field] : $unique_field;
+        }
+
+        $unique_fields = $this->getUniqueIdentifiers($unique_fields);
+        $unique_fields = apply_filters('iwp/template_unique_fields', $unique_fields, $this->template, $this->importer);
+
+        $unique_field_found = false;
+
         $taxonomy = $this->importer->getSetting('taxonomy');
 
-        // escape if required fields are not entered
-        if (false === $taxonomy || (false === $term && false === $slug && false === $term_id)) {
+        $query_args = [
+            'fields' => 'ids',
+            'hide_empty' => false,
+            'update_term_meta_cache' => false,
+            'taxonomy' => $taxonomy
+        ];
+
+        foreach ($unique_fields as $field) {
+
+            // check all groups for a unique value
+            $unique_value = $data->getValue($field, '*');
+            if (empty($unique_value)) {
+                $cf = $data->getData('custom_fields');
+                if (!empty($cf)) {
+                    $cf_index = intval($cf['custom_fields._index']);
+                    if ($cf_index > 0) {
+                        for ($i = 0; $i < $cf_index; $i++) {
+                            $row = 'custom_fields.' . $i . '.';
+                            $custom_field_key = apply_filters('iwp/custom_field_key', $cf[$row . 'key']);
+                            if ($custom_field_key !== $field) {
+                                continue;
+                            }
+                            $unique_value = $cf[$row . 'value'];
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (empty($unique_value)) {
+                continue;
+            }
+
+            if (in_array($field, $this->_term_fields, true)) {
+
+                switch ($field) {
+                    case 'term_id':
+                        $query_args['object_ids'] = $unique_value;
+                        break;
+                    default:
+                        $query_args[$field] = $unique_value;
+                        break;
+                }
+            } else {
+                $meta_args[] = array(
+                    'key'   => $field,
+                    'value' => $unique_value
+                );
+            }
+            $unique_field_found = $field;
+            break;
+        }
+
+        if (!empty($meta_args)) {
+            $query_args['meta_query'] = $meta_args;
+        }
+
+        $query = new \WP_Term_Query($query_args);
+        if (!$query->terms) {
             return false;
         }
 
-        if (!empty($term_id)) {
-            $term = get_term_by('id', $term_id, $taxonomy);
-        } else if (!empty($slug) && 'yes' !== $data->getValue('slug', '_generated')) {
-            // use slug if its not been generated from name
-            $term = get_term_by('slug', $slug, $taxonomy);
-        } else if (!empty($term)) {
-            $term = get_term_by('name', $term, $taxonomy);
+        if (count($query->terms) > 1) {
+            throw new MapperException("Record is not unique: " . $unique_field_found . ", Matching Ids: (" . implode(', ', $query->terms) . ").");
         }
-        if ($term && isset($term->term_id)) {
-            $this->ID = $term->term_id;
-            return true;
+
+        if (count($query->terms) == 1) {
+            $this->ID = $query->terms[0];
+            return $this->ID;
         }
+
         return false;
     }
 
