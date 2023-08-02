@@ -49,6 +49,8 @@ class TermMapper extends AbstractMapper implements MapperInterface
             'taxonomy' => $taxonomy
         ];
 
+        $has_unique_field = false;
+
         foreach ($unique_fields as $field) {
 
             // check all groups for a unique value
@@ -75,11 +77,13 @@ class TermMapper extends AbstractMapper implements MapperInterface
                 continue;
             }
 
+            $has_unique_field = true;
+
             if (in_array($field, $this->_term_fields, true)) {
 
                 switch ($field) {
                     case 'term_id':
-                        $query_args['object_ids'] = $unique_value;
+                        $query_args['include'] = [intval($unique_value)];
                         break;
                     default:
                         $query_args[$field] = $unique_value;
@@ -93,6 +97,10 @@ class TermMapper extends AbstractMapper implements MapperInterface
             }
             $unique_field_found = $field;
             break;
+        }
+
+        if (!$has_unique_field) {
+            throw new MapperException("No Unique fields present.");
         }
 
         if (!empty($meta_args)) {

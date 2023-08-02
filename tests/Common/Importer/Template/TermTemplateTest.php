@@ -182,11 +182,11 @@ class TermTemplateTest extends \WP_UnitTestCase
         $term1 = $this->factory()->term->create_and_get(['taxonomy' => $taxonomy]);
         $term2 = $this->factory()->term->create_and_get(['taxonomy' => $taxonomy]);
 
-        $field = 'test';
+        $field = '_iwp_ref_test';
         $value = 'one';
 
-        update_term_meta($term1->term_id, '_iwp_ref_' . $field, $value);
-        update_term_meta($term2->term_id, '_iwp_ref_' . $field, 'two');
+        update_term_meta($term1->term_id, $field, $value);
+        update_term_meta($term2->term_id, $field, 'two');
 
         /**
          * @var \PHPUnit\Framework\MockObject\MockObject | ImporterModel

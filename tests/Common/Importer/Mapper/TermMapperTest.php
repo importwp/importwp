@@ -22,111 +22,296 @@ class TermMapperTest extends \WP_UnitTestCase
     /**
      * @dataProvider providerExistsData
      */
-    public function testExists($taxonomy, $fields, $expected)
+    public function testExists($expected, $taxonomy, \Closure $setData, $terms)
     {
-        wp_insert_term('category-2', 'category');
+        $existing_terms = [];
 
-        $term_data = wp_insert_term('category-1', 'category');
-        $term = get_term($term_data['term_id'], 'category', ARRAY_A);
-
-        foreach ($fields as &$val) {
-
-            if (strpos($val, 'category.') === false) {
-                continue;
+        if (!empty($terms)) {
+            foreach ($terms as $term) {
+                $existing_terms[] = $this->factory()->term->create_and_get($term);
             }
-            $val = $term[substr($val, strlen('category.'))];
         }
-
-        /**
-         * @var \PHPUnit\Framework\MockObject\MockObject | TermMapper
-         */
-        $mapper = $this->createPartialMock(TermMapper::class, []);
 
         /**
          * @var \PHPUnit\Framework\MockObject\MockObject | ImporterModel
          */
-        $importer_model = $this->createMock(ImporterModel::class, ['getSetting']);
-        $importer_model->method('getSetting')->willReturn($taxonomy);
-        $this->setProtectedProperty($mapper, 'importer', $importer_model);
+        $mock_importer_model = $this->createPartialMock(ImporterModel::class, ['getSetting']);
+        $mock_importer_model->method('getSetting')
+            ->willReturnCallback(function ($arg) use ($taxonomy) {
+                switch ($arg) {
+                    case 'unique_field':
+                        return null;
+                    case 'taxonomy':
+                        return $taxonomy;
+                }
+            });
 
-        $data = new ParsedData($mapper);
-        $data->update($fields);
+        /**
+         * @var \PHPUnit\Framework\MockObject\MockObject | TermMapper
+         */
+        $mock_mapper = $this->createPartialMock(TermMapper::class, []);
+        $this->setProtectedProperty($mock_mapper, 'importer', $mock_importer_model);
 
-        $result = $mapper->exists($data);
-        $this->assertEquals($expected, $result);
+        /**
+         * @var \PHPUnit\Framework\MockObject\MockObject | ParsedData
+         */
+        // $mock_parsed_data = $this->createPartialMock(ParsedData::class, []);
+        $parsed_data = new ParsedData($mock_mapper);
+        $setData($parsed_data, $existing_terms);
+
+        if ($expected === -1) {
+            $this->expectException(MapperException::class);
+        }
+
+        $result = $mock_mapper->exists($parsed_data);
+
+        if ($expected !== -1) {
+            $this->assertEquals($expected, $result);
+        }
     }
 
     public function providerExistsData()
     {
         return [
-            'no data' => ['category', [], false],
+            'No Data' => [
+                -1,
+                'category',
+                function (ParsedData $data, $terms) {
+                },
+                []
+            ],
 
-            // term_id
-            'term_id' => ['category', ['term_id' => 'category.term_id'], true],
-            'No term_id' => ['category', ['term_id' => ''], false],
-            'Wrong term_id' => ['category', ['term_id' => 'ABC'], false],
-            'term_id but wrong taxonomy' => ['post_tag', ['term_id' => 'category.term_id'], false],
+            // ID
+            'Valid Term ID' => [
+                true,
+                'category',
+                function (ParsedData $data, $terms) {
 
-            // slug
-            'slug' => ['category', ['slug' => 'category.slug'], true],
-            'No slug' => ['category', ['slug' => ''], false],
-            'Wrong slug' => ['category', ['slug' => 'ABC'], false],
-            'slug but wrong taxonomy' => ['post_tag', ['slug' => 'category.slug'], false],
+                    $data->update([
+                        'term_id' => $terms[0]->term_id
+                    ]);
+                },
+                [
+                    [
+                        'taxonomy' => 'category'
+                    ],
+                    [
+                        'taxonomy' => 'category'
+                    ]
+                ]
+            ],
 
-            // name
-            'name' => ['category', ['name' => 'category.name'], true],
-            'No name' => ['category', ['name' => ''], false],
-            'Wrong name' => ['category', ['name' => 'ABC'], false],
-            'name but wrong taxonomy' => ['post_tag', ['name' => 'category.name'], false],
+            'Valid Term ID, Wrong Taxonomy' => [
+                false,
+                'category',
+                function (ParsedData $data, $terms) {
 
-            // Order of existance
-            'use term_id if name, slug and term_id are present' => ['category', ['name' => 'ABC', 'slug' => 'ABC', 'term_id' => 'category.term_id'], true],
-            'use slug if name and slug are present' => ['category', ['name' => 'ABC', 'slug' => 'category.slug', 'term_id' => ''], true],
-            'use name if slug and term_id are not present' => ['category', ['name' => 'category.name', 'slug' => '', 'term_id' => ''], true],
+                    $data->update([
+                        'term_id' => $terms[0]->term_id
+                    ]);
+                },
+                [
+                    [
+                        'taxonomy' => 'post_tag'
+                    ],
+                    [
+                        'taxonomy' => 'post_tag'
+                    ]
+                ]
+            ],
+
+            'Wrong Term ID' => [
+                false,
+                'category',
+                function (ParsedData $data, $terms) {
+
+                    $data->update([
+                        'term_id' => 9999
+                    ]);
+                },
+                [
+                    [
+                        'taxonomy' => 'category'
+                    ],
+                    [
+                        'taxonomy' => 'category'
+                    ]
+                ]
+            ],
+
+            'No Term ID' => [
+                -1,
+                'category',
+                function (ParsedData $data, $terms) {
+
+                    $data->update([
+                        'term_id' => ''
+                    ]);
+                },
+                [
+                    [
+                        'taxonomy' => 'category'
+                    ],
+                    [
+                        'taxonomy' => 'category'
+                    ]
+                ]
+            ],
+
+            // SLUG
+            'Valid Term Slug' => [
+                true,
+                'category',
+                function (ParsedData $data, $terms) {
+
+                    $data->update([
+                        'slug' => $terms[0]->slug
+                    ]);
+                },
+                [
+                    [
+                        'taxonomy' => 'category'
+                    ],
+                    [
+                        'taxonomy' => 'category'
+                    ]
+                ]
+            ],
+
+            'Valid Term Slug, Wrong Taxonomy' => [
+                false,
+                'category',
+                function (ParsedData $data, $terms) {
+
+                    $data->update([
+                        'slug' => $terms[0]->slug
+                    ]);
+                },
+                [
+                    [
+                        'taxonomy' => 'post_tag'
+                    ],
+                    [
+                        'taxonomy' => 'post_tag'
+                    ]
+                ]
+            ],
+
+            'Wrong Term Slug' => [
+                false,
+                'category',
+                function (ParsedData $data, $terms) {
+
+                    $data->update([
+                        'slug' => 9999
+                    ]);
+                },
+                [
+                    [
+                        'taxonomy' => 'category'
+                    ],
+                    [
+                        'taxonomy' => 'category'
+                    ]
+                ]
+            ],
+
+            'No Term Slug' => [
+                -1,
+                'category',
+                function (ParsedData $data, $terms) {
+
+                    $data->update([
+                        'slug' => ''
+                    ]);
+                },
+                [
+                    [
+                        'taxonomy' => 'category'
+                    ],
+                    [
+                        'taxonomy' => 'category'
+                    ]
+                ]
+            ],
+
+            // Name
+            'Valid Term name' => [
+                true,
+                'category',
+                function (ParsedData $data, $terms) {
+
+                    $data->update([
+                        'name' => $terms[0]->name
+                    ]);
+                },
+                [
+                    [
+                        'taxonomy' => 'category'
+                    ],
+                    [
+                        'taxonomy' => 'category'
+                    ]
+                ]
+            ],
+
+            'Valid Term name, Wrong Taxonomy' => [
+                false,
+                'category',
+                function (ParsedData $data, $terms) {
+
+                    $data->update([
+                        'name' => $terms[0]->name
+                    ]);
+                },
+                [
+                    [
+                        'taxonomy' => 'post_tag'
+                    ],
+                    [
+                        'taxonomy' => 'post_tag'
+                    ]
+                ]
+            ],
+
+            'Wrong Term name' => [
+                false,
+                'category',
+                function (ParsedData $data, $terms) {
+
+                    $data->update([
+                        'name' => 9999
+                    ]);
+                },
+                [
+                    [
+                        'taxonomy' => 'category'
+                    ],
+                    [
+                        'taxonomy' => 'category'
+                    ]
+                ]
+            ],
+
+            'No Term name' => [
+                -1,
+                'category',
+                function (ParsedData $data, $terms) {
+
+                    $data->update([
+                        'name' => ''
+                    ]);
+                },
+                [
+                    [
+                        'taxonomy' => 'category'
+                    ],
+                    [
+                        'taxonomy' => 'category'
+                    ]
+                ]
+            ],
         ];
-    }
-
-    /**
-     * Test cant be in the dataProvider as we need to set the generated flag
-     */
-    public function testExistsWithNameAndGeneratedSlug()
-    {
-        $taxonomy = 'category';
-        $fields = ['name' => 'category.name', 'slug' => 'ABC', 'term_id' => ''];
-        wp_insert_term('category-2', 'category');
-
-        $term_data = wp_insert_term('category-1', 'category');
-        $term = get_term($term_data['term_id'], 'category', ARRAY_A);
-
-        foreach ($fields as &$val) {
-
-            if (strpos($val, 'category.') === false) {
-                continue;
-            }
-            $val = $term[substr($val, strlen('category.'))];
-        }
-
-        /**
-         * @var \PHPUnit\Framework\MockObject\MockObject | TermMapper
-         */
-        $mapper = $this->createPartialMock(TermMapper::class, []);
-
-        /**
-         * @var \PHPUnit\Framework\MockObject\MockObject | ImporterModel
-         */
-        $importer_model = $this->createMock(ImporterModel::class, ['getSetting']);
-        $importer_model->method('getSetting')->willReturn($taxonomy);
-        $this->setProtectedProperty($mapper, 'importer', $importer_model);
-
-        $data = new ParsedData($mapper);
-        $data->update($fields);
-
-        $result = $mapper->exists($data);
-        $this->assertFalse($result);
-
-        $data->update(['slug' => 'yes'], '_generated');
-        $result = $mapper->exists($data);
-        $this->assertTrue($result);
     }
 
     /**
