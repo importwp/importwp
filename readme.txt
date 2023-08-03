@@ -136,6 +136,7 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 * FIX - Error displayed when removing custom field during loading of its data.
 * ADD - Show unique identifier field for term import template.
 * ADD - Allow for term perents to reference a custom field.
+* FIX - Normalize exporter file path to fix failed download of file on windows.
 
 = 2.8.0 =
 
