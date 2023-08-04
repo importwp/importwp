@@ -164,9 +164,10 @@ function remove(id) {
     service_xhr.remove = window.jQuery.ajax({
       url: url,
       dataType: 'json',
-      method: 'DELETE',
+      method: 'POST',
       beforeSend: function (xhr) {
         xhr.setRequestHeader('X-WP-Nonce', window.iwp.nonce);
+        xhr.setRequestHeader('X-HTTP-Method-Override', 'DELETE');
       },
       success: function (response) {
         if (response.status === 'S') {
