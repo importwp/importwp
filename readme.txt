@@ -4,7 +4,7 @@ Tags: import, csv, xml, importer, woocommerce, product import, post import, expo
 Requires at least: 4.0  
 Tested up to: 6.3  
 Requires PHP: 5.6  
-Stable tag: 2.8.0  
+Stable tag: 2.8.1  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -130,6 +130,13 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.8.1 =
+
+* FIX - Error displayed when removing custom field during loading of its data.
+* ADD - Show unique identifier field for term import template.
+* ADD - Allow for term perents to reference a custom field.
+* FIX - Normalize exporter file path to fix failed download of file on windows.
 
 = 2.8.0 =
 
