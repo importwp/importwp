@@ -1,0 +1,11 @@
+*.sh eol=lf
+*.diff eol=lf
+crontab eol=lf
+
+# Directories
+/.wordpress-org export-ignore
+/.github export-ignore
+
+# Files
+/.gitattributes export-ignore
+/.gitignore export-ignore
