@@ -66,7 +66,7 @@ class File
 
     public function get_file_path()
     {
-        $path = WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'exportwp' . DIRECTORY_SEPARATOR;
+        $path = wp_normalize_path(WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'exportwp' . DIRECTORY_SEPARATOR);
         if (!file_exists($path)) {
             mkdir($path);
         }
