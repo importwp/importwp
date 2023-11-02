@@ -2,7 +2,7 @@
 Contributors: jcollings,importwp  
 Tags: import, csv, xml, importer, woocommerce, product import, post import, export, datafeed, bulk import, bulk export, schedule
 Requires at least: 4.0  
-Tested up to: 6.3  
+Tested up to: 6.4  
 Requires PHP: 5.6  
 Stable tag: __STABLE_TAG__  
 License: GPLv3  

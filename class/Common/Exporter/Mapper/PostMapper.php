@@ -2,6 +2,7 @@
 
 namespace ImportWP\Common\Exporter\Mapper;
 
+use ImportWP\Common\Exporter\ExporterRecord;
 use ImportWP\Common\Exporter\MapperInterface;
 
 class PostMapper extends AbstractMapper implements MapperInterface
@@ -16,6 +17,8 @@ class PostMapper extends AbstractMapper implements MapperInterface
     public function __construct($post_type = 'post')
     {
         $this->post_type = $post_type;
+
+        add_filter('iwp/exporter_record/post', [$this, 'get_record_data'], 10, 3);
     }
 
     public function get_core_fields()
@@ -205,71 +208,79 @@ class PostMapper extends AbstractMapper implements MapperInterface
         return $this->items;
     }
 
-
-    public function setup($i)
+    public function get_record_data($value, $key, $record)
     {
-        $post = get_post($this->items[$i], ARRAY_A);
-        if (!$post) {
-            return false;
+        switch ($key) {
+            case 'post_thumbnail':
+                $value = wp_get_attachment_url(get_post_thumbnail_id($record['ID']));
+                break;
+            case 'image':
+                $thumbnail_id = intval(get_post_thumbnail_id($record['ID']));
+                if ($thumbnail_id > 0) {
+
+                    $attachment = get_post($thumbnail_id, ARRAY_A);
+                    $alt = get_post_meta($thumbnail_id, '_wp_attachment_image_alt', true);
+
+                    $value = [
+                        'id' => $thumbnail_id,
+                        'url' => wp_get_attachment_url($thumbnail_id),
+                        'title' => $attachment['post_title'],
+                        'alt' => $alt,
+                        'caption' => $attachment['post_excerpt'],
+                        'description' => $attachment['post_content']
+                    ];
+                } else {
+                    $value = [
+                        'id' => '',
+                        'url' => '',
+                        'title' => '',
+                        'alt' => '',
+                        'caption' => '',
+                        'description' => ''
+                    ];
+                }
+                break;
+            case 'custom_fields':
+                $value = get_post_meta($record['ID']);
+                $value = $this->modify_custom_field_data($value, 'post_type');
+                break;
+            case 'author':
+                $user = get_userdata($record['post_author']);
+                if ($user) {
+                    $value = (array)$user->data;
+                }
+                break;
+            case 'parent':
+                $parent = get_post_parent($record['ID']);
+                if ($parent) {
+                    $value = [
+                        'id' => $parent->ID,
+                        'name' => $parent->post_title,
+                        'slug' => $parent->post_name
+                    ];
+                } else {
+                    $value = [
+                        'id' => '',
+                        'name' => '',
+                        'slug' => ''
+                    ];
+                }
+                break;
+            case 'url':
+                if ($record['post_type'] === 'attachment') {
+                    $value = wp_get_attachment_url($record['ID']);
+                }
+                break;
         }
 
-        $this->record = $post;
-        $this->record['post_thumbnail'] = wp_get_attachment_url(get_post_thumbnail_id($this->record['ID']));
-        $this->record['custom_fields'] = get_post_meta($post['ID']);
+        if (preg_match('/^tax_(.*?)$/', $key, $tax_match) === 1) {
+            $taxonomy = $tax_match[1];
 
-        $this->record = $this->modify_custom_field_data($this->record, 'post_type');
+            $taxonomies = get_object_taxonomies($record['post_type'], 'objects');
+            if (!in_array($taxonomy, array_keys($taxonomies))) {
+                return $value;
+            }
 
-        $user = get_userdata($post['post_author']);
-        if ($user) {
-            $this->record['author'] = (array)$user->data;
-        }
-
-        $thumbnail_id = intval(get_post_thumbnail_id($this->record['ID']));
-        if ($thumbnail_id > 0) {
-
-            $attachment = get_post($thumbnail_id, ARRAY_A);
-            $alt = get_post_meta($thumbnail_id, '_wp_attachment_image_alt', true);
-
-            $this->record['image'] = [
-                'id' => $thumbnail_id,
-                'url' => wp_get_attachment_url($thumbnail_id),
-                'title' => $attachment['post_title'],
-                'alt' => $alt,
-                'caption' => $attachment['post_excerpt'],
-                'description' => $attachment['post_content']
-            ];
-        } else {
-            $this->record['image'] = [
-                'id' => '',
-                'url' => '',
-                'title' => '',
-                'alt' => '',
-                'caption' => '',
-                'description' => ''
-            ];
-        }
-
-        $parent = get_post_parent($this->record['ID']);
-        if ($parent) {
-            $this->record['parent'] = [
-                'id' => $parent->ID,
-                'name' => $parent->post_title,
-                'slug' => $parent->post_name
-            ];
-        } else {
-            $this->record['parent'] = [
-                'id' => '',
-                'name' => '',
-                'slug' => ''
-            ];
-        }
-
-        // taxonomies
-        $taxonomies = get_object_taxonomies($this->record['post_type'], 'objects');
-        foreach (array_keys($taxonomies) as $taxonomy) {
-            $tmp = [];
-
-            $terms       = wp_get_object_terms($post['ID'], $taxonomy);
             $tmp = [
                 'id' => [],
                 'slug' => [],
@@ -278,6 +289,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
                 'hierarchy::name' => [],
                 'hierarchy::slug' => [],
             ];
+            $terms = wp_get_object_terms($record['ID'], $taxonomy);
 
             if (!empty($terms)) {
                 foreach ($terms as $term) {
@@ -290,7 +302,6 @@ class PostMapper extends AbstractMapper implements MapperInterface
                     $tmp['name'][] = $term->name;
 
                     $ancestor_ids = get_ancestors($term->term_id, $taxonomy, 'taxonomy');
-                    // $ancestor_ids = array_reverse($ancestor_ids);
 
                     $ancestor_tmp = [
                         'id' => [$term->term_id],
@@ -321,13 +332,22 @@ class PostMapper extends AbstractMapper implements MapperInterface
                 }
             }
 
-            $this->record['tax_' . $taxonomy] = $tmp;
+            $value = $tmp;
         }
 
-        if ($post['post_type'] === 'attachment') {
-            $this->record['url'] = wp_get_attachment_url($post['ID']);
+        return $value;
+    }
+
+
+    public function setup($i)
+    {
+        $post = get_post($this->items[$i], ARRAY_A);
+        if (!$post) {
+            return false;
         }
 
+        // Add the base post item
+        $this->record = new ExporterRecord($post, 'post');
         $this->record = apply_filters('iwp/exporter/post_type/setup_data', $this->record, $this->post_type);
 
         return true;
