@@ -112,10 +112,13 @@ class TaxMapperTest extends \WP_UnitTestCase
         add_term_meta($category_ids[1], 'test_key_one', 'test_value_two');
 
         $mock_tax_mapper->setup(1);
-        $expected = get_term($category_ids[1], '', ARRAY_A);
-        unset($expected['parent']);
-        $this->assertArraySubset(array_merge($expected, [
+        $expected = array_merge(get_term($category_ids[1], '', ARRAY_A), [
             'custom_fields' => ['test_key_one' => ['test_value_one', 'test_value_two']]
-        ]), $mock_tax_mapper->record());
+        ]);
+
+        $actual = $mock_tax_mapper->record();
+        foreach ($expected as $k => $v) {
+            $this->assertEquals($v, $actual[$k]);
+        }
     }
 }

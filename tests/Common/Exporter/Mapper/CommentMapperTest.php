@@ -126,8 +126,13 @@ class CommentMapperTest extends \WP_UnitTestCase
         add_comment_meta($comment_ids[1], 'test_key_one', 'test_value_two');
 
         $mock_comment_mapper->setup(1);
-        $this->assertArraySubset(array_merge(get_comment($comment_ids[1], ARRAY_A), [
+
+        $expected = array_merge(get_comment($comment_ids[1], ARRAY_A), [
             'custom_fields' => ['test_key_one' => ['test_value_one', 'test_value_two']]
-        ]), $mock_comment_mapper->record());
+        ]);
+        $actual = $mock_comment_mapper->record();
+        foreach ($expected as $k => $v) {
+            $this->assertEquals($v, $actual[$k]);
+        }
     }
 }

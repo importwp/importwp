@@ -31,7 +31,12 @@ class UserMapperTest extends \WP_UnitTestCase
      */
     public function create_mock_mapper($methods = [])
     {
-        return $this->createPartialMock(UserMapper::class, $methods);
+        return $this->getMockBuilder(TaxMapper::class)
+            ->disableOriginalClone()
+            ->disableArgumentCloning()
+            ->disallowMockingUnknownTypes()
+            ->setMethods(empty($methods) ? null : $methods)
+            ->getMock();
     }
 
     public function test_get_core_fields()
@@ -96,17 +101,30 @@ class UserMapperTest extends \WP_UnitTestCase
         $mock_user_mapper->set_records($user_ids);
 
         $mock_user_mapper->setup(0);
-        $record = $mock_user_mapper->record();
+
         $expected = (array)get_user_by('id', $user_ids[0])->data;
-        $this->assertArraySubset($expected, $record);
+        $actual = $mock_user_mapper->record();
+        foreach ($expected as $k => $v) {
+            $this->assertEquals($v, $actual[$k]);
+        }
+
+        // $expected = (array)get_user_by('id', $user_ids[0])->data;
+        // $this->assertArraySubset($expected, $record);
 
         add_user_meta($user_ids[1], 'test_key_one', 'test_value_one');
         add_user_meta($user_ids[1], 'test_key_one', 'test_value_two');
 
         $mock_user_mapper->setup(1);
+
         $expected = (array)get_user_by('id', $user_ids[1])->data;
-        $this->assertArraySubset(array_merge($expected, [
+        $expected = array_merge($expected, [
             'custom_fields' => ['test_key_one' => ['test_value_one', 'test_value_two']]
-        ]), $mock_user_mapper->record());
+        ]);
+
+        $actual = $mock_user_mapper->record();
+
+        foreach ($expected as $k => $v) {
+            $this->assertEquals($v, $actual[$k], "Check " . $k . " Matches");
+        }
     }
 }

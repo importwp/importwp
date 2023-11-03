@@ -129,8 +129,14 @@ class PostMapperTest extends \WP_UnitTestCase
         add_post_meta($post_ids[1], 'test_key_one', 'test_value_two');
 
         $mock_post_mapper->setup(1);
-        $this->assertArraySubset(array_merge(get_post($post_ids[1], ARRAY_A), [
-            'custom_fields' => ['test_key_one' => ['test_value_one', 'test_value_two']]
-        ]), $mock_post_mapper->record());
+
+        $expected = array_merge(get_post($post_ids[1], ARRAY_A), [
+            'custom_fields' => ['test_key_one' => ['test_value_one', 'test_value_two'], '_pingme' => [1], '_encloseme' => [1]]
+        ]);
+        $actual = $mock_post_mapper->record();
+
+        foreach ($expected as $k => $v) {
+            $this->assertEquals($v, $actual[$k]);
+        }
     }
 }
