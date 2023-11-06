@@ -50,7 +50,7 @@ class PermissionForm extends Component {
       saving: false,
       disabled: true,
       unique_identifiers: window.iwp.templates.find(item => item.id === props.template).unique_fields.map(item => {
-        return { label: item, key: item };
+        return { label: item, value: item };
       }),
     };
 
@@ -211,15 +211,16 @@ class PermissionForm extends Component {
                   value={this.state.unique_identifiers.find(item => item.value == setting_unique_identifier)}
                   onChange={(data) => {
 
-                    let value = '';
+                    let value = data?.value;
 
-                    if (data?.value && data.value) {
-                      let { value } = data;
+                    if (value) {
                       this.setState(
                         {
                           unique_identifiers: [...this.state.unique_identifiers, { label: value, value }]
                         }
                       );
+                    } else {
+                      value = '';
                     }
 
 
