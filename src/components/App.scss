@@ -1,6 +1,6 @@
 @mixin clearfix {
   &:after {
-    content: '';
+    content: "";
     display: table;
     clear: both;
   }
@@ -153,7 +153,6 @@
     }
 
     &__grid {
-      overflow: hidden;
       .iwp-form__row--left,
       .iwp-form__row--right {
         width: 48%;
@@ -166,6 +165,12 @@
 
       .iwp-form__row--right {
         margin-left: 1%;
+      }
+
+      &::after {
+        content: "";
+        clear: both;
+        display: table;
       }
     }
 
@@ -426,7 +431,7 @@
         margin-right: -10px;
         cursor: pointer;
         &:after {
-          content: '';
+          content: "";
           width: 12px;
           height: 2px;
           background-color: #7e8993;
@@ -498,7 +503,7 @@
         top: 100%;
         left: 20px;
         border: solid transparent;
-        content: ' ';
+        content: " ";
         height: 0;
         width: 0;
         position: absolute;
