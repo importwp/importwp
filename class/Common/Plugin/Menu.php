@@ -88,6 +88,7 @@ class Menu
         foreach ($templates as $template_id => $template) {
 
             $template_class = $this->template_manager->load_template($template);
+            $unique_fields = $this->template_manager->get_template_unique_fields($template_class);
 
             $template_data[] = [
                 'id' => $template_id,
@@ -95,6 +96,7 @@ class Menu
                 'map' => [],
                 'settings' => $template_class->register_settings(),
                 'options' => $template_class->register_options(),
+                'unique_fields' => $unique_fields
             ];
         }
 

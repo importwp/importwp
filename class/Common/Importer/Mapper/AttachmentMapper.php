@@ -7,13 +7,14 @@ use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Ftp\Ftp;
 use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\ParsedData;
+use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Container;
 
 class AttachmentMapper extends PostMapper
 {
     public function exists(ParsedData $data)
     {
-        $unique_fields = ['ID', 'post_name', 'src'];
+        $unique_fields = TemplateManager::get_template_unique_fields($this->template);
 
         // allow user to set unique field name, get from importer setting
         $unique_field = $this->importer->getSetting('unique_field');

@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import './PermissionForm.scss';
 import { importer } from '../../services/importer.service';
 import FieldLabel from '../field-label/FieldLabel';
+import CreatableSelect from 'react-select/creatable';
 
 class PermissionForm extends Component {
   constructor(props) {
@@ -48,6 +49,9 @@ class PermissionForm extends Component {
           : '',
       saving: false,
       disabled: true,
+      unique_identifiers: window.iwp.templates.find(item => item.id === props.template).unique_fields.map(item => {
+        return { label: item, key: item };
+      }),
     };
 
     this.onChange = this.onChange.bind(this);
@@ -199,14 +203,35 @@ class PermissionForm extends Component {
                   tooltip="Set the field to be used to uniquely identify each record."
                   display="inline-block"
                 />
-                <input
-                  type="text"
-                  className="iwp-form__input"
+                <CreatableSelect
                   id="setting_unique_identifier"
                   name="setting_unique_identifier"
+                  isClearable
+                  options={this.state.unique_identifiers}
+                  value={this.state.unique_identifiers.find(item => item.value == setting_unique_identifier)}
+                  onChange={(data) => {
+
+                    let value = '';
+
+                    if (data?.value && data.value) {
+                      let { value } = data;
+                      this.setState(
+                        {
+                          unique_identifiers: [...this.state.unique_identifiers, { label: value, value }]
+                        }
+                      );
+                    }
+
+
+                    this.setState(
+                      {
+                        setting_unique_identifier: value,
+                      },
+                      this.isDisabled
+                    );
+                  }}
+                  className="iwp-form__select"
                   placeholder="Leave empty to use the templates default."
-                  onChange={this.onChange}
-                  value={setting_unique_identifier}
                 />
               </div>
             </div>
