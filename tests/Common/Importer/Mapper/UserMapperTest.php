@@ -54,6 +54,10 @@ class UserMapperTest extends \WP_UnitTestCase
         $importer_model = $this->createMock(ImporterModel::class);
         $this->setProtectedProperty($mapper, 'importer', $importer_model);
 
+        // template is now needed to get unique fields
+        $template = $this->createPartialMock(UserTemplate::class, []);
+        $this->setProtectedProperty($mapper, 'template', $template);
+
         $parsed_data = new ParsedData($mapper);
         $setData($parsed_data, $user);
 
@@ -120,6 +124,10 @@ class UserMapperTest extends \WP_UnitTestCase
          */
         $importer_model = $this->createMock(ImporterModel::class);
         $this->setProtectedProperty($mapper, 'importer', $importer_model);
+
+        // template is now needed to get unique fields
+        $template = $this->createPartialMock(UserTemplate::class, []);
+        $this->setProtectedProperty($mapper, 'template', $template);
 
         $parsed_data = new ParsedData($mapper);
         $parsed_data->update([]);

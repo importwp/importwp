@@ -48,6 +48,10 @@ class PostMapperTest extends \WP_UnitTestCase
         $mapper = $this->createPartialMock(PostMapper::class, []);
         $this->setProtectedProperty($mapper, 'importer', $importer_model);
 
+        // template is now needed to get unique fields
+        $template = $this->createPartialMock(PostTemplate::class, []);
+        $this->setProtectedProperty($mapper, 'template', $template);
+
         $parsed_data = new ParsedData($mapper);
         $setData($parsed_data, $existing_posts);
 

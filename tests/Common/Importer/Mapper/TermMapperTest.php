@@ -52,6 +52,10 @@ class TermMapperTest extends \WP_UnitTestCase
         $mock_mapper = $this->createPartialMock(TermMapper::class, []);
         $this->setProtectedProperty($mock_mapper, 'importer', $mock_importer_model);
 
+        // template is now needed to get unique fields
+        $template = $this->createPartialMock(TermTemplate::class, []);
+        $this->setProtectedProperty($mock_mapper, 'template', $template);
+
         /**
          * @var \PHPUnit\Framework\MockObject\MockObject | ParsedData
          */

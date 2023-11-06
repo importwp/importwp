@@ -31,7 +31,7 @@ class UserMapperTest extends \WP_UnitTestCase
      */
     public function create_mock_mapper($methods = [])
     {
-        return $this->getMockBuilder(TaxMapper::class)
+        return $this->getMockBuilder(UserMapper::class)
             ->disableOriginalClone()
             ->disableArgumentCloning()
             ->disallowMockingUnknownTypes()
@@ -105,7 +105,7 @@ class UserMapperTest extends \WP_UnitTestCase
         $expected = (array)get_user_by('id', $user_ids[0])->data;
         $actual = $mock_user_mapper->record();
         foreach ($expected as $k => $v) {
-            $this->assertEquals($v, $actual[$k]);
+            $this->assertEquals($v, $actual[$k], "Check " . $k . " Matches");
         }
 
         // $expected = (array)get_user_by('id', $user_ids[0])->data;
@@ -124,7 +124,16 @@ class UserMapperTest extends \WP_UnitTestCase
         $actual = $mock_user_mapper->record();
 
         foreach ($expected as $k => $v) {
-            $this->assertEquals($v, $actual[$k], "Check " . $k . " Matches");
+
+            switch ($k) {
+                case 'custom_fields':
+                    $this->assertArrayHasKey('test_key_one', $actual['custom_fields']);
+                    $this->assertEquals(['test_value_one', 'test_value_two'], $actual['custom_fields']['test_key_one']);
+                    break;
+                default:
+                    $this->assertEquals($v, $actual[$k], "Check " . $k . " Matches ");
+                    break;
+            }
         }
     }
 }
