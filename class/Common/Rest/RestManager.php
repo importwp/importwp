@@ -1485,22 +1485,29 @@ class RestManager extends \WP_REST_Controller
                 $status['exporter'] = $post_id;
                 $status['version'] = 2;
 
-                $current = $status['progress']['export']['current_row'];
-                $end = $status['progress']['export']['end'] - $status['progress']['export']['start'];
-                $status['progress'] = $end > 0 ? ($current / $end) * 100 : 0;
+                if (isset($status['progress'])) {
+                    $current = $status['progress']['export']['current_row'];
+                    $end = $status['progress']['export']['end'] - $status['progress']['export']['start'];
+                    $status['progress'] = $end > 0 ? ($current / $end) * 100 : 0;
+                } else {
+                    $status['progress'] = 0;
+                }
+
 
                 $output = '';
 
-                switch ($status['status']) {
-                    case 'cancelled':
-                        $output .= 'Export cancelled';
-                        break;
-                    case 'complete':
-                        $output .= 'Export complete';
-                        break;
-                    case 'running':
-                        $output .= 'Exporting: ' . $current . '/' . $end;
-                        break;
+                if (isset($status['status'])) {
+                    switch ($status['status']) {
+                        case 'cancelled':
+                            $output .= 'Export cancelled';
+                            break;
+                        case 'complete':
+                            $output .= 'Export complete';
+                            break;
+                        case 'running':
+                            $output .= 'Exporting: ' . $current . '/' . $end;
+                            break;
+                    }
                 }
 
                 $status['message'] = $output;

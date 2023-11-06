@@ -2,6 +2,7 @@
 
 namespace ImportWP\Common\Exporter\Mapper;
 
+use ImportWP\Common\Exporter\ExporterRecord;
 use ImportWP\Common\Exporter\MapperInterface;
 
 class UserMapper extends AbstractMapper implements MapperInterface
@@ -10,6 +11,11 @@ class UserMapper extends AbstractMapper implements MapperInterface
      * @var \WP_User_Query
      */
     private $query;
+
+    public function __construct()
+    {
+        add_filter('iwp/exporter_record/user', [$this, 'get_record_data'], 10, 3);
+    }
 
     public function get_core_fields()
     {
@@ -114,25 +120,44 @@ class UserMapper extends AbstractMapper implements MapperInterface
     public function setup($i)
     {
         $user = get_user_by('id', $this->items[$i]);
-        $this->record = (array)$user->data;
-        $this->record['custom_fields'] = get_user_meta($this->record['ID']);
-        $this->record = $this->modify_custom_field_data($this->record, 'user');
 
-        $userdata = get_userdata($this->record['ID']);
-        $this->record['role'] = (array)$userdata->roles;
-
-        foreach (['first_name', 'last_name', 'description'] as $field) {
-
-            if (isset($this->record['custom_fields'][$field])) {
-
-                $this->record[$field] = $this->record['custom_fields'][$field][0];
-                unset($this->record['custom_fields'][$field]);
-            } else {
-
-                $this->record[$field] = '';
-            }
-        }
+        $this->record = new ExporterRecord((array)$user->data, 'user');
+        $this->record = apply_filters('iwp/exporter/user/setup_data', $this->record);
 
         return true;
+    }
+
+    public function get_record_data($value, $key, $record)
+    {
+        switch ($key) {
+            case 'custom_fields':
+                $value = get_user_meta($record['ID']);
+
+                if (isset($value['first_name'])) {
+                    unset($value['first_name']);
+                }
+
+                if (isset($value['last_name'])) {
+                    unset($value['last_name']);
+                }
+
+                if (isset($value['description'])) {
+                    unset($value['description']);
+                }
+
+                $value = $this->modify_custom_field_data($value, 'user');
+                break;
+            case 'role':
+                $userdata = get_userdata($record['ID']);
+                $value = (array)$userdata->roles;
+                break;
+            case 'first_name':
+            case 'last_name':
+            case 'description':
+
+                $value = get_user_meta($record['ID'], $key, true);
+                break;
+        }
+        return $value;
     }
 }

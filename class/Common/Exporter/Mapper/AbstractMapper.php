@@ -11,6 +11,8 @@ abstract class AbstractMapper
 
     public function get_value($column, $template_data = null)
     {
+        // TODO: template_data should be class with arrayaccess to load data on demand.
+
         if (is_null($template_data)) {
             $template_data = $this->record();
         }
@@ -130,13 +132,13 @@ abstract class AbstractMapper
         $this->items = $records;
     }
 
-    public function modify_custom_field_data($record, $type)
+    public function modify_custom_field_data($custom_fields, $type)
     {
         $custom_file_fields = apply_filters('iwp/exporter/' . $type . '/custom_file_id_fields', []);
         if (!empty($custom_file_fields)) {
             foreach ($custom_file_fields as $custom_field) {
 
-                if (!isset($record['custom_fields'][$custom_field]) && !empty($record['custom_fields'][$custom_field])) {
+                if (!isset($custom_fields[$custom_field]) && !empty($custom_fields[$custom_field])) {
                     continue;
                 }
 
@@ -149,7 +151,7 @@ abstract class AbstractMapper
                     'description' => [],
                 ];
 
-                foreach ($record['custom_fields'][$custom_field] as $custom_field_value) {
+                foreach ($custom_fields[$custom_field] as $custom_field_value) {
 
                     $custom_field_data = maybe_unserialize($custom_field_value);
                     if (is_string($custom_field_data)) {
@@ -179,15 +181,15 @@ abstract class AbstractMapper
                     }
                 }
 
-                $record['custom_fields'][$custom_field . '::id'] = $data['id'];
-                $record['custom_fields'][$custom_field . '::url'] = $data['url'];
-                $record['custom_fields'][$custom_field . '::title'] = $data['title'];
-                $record['custom_fields'][$custom_field . '::alt'] = $data['alt'];
-                $record['custom_fields'][$custom_field . '::caption'] = $data['caption'];
-                $record['custom_fields'][$custom_field . '::description'] = $data['description'];
+                $custom_fields[$custom_field . '::id'] = $data['id'];
+                $custom_fields[$custom_field . '::url'] = $data['url'];
+                $custom_fields[$custom_field . '::title'] = $data['title'];
+                $custom_fields[$custom_field . '::alt'] = $data['alt'];
+                $custom_fields[$custom_field . '::caption'] = $data['caption'];
+                $custom_fields[$custom_field . '::description'] = $data['description'];
             }
         }
 
-        return $record;
+        return $custom_fields;
     }
 }

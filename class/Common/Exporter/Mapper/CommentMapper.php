@@ -2,6 +2,7 @@
 
 namespace ImportWP\Common\Exporter\Mapper;
 
+use ImportWP\Common\Exporter\ExporterRecord;
 use ImportWP\Common\Exporter\MapperInterface;
 
 class CommentMapper extends AbstractMapper implements MapperInterface
@@ -16,6 +17,8 @@ class CommentMapper extends AbstractMapper implements MapperInterface
     public function __construct($post_type)
     {
         $this->post_type = $post_type;
+
+        add_filter('iwp/exporter_record/comment', [$this, 'get_record_data'], 10, 3);
     }
 
     public function get_core_fields()
@@ -120,10 +123,22 @@ class CommentMapper extends AbstractMapper implements MapperInterface
 
     public function setup($i)
     {
-        $this->record = get_comment($this->items[$i], ARRAY_A);
-        $this->record['custom_fields'] = get_comment_meta($this->record['comment_ID']);
-        $this->record = $this->modify_custom_field_data($this->record, 'comment');
+        $comment = get_comment($this->items[$i], ARRAY_A);
+
+        $this->record = new ExporterRecord($comment, 'comment');
+        $this->record = apply_filters('iwp/exporter/comment/setup_data', $this->record, $this->post_type);
 
         return true;
+    }
+
+    public function get_record_data($value, $key, $record)
+    {
+        switch ($key) {
+            case 'custom_fields':
+                $value = get_comment_meta($record['comment_ID']);
+                $value = $this->modify_custom_field_data($value, 'comment');
+                break;
+        }
+        return $value;
     }
 }

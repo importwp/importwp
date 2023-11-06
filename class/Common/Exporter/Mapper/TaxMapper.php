@@ -2,6 +2,7 @@
 
 namespace ImportWP\Common\Exporter\Mapper;
 
+use ImportWP\Common\Exporter\ExporterRecord;
 use ImportWP\Common\Exporter\MapperInterface;
 
 class TaxMapper extends AbstractMapper implements MapperInterface
@@ -26,6 +27,8 @@ class TaxMapper extends AbstractMapper implements MapperInterface
     public function __construct($taxonomy)
     {
         $this->taxonomy = $taxonomy;
+
+        add_filter('iwp/exporter_record/tax', [$this, 'get_record_data'], 10, 3);
     }
 
     public function get_fields()
@@ -138,47 +141,9 @@ class TaxMapper extends AbstractMapper implements MapperInterface
 
     public function setup($i)
     {
-        $this->record = get_term($this->items[$i], '', ARRAY_A);
-        $this->record['custom_fields'] = get_term_meta($this->record['term_id']);
-        $this->record = $this->modify_custom_field_data($this->record, 'taxonomy');
+        $term = get_term($this->items[$i], '', ARRAY_A);
 
-        $parent = get_term($this->record['parent'], $this->taxonomy);
-        if (!is_wp_error($parent)) {
-            $this->record['parent'] = [
-                'term_id' => $parent->term_id,
-                'slug' => $parent->slug,
-                'name' => $parent->name,
-                'parent' => $parent->parent
-            ];
-        } else {
-            $this->record['parent'] = [
-                'term_id' => '',
-                'slug' => '',
-                'name' => '',
-                'parent' => ''
-            ];
-        }
-
-        $ancestor_ids = get_ancestors($this->record['term_id'], $this->taxonomy, 'taxonomy');
-        $ancestor_ids = array_reverse($ancestor_ids);
-
-        $this->record['anscestors'] = [];
-
-        if ($ancestor_ids) {
-            foreach ($ancestor_ids as $ancestor_id) {
-
-                $ancestor = get_term($ancestor_id, $this->taxonomy);
-                if (!is_wp_error($ancestor)) {
-                    $this->record['anscestors'][] = [
-                        'term_id' => $ancestor->term_id,
-                        'slug' => $ancestor->slug,
-                        'name' => $ancestor->name,
-                        'parent' => $ancestor->parent
-                    ];
-                }
-            }
-        }
-
+        $this->record = new ExporterRecord($term, 'tax');
         $this->record = apply_filters('iwp/exporter/taxonomy/setup_data', $this->record, $this->taxonomy);
         return true;
     }
@@ -250,5 +215,55 @@ class TaxMapper extends AbstractMapper implements MapperInterface
 
         $output = apply_filters('iwp/exporter/taxonomy/value', $output, $column, $record, $meta);
         return $output;
+    }
+
+    public function get_record_data($value, $key, $record)
+    {
+        switch ($key) {
+            case 'custom_fields':
+                $value = get_term_meta($record['term_id']);
+                $value = $this->modify_custom_field_data($value, 'taxonomy');
+                break;
+            case 'parent':
+                $parent = get_term($record['parent'], $this->taxonomy);
+                if (!is_wp_error($parent)) {
+                    $value = [
+                        'term_id' => $parent->term_id,
+                        'slug' => $parent->slug,
+                        'name' => $parent->name,
+                        'parent' => $parent->parent
+                    ];
+                } else {
+                    $value = [
+                        'term_id' => '',
+                        'slug' => '',
+                        'name' => '',
+                        'parent' => ''
+                    ];
+                }
+                break;
+            case 'anscestors':
+                $ancestor_ids = get_ancestors($record['term_id'], $this->taxonomy, 'taxonomy');
+                $ancestor_ids = array_reverse($ancestor_ids);
+
+                $value = [];
+
+                if ($ancestor_ids) {
+                    foreach ($ancestor_ids as $ancestor_id) {
+                        $ancestor = get_term($ancestor_id, $this->taxonomy);
+                        if (!is_wp_error($ancestor)) {
+                            $value[] = [
+                                'term_id' => $ancestor->term_id,
+                                'slug' => $ancestor->slug,
+                                'name' => $ancestor->name,
+                                'parent' => $ancestor->parent
+                            ];
+                        }
+                    }
+                }
+                break;
+        }
+
+        return $value;
     }
 }
