@@ -32,6 +32,10 @@ if (!defined('IWP_CORE_MIN_PRO_VERSION')) {
 	define('IWP_CORE_MIN_PRO_VERSION', '2.6.0');
 }
 
+if (!defined('IWP_DEBUG')) {
+	define('IWP_DEBUG', false);
+}
+
 if (version_compare(PHP_VERSION, IWP_MINIMUM_PHP_VERSION, '>=')) {
 	require_once $iwp_base_path . '/class/autoload.php';
 	require_once $iwp_base_path . '/setup-iwp.php';
