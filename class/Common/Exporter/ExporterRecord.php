@@ -17,37 +17,45 @@ class ExporterRecord implements \ArrayAccess, \Iterator, \Countable
         $this->keys = array_keys($this->_data);
     }
 
-    public function current(): mixed
+    public function current()
     {
         return $this->_data[$this->keys[$this->position]];
     }
 
-    public function next(): void
+    /** @return void  */
+    public function next()
     {
         $this->position++;
     }
 
-    public function key(): mixed
+    public function key()
     {
         return $this->keys[$this->position];
     }
 
-    public function valid(): bool
+    /** @return bool  */
+    public function valid()
     {
         return isset($this->keys[$this->position]);
     }
 
-    public function rewind(): void
+    /** @return void  */
+    public function rewind()
     {
         $this->position = 0;
     }
 
-    public function count(): int
+    /** @return int<0, \max>  */
+    public function count()
     {
         return count($this->keys);
     }
 
-    public function offsetExists(mixed $offset): bool
+    /**
+     * @param mixed $offset 
+     * @return bool 
+     */
+    public function offsetExists($offset)
     {
         if (!isset($this->_data[$offset])) {
             $value = apply_filters('iwp/exporter_record/' . $this->_mapper_type, null, $offset, $this->_data);
@@ -60,12 +68,17 @@ class ExporterRecord implements \ArrayAccess, \Iterator, \Countable
         return isset($this->_data[$offset]);
     }
 
-    public function offsetGet(mixed $offset): mixed
+    public function offsetGet($offset)
     {
         return $this->offsetExists($offset) ? $this->_data[$offset] : null;
     }
 
-    public function offsetSet(mixed $offset, mixed $value): void
+    /**
+     * @param mixed $offset 
+     * @param mixed $value 
+     * @return void 
+     */
+    public function offsetSet($offset, $value)
     {
         if (is_null($offset)) {
             $this->_data[] = $value;
@@ -76,7 +89,11 @@ class ExporterRecord implements \ArrayAccess, \Iterator, \Countable
         $this->keys = array_keys($this->_data);
     }
 
-    public function offsetUnset(mixed $offset): void
+    /**
+     * @param mixed $offset 
+     * @return void 
+     */
+    public function offsetUnset($offset)
     {
         unset($this->_data[$offset]);
         $this->keys = array_keys($this->_data);
