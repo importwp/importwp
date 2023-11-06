@@ -5,6 +5,7 @@ namespace ImportWP\Common\Importer\Mapper;
 use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\MapperInterface;
 use ImportWP\Common\Importer\ParsedData;
+use ImportWP\Common\Importer\Template\TemplateManager;
 
 class UserMapper extends AbstractMapper implements MapperInterface
 {
@@ -40,7 +41,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
 
     public function exists(ParsedData $data)
     {
-        $unique_fields = ['user_email', 'user_login'];
+        $unique_fields = TemplateManager::get_template_unique_fields($this->template);
 
         $unique_fields = $this->getUniqueIdentifiers($unique_fields);
         $unique_fields = apply_filters('iwp/template_unique_fields', $unique_fields, $this->template, $this->importer);
