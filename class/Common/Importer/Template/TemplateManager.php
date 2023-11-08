@@ -16,6 +16,10 @@ class TemplateManager
         $this->event_handler = $event_handler;
     }
 
+    /**
+     * @param string $name 
+     * @return Template 
+     */
     public function load_template($name)
     {
         $template =  new $name($this->event_handler);

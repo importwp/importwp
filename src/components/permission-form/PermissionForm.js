@@ -52,13 +52,20 @@ class PermissionForm extends Component {
       unique_identifiers: window.iwp.templates.find(item => item.id === props.template).unique_fields.map(item => {
         return { label: item, value: item };
       }),
+      permission_fields: [],
+      update_permission_fields: [],
+      create_permission_fields: [],
     };
+
+    this.state.update_permission_fields = this.state.update_permissions.split("\n");
+    this.state.create_permission_fields = this.state.create_permissions.split("\n");
 
     this.onChange = this.onChange.bind(this);
     this.save = this.save.bind(this);
     this.onSave = this.onSave.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
     this.isDisabled = this.isDisabled.bind(this);
+    this.setPermissionFields = this.setPermissionFields.bind(this);
   }
 
   onChange(event) {
@@ -83,8 +90,21 @@ class PermissionForm extends Component {
     }
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+
     this.isDisabled();
+
+    try {
+
+      // load list of permission_fields
+      const template_group = await importer.template(this.props.id);
+      this.setState({ permission_fields: template_group.permission_fields });
+
+    } catch (e) {
+      this.props.onError('Error: ' + e);
+      this.setState({ loaded: true });
+      return;
+    }
   }
 
   componentDidUpdate(prevProps) {
@@ -174,6 +194,29 @@ class PermissionForm extends Component {
     });
   }
 
+  setPermissionFields(section, fields = [], add = true) {
+
+    const name = section == 'update' ? 'update_permission_fields' : 'create_permission_fields';
+
+    const onStateSet = () => {
+      this.setState({
+        [section == 'update' ? 'update_permissions' : 'create_permissions']: this.state[name].join("\n")
+      });
+    }
+
+    if (add) {
+
+      this.setState({
+        [name]: [...this.state[name], ...fields]
+      }, onStateSet);
+
+    } else {
+      this.setState({
+        [name]: [...this.state[name].filter(item => !fields.includes(item))]
+      }, onStateSet);
+    }
+  }
+
   render() {
     const {
       create,
@@ -188,6 +231,30 @@ class PermissionForm extends Component {
       setting_unique_identifier,
       remove_trash,
     } = this.state;
+
+    const permission_field_selector = (section, active_fields = []) => {
+
+      return <>
+        {Object.keys(this.state.permission_fields).map((group) => <div>
+
+          {group !== 'core' && <p style={{ fontWeight: 'bold' }}>{group}</p>}
+
+          <p>
+            <button type='button' onClick={() => {
+              this.setPermissionFields(section, Object.keys(this.state.permission_fields[group]), true);
+            }}>Check All</button>,
+            <button type='button' onClick={() => {
+              this.setPermissionFields(section, Object.keys(this.state.permission_fields[group]), false);
+            }}>Uncheck All</button>
+          </p>
+
+          {Object.keys(this.state.permission_fields[group]).map(field => <label style={{ display: 'block' }}><input type="checkbox" checked={active_fields.includes(field)} onChange={() => {
+            this.setPermissionFields(section, [field], !active_fields.includes(field));
+          }} /> {this.state.permission_fields[group][field]}</label>)}
+        </div>)}
+      </>;
+    }
+
     return (
       <React.Fragment>
         <div className="iwp-form iwp-form--mb">
@@ -296,6 +363,7 @@ class PermissionForm extends Component {
                           />
                         </div>
                         <div className="iwp-field__right">
+                          {permission_field_selector('create', this.state.create_permission_fields)}
                           <textarea
                             id="create_permissions"
                             name="create_permissions"
@@ -365,12 +433,16 @@ class PermissionForm extends Component {
                           />
                         </div>
                         <div className="iwp-field__right">
+
+                          {permission_field_selector('update', this.state.update_permission_fields)}
+
                           <textarea
                             id="update_permissions"
                             name="update_permissions"
                             onChange={this.onChange}
                             value={update_permissions}
                           ></textarea>
+
                         </div>
                       </div>
                     )}
