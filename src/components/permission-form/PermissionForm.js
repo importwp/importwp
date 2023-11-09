@@ -54,6 +54,10 @@ class PermissionForm extends Component {
       }),
     };
 
+    if (this.state.setting_unique_identifier.length > 0 && !this.state.unique_identifiers.find(item => item.value == this.state.setting_unique_identifier)) {
+      this.state.unique_identifiers = [...this.state.unique_identifiers, { label: 'Custom: ' + this.state.setting_unique_identifier, value: this.state.setting_unique_identifier }];
+    }
+
     this.onChange = this.onChange.bind(this);
     this.save = this.save.bind(this);
     this.onSave = this.onSave.bind(this);
@@ -214,11 +218,11 @@ class PermissionForm extends Component {
                     let value = data?.value;
 
                     if (value) {
-                      this.setState(
-                        {
-                          unique_identifiers: [...this.state.unique_identifiers, { label: value, value }]
-                        }
-                      );
+                      if (!this.state.unique_identifiers.find(item => item.value == value)) {
+                        this.setState({
+                          unique_identifiers: [...this.state.unique_identifiers, { label: 'Custom: ' + value, value }]
+                        });
+                      }
                     } else {
                       value = '';
                     }
