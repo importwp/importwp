@@ -356,4 +356,20 @@ class TermTemplate extends Template implements TemplateInterface
             'enabled' => $enabled
         ];
     }
+
+    public function get_permission_fields($importer_model)
+    {
+        $permission_fields = parent::get_permission_fields($importer_model);
+
+        $permission_fields['core'] = [
+            'term_id' => 'ID',
+            'name' => 'Name',
+            'description' => 'Description',
+            'slug' => 'Slug',
+            'alias_of' => 'Alias Of',
+            'parent' => 'Parent'
+        ];
+
+        return $permission_fields;
+    }
 }

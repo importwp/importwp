@@ -255,4 +255,31 @@ class UserTemplate extends Template implements TemplateInterface
             'enabled' => $enabled
         ];
     }
+
+    public function get_permission_fields($importer_model)
+    {
+        $permission_fields = parent::get_permission_fields($importer_model);
+
+        $permission_fields['core'] = [
+            'ID' => 'ID',
+            'user_pass' => 'Password',
+            'user_login' => 'Login',
+            'user_nicename' => 'Nice name',
+            'user_url' => 'Url',
+            'user_email' => 'Email',
+            'display_name' => 'Display Name',
+            'nickname' => 'Nick name',
+            'first_name' => 'First name',
+            'last_name' => 'Last name',
+            'description' => 'Description',
+            'rich_editing' => 'Rich Editing',
+            'user_registered' => 'User Registered',
+            'role' => 'Role',
+            'jabber' => 'Jabber',
+            'aim' => 'Aim',
+            'yim' => 'Yim',
+        ];
+
+        return $permission_fields;
+    }
 }

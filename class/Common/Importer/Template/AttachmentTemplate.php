@@ -463,4 +463,13 @@ class AttachmentTemplate extends Template implements TemplateInterface
             'enabled' => $enabled
         ];
     }
+
+    public function get_permission_fields($importer_model)
+    {
+        $permission_fields = parent::get_permission_fields($importer_model);
+
+        $permission_fields['core']['_wp_attachment_image_alt'] = 'Attachemt Alt';
+
+        return $permission_fields;
+    }
 }
