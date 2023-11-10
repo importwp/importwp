@@ -142,6 +142,22 @@ class AddonBase implements AddonInterface
                 $group_fields = $section->fields();
                 $group_fields = $this->_register_fields($group_fields, $template, $importer_model);
 
+                add_filter('iwp/template/permission_fields', function ($permission_fields) use ($section) {
+
+                    $section_id = $section->get_id();
+                    $section_label = $section->data('name');
+
+                    if (!isset($permission_fields[$section_label])) {
+                        $permission_fields[$section_label] = [];
+                    }
+
+                    foreach ($section->fields() as $field) {
+                        $permission_fields[$section_label][$section_id . '.' . $field->get_id()] = $field->data('name');
+                    }
+
+                    return $permission_fields;
+                });
+
 
                 $fields = array_merge($fields, [
                     $template->register_group($section_data['name'], $section_id, (array)$group_fields, $section->settings())
