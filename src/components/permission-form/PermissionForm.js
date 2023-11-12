@@ -204,7 +204,16 @@ class PermissionForm extends Component {
 
     const onStateSet = () => {
       this.setState({
-        [section == 'update' ? 'update_permissions' : 'create_permissions']: this.state[name].join("\n")
+        [section == 'update' ? 'update_permissions' : 'create_permissions']: this.state[name].filter(item => {
+
+          for (const [key, value] of Object.entries(this.state.permission_fields)) {
+            if (Object.keys(value).includes(item)) {
+              return true;
+            }
+          }
+
+          return false;
+        }).join("\n")
       });
     }
 
@@ -367,13 +376,15 @@ class PermissionForm extends Component {
                           />
                         </div>
                         <div className="iwp-field__right">
-                          {permission_field_selector('create', this.state.create_permission_fields)}
+                          {Object.keys(this.state.permission_fields).length > 0 && permission_field_selector('create', this.state.create_permission_fields)}
                           <textarea
                             id="create_permissions"
                             name="create_permissions"
                             onChange={this.onChange}
                             value={create_permissions}
+                            style={Object.keys(this.state.permission_fields).length ? { display: 'none' } : {}}
                           ></textarea>
+
                         </div>
                       </div>
                     )}
@@ -438,13 +449,14 @@ class PermissionForm extends Component {
                         </div>
                         <div className="iwp-field__right">
 
-                          {permission_field_selector('update', this.state.update_permission_fields)}
+                          {Object.keys(this.state.permission_fields).length > 0 && permission_field_selector('update', this.state.update_permission_fields)}
 
                           <textarea
                             id="update_permissions"
                             name="update_permissions"
                             onChange={this.onChange}
                             value={update_permissions}
+                            style={Object.keys(this.state.permission_fields).length ? { display: 'none' } : {}}
                           ></textarea>
 
                         </div>
