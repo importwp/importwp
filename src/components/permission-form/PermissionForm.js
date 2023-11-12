@@ -247,18 +247,22 @@ class PermissionForm extends Component {
 
     const permission_field_selector = (section, active_fields = []) => {
 
+      const btn_styles = {
+        background: 'none',
+        border: 'none',
+        textDecoration: 'underline'
+      };
+
       return <>
         {Object.keys(this.state.permission_fields).map((group) => <div>
-
-          {group !== 'core' && <p style={{ fontWeight: 'bold' }}>{group}</p>}
-
           <p>
-            <button type='button' onClick={() => {
+            {group !== 'core' && <span style={{ fontWeight: 'bold' }}>{group} </span>}
+            (<button style={btn_styles} type='button' onClick={() => {
               this.setPermissionFields(section, Object.keys(this.state.permission_fields[group]), true);
             }}>Check All</button>,
-            <button type='button' onClick={() => {
+            <button style={btn_styles} type='button' onClick={() => {
               this.setPermissionFields(section, Object.keys(this.state.permission_fields[group]), false);
-            }}>Uncheck All</button>
+            }}>Uncheck All</button>)
           </p>
 
           {Object.keys(this.state.permission_fields[group]).map(field => <label style={{ display: 'block' }}><input type="checkbox" checked={active_fields.includes(field)} onChange={() => {
@@ -372,7 +376,7 @@ class PermissionForm extends Component {
                             label="Fields"
                             field="create_permissions"
                             id="create_permissions"
-                            tooltip="Enter each field name on a new line, use * to match field names. E.g. 'field_name', starts with 'field_*', ends with '*_field', or match all '*'"
+                          // tooltip="Enter each field name on a new line, use * to match field names. E.g. 'field_name', starts with 'field_*', ends with '*_field', or match all '*'"
                           />
                         </div>
                         <div className="iwp-field__right">
@@ -444,7 +448,7 @@ class PermissionForm extends Component {
                             label="Fields"
                             field="update_permissions"
                             id="update_permissions"
-                            tooltip="Enter each field name on a new line, use * to match field names. E.g. 'field_name', starts with 'field_*', ends with '*_field', or match all '*'"
+                          // tooltip="Enter each field name on a new line, use * to match field names. E.g. 'field_name', starts with 'field_*', ends with '*_field', or match all '*'"
                           />
                         </div>
                         <div className="iwp-field__right">
