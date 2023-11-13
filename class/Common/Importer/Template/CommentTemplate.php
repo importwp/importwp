@@ -372,4 +372,29 @@ class CommentTemplate extends Template implements TemplateInterface
 
         return false;
     }
+
+    public function get_permission_fields($importer_model)
+    {
+        $permission_fields = parent::get_permission_fields($importer_model);
+
+        $permission_fields['core'] = [
+            'comment_ID' => 'ID',
+            'comment_agent' => 'User Agent',
+            'comment_approved' => 'Approved',
+            'comment_author' => 'Author',
+            'comment_author_email' => 'Author Email',
+            'comment_author_IP' => 'Ip Address',
+            'comment_author_url' => 'Author Url',
+            'comment_content' => 'Content',
+            'comment_date' => 'Date',
+            'comment_date_gmt' => 'Date GMT',
+            'comment_karma' => 'Karma',
+            'comment_parent' => 'Parent',
+            'comment_post_ID' => 'Post ID',
+            'comment_type' => 'Comment Type',
+            'user_id' => 'User ID'
+        ];
+
+        return $permission_fields;
+    }
 }

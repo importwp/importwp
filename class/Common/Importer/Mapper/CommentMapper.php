@@ -6,6 +6,7 @@ use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\MapperInterface;
 use ImportWP\Common\Importer\ParsedData;
 use ImportWP\Common\Importer\Template\TemplateManager;
+use ImportWP\Common\Util\Logger;
 
 class CommentMapper extends AbstractMapper implements MapperInterface
 {
@@ -164,6 +165,7 @@ class CommentMapper extends AbstractMapper implements MapperInterface
 
         $this->sortFields($fields, $comment, $meta);
 
+        Logger::debug('CommentMapper::insert -wp_insert_comment=' . wp_json_encode($comment));
         $this->ID = wp_insert_comment($comment);
         if (!$this->ID) {
             throw new MapperException("Unable to insert comment");
@@ -172,6 +174,7 @@ class CommentMapper extends AbstractMapper implements MapperInterface
         $this->template->process($this->ID, $data, $this->importer);
 
         $meta = array_merge($meta, $data->getData('custom_fields'));
+        Logger::debug('CommentMapper::insert -meta=' . wp_json_encode($meta));
 
         // create meta
         if ($this->ID && !empty($meta)) {
@@ -212,6 +215,8 @@ class CommentMapper extends AbstractMapper implements MapperInterface
             return false;
         }
 
+        Logger::debug('CommentMapper::update -wp_update_comment=' . wp_json_encode($comment));
+
         if (!empty($comment)) {
             $comment['comment_ID'] = $this->ID;
             $result = wp_update_comment($comment, true);
@@ -224,6 +229,8 @@ class CommentMapper extends AbstractMapper implements MapperInterface
 
         // update post meta
         $meta = array_merge($meta, $data->getData('custom_fields'));
+        Logger::debug('CommentMapper::update -meta=' . wp_json_encode($meta));
+
         if (!empty($meta)) {
             foreach ($meta as $key => $value) {
                 if (is_array($value)) {

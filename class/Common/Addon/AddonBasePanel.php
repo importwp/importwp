@@ -26,6 +26,13 @@ class AddonBasePanel extends AddonBaseContainer implements AddonPanelInterface
      */
     protected $_process_data;
 
+    /**
+     * If a panel field has permission, then the group also should have permission
+     * 
+     * @var bool
+     */
+    protected $_panel_has_permission = false;
+
     public function __construct($addon, $callback, $id, $data)
     {
         $this->_id = $id;
@@ -211,6 +218,7 @@ class AddonBasePanel extends AddonBaseContainer implements AddonPanelInterface
         $repeatable = $this->is_repeatable();
 
         $this->_process_data = $data;
+        $this->_panel_has_permission = false;
 
         $rows = $data->getData($section_id);
         if ($repeatable) {
@@ -221,10 +229,17 @@ class AddonBasePanel extends AddonBaseContainer implements AddonPanelInterface
             $this->_process_fields($id, $group_fields, $section_id, $rows, $importer_model, $template, false);
         }
 
-        // check permissions before calling save
-        $permission_key = $section_id;
-        $allowed = $this->_process_data->permission()->validate([$permission_key => ''], $this->_process_data->getMethod(), $section_id);
-        $is_allowed = isset($allowed[$permission_key]) ? true : false;
+        $is_allowed = $this->_panel_has_permission;
+
+        // groups that do not process fields without the callback, can be allowed with this key
+        if (!$is_allowed) {
+
+            // check permissions before calling save
+            $permission_key = $section_id;
+            $allowed = $this->_process_data->permission()->validate([$permission_key => ''], $this->_process_data->getMethod(), $section_id);
+            $is_allowed = isset($allowed[$permission_key]) ? true : false;
+        }
+
 
         if ($is_allowed) {
             $this->_trigger_process_callback($id, $rows, $importer_model, $template);
@@ -269,6 +284,8 @@ class AddonBasePanel extends AddonBaseContainer implements AddonPanelInterface
             if (!$is_allowed) {
                 continue;
             }
+
+            $this->_panel_has_permission = true;
 
             $group_field->_process($this->addon(), $id, $section_id, $data, $importer_model, $template, $i);
         }
