@@ -331,7 +331,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
     public function get_objects_for_removal()
     {
         if ($this->is_session_tag_enabled()) {
-            return $this->get_ids_without_session_tag('pt-' . $this->importer->getSetting('post_type'));
+            return $this->get_ids_without_session_tag('pt-' . implode('|', (array)$this->importer->getSetting('post_type')));
         } else {
             $q = new \WP_Query(array(
                 'post_type' => $this->importer->getSetting('post_type'),
