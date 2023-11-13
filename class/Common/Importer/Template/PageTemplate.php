@@ -83,4 +83,13 @@ class PageTemplate extends PostTemplate
             'enabled' => $enabled
         ];
     }
+
+    public function get_permission_fields($importer_model)
+    {
+        $permission_fields = parent::get_permission_fields($importer_model);
+
+        $permission_fields['core']['_wp_page_template'] = 'Page Template';
+
+        return $permission_fields;
+    }
 }

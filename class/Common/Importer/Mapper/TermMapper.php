@@ -6,6 +6,7 @@ use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\MapperInterface;
 use ImportWP\Common\Importer\ParsedData;
 use ImportWP\Common\Importer\Template\TemplateManager;
+use ImportWP\Common\Util\Logger;
 
 class TermMapper extends AbstractMapper implements MapperInterface
 {
@@ -162,7 +163,8 @@ class TermMapper extends AbstractMapper implements MapperInterface
                 }
             }
 
-            // returns array('term_id' => #, 'taxonomy_id' => #)
+            Logger::debug('TermMapper::insert -term=' . $term . ' -tax=' . $taxonomy . ' -wp_insert_term=' . wp_json_encode($args));
+
             $insert = wp_insert_term($term, $taxonomy, $args);
             if (is_wp_error($insert)) {
                 throw new MapperException($insert->get_error_message());
@@ -174,6 +176,7 @@ class TermMapper extends AbstractMapper implements MapperInterface
             $this->template->process($this->ID, $data, $this->importer);
 
             $custom_fields = array_merge($custom_fields, $data->getData('custom_fields'));
+            Logger::debug('TermMapper::insert -meta=' . wp_json_encode($custom_fields));
 
             if (!is_wp_error($this->ID) && intval($this->ID) > 0 && !empty($custom_fields)) {
                 foreach ($custom_fields as $key => $value) {
@@ -219,7 +222,8 @@ class TermMapper extends AbstractMapper implements MapperInterface
             }
         }
 
-        // returns array('term_id' => #, 'taxonomy_id' => #)
+        Logger::debug('TermMapper::update -tax=' . $taxonomy . ' -wp_update_term=' . wp_json_encode($args));
+
         $result = wp_update_term($this->ID, $taxonomy, $args);
         if (is_wp_error($result)) {
             throw new MapperException($result->get_error_message());
@@ -230,6 +234,7 @@ class TermMapper extends AbstractMapper implements MapperInterface
 
         // merge meta group
         $custom_fields = array_merge($custom_fields, $data->getData('custom_fields'));
+        Logger::debug('TermMapper::update -meta=' . wp_json_encode($custom_fields));
 
         if (!empty($custom_fields)) {
             foreach ($custom_fields as $key => $value) {

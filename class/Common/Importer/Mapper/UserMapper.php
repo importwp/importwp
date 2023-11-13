@@ -6,6 +6,7 @@ use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\MapperInterface;
 use ImportWP\Common\Importer\ParsedData;
 use ImportWP\Common\Importer\Template\TemplateManager;
+use ImportWP\Common\Util\Logger;
 
 class UserMapper extends AbstractMapper implements MapperInterface
 {
@@ -136,6 +137,8 @@ class UserMapper extends AbstractMapper implements MapperInterface
             throw new MapperException(strval($core['user_email']) . " is not a valid email address");
         }
 
+        Logger::debug('UserMapper::insert -wp_insert_user=' . wp_json_encode($core));
+
         $this->ID = wp_insert_user($core);
         if (is_wp_error($this->ID)) {
             throw new MapperException($this->ID->get_error_message());
@@ -146,6 +149,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
 
         // TODO: merge in custom fields from $data->getData('custom_fields');
         $meta = array_merge($meta, $data->getData('custom_fields'));
+        Logger::debug('UserMapper::insert -meta=' . wp_json_encode($meta));
 
         // update user meta
         if (!empty($meta)) {
@@ -189,6 +193,8 @@ class UserMapper extends AbstractMapper implements MapperInterface
             }
         }
 
+        Logger::debug('UserMapper::update -wp_update_user=' . wp_json_encode($core));
+
         if (!empty($core)) {
             $core['ID'] = $this->ID;
             $result = wp_update_user($core);
@@ -201,6 +207,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
         $this->template->process($this->ID, $data, $this->importer);
 
         $meta = array_merge($meta, $data->getData('custom_fields'));
+        Logger::debug('UserMapper::update -meta=' . wp_json_encode($meta));
 
         // update user meta
         if (!empty($meta)) {

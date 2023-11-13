@@ -9,6 +9,7 @@ interface TemplateInterface
     public function register();
     public function register_settings();
     public function register_options();
+    public function get_permission_fields($importer_model);
 
     /**
      * Process data before record is importer.

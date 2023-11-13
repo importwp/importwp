@@ -1218,6 +1218,7 @@ class RestManager extends \WP_REST_Controller
             'map' => $template_class->get_fields($importer_model),
             'settings' => $template_class->register_settings(),
             'options' => $template_class->register_options(),
+            'permission_fields' => apply_filters('iwp/template/permission_fields', $template_class->get_permission_fields($importer_model))
         ];
         return $this->http->end_rest_success($output);
     }
