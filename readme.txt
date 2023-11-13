@@ -131,6 +131,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.9.0 =
+
+* ADD - Add new Permission Field user interface.
+* FIX - Issue with deleting objects when template uses multiple post types.
+
 = 2.8.3 =
 
 * FIX - unique identifier field now correctly display's previously selected custom values.
