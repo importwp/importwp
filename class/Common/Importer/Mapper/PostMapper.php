@@ -371,7 +371,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
             wp_delete_post($id, $force);
         }
 
-        $this->remove_session_tag($id, 'pt-' . $this->importer->getSetting('post_type'));
+        $this->remove_session_tag($id, 'pt-' . implode('|', (array)$this->importer->getSetting('post_type')));
     }
 
     /**
