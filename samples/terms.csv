@@ -1,0 +1,5 @@
+ID," Name"," Slug"," Description"," Parent ID"," Parent Name"," Parent Slug"," Image"
+1,Colours,color,,,,,https://placehold.co/600x400/png?text=color
+2,Red,color-red,,1,Colours,color,https://placehold.co/600x400/png?text=red
+3,Blue,color-blue,,1,Colours,color,https://placehold.co/600x400/png?text=blue
+4,Green,color-green,,1,Colours,color,https://placehold.co/600x400/png?text=green

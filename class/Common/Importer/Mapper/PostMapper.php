@@ -6,6 +6,7 @@ use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\MapperInterface;
 use ImportWP\Common\Importer\ParsedData;
 use ImportWP\Common\Importer\Template\TemplateManager;
+use ImportWP\Common\Util\Logger;
 
 class PostMapper extends AbstractMapper implements MapperInterface
 {
@@ -185,6 +186,8 @@ class PostMapper extends AbstractMapper implements MapperInterface
         // set post_type
         $post['post_type'] = $this->importer->getSetting('post_type');
 
+        Logger::debug('PostMapper::insert -wp_insert_post=' . wp_json_encode($post));
+
         $this->ID = $this->create_post($post, $data);
 
         if (is_wp_error($this->ID)) {
@@ -195,6 +198,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
         $this->template->process($this->ID, $data, $this->importer);
 
         $meta = array_merge($meta, $data->getData('custom_fields'));
+        Logger::debug('PostMapper::update -meta=' . wp_json_encode($meta));
 
         // create post meta
         if ($this->ID && !empty($meta)) {
@@ -278,6 +282,8 @@ class PostMapper extends AbstractMapper implements MapperInterface
                 }
             }
 
+            Logger::debug('PostMapper::update -wp_update_post=' . wp_json_encode($post));
+
             if (!empty($post)) {
                 // update remaining
                 $post['ID'] = $this->ID;
@@ -293,6 +299,8 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
         // update post meta
         $meta = array_merge($meta, $data->getData('custom_fields'));
+        Logger::debug('PostMapper::update -meta=' . wp_json_encode($meta));
+
         if (!empty($meta)) {
             foreach ($meta as $key => $value) {
                 if (is_array($value)) {

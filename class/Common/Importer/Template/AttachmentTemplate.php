@@ -468,7 +468,23 @@ class AttachmentTemplate extends Template implements TemplateInterface
     {
         $permission_fields = parent::get_permission_fields($importer_model);
 
-        $permission_fields['core']['_wp_attachment_image_alt'] = 'Attachemt Alt';
+        $permission_fields['core'] = [
+            'ID' => 'ID',
+            'post_title' => 'Title',
+            'file' => 'Attachment File',
+            'post_content' => 'Description',
+            'post_excerpt' => 'Caption',
+            'post_name' => 'Slug',
+            'post_status' => 'Post Status',
+            'menu_order' => 'Order',
+            'post_password' => 'Password',
+            'post_date' => 'Date',
+            'comment_status' => 'Allow Comments',
+            'ping_status' => 'Allow Pingbacks',
+            'post_parent' => 'Parent',
+            'post_author' => 'Author',
+            '_wp_attachment_image_alt' => 'Alt Text',
+        ];
 
         return $permission_fields;
     }

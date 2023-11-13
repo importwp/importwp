@@ -8,6 +8,7 @@ use ImportWP\Common\Ftp\Ftp;
 use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\ParsedData;
 use ImportWP\Common\Importer\Template\TemplateManager;
+use ImportWP\Common\Util\Logger;
 use ImportWP\Container;
 
 class AttachmentMapper extends PostMapper
@@ -175,6 +176,8 @@ class AttachmentMapper extends PostMapper
 
         $this->sortFields($fields, $post, $meta);
 
+        Logger::debug('AttachmentMapper::update_post_object -wp_update_post=' . wp_json_encode($post));
+
         if (!empty($post)) {
 
             $post['ID'] = $this->ID;
@@ -188,6 +191,7 @@ class AttachmentMapper extends PostMapper
         $this->template->process($this->ID, $data, $this->importer);
 
         $meta = array_merge($meta, $data->getData('custom_fields'));
+        Logger::debug('AttachmentMapper::update_post_object -meta=' . wp_json_encode($meta));
 
         // create post meta
         if ($this->ID && !empty($meta)) {
@@ -251,6 +255,11 @@ class AttachmentMapper extends PostMapper
     public function download_attachment($data)
     {
         if (!$this->importer->isEnabledField('post.file')) {
+            return false;
+        }
+
+        $is_allowed = $data->permission()->validate(['file' => ''], $data->getMethod(), 'post');
+        if (!isset($is_allowed['file'])) {
             return false;
         }
 

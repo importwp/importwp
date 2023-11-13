@@ -1051,7 +1051,7 @@ class PostTemplate extends Template implements TemplateInterface
         $permission_fields['taxonomies'] = [];
         $taxonomies = $this->get_taxonomy_options($importer_model);
         foreach ($taxonomies as $taxonomy) {
-            $permission_fields['taxonomies']['taxonomies.' . $taxonomy['value']] = $taxonomy['label'];
+            $permission_fields['taxonomies']['taxonomy.' . $taxonomy['value']] = $taxonomy['label'];
         }
 
         $field_map = $importer_model->getMap();
