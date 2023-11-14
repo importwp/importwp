@@ -131,6 +131,10 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.9.1 =
+
+* ADD - Enable post_status field by default.
+
 = 2.9.0 =
 
 * ADD - Add new Permission Field user interface.
