@@ -120,7 +120,7 @@ class PostTemplate extends Template implements TemplateInterface
                     ['value' => 'private', 'label' => 'Private'],
                     ['value' => 'trash', 'label' => 'Trash']
                 ],
-                'tooltip' => __('Whether the post can accept comments. Accepts open or closed', 'importwp')
+                'tooltip' => __('The status of a given post determines how WordPress handles that post', 'importwp')
             ]),
             $this->register_group('Parent Settings', '_parent', [
                 $this->register_field('Parent', 'parent', [
