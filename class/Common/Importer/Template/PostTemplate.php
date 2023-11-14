@@ -62,6 +62,8 @@ class PostTemplate extends Template implements TemplateInterface
             'post._parent.parent' => [$this, 'get_post_parent_options'],
             'taxonomies.*.tax' => [$this, 'get_taxonomy_options'],
         ]);
+
+        $this->default_enabled_fields[] = 'post.post_status';
     }
 
     /**
