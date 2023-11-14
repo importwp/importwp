@@ -4,7 +4,7 @@ Tags: import, csv, xml, importer, woocommerce, product import, post import, expo
 Requires at least: 4.0  
 Tested up to: 6.4  
 Requires PHP: 5.6  
-Stable tag: 2.8.3  
+Stable tag: 2.9.0  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -130,6 +130,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.9.0 =
+
+* ADD - Add new Permission Field user interface.
+* FIX - Issue with deleting objects when template uses multiple post types.
 
 = 2.8.3 =
 

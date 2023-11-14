@@ -1027,4 +1027,41 @@ class PostTemplate extends Template implements TemplateInterface
             'enabled' => $enabled
         ];
     }
+
+    public function get_permission_fields($importer_model)
+    {
+        $permission_fields = parent::get_permission_fields($importer_model);
+
+        $permission_fields['core'] = [
+            'ID' => 'ID',
+            'post_title' => 'Title',
+            'post_content' => 'Content',
+            'post_excerpt' => 'Excerpt',
+            'post_name' => 'Slug',
+            'post_status' => 'Post Status',
+            'menu_order' => 'Menu order',
+            'post_password' => 'password',
+            'post_date' => 'Date',
+            'comment_status' => 'Comment Status',
+            'ping_status' => 'Ping Status',
+            'post_parent' => 'Parent',
+            'post_author' => 'Author',
+        ];
+
+        $permission_fields['taxonomies'] = [];
+        $taxonomies = $this->get_taxonomy_options($importer_model);
+        foreach ($taxonomies as $taxonomy) {
+            $permission_fields['taxonomies']['taxonomy.' . $taxonomy['value']] = $taxonomy['label'];
+        }
+
+        $field_map = $importer_model->getMap();
+        if (isset($field_map['attachments._index']) && $field_map['attachments._index'] > 0) {
+            $permission_fields['attachments'] = [];
+            for ($i = 0; $i < $field_map['attachments._index']; $i++) {
+                $permission_fields['attachments']['attachments.' . $i] = 'Attachment Row ' . ($i + 1);
+            }
+        }
+
+        return $permission_fields;
+    }
 }

@@ -1014,4 +1014,18 @@ class Template extends AbstractTemplate
             $base_url .= $main_zip;
         }
     }
+
+    public function get_permission_fields($importer_model)
+    {
+        return [];
+    }
+
+    public function register_settings()
+    {
+    }
+
+    public function register_options()
+    {
+        return [];
+    }
 }
