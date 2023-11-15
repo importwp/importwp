@@ -505,6 +505,12 @@ class RestManager extends \WP_REST_Controller
                 $template_options = array_merge($template_options, $post_data['template_options']);
             }
 
+            // setup default enabled fields
+            $default_enabled_fields = $template->get_default_enabled_fields();
+            foreach ($default_enabled_fields as $default_enabled_field) {
+                $importer->setEnabled($default_enabled_field);
+            }
+
             foreach ($template_options as $key => $val) {
                 $importer->setSetting($key, $val);
             }

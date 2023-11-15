@@ -48,6 +48,13 @@ class Template extends AbstractTemplate
     protected $default_template_options = [];
 
     /**
+     * 
+     * List of optional fields that are enabled by default
+     * @var string[]
+     */
+    protected $default_enabled_fields = [];
+
+    /**
      * @var \WP_Error[] $errors
      */
     protected $errors = [];
@@ -1027,5 +1034,10 @@ class Template extends AbstractTemplate
     public function register_options()
     {
         return [];
+    }
+
+    public function get_default_enabled_fields()
+    {
+        return $this->default_enabled_fields;
     }
 }
