@@ -268,7 +268,7 @@ class Importer
 
         $max_total = $progress['end'] - $progress['start'];
 
-        $i = $progress['start'] + $progress['current_row'] - 1;
+        $i = $progress['start'] + $progress['current_row'];
         $max_chunk = min(10, $max_total);
 
         $chunk_limit = $i + $max_chunk;
@@ -408,8 +408,8 @@ class Importer
                             $config['delete_ids'] = $object_ids;
                             update_site_option('iwp_importer_config_' . $id, $config);
 
-                            $state_data['progress']['delete']['start'] = 1;
-                            $state_data['progress']['delete']['end'] = $object_ids ? count($object_ids) + 1 : 0;
+                            $state_data['progress']['delete']['start'] = 0;
+                            $state_data['progress']['delete']['end'] = $object_ids ? count($object_ids) : 0;
                         } else {
                             $state_data['section'] = '';
                             $state_data['status'] = 'complete';
