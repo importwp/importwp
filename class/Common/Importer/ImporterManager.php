@@ -542,8 +542,11 @@ class ImporterManager
         try {
 
             Logger::debug('IM -init_state');
+
+            // 1. Set State Session, and load its state
             $state->init($session);
 
+            // if this is a new session, clear config files
             if ($state->has_status('init')) {
                 Logger::debug('IM -clear_config_files');
                 $this->clear_config_files($importer_id, false, true);
@@ -570,6 +573,7 @@ class ImporterManager
             Logger::debug('IM -get_importer_mapper');
             $mapper = $this->get_importer_mapper($importer_data, $template, $permission);
 
+            // if this is a new session, build config
             if ($state->has_status('init')) {
 
                 Logger::debug('IM -generate_config');
@@ -646,6 +650,7 @@ class ImporterManager
                 $parser = apply_filters('iwp/importer/init_parser', false, $importer_data, $config);
             }
 
+            // if this is a new session, set start / end rows to state
             if ($state->has_status('init')) {
 
                 Logger::debug('IM -get_record_count');
