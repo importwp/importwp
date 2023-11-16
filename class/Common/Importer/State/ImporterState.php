@@ -8,7 +8,7 @@ class ImporterState
 {
     private $data = [];
     private $importer_id;
-    protected static $object_type = '';
+    protected static $object_type = 'importer';
 
     public function __construct($importer_id, $user = '')
     {
@@ -186,26 +186,22 @@ class ImporterState
         return $result['data'];
     }
 
-    public static function update_option($key, $value = '', $update = false)
+    public static function update_option($key, $value = '')
     {
         /**
          * @var \WPDB $wpdb
          */
         global $wpdb;
 
-        $result = !$update ? self::get_option($key) : true;
-
         if (is_multisite()) {
 
-            if ($result !== false) {
-                $result = $wpdb->update($wpdb->sitemeta, ['meta_value' => $value], ['meta_key' => $key, 'site_id' => $wpdb->siteid], ['%s'], ['%s', '%s']);
-            } else {
+            $result = $wpdb->update($wpdb->sitemeta, ['meta_value' => $value], ['meta_key' => $key, 'site_id' => $wpdb->siteid], ['%s'], ['%s', '%s']);
+            if (intval($result) < 1) {
                 $result = $wpdb->insert($wpdb->sitemeta, ['meta_value' => $value, 'meta_key' => $key, 'site_id' => $wpdb->siteid], ['%s', '%s', '%s']);
             }
         } else {
-            if ($result !== false) {
-                $result = $wpdb->update($wpdb->options, ['option_value' => $value], ['option_name' => $key], ['%s'], ['%s']);
-            } else {
+            $result = $wpdb->update($wpdb->options, ['option_value' => $value], ['option_name' => $key], ['%s'], ['%s']);
+            if (intval($result) < 1) {
                 $result = $wpdb->insert($wpdb->options, ['option_value' => $value, 'option_name' => $key], ['%s', '%s']);
             }
         }
