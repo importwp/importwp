@@ -23,6 +23,10 @@ use ImportWP\Container;
 class Importer
 {
     /**
+     * @var int
+     */
+    protected $memory_limit;
+    /**
      * @var ConfigInterface $config
      */
     public $config;
@@ -266,6 +270,18 @@ class Importer
 
         $progress = $importer_state->get_progress();
         $session = $importer_state->get_session();
+        $max_total = $progress['end'] - 1;
+        $i = $progress['start'] + $progress['current_row'] - 1;
+
+        while (
+            $i < $max_total
+            && (
+                $time_limit === 0 || $this->has_enough_time($start, $time_limit, $max_record_time)
+            )
+            && $this->has_enough_memory($memory_max_usage)
+        ) {
+            $i++;
+
             $flag = ImporterState::get_flag($id);
 
             if (ImporterState::is_paused($flag)) {
@@ -296,6 +312,8 @@ class Importer
                 'skips' => 0,
                 'errors' => 0,
             ];
+
+            $record_time = microtime(true);
 
             if ($importer_state->get_section() === 'import') {
                 /**
@@ -392,6 +410,8 @@ class Importer
             $progress = $importer_state->get_progress();
 
             ImporterState::set_state($id, $importer_state->get_raw());
+
+            $max_record_time = max($max_record_time, microtime(true) - $record_time);
         }
 
         // TODO: need a new state that will stop the running from happening more than once.
@@ -455,6 +475,60 @@ class Importer
         $importer_state->populate($state_data);
 
         Util::write_status_session_to_file($id, $importer_state);
+    }
+
+    function has_enough_time($start, $time_limit, $max_record_time)
+    {
+        return (microtime(true) - $start) < $time_limit - $max_record_time;
+    }
+
+    function get_memory_usage()
+    {
+        return memory_get_usage(true);
+    }
+
+    function has_enough_memory($memory_max_usage)
+    {
+        $limit = $this->get_memory_limit();
+
+        // Has unlimited memory
+        if ($limit == '-1') {
+            return true;
+        }
+
+        $limit *= 0.9;
+        $current_usage = $this->get_memory_usage();
+
+        if ($current_usage + $memory_max_usage < $limit) {
+            return true;
+        }
+
+        Logger::error(sprintf("Not Enough Memory left to use %s,  %s/%s", Logger::formatBytes($memory_max_usage, 2), Logger::formatBytes($current_usage, 2), Logger::formatBytes($limit, 2)));
+
+        return false;
+    }
+
+    function get_memory_limit($force = false)
+    {
+        if ($force || is_null($this->memory_limit)) {
+
+            $memory_limit = ini_get('memory_limit');
+            if (preg_match('/^(\d+)(.)$/', $memory_limit, $matches)) {
+                if ($matches[2] == 'G') {
+                    $memory_limit = $matches[1] * 1024 * 1024 * 1024; // nnnM -> nnn MB
+                } elseif ($matches[2] == 'M') {
+                    $memory_limit = $matches[1] * 1024 * 1024; // nnnM -> nnn MB
+                } else if ($matches[2] == 'K') {
+                    $memory_limit = $matches[1] * 1024; // nnnK -> nnn KB
+                }
+            }
+
+            $this->memory_limit = $memory_limit;
+
+            Logger::info('memory_limit ' . $this->memory_limit . ' bytes');
+        }
+
+        return $this->memory_limit;
     }
 
     /**
