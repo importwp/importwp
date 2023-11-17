@@ -217,6 +217,7 @@ class ImporterState
         delete_site_option('iwp_' . static::$object_type . '_state_' . $id);
         delete_site_option('iwp_' . static::$object_type . '_lock_' . $id);
         delete_site_option('iwp_' . static::$object_type . '_lock_timestamp_' . $id);
+        delete_site_option('iwp_' . static::$object_type . '_flag_' . $id);
 
         /**
          * @var \WPDB $wpdb
@@ -288,5 +289,35 @@ class ImporterState
             $section = $this->get_section();
         }
         $this->data['progress'][$section]['current_row']++;
+    }
+
+    static function get_flag($id)
+    {
+        return self::get_option('iwp_' . static::$object_type . '_flag_' . $id);
+    }
+
+    static function is_paused($flag)
+    {
+        return $flag == 'paused';
+    }
+
+    static function is_cancelled($flag)
+    {
+        return $flag == 'cancelled';
+    }
+
+    static function set_paused($id)
+    {
+        self::update_option('iwp_' . static::$object_type . '_flag_' . $id, 'paused');
+    }
+
+    static function set_cancelled($id)
+    {
+        self::update_option('iwp_' . static::$object_type . '_flag_' . $id, 'cancelled');
+    }
+
+    static function clear_flag($id)
+    {
+        self::update_option('iwp_' . static::$object_type . '_flag_' . $id, '');
     }
 }

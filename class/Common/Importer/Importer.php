@@ -266,16 +266,28 @@ class Importer
 
         $progress = $importer_state->get_progress();
         $session = $importer_state->get_session();
+            $flag = ImporterState::get_flag($id);
 
-        $max_total = $progress['end'] - $progress['start'];
+            if (ImporterState::is_paused($flag)) {
 
-        $i = $progress['start'] + $progress['current_row'];
-        $max_chunk = min(10, $max_total);
+                $importer_state->populate([
+                    'status' => 'paused'
+                ]);
 
-        $chunk_limit = $i + $max_chunk;
+                ImporterState::set_state($id, $importer_state->get_raw());
+                Util::write_status_session_to_file($id, $importer_state);
+                return;
+            }
 
+            if (ImporterState::is_cancelled($flag)) {
+                $importer_state->populate([
+                    'status' => 'cancelled'
+                ]);
 
-        for ($i; $i < $chunk_limit; $i++) {
+                ImporterState::set_state($id, $importer_state->get_raw());
+                Util::write_status_session_to_file($id, $importer_state);
+                return;
+            }
 
             $stats = [
                 'inserts' => 0,

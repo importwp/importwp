@@ -720,6 +720,36 @@ class ImporterManager
         })->get_raw();
     }
 
+    public function pause_import($importer_id, $paused)
+    {
+        // TODO: set flag for paused.
+        $state = ImporterState::get_state($importer_id);
+        if ($paused === 'no') {
+            ImporterState::clear_flag($importer_id);
+            $state['status'] = 'running';
+        } else {
+            ImporterState::set_paused($importer_id);
+            $state['status'] = 'paused';
+        }
+
+        // good chance this will be overwritten
+        ImporterState::set_state($importer_id, $state);
+
+        return $state;
+    }
+
+    public function stop_import($importer_id)
+    {
+        ImporterState::set_cancelled($importer_id);
+
+        // good chance this will be overwritten
+        $state = ImporterState::get_state($importer_id);
+        $state['status'] = 'cancelled';
+        ImporterState::set_state($importer_id, $state);
+
+        return $state;
+    }
+
     public function get_start($importer_data, $start)
     {
         $tmp_start = $importer_data->getStartRow();

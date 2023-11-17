@@ -1069,22 +1069,7 @@ class RestManager extends \WP_REST_Controller
         $id = intval($request->get_param('id'));
         $paused = $this->sanitize($request->get_param('paused'), 'paused');
 
-        $importer_data = $this->importer_manager->get_importer($id);
-        $user = uniqid('iwp', true);
-
-        $state = ImporterState::wait_for_lock($importer_data->getId(), $user, function () use ($importer_data, $paused) {
-            $state = ImporterState::get_state($importer_data->getId());
-
-
-            if ($paused === 'no') {
-                $state['status'] = 'running';
-            } else {
-                $state['status'] = 'paused';
-            }
-
-            ImporterState::set_state($importer_data->getId(), $state);
-            return $state;
-        });
+        $state = $this->importer_manager->pause_import($id, $paused);
 
         return $this->http->end_rest_success($state);
     }
@@ -1093,16 +1078,7 @@ class RestManager extends \WP_REST_Controller
     {
         $id = intval($request->get_param('id'));
 
-        $importer_data = $this->importer_manager->get_importer($id);
-
-        $user = uniqid('iwp');
-
-        $state = ImporterState::wait_for_lock($importer_data->getId(), $user, function () use ($importer_data) {
-            $state = ImporterState::get_state($importer_data->getId());
-            $state['status'] = 'cancelled';
-            ImporterState::set_state($importer_data->getId(), $state);
-            return $state;
-        });
+        $state = $this->importer_manager->stop_import($id);
 
         return $this->http->end_rest_success($state);
     }
