@@ -247,8 +247,9 @@ class Importer
 
     protected function process_chunk($id, $user, $importer_state)
     {
+        // Introduce new running state, to stop cron running duplicates
         $importer_state->populate([
-            'status' => 'running'
+            'status' => 'processing'
         ]);
         ImporterState::set_state($id, $importer_state->get_raw());
 
@@ -381,10 +382,18 @@ class Importer
             ImporterState::set_state($id, $importer_state->get_raw());
         }
 
-        // default status to idle after run
-        $importer_state->populate([
-            'status' => 'timeout'
-        ]);
+        // TODO: need a new state that will stop the running from happening more than once.
+        // if returning timeout then the cron will stop on older versions
+        if (defined('IWP_PRO_VERSION') && version_compare(IWP_PRO_VERSION, '2.8.0', '>')) {
+            // default status to idle after run
+            $importer_state->populate([
+                'status' => 'timeout'
+            ]);
+        } else {
+            $importer_state->populate([
+                'status' => 'running'
+            ]);
+        }
 
         $state_data = $importer_state->get_raw();
 

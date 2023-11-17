@@ -723,7 +723,7 @@ class RestManager extends \WP_REST_Controller
             }
         }
 
-        if (isset($data['status']) && $data['status'] === 'running' && isset($data['section'])) {
+        if (isset($data['status']) && ($data['status'] === 'running' || $data['status'] === 'processing') && isset($data['section'])) {
             switch ($data['section']) {
                 case 'import':
                 case 'delete':
