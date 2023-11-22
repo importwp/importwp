@@ -234,6 +234,8 @@ class Importer
 
         $this->register_shutdown($importer_state);
 
+        $this->disable_caching();
+
         /**
          * @var Util $util
          */
@@ -247,6 +249,16 @@ class Importer
 
         $this->mapper->teardown();
         $this->unregister_shutdown();
+    }
+
+    protected function disable_caching()
+    {
+        if (!defined('WP_IMPORTING')) {
+            define('WP_IMPORTING', true);
+        }
+
+        // WP Rocket Integration
+        add_filter('rocket_is_importing', '__return_true');
     }
 
     protected function process_chunk($id, $user, $importer_state)
