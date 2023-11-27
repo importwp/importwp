@@ -131,6 +131,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.10.0 =
+
+* FIX - Reduce database calls during import.
+* ADD - during import define WP_IMPORTING flag.
+
 = 2.9.1 =
 
 * ADD - Enable post_status field by default.
