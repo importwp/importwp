@@ -302,6 +302,17 @@ class ImporterManagerTest extends \WP_UnitTestCase
             'errors' => 5,
             'inserts' => 0,
             'updates' => 0,
+            'deletes' => 0,
+            'skips' => 0
+        ], $status['stats']);
+
+        $this->assertEquals('running', $status['status']);
+
+        $status = $manager->import($new_importer, $user, $session);
+        $this->assertEquals([
+            'errors' => 5,
+            'inserts' => 0,
+            'updates' => 0,
             'deletes' => 5,
             'skips' => 0
         ], $status['stats']);
