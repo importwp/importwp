@@ -542,8 +542,11 @@ class ImporterManager
         try {
 
             Logger::debug('IM -init_state');
+
+            // 1. Set State Session, and load its state
             $state->init($session);
 
+            // if this is a new session, clear config files
             if ($state->has_status('init')) {
                 Logger::debug('IM -clear_config_files');
                 $this->clear_config_files($importer_id, false, true);
@@ -570,6 +573,7 @@ class ImporterManager
             Logger::debug('IM -get_importer_mapper');
             $mapper = $this->get_importer_mapper($importer_data, $template, $permission);
 
+            // if this is a new session, build config
             if ($state->has_status('init')) {
 
                 Logger::debug('IM -generate_config');
@@ -646,6 +650,7 @@ class ImporterManager
                 $parser = apply_filters('iwp/importer/init_parser', false, $importer_data, $config);
             }
 
+            // if this is a new session, set start / end rows to state
             if ($state->has_status('init')) {
 
                 Logger::debug('IM -get_record_count');
@@ -713,6 +718,36 @@ class ImporterManager
             $data['duration'] = floatval($data['duration']) + Logger::timer();
             return $data;
         })->get_raw();
+    }
+
+    public function pause_import($importer_id, $paused)
+    {
+        // TODO: set flag for paused.
+        $state = ImporterState::get_state($importer_id);
+        if ($paused === 'no') {
+            ImporterState::clear_flag($importer_id);
+            $state['status'] = 'running';
+        } else {
+            ImporterState::set_paused($importer_id);
+            $state['status'] = 'paused';
+        }
+
+        // good chance this will be overwritten
+        ImporterState::set_state($importer_id, $state);
+
+        return $state;
+    }
+
+    public function stop_import($importer_id)
+    {
+        ImporterState::set_cancelled($importer_id);
+
+        // good chance this will be overwritten
+        $state = ImporterState::get_state($importer_id);
+        $state['status'] = 'cancelled';
+        ImporterState::set_state($importer_id, $state);
+
+        return $state;
     }
 
     public function get_start($importer_data, $start)

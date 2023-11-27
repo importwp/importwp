@@ -4,7 +4,7 @@ Tags: import, csv, xml, importer, woocommerce, product import, post import, expo
 Requires at least: 4.0  
 Tested up to: 6.4  
 Requires PHP: 5.6  
-Stable tag: 2.9.1-rc1  
+Stable tag: 2.10.0-rc1  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -130,6 +130,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.10.0 =
+
+* FIX - Reduce database calls during import.
+* ADD - during import define WP_IMPORTING flag.
 
 = 2.9.1 =
 
