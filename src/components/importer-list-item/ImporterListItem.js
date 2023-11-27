@@ -101,20 +101,20 @@ class ImporterListItem extends React.Component {
           <p>{msg}</p>
           {version == 2 ? <>
             {
-              status == 'running' && <div
+              (status == 'running' || status == 'processing') && <div
                 className="iwp-item__progress-bar"
                 style={{ width: 100 - (this.props.status.progress[this.props.status.section].current_row / (this.props.status.progress[this.props.status.section].end - this.props.status.progress[this.props.status.section].start)) * 100 + '%' }}
               ></div>
             }
           </> : <>
-            {(status === 'running' || status === 'timeout') &&
+            {(status === 'running' || status == 'processing' || status === 'timeout') &&
               delete_counter === 0 && (
                 <div
                   className="iwp-item__progress-bar"
                   style={{ width: 100 - (counter / total) * 100 + '%' }}
                 ></div>
               )}
-            {(status === 'running' || status === 'timeout') &&
+            {(status === 'running' || status == 'processing' || status === 'timeout') &&
               delete_counter > 0 && (
                 <div
                   className="iwp-item__progress-bar"

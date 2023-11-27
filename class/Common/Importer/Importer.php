@@ -2,7 +2,10 @@
 
 namespace ImportWP\Common\Importer;
 
+use FFI\ParserException;
 use ImportWP\Common\Importer\ConfigInterface;
+use ImportWP\Common\Importer\Exception\FileException;
+use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\File\CSVFile;
 use ImportWP\Common\Importer\File\XMLFile;
 use ImportWP\Common\Importer\MapperInterface;
@@ -13,11 +16,16 @@ use ImportWP\Common\Importer\State\ImporterState;
 use ImportWP\Common\Properties\Properties;
 use ImportWP\Common\Runner\ImporterRunner;
 use ImportWP\Common\Runner\ImporterRunnerState;
+use ImportWP\Common\Util\Logger;
 use ImportWP\Common\Util\Util;
 use ImportWP\Container;
 
 class Importer
 {
+    /**
+     * @var int
+     */
+    protected $memory_limit;
     /**
      * @var ConfigInterface $config
      */
@@ -226,24 +234,313 @@ class Importer
 
         $this->register_shutdown($importer_state);
 
+        $this->disable_caching();
+
         /**
          * @var Util $util
          */
         $util = Container::getInstance()->get('util');
         $util->set_time_limit();
 
+        // TODO: 
+        // $runner = new ImporterRunner($properties, $this);
+        // $runner->process($id, $user, $importer_state);
+        $this->process_chunk($id, $user, $importer_state);
+
+        $this->mapper->teardown();
+        $this->unregister_shutdown();
+    }
+
+    protected function disable_caching()
+    {
+        if (!defined('WP_IMPORTING')) {
+            define('WP_IMPORTING', true);
+        }
+
+        // WP Rocket Integration
+        add_filter('rocket_is_importing', '__return_true');
+    }
+
+    protected function process_chunk($id, $user, $importer_state)
+    {
+        // Introduce new running state, to stop cron running duplicates
+        $importer_state->populate([
+            'status' => 'processing'
+        ]);
+        ImporterState::set_state($id, $importer_state->get_raw());
+
         /**
          * @var Properties $properties
          */
         $properties = Container::getInstance()->get('properties');
+        $time_limit = $properties->get_setting('timeout');
+        Logger::info('time_limit ' . $time_limit . 's');
 
-        $runner = new ImporterRunner($properties, $this);
-        $runner->process($id, $user, $importer_state);
+        $start = microtime(true);
+        $max_record_time = 0;
+        $memory_max_usage = 0;
+
+        $progress = $importer_state->get_progress();
+        $session = $importer_state->get_session();
+        $max_total = $progress['end'] - 1;
+        $i = $progress['start'] + $progress['current_row'] - 1;
+
+        while (
+            $i < $max_total
+            && (
+                $time_limit === 0 || $this->has_enough_time($start, $time_limit, $max_record_time)
+            )
+            && $this->has_enough_memory($memory_max_usage)
+        ) {
+            $i++;
+
+            $flag = ImporterState::get_flag($id);
+
+            if (ImporterState::is_paused($flag)) {
+
+                $importer_state->populate([
+                    'status' => 'paused'
+                ]);
+
+                ImporterState::set_state($id, $importer_state->get_raw());
+                Util::write_status_session_to_file($id, $importer_state);
+                return;
+            }
+
+            if (ImporterState::is_cancelled($flag)) {
+                $importer_state->populate([
+                    'status' => 'cancelled'
+                ]);
+
+                ImporterState::set_state($id, $importer_state->get_raw());
+                Util::write_status_session_to_file($id, $importer_state);
+                return;
+            }
+
+            $stats = [
+                'inserts' => 0,
+                'updates' => 0,
+                'deletes' => 0,
+                'skips' => 0,
+                'errors' => 0,
+            ];
+
+            $record_time = microtime(true);
+
+            if ($importer_state->get_section() === 'import') {
+                /**
+                 * @var ParsedData $data
+                 */
+                $data = null;
+
+                $data_parser = new DataParser($this->getParser(), $this->getMapper(), $this->config->getData());
+
+                try {
+
+                    $data = $data_parser->get($i);
+
+                    $skip_record = $this->filterRecords();
+                    $skip_record = apply_filters('iwp/importer/skip_record', $skip_record, $data, $this);
+
+                    if ($skip_record) {
+
+                        Logger::write('import -skip-record=' . $i);
+
+                        $stats['skips']++;
+
+                        // set data to null, to flag chunk as skipped
+                        Util::write_status_log_file_message($id, $session, "Skipped Record", 'S', $progress['current_row']);
+
+                        $data = null;
+                    } else {
+
+                        // import
+                        $data = apply_filters('iwp/importer/before_mapper', $data, $this);
+                        $data->map();
+
+                        if ($data->isInsert()) {
+
+                            Logger::write('import:' . $i . ' -success -insert');
+
+                            $stats['inserts']++;
+
+                            $message = apply_filters('iwp/status/record_inserted', 'Record Inserted: #' . $data->getId(), $data->getId(), $data);
+                            Util::write_status_log_file_message($id, $session, $message, 'S', $progress['current_row']);
+                        }
+
+                        if ($data->isUpdate()) {
+
+                            Logger::write('import:' . $i . ' -success -update');
+
+                            $stats['updates']++;
+
+                            $message = apply_filters('iwp/status/record_updated', 'Record Updated: #' . $data->getId(), $data->getId(), $data);
+                            Util::write_status_log_file_message($id, $session, $message, 'S', $progress['current_row']);
+                        }
+                    }
+                } catch (ParserException $e) {
+
+                    $stats['errors']++;
+                    Logger::error('import:' . $i . ' -parser-error=' . $e->getMessage());
+                    Util::write_status_log_file_message($id, $session, $e->getMessage(), 'E', $progress['current_row']);
+                } catch (MapperException $e) {
+
+                    $stats['errors']++;
+                    Logger::error('import:' . $i . ' -mapper-error=' . $e->getMessage());
+                    Util::write_status_log_file_message($id, $session, $e->getMessage(), 'E', $progress['current_row']);
+                } catch (FileException $e) {
+
+                    $stats['errors']++;
+                    Logger::error('import:' . $i . ' -file-error=' . $e->getMessage());
+                    Util::write_status_log_file_message($id, $session, $e->getMessage(), 'E', $progress['current_row']);
+                }
+            } elseif ($importer_state->get_section() === 'delete') {
+
+                if ($this->getMapper()->permission() && $this->getMapper()->permission()->allowed_method('remove')) {
+
+                    $GLOBALS['wp_object_cache']->delete('iwp_importer_config_' . $id, 'options');
+                    $config = get_site_option('iwp_importer_config_' . $id);
+
+                    $object_ids = $config['delete_ids'];
+                    if ($object_ids && count($object_ids) > $i) {
+                        $object_id = $object_ids[$i];
+                        $this->getMapper()->delete($object_id);
+                        $stats['deletes']++;
+
+                        Logger::write('delete:' . $i . ' -object=' . $object_id);
+
+                        $message = apply_filters('iwp/status/record_deleted', 'Record Deleted: #' . $object_id, $object_id);
+                        Util::write_status_log_file_message($id, $session, $message, 'D', $progress['current_row']);
+                    }
+                }
+            }
+
+            $importer_state->update_importer_stats($stats);
+            Util::write_status_session_to_file($id, $importer_state);
+
+            $importer_state->increment_current_row();
+            $progress = $importer_state->get_progress();
+
+            ImporterState::set_state($id, $importer_state->get_raw());
+
+            $max_record_time = max($max_record_time, microtime(true) - $record_time);
+        }
+
+        // TODO: need a new state that will stop the running from happening more than once.
+        // if returning timeout then the cron will stop on older versions
+        if (defined('IWP_PRO_VERSION') && version_compare(IWP_PRO_VERSION, '2.8.0', '>')) {
+            // default status to idle after run
+            $importer_state->populate([
+                'status' => 'timeout'
+            ]);
+        } else {
+            $importer_state->populate([
+                'status' => 'running'
+            ]);
+        }
+
+        $state_data = $importer_state->get_raw();
+
+        $progress = $importer_state->get_progress();
+        if ($progress['end'] - $progress['start'] <= $progress['current_row']) {
+
+            switch ($importer_state->get_section()) {
+                case 'import':
+
+
+                    if ($this->getMapper()->permission() && $this->getMapper()->permission()->allowed_method('remove')) {
+
+                        // importer delete
+                        $state_data['section'] = 'delete';
+
+                        // generate list of items to be deleted
+                        $object_ids = $this->getMapper()->get_objects_for_removal();
+                        if (!empty($object_ids)) {
+
+                            $config = get_site_option('iwp_importer_config_' . $id);
+                            $config['delete_ids'] = $object_ids;
+                            update_site_option('iwp_importer_config_' . $id, $config);
+
+                            $state_data['progress']['delete']['start'] = 0;
+                            $state_data['progress']['delete']['end'] = $object_ids ? count($object_ids) : 0;
+                        } else {
+                            $state_data['section'] = '';
+                            $state_data['status'] = 'complete';
+                        }
+                    } else {
+                        $state_data['section'] = '';
+                        $state_data['status'] = 'complete';
+                    }
+
+                    break;
+                case 'delete':
+
+                    // importer complete
+                    $state_data['section'] = '';
+                    $state_data['status'] = 'complete';
+
+                    break;
+            }
+        }
+
+        ImporterState::set_state($id, $state_data);
+        $importer_state->populate($state_data);
 
         Util::write_status_session_to_file($id, $importer_state);
+    }
 
-        $this->mapper->teardown();
-        $this->unregister_shutdown();
+    function has_enough_time($start, $time_limit, $max_record_time)
+    {
+        return (microtime(true) - $start) < $time_limit - $max_record_time;
+    }
+
+    function get_memory_usage()
+    {
+        return memory_get_usage(true);
+    }
+
+    function has_enough_memory($memory_max_usage)
+    {
+        $limit = $this->get_memory_limit();
+
+        // Has unlimited memory
+        if ($limit == '-1') {
+            return true;
+        }
+
+        $limit *= 0.9;
+        $current_usage = $this->get_memory_usage();
+
+        if ($current_usage + $memory_max_usage < $limit) {
+            return true;
+        }
+
+        Logger::error(sprintf("Not Enough Memory left to use %s,  %s/%s", Logger::formatBytes($memory_max_usage, 2), Logger::formatBytes($current_usage, 2), Logger::formatBytes($limit, 2)));
+
+        return false;
+    }
+
+    function get_memory_limit($force = false)
+    {
+        if ($force || is_null($this->memory_limit)) {
+
+            $memory_limit = ini_get('memory_limit');
+            if (preg_match('/^(\d+)(.)$/', $memory_limit, $matches)) {
+                if ($matches[2] == 'G') {
+                    $memory_limit = $matches[1] * 1024 * 1024 * 1024; // nnnM -> nnn MB
+                } elseif ($matches[2] == 'M') {
+                    $memory_limit = $matches[1] * 1024 * 1024; // nnnM -> nnn MB
+                } else if ($matches[2] == 'K') {
+                    $memory_limit = $matches[1] * 1024; // nnnK -> nnn KB
+                }
+            }
+
+            $this->memory_limit = $memory_limit;
+
+            Logger::info('memory_limit ' . $this->memory_limit . ' bytes');
+        }
+
+        return $this->memory_limit;
     }
 
     /**
