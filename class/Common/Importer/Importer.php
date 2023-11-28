@@ -2,10 +2,10 @@
 
 namespace ImportWP\Common\Importer;
 
-use FFI\ParserException;
 use ImportWP\Common\Importer\ConfigInterface;
 use ImportWP\Common\Importer\Exception\FileException;
 use ImportWP\Common\Importer\Exception\MapperException;
+use ImportWP\Common\Importer\Exception\ParserException;
 use ImportWP\Common\Importer\File\CSVFile;
 use ImportWP\Common\Importer\File\XMLFile;
 use ImportWP\Common\Importer\MapperInterface;
