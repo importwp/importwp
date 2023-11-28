@@ -5,7 +5,6 @@ namespace ImportWP\Common\Importer\Permission;
 use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\PermissionInterface;
 use ImportWP\Common\Model\ImporterModel;
-use ImportWP\Common\Util\Logger;
 
 class Permission implements PermissionInterface
 {
@@ -18,7 +17,6 @@ class Permission implements PermissionInterface
 
     public function validate($fields, $method, $group_id)
     {
-        Logger::info('Permission::validate -method=' . $method);
         $permission_method = false;
 
         if ('INSERT' === $method) {
@@ -26,21 +24,15 @@ class Permission implements PermissionInterface
         } elseif ('UPDATE' === $method) {
             $permission_method = 'update';
         } else {
-            Logger::info('Permission::validate -error="Not enough permissions to import record"');
             throw new MapperException('Not enough permissions to import record.');
         }
 
         if (false === $this->allowed_method($permission_method)) {
-            Logger::info('Permission::validate -error="Not enough permissions to ' . $permission_method . ' record"');
             throw new MapperException('Not enough permissions to ' . $permission_method . ' record.');
         }
 
-        Logger::info('Permission::validate -input="' . implode(' ',  array_keys($fields)) . '"');
-
         $permission_data = $this->importer_model->getPermission($permission_method);
         $fields = $this->validate_group($fields, $group_id, $permission_data);
-
-        Logger::info('Permission::validate -output="' . implode(' ',  array_keys($fields)) . '"');
 
         return $fields;
     }
