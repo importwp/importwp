@@ -81,7 +81,7 @@ class UserTemplate extends Template implements TemplateInterface
             $this->register_field('Nicename', 'user_nicename', []),
             $this->register_field('Display Name', 'display_name', []),
             $this->register_field('Description', 'description', []),
-        ]);
+        ], ['link' => 'https://www.importwp.com/docs/wordpress-user-importer-template/']);
 
         return $groups;
     }
