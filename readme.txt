@@ -131,6 +131,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.10.1 =
+
+* ADD - Add documentation links to each section heading.
+* FIX - Add tooltip to unique identifier field.
+
 = 2.10.0 =
 
 * FIX - Reduce database calls during import.

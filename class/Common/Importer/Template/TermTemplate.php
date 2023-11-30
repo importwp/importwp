@@ -99,7 +99,7 @@ class TermTemplate extends Template implements TemplateInterface
                 $this->register_field('Alias of', 'alias_of', [
                     'tooltip' => __('Slug of the term to make this term an alias of', 'importwp')
                 ]),
-            ])
+            ], ['link' => 'https://www.importwp.com/docs/wordpress-taxonomy-importer-template/'])
         ];
     }
 

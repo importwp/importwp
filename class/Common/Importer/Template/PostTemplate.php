@@ -183,7 +183,7 @@ class PostTemplate extends Template implements TemplateInterface
                 'default' => 'closed',
                 'tooltip' => __('Whether the post can accept pings', 'importwp')
             ])
-        ]);
+        ], ['link' => 'https://www.importwp.com/docs/wordpress-page-importer-template/']);
 
         // Taxonomies
         $groups[] = $this->register_taxonomy_fields();
@@ -241,7 +241,7 @@ class PostTemplate extends Template implements TemplateInterface
                     'type' => 'select'
                 ]),
             ], ['type' => 'settings'])
-        ], ['type' => 'repeatable', 'row_base' => true]);
+        ], ['type' => 'repeatable', 'row_base' => true, 'link' => 'https://www.importwp.com/docs/how-to-import-wordpress-taxonomies-onto-a-post-type/']);
     }
 
     public function register_settings()

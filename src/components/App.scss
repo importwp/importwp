@@ -6,6 +6,23 @@
   }
 }
 
+.iwp-heading--has-tooltip {
+  position: relative;
+  display: inline-block;
+  padding-right: 50px;
+  .iwp-label__tooltip {
+    text-decoration: none;
+    height: 30px;
+    width: 30px;
+    background: rgb(255, 255, 255);
+    border: 1px solid rgb(222, 222, 222);
+    line-height: 30px;
+    font-size: 18px;
+    top: 0px;
+    color: rgb(123, 130, 136);
+  }
+}
+
 .tools_page_importwp {
   #update-nag,
   .update-nag {

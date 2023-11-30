@@ -39,7 +39,7 @@ const PreviewForm = ({ id, parser, settings = {}, complete = () => { }, onError 
     return <>
         <div className="iwp-form">
             <form>
-                <p className="iwp-heading">File Settings</p>
+                <p className="iwp-heading iwp-heading--has-tooltip">File Settings. <a href="https://www.importwp.com/docs/importer-file-settings/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer" target='_blank' className='iwp-label__tooltip'>?</a></p>
                 <p>
                     Configure how the importer reads a record from your file, a
                     preview showing the first record is available at the bottom of the

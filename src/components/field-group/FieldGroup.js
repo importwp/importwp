@@ -76,13 +76,14 @@ class FieldGroup extends React.PureComponent {
   }
 
   render() {
-    const { heading, type } = this.props.group;
+    const { heading, type, link } = this.props.group;
     const { enabledData } = this.props;
 
     return (
       <div className="iwp-form iwp-form--mb">
         <form>
-          <p className="iwp-heading">{heading}</p>
+          {link ? <p className="iwp-heading iwp-heading--has-tooltip">{heading} <a href={`${link}?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer`} target='_blank' className='iwp-label__tooltip'>?</a></p> : <p className="iwp-heading">{heading}</p>}
+
           <FieldSet
             id={this.props.group.id}
             group={this.props.group}

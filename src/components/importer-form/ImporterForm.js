@@ -243,7 +243,7 @@ class ImporterForm extends Component {
       <React.Fragment>
         <div className="iwp-form">
           <form>
-            <p className="iwp-heading">Run Importer</p>
+            <p className="iwp-heading iwp-heading--has-tooltip">Run Importer. <a href="https://www.importwp.com/docs/run-import/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer" target='_blank' className='iwp-label__tooltip'>?</a></p>
 
             <div className="iwp-form__grid">
               <div className="iwp-form__row iwp-form__row--left">

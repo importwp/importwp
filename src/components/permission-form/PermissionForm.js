@@ -276,7 +276,7 @@ class PermissionForm extends Component {
       <React.Fragment>
         <div className="iwp-form iwp-form--mb">
           <form>
-            <p className="iwp-heading">Permissions.</p>
+            <p className="iwp-heading iwp-heading--has-tooltip">Permissions. <a href="https://www.importwp.com/docs/permissions/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer" target='_blank' className='iwp-label__tooltip'>?</a></p>
 
             <div className="iwp-form__grid">
               <div className="iwp-form__row iwp-form__row--left">
@@ -284,7 +284,7 @@ class PermissionForm extends Component {
                   label="Unique Identifier"
                   field="setting_unique_identifier"
                   id="setting_unique_identifier"
-                  tooltip="Set the field to be used to uniquely identify each record."
+                  tooltip="Set which field should be used to uniquely identify each record, Either select from the predefined list of fields, manually type to set a custom identifier, or Leave empty to use the template default."
                   display="inline-block"
                 />
                 <CreatableSelect
@@ -524,7 +524,7 @@ class PermissionForm extends Component {
             </button>
           </div>
         </div>
-      </React.Fragment>
+      </React.Fragment >
     );
   }
 }

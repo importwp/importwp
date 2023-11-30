@@ -39,7 +39,7 @@ class DatasourceForm extends Component {
     this.setState({ [event.target.name]: event.target.value });
   }
 
-  processFile(callback = () => {}) {
+  processFile(callback = () => { }) {
     const title = 'Processing File';
     this.setState({
       disabled: false
@@ -57,7 +57,7 @@ class DatasourceForm extends Component {
       .catch(e => this.props.onError(e));
   }
 
-  save(callback = () => {}) {
+  save(callback = () => { }) {
     this.setState({ saving: true });
     const { id } = this.props;
     const { datasource, remote_url, local_url } = this.state;
@@ -195,7 +195,7 @@ class DatasourceForm extends Component {
           {modalMessage}
         </Modal>
         <div className="iwp-form">
-          <p className="iwp-heading">Datasource</p>
+          <p className="iwp-heading iwp-heading--has-tooltip">Datasource. <a href="https://www.importwp.com/docs/selecting-a-file-to-import/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer" target='_blank' className='iwp-label__tooltip'>?</a></p>
           <p>
             Select from the options below, the method to be used to retrieve
             your data file.
@@ -365,7 +365,7 @@ DatasourceForm.propTypes = {
 DatasourceForm.defaultProps = {
   datasource: 'upload',
   settings: {},
-  onError: () => {}
+  onError: () => { }
 };
 
 export default DatasourceForm;

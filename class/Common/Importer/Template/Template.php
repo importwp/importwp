@@ -217,8 +217,12 @@ class Template extends AbstractTemplate
             'id' => $key,
             'heading' => $label,
             'type' => isset($args['type']) ? $args['type'] : 'group',
-            'fields' => $fields
+            'fields' => $fields,
         ];
+
+        if (isset($args['link']) && !empty($args['link'])) {
+            $tmp['link'] = $args['link'];
+        }
 
         if (isset($args['condition']) && !empty($args['condition'])) {
             $tmp['condition'] = $args['condition'];
@@ -362,7 +366,7 @@ class Template extends AbstractTemplate
     public function register_attachment_fields($label = 'Attachments', $name = 'attachments', $field_label = 'Location', $group_args = null, $attachment_args = [])
     {
         if (is_null($group_args)) {
-            $group_args = ['type' => 'repeatable', 'row_base' => true];
+            $group_args = ['type' => 'repeatable', 'row_base' => true, 'link' => 'https://www.importwp.com/docs/how-to-import-wordpress-attachments-onto-a-post-type/'];
         }
 
         $display_conditions = isset($attachment_args['conditions']) ? $attachment_args['conditions'] : [];

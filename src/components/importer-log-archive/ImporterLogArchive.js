@@ -67,7 +67,7 @@ class ImporterLogArchive extends Component {
     return (
       <React.Fragment>
         <div className="iwp-form">
-          <p className="iwp-heading">Importer History</p>
+          <p className="iwp-heading iwp-heading--has-tooltip">Importer History. <a href="https://www.importwp.com/docs/import-history/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer" target='_blank' className='iwp-label__tooltip'>?</a></p>
 
           <div className="iwp-table__wrapper">
             <table className="iwp-table iwp-table--fixed iwp-table--logs">
