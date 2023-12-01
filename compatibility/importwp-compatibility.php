@@ -34,7 +34,6 @@ add_filter('option_active_plugins', function ($plugins) {
         'wp-super-cache/wp-cache.php',
         'wp-optimize/wp-optimize.php',
         'wp-rocket/wp-rocket.php',
-        'wp-grid-builder-caching/wp-grid-builder-caching.php'
     ]);
 
     if (!empty($blacklist)) {
