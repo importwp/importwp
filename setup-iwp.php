@@ -158,3 +158,8 @@ function iwp_register_importer_addon($name, $id, $callback)
 {
     return new ImportWP\Common\Addon\AddonBase($name, $id, $callback);
 }
+
+function iwp_register_muplugin_uninstall()
+{
+    do_action('iwp/compat/register_muplugin_uninstall');
+}
