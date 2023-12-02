@@ -1283,14 +1283,7 @@ class RestManager extends \WP_REST_Controller
             'importwp-pro/importwp-pro.php',
         ];
 
-        $blacklisted = get_option('iwp_compat_blacklist', [
-            'w3-total-cache/w3-total-cache.php',
-            'litespeed-cache/litespeed-cache.php',
-            'wp-fastest-cache/wpFastestCache.php',
-            'wp-super-cache/wp-cache.php',
-            'wp-optimize/wp-optimize.php',
-            'wp-rocket/wp-rocket.php',
-        ]);
+        $blacklisted = (array)get_option('iwp_compat_blacklist', []);
 
         $all_plugins = get_plugins();
         foreach ($all_plugins as $plugin_id => $plugin_data) {

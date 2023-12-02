@@ -290,15 +290,16 @@ class SettingsPage extends React.Component {
           <div className="iwp-form iwp-form--mb">
             <p className="iwp-heading">Compatibility Settings</p>
 
-            <p>Select to disable which plugins are active during an import.</p>
-            
+            <p>Select which plugins should be disabled during the import process.</p>
+
             <div style={{
-              background: '#efefef',
+              background: '#f9f9f9',
               padding: '10px',
+              border: '1px solid #efefef'
             }}>
 
 
-              {Object.keys(this.state.compatibility).length === 0 && <p style={{padding:'0', margin: '0'}}>No plugins have been found</p>}
+              {Object.keys(this.state.compatibility).length === 0 && <p style={{ padding: '0', margin: '0' }}>No plugins have been found</p>}
 
               {Object.keys(this.state.compatibility).map(plugin_id => <label style={{
                 display: 'block',

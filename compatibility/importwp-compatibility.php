@@ -27,14 +27,7 @@ add_filter('option_active_plugins', function ($plugins) {
         return $plugins;
     }
 
-    $blacklist = get_option('iwp_compat_blacklist', [
-        'w3-total-cache/w3-total-cache.php',
-        'litespeed-cache/litespeed-cache.php',
-        'wp-fastest-cache/wpFastestCache.php',
-        'wp-super-cache/wp-cache.php',
-        'wp-optimize/wp-optimize.php',
-        'wp-rocket/wp-rocket.php',
-    ]);
+    $blacklist = (array)get_option('iwp_compat_blacklist', []);
 
     if (!empty($blacklist)) {
         foreach ($plugins as $key => $plugin) {
