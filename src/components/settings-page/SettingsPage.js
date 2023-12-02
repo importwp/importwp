@@ -292,34 +292,38 @@ class SettingsPage extends React.Component {
 
             <p>Select which plugins should be disabled during the import process.</p>
 
-            <div style={{
-              background: '#f9f9f9',
-              padding: '10px',
-              border: '1px solid #efefef'
-            }}>
+            {this.state.loading ? (
+              <NoticeList notices={[{ message: 'Loading', type: 'info' }]} />
+            ) :
 
-
-              {Object.keys(this.state.compatibility).length === 0 && <p style={{ padding: '0', margin: '0' }}>No plugins have been found</p>}
-
-              {Object.keys(this.state.compatibility).map(plugin_id => <label style={{
-                display: 'block',
-                marginBottom: '5px'
+              <div style={{
+                background: '#f9f9f9',
+                padding: '10px',
+                border: '1px solid #efefef'
               }}>
-                <input type="checkbox" checked={this.state.compatibility[plugin_id].enabled === 'yes'} onChange={(e) => {
-                  this.setState({
-                    compatibility: {
-                      ...this.state.compatibility,
-                      [plugin_id]: {
-                        ...this.state.compatibility[plugin_id],
-                        enabled: this.state.compatibility[plugin_id].enabled === 'yes' ? 'no' : 'yes'
-                      }
-                    }
-                  })
-                }} />
-                {this.state.compatibility[plugin_id].name}
-              </label>)}
 
-            </div>
+                {Object.keys(this.state.compatibility).length === 0 && <p style={{ padding: '0', margin: '0' }}>No plugins have been found</p>}
+
+                {Object.keys(this.state.compatibility).map(plugin_id => <label style={{
+                  display: 'block',
+                  marginBottom: '5px'
+                }}>
+                  <input type="checkbox" checked={this.state.compatibility[plugin_id].enabled === 'yes'} onChange={(e) => {
+                    this.setState({
+                      compatibility: {
+                        ...this.state.compatibility,
+                        [plugin_id]: {
+                          ...this.state.compatibility[plugin_id],
+                          enabled: this.state.compatibility[plugin_id].enabled === 'yes' ? 'no' : 'yes'
+                        }
+                      }
+                    })
+                  }} />
+                  {this.state.compatibility[plugin_id].name}
+                </label>)}
+
+              </div>
+            }
 
           </div>
 
