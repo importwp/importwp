@@ -29,7 +29,7 @@ add_filter('option_active_plugins', function ($plugins) {
 
     $blacklist = (array)get_option('iwp_compat_blacklist', []);
 
-    if (!empty($blacklist)) {
+    if (is_array($blacklist) && !empty($blacklist)) {
         foreach ($plugins as $key => $plugin) {
             if (in_array($plugin, $blacklist)) {
                 unset($plugins[$key]);
