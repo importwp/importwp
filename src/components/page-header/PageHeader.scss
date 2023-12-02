@@ -3,6 +3,13 @@
     background: #fff;
     border-bottom: 1px solid #e2e4e7;
     text-align: center;
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    width: 100%;
+    padding-left: 2em;
+    padding-right: 2em;
+    box-sizing: border-box;
 
     &__heading,
     h1 {
@@ -15,7 +22,7 @@
 
       // fix for wonky alignment
       float: left;
-      width: 100%;
+      // width: 100%;
       text-align: center;
       margin-left: 0;
       margin-right: 0;

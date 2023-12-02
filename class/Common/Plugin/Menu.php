@@ -103,6 +103,11 @@ class Menu
         $migrations = new Migrations();
         $is_setup = $migrations->isSetup() ? 'yes' : 'no';
 
+        $pro_version = '';
+        if (defined('IWP_PRO_VERSION')) {
+            $pro_version .= ' (v' . IWP_PRO_VERSION . ' PRO)';
+        }
+
         wp_localize_script($this->properties->plugin_domain . '-bundle', 'iwp', array(
             'root' => esc_url_raw(rest_url()),
             'nonce' => wp_create_nonce('wp_rest'),
@@ -111,7 +116,7 @@ class Menu
             'templates' => $template_data,
             'is_setup' => $is_setup,
             'plugin_url' => plugin_dir_url($this->properties->plugin_file_path),
-            'version' => $this->properties->plugin_version,
+            'version' => 'v' . $this->properties->plugin_version . $pro_version,
             'encodings' => $this->properties->encodings,
             'is_pro' => $this->properties->is_pro ? 'yes' : 'no',
             'export_fields' => $this->get_export_fields(),

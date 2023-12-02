@@ -6,6 +6,17 @@
   }
 }
 
+#importwp-root{
+  float: left;
+  width: 100%;
+  position: absolute;
+}
+
+.tools_page_importwp #screen-meta-links{
+  z-index: 1;
+  position: relative;
+}
+
 .iwp-heading--has-tooltip {
   position: relative;
   display: inline-block;
