@@ -104,7 +104,7 @@ class Menu
         $is_setup = $migrations->isSetup() ? 'yes' : 'no';
 
         $pro_version = '';
-        if (defined('IWP_PRO_VERSION')) {
+        if (defined('IWP_PRO_VERSION') && $this->properties->is_pro) {
             $pro_version .= ' (v' . IWP_PRO_VERSION . ' PRO)';
         }
 
