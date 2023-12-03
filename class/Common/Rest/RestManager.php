@@ -1278,17 +1278,17 @@ class RestManager extends \WP_REST_Controller
             require_once ABSPATH . 'wp-admin/includes/plugin.php';
         }
 
-        $whitelisted = [
-            'jc-importer/jc-importer.php',
-            'importwp-pro/importwp-pro.php',
-        ];
-
         $blacklisted = (array)get_option('iwp_compat_blacklist', []);
+        $whitelisted = apply_filters('iwp/compat/whitelist', [
+            'jc-importer/jc-importer.php'
+        ]);
 
         $all_plugins = get_plugins();
         foreach ($all_plugins as $plugin_id => $plugin_data) {
 
-            if (in_array($plugin_id, $whitelisted)) {
+
+
+            if (preg_match('/^importwp-/', $plugin_id, $matches) === 1 || in_array($plugin_id, $whitelisted)) {
                 continue;
             }
 
