@@ -8,6 +8,10 @@ function iwp_compat_is_rest_request()
         return true;
     }
 
+    if (defined('IWP_CRON_TOKEN') && isset($_GET['iwp_cron_token']) && $_GET['iwp_cron_token'] === IWP_CRON_TOKEN) {
+        return true;
+    }
+
     return false;
 }
 
