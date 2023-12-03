@@ -13,73 +13,75 @@ const PageHeader = ({ active, pro }) => {
   return (
     <React.Fragment>
       <div className="iwp-header">
-        <p className="iwp-header__heading">
-          <span
-            className="iwp-brand"
-            style={{
-              backgroundImage: `url(${Icon})`,
-            }}
-          >
-            Import WP {pro === true ? 'PRO ' : ''}
-          </span>
-          {PLUGIN_VERSION !== '__STABLE_TAG__' && (
-            <small>{PLUGIN_VERSION}</small>
-          )}
-        </p>
+        <div className='iwp-header__inside'>
+          <p className="iwp-header__heading">
+            <span
+              className="iwp-brand"
+              style={{
+                backgroundImage: `url(${Icon})`,
+              }}
+            >
+              Import WP {pro === true ? 'PRO ' : ''}
+            </span>
+            {PLUGIN_VERSION !== '__STABLE_TAG__' && (
+              <small>{PLUGIN_VERSION}</small>
+            )}
+          </p>
 
-        <div className="iwp-header__tabs">
-          <Link
-            to={ADMIN_BASE}
-            className={
-              'iwp-header__tab' +
-              (active === 'archive' || active === 'edit' || active === 'new'
-                ? ' iwp-header__tab--active'
-                : '')
-            }
-          >
-            Importers
-          </Link>
-          <Link
-            to={ADMIN_BASE + '&tab=exporters'}
-            className={
-              'iwp-header__tab' +
-              (active === 'exporters' ||
-                active === 'edit-exporter' ||
-                active === 'new-exporter'
-                ? ' iwp-header__tab--active'
-                : '')
-            }
-          >
-            Exporters
-          </Link>
-          <Link
-            to={ADMIN_BASE + '&tab=settings'}
-            className={
-              'iwp-header__tab' +
-              (active === 'settings' ? ' iwp-header__tab--active' : '')
-            }
-          >
-            Settings / Tools
-          </Link>
-          {pro === true ? (
-            <a
-              href="https://www.importwp.com/documentation/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=navigation"
-              className="iwp-header__tab"
-              target="_blank"
-              rel="noopener noreferrer"
+          <div className="iwp-header__tabs">
+            <Link
+              to={ADMIN_BASE}
+              className={
+                'iwp-header__tab' +
+                (active === 'archive' || active === 'edit' || active === 'new'
+                  ? ' iwp-header__tab--active'
+                  : '')
+              }
             >
-              Documentation
-            </a>
-          ) : (
-            <a
-              href="https://www.importwp.com/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=Import%2BWP%2BFree&utm_medium=navigation"
-              className="iwp-header__tab iwp-header__tab--icon"
-              target="_blank"
-              rel="noopener noreferrer"
+              Importers
+            </Link>
+            <Link
+              to={ADMIN_BASE + '&tab=exporters'}
+              className={
+                'iwp-header__tab' +
+                (active === 'exporters' ||
+                  active === 'edit-exporter' ||
+                  active === 'new-exporter'
+                  ? ' iwp-header__tab--active'
+                  : '')
+              }
             >
-              <span className="dashicons dashicons-star-filled"></span> PRO
-            </a>
-          )}
+              Exporters
+            </Link>
+            <Link
+              to={ADMIN_BASE + '&tab=settings'}
+              className={
+                'iwp-header__tab' +
+                (active === 'settings' ? ' iwp-header__tab--active' : '')
+              }
+            >
+              Settings / Tools
+            </Link>
+            {pro === true ? (
+              <a
+                href="https://www.importwp.com/documentation/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=navigation"
+                className="iwp-header__tab"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Documentation
+              </a>
+            ) : (
+              <a
+                href="https://www.importwp.com/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=Import%2BWP%2BFree&utm_medium=navigation"
+                className="iwp-header__tab iwp-header__tab--icon"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span className="dashicons dashicons-star-filled"></span> PRO
+              </a>
+            )}
+          </div>
         </div>
       </div>
       <div className="iwp-wp-notices">

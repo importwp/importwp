@@ -24,6 +24,11 @@ class Properties
     public $timeout;
     public $is_pro;
 
+    public $mu_plugin_version;
+    public $mu_plugin_dir;
+    public $mu_plugin_source;
+    public $mu_plugin_dest;
+
     public $rest_version;
     public $rest_namespace;
 

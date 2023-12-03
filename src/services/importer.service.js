@@ -5,6 +5,7 @@ let service_xhr = {};
 
 const importerSubject = new Subject(null);
 const settingsSubject = new Subject(null);
+const compatibilitySubject = new Subject(null);
 
 export const importer = {
   get,
@@ -30,6 +31,8 @@ export const importer = {
   // Settings
   getSettings,
   saveSettings,
+  getCompatibility,
+  saveCompatibility,
   debug_log,
   template,
   toolExport,
@@ -906,6 +909,70 @@ function saveSettings(data) {
           return;
         }
         settingsSubject.error(response);
+        reject(response.statusText);
+      },
+    });
+  });
+}
+
+function getCompatibility() {
+  const abortToken = abort('getCompatibility');
+  new Promise((resolve, reject) => {
+    service_xhr.getCompatibility = window.jQuery.ajax({
+      url: AJAX_BASE + '/compatibility',
+      dataType: 'json',
+      method: 'GET',
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader('X-WP-Nonce', window.iwp.nonce);
+      },
+      success: function (response) {
+        if (response.status === 'S') {
+          compatibilitySubject.next(response.data);
+          resolve(response.data);
+        } else {
+          compatibilitySubject.error(response.data);
+          reject(response.data);
+        }
+      },
+      error: function (response) {
+        if (!aborted(abortToken)) {
+          compatibilitySubject.error(response);
+          reject(response.statusText);
+        }
+      },
+    });
+  });
+
+  return compatibilitySubject;
+}
+
+function saveCompatibility(data) {
+  const abortToken = abort('saveCompatibility');
+
+  return new Promise((resolve, reject) => {
+    const url = AJAX_BASE + '/compatibility';
+    service_xhr.saveCompatibility = window.jQuery.ajax({
+      url: url,
+      dataType: 'json',
+      method: 'POST',
+      data: data,
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader('X-WP-Nonce', window.iwp.nonce);
+      },
+      success: function (response) {
+        if (response.status === 'S') {
+          compatibilitySubject.next(response.data);
+          resolve(response.data);
+        } else {
+          compatibilitySubject.error(response.data);
+          reject(response.data);
+        }
+      },
+      error: function (response) {
+        if (aborted(abortToken)) {
+          return;
+        }
+        compatibilitySubject.error(response);
         reject(response.statusText);
       },
     });

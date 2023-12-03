@@ -22,10 +22,12 @@ class SettingsPage extends React.Component {
       setting_timeout: 30,
       saving: false,
       disabled: false,
+      compatibility: {}
     };
 
     this.onSwitchChange = this.onSwitchChange.bind(this);
     this.onSave = this.onSave.bind(this);
+    this.onSaveCompatibility = this.onSaveCompatibility.bind(this);
   }
 
   componentDidMount() {
@@ -37,6 +39,19 @@ class SettingsPage extends React.Component {
         );
         this.setState(settings);
         this.setState({ loading: false });
+      },
+      error: (error) => {
+        this.setState({ loading: false });
+      },
+    });
+
+    this.compatibilitySubject = importer.getCompatibility().subscribe({
+      next: (data) => {
+        let compatibility = {};
+        Object.keys(data).forEach(
+          (setting) => (compatibility[setting] = data[setting])
+        );
+        this.setState({ loading: false, compatibility });
       },
       error: (error) => {
         this.setState({ loading: false });
@@ -56,6 +71,8 @@ class SettingsPage extends React.Component {
         return 'info';
       } else if (section === 'import-export') {
         return 'import-export';
+      } else if (section === 'compat') {
+        return 'compat';
       }
     }
     return 'general';
@@ -89,6 +106,29 @@ class SettingsPage extends React.Component {
       });
   }
 
+  onSaveCompatibility() {
+
+    const enabled = Object.keys(this.state.compatibility).reduce((prev, cur) => {
+
+      return this.state.compatibility[cur].enabled === 'yes' ? [
+        ...prev,
+        cur
+      ] : prev;
+
+    }, []);
+
+    this.setState({
+      saving: true,
+    });
+    importer
+      .saveCompatibility({ plugins: enabled })
+      .then(() => {
+        this.setState({
+          saving: false,
+        });
+      });
+  }
+
   render() {
     const { saving, disabled, loading } = this.state;
     const switch_height = 20;
@@ -111,6 +151,14 @@ class SettingsPage extends React.Component {
             }
           >
             <Link to={base}>General Settings</Link>
+          </li>
+          <li
+            className={
+              'iwp-tabs__tab ' +
+              (active === 'compat' ? 'iwp-tabs__tab--active' : '')
+            }
+          >
+            <Link to={base + '&section=compat'}>Compatibility</Link>
           </li>
           <li
             className={
@@ -237,6 +285,62 @@ class SettingsPage extends React.Component {
             </div>
           </React.Fragment>
         )}
+
+        {active === 'compat' && <>
+          <div className="iwp-form iwp-form--mb">
+            <p className="iwp-heading">Compatibility Settings</p>
+
+            <p>Select which plugins should be disabled during the import process.</p>
+
+            {this.state.loading ? (
+              <NoticeList notices={[{ message: 'Loading', type: 'info' }]} />
+            ) :
+
+              <div style={{
+                background: '#f9f9f9',
+                padding: '10px',
+                border: '1px solid #efefef'
+              }}>
+
+                {Object.keys(this.state.compatibility).length === 0 && <p style={{ padding: '0', margin: '0' }}>No plugins have been found</p>}
+
+                {Object.keys(this.state.compatibility).map(plugin_id => <label style={{
+                  display: 'block',
+                  marginBottom: '5px'
+                }}>
+                  <input type="checkbox" checked={this.state.compatibility[plugin_id].enabled === 'yes'} onChange={(e) => {
+                    this.setState({
+                      compatibility: {
+                        ...this.state.compatibility,
+                        [plugin_id]: {
+                          ...this.state.compatibility[plugin_id],
+                          enabled: this.state.compatibility[plugin_id].enabled === 'yes' ? 'no' : 'yes'
+                        }
+                      }
+                    })
+                  }} />
+                  {this.state.compatibility[plugin_id].name}
+                </label>)}
+
+              </div>
+            }
+
+          </div>
+
+          <div className="iwp-form__actions">
+            <div className="iwp-buttons">
+              <button
+                className="button button-primary"
+                type="button"
+                onClick={this.onSaveCompatibility}
+                disabled={disabled}
+              >
+                {saving && <span className="spinner is-active"></span>}
+                {saving ? 'Saving' : ' Save Settings'}
+              </button>
+            </div>
+          </div>
+        </>}
       </div>
     );
   }

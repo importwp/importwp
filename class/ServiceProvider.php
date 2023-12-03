@@ -3,6 +3,7 @@
 namespace ImportWP;
 
 use ImportWP\Common\Attachment\Attachment;
+use ImportWP\Common\Compatibility\CompatibilityManager;
 use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Filesystem\ZipArchive;
 use ImportWP\Common\Ftp\Ftp;
@@ -59,6 +60,11 @@ class ServiceProvider
      */
     public $util;
 
+    /**
+     * @var CompatibilityManager
+     */
+    public $compatibility_manager;
+
     public function __construct($event_handler)
     {
         $this->util = new Util();
@@ -71,5 +77,12 @@ class ServiceProvider
         $this->view_manager = new ViewManager($this->properties);
         $this->template_manager = new TemplateManager($event_handler);
         $this->zip_archive = new ZipArchive();
+
+        $this->properties->mu_plugin_version = 1;
+        $this->properties->mu_plugin_dir    = (defined('WPMU_PLUGIN_DIR') && defined('WPMU_PLUGIN_URL')) ? WPMU_PLUGIN_DIR : trailingslashit(WP_CONTENT_DIR) . 'mu-plugins';
+        $this->properties->mu_plugin_source = trailingslashit($this->properties->plugin_dir_path) . 'compatibility/importwp-compatibility.php';
+        $this->properties->mu_plugin_dest   = trailingslashit($this->properties->mu_plugin_dir) . 'importwp-compatibility.php';
+
+        $this->compatibility_manager = new CompatibilityManager($this->properties, $this->filesystem);
     }
 }
