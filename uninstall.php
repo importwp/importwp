@@ -9,6 +9,8 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
     die;
 }
 
+do_action('iwp/uninstall_plugin');
+
 // Escape if cleanup has not been enabled.
 $uninstall_enabled = get_option('iwp_settings');
 if (!isset($uninstall_enabled['cleanup']) || true !== $uninstall_enabled['cleanup']) {

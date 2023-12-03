@@ -237,6 +237,19 @@ class RestManager extends \WP_REST_Controller
             ),
         ));
 
+        register_rest_route($namespace, '/compatibility', array(
+            array(
+                'methods'             => \WP_REST_Server::CREATABLE,
+                'callback'            => array($this, 'save_compatibility'),
+                'permission_callback' => array($this, 'get_permission')
+            ),
+            array(
+                'methods'             => \WP_REST_Server::READABLE,
+                'callback'            => array($this, 'get_compatibility'),
+                'permission_callback' => array($this, 'get_permission')
+            ),
+        ));
+
         register_rest_route($namespace, '/import-export', array(
             array(
                 'methods'             => \WP_REST_Server::CREATABLE,
@@ -1255,6 +1268,75 @@ class RestManager extends \WP_REST_Controller
 
         echo $json;
         die();
+    }
+
+    public function get_compatibility_settings()
+    {
+        $output = [];
+
+        if (!function_exists('get_plugins')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+
+        $blacklisted = (array)get_option('iwp_compat_blacklist', []);
+        $whitelisted = apply_filters('iwp/compat/whitelist', [
+            'jc-importer/jc-importer.php'
+        ]);
+
+        $all_plugins = get_plugins();
+        foreach ($all_plugins as $plugin_id => $plugin_data) {
+
+
+
+            if (preg_match('/^importwp-/', $plugin_id, $matches) === 1 || in_array($plugin_id, $whitelisted)) {
+                continue;
+            }
+
+            $output[$plugin_id] = [
+                'id' => $plugin_id,
+                'name' => $plugin_data['Name'],
+                'enabled' => in_array($plugin_id, $blacklisted) ? 'yes' : 'no'
+            ];
+        }
+
+        return $output;
+    }
+
+    public function get_compatibility(\WP_REST_Request $request = null)
+    {
+        $output = $this->get_compatibility_settings();
+
+        return $this->http->end_rest_success($output);
+    }
+
+    public function save_compatibility(\WP_REST_Request $request)
+    {
+        $post_data = $request->get_body_params();
+        $post_data = $this->sanitize($post_data);
+
+        if (!function_exists('get_plugins')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+        $plugin_keys = array_keys(get_plugins());
+
+
+        $tmp = [];
+
+        if (isset($post_data['plugins'])) {
+
+            foreach ($post_data['plugins'] as $plugin_id) {
+                if (!in_array($plugin_id, $plugin_keys)) {
+                    continue;
+                }
+
+                $tmp[] = "" . $plugin_id;
+            }
+        }
+
+        update_option('iwp_compat_blacklist', $tmp);
+
+        $output = $this->get_compatibility_settings();
+        return $this->http->end_rest_success($output);
     }
 
     public function import_exporters(\WP_REST_Request $request = null)
