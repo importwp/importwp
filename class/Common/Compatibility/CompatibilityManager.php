@@ -50,7 +50,7 @@ class CompatibilityManager
 
     public function copy_muplugin()
     {
-        if (!$this->filesystem->copy($this->properties->mu_plugin_source, $this->properties->mu_plugin_dest)) {
+        if (!wp_mkdir_p(dirname($this->properties->mu_plugin_dest)) || !$this->filesystem->copy($this->properties->mu_plugin_source, $this->properties->mu_plugin_dest)) {
             return false;
         }
 
