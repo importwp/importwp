@@ -131,6 +131,10 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.11.1 =
+
+* FIX - fix missing error when an importer is unable to download the source file.
+
 = 2.11.0 =
 
 * ADD - Add compatability panel do attempt to disable plugins during import process.
