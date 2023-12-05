@@ -78,7 +78,7 @@ class ServiceProvider
         $this->template_manager = new TemplateManager($event_handler);
         $this->zip_archive = new ZipArchive();
 
-        $this->properties->mu_plugin_version = 1;
+        $this->properties->mu_plugin_version = 2;
         $this->properties->mu_plugin_dir    = (defined('WPMU_PLUGIN_DIR') && defined('WPMU_PLUGIN_URL')) ? WPMU_PLUGIN_DIR : trailingslashit(WP_CONTENT_DIR) . 'mu-plugins';
         $this->properties->mu_plugin_source = trailingslashit($this->properties->plugin_dir_path) . 'compatibility/importwp-compatibility.php';
         $this->properties->mu_plugin_dest   = trailingslashit($this->properties->mu_plugin_dir) . 'importwp-compatibility.php';
