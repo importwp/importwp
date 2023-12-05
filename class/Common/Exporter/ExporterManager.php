@@ -2,7 +2,6 @@
 
 namespace ImportWP\Common\Exporter;
 
-use Exception;
 use ImportWP\Common\Exporter\File\CSVFile;
 use ImportWP\Common\Exporter\File\JSONFile;
 use ImportWP\Common\Exporter\File\XMLFile;
