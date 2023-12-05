@@ -134,6 +134,7 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 = 2.11.2 =
 
 * ADD - Add exporter rest points to compatibility module.
+* FIX - Add second argument to `iwp/exporter/user/setup_data` filter, to avoid conflict with ACF module in Pro.
 
 = 2.11.1 =
 
