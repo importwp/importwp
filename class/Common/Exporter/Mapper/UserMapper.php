@@ -122,7 +122,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
         $user = get_user_by('id', $this->items[$i]);
 
         $this->record = new ExporterRecord((array)$user->data, 'user');
-        $this->record = apply_filters('iwp/exporter/user/setup_data', $this->record);
+        $this->record = apply_filters('iwp/exporter/user/setup_data', $this->record, 'user');
 
         return true;
     }

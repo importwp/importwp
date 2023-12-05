@@ -54,7 +54,7 @@ class CompatibilityManager
             return false;
         }
 
-        update_option('iwp_muplugin_version', 1);
+        update_option('iwp_muplugin_version', $this->properties->mu_plugin_version);
 
         return true;
     }
