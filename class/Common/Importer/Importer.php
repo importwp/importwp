@@ -14,7 +14,6 @@ use ImportWP\Common\Importer\Parser\XMLParser;
 use ImportWP\Common\Importer\ParserInterface;
 use ImportWP\Common\Importer\State\ImporterState;
 use ImportWP\Common\Properties\Properties;
-use ImportWP\Common\Runner\ImporterRunner;
 use ImportWP\Common\Runner\ImporterRunnerState;
 use ImportWP\Common\Util\Logger;
 use ImportWP\Common\Util\Util;
