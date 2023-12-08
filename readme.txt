@@ -4,7 +4,7 @@ Tags: import, csv, xml, importer, woocommerce, product import, post import, expo
 Requires at least: 4.0  
 Tested up to: 6.4  
 Requires PHP: 5.6  
-Stable tag: 2.11.2  
+Stable tag: 2.11.3  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -130,6 +130,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.11.3 =
+
+* FIX - remove status ajax request during manual import, instead add max record cap per request.
+* FIX - fix z ordering issue where wp footer was infront of import interface.
 
 = 2.11.2 =
 

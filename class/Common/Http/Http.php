@@ -122,17 +122,7 @@ class Http
 
     public function set_stream_headers()
     {
-        $importer_manager = Container::getInstance()->get('importer_manager');
-        if (false === $importer_manager->is_debug()) {
-            header('Content-Type: text/event-stream');
-        }
-
-        header("Content-Encoding: none");
-        header('Cache-Control: no-cache');
-
-        // Allow for other requests to run at the same time
-        if (session_status() == PHP_SESSION_ACTIVE) {
-            session_write_close();
-        }
+        send_nosniff_header();
+        nocache_headers();
     }
 }
