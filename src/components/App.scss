@@ -6,10 +6,11 @@
   }
 }
 
-#importwp-root{
+#importwp-root {
   float: left;
   width: 100%;
   position: absolute;
+  z-index: 1;
 }
 
 // .tools_page_importwp #screen-meta-links{

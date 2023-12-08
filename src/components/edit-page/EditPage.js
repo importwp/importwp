@@ -234,10 +234,11 @@ class EditPage extends React.Component {
   }
 
   runImport(session) {
-    // if (this.statusXHR !== null) {
-    //   this.statusXHR.abort();
-    //   this.statusXHR = null;
-    // }
+    if (this.statusXHR !== null) {
+      this.statusXHR.abort();
+      this.statusXHR = null;
+    }
+
     this.setState({ run_importer: session });
   }
 
@@ -338,10 +339,11 @@ class EditPage extends React.Component {
             session={run_importer}
             status={status}
             onComplete={() => {
-              this.setState({ run_importer: null });
-              // if (this.statusXHR === null) {
-              //   this.getStatus();
-              // }
+              this.setState({ run_importer: null, status: null });
+
+              if (this.statusXHR === null) {
+                this.getStatus();
+              }
             }}
           />
         )}

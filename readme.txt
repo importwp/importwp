@@ -131,6 +131,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.11.3 =
+
+* FIX - remove status ajax request during manual import, instead add max record cap per request.
+* FIX - fix z ordering issue where wp footer was infront of import interface.
+
 = 2.11.2 =
 
 * ADD - Add exporter rest points to compatibility module.

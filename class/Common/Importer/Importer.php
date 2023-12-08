@@ -285,8 +285,12 @@ class Importer
         $max_total = $progress['end'] - 1;
         $i = $progress['start'] + $progress['current_row'] - 1;
 
+        // limit to max 20 rows per chunk
+        $i_max = $i + apply_filters('iwp/chunk_max_records', 20);
+
         while (
             $i < $max_total
+            && (!defined('REST_REQUEST') || !REST_REQUEST ||  $i < $i_max)
             && (
                 $time_limit === 0 || $this->has_enough_time($start, $time_limit, $max_record_time)
             )
