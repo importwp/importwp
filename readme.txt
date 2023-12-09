@@ -134,7 +134,8 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 = 2.11.3 =
 
 * FIX - remove status ajax request during manual import, instead add max record cap per request.
-* FIX - fix z ordering issue where wp footer was infront of import interface.
+* FIX - fix layer ordering issue where wp footer was in front of import interface.
+* FIX - If importing a remote attachment, if it starts with the uploads url search media library first.
 
 = 2.11.2 =
 

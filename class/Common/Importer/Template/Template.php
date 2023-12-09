@@ -669,6 +669,14 @@ class Template extends AbstractTemplate
                         $attachment_id = $attachment->get_attachment_by_hash($source);
                     }
 
+                    // check to see if remote url matches file existing in media library
+                    if ($attachment_id <= 0) {
+                        $dir  = wp_get_upload_dir();
+                        if (str_starts_with($source, $dir['baseurl'] . '/')) {
+                            $attachment_id = attachment_url_to_postid($source);
+                        }
+                    }
+
                     if ($attachment_id <= 0) {
 
                         $main_zip_file = false;
