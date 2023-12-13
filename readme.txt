@@ -131,6 +131,10 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.11.4 =
+
+* ADD - Add missing `iwp/exporter/user/fields` filter when generating user exporter field list.
+
 = 2.11.3 =
 
 * FIX - remove status ajax request during manual import, instead add max record cap per request.
