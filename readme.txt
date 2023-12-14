@@ -9,11 +9,11 @@ License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
 
-Easily Export and Import CSV files with our WordPress csv importer. Export and Import XML files. Import posts, categories, images, and custom fields.
+Easily Import / Export CSV and xml files with our WordPress csv importer. Import posts, pages, users, categories, tags, and attachments.
 
 == Description ==
 
-Our optimised **WordPress importer** makes it easy to **export and import CSV and XML files** into WordPress posts, pages, categories, tags, custom post types, and custom taxonomies. We have simplified the process to **Import attachments, images, and any WordPress data** using our custom visual data selection tools that make it straightforward to import XML or CSV files from any **data feed**.
+Our optimised **WordPress importer** makes it easy to **export and import CSV and XML files** into WordPress posts, pages, categories, and tags. We have simplified the process to **Import attachments, images, and any WordPress data** using our custom visual data selection tools that make it straightforward to import XML or CSV files from any **data feed**.
 
 Our **WordPress exporter** allows you to **export CSV, XML or JSON files** with data from any wordpress post type or taxonomy, including exporting custom fields, images, attachments, and related terms. This means you can easily export CSV, XML or JSON files containing only the WordPress data and structure you need.
 
@@ -39,14 +39,13 @@ Attachments can be downloaded every time the importer runs, or can check the med
 * Import data from remote urls and data feeds.
 * Import data from an FTP server
 * Import data from files stored on the web server.
-* Import data to WordPress posts, pages and custom post types
-* Import categories, tags and custom taxonomies.
+* Import data to WordPress posts and pages
+* Import categories and tags.
 * Import Attachments from Remote URL
 * Import Attachments from  FTP server
 * Import Attachments from local filesystem
 * Import Attachments from Media Library.
 * Import Attachment title, caption, alt tag metadata.
-* Import custom fields
 
 = WordPress Exporter features =
 
