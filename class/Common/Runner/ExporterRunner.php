@@ -32,7 +32,7 @@ class ExporterRunner extends Runner
         $state->populate($state_data);
 
         if (!$state->validate($config['id'])) {
-            throw new \Exception("Exporter session has changed");
+            throw new \Exception(__("Exporter session has changed", 'jc-importer'));
         }
 
         $section = 'export';

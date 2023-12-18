@@ -5,15 +5,17 @@
  * Plugin URI: https://www.importwp.com
  * Description: Import WP is a powerful Importer & Exporter with a visual data selection tool that makes it easy to Export or Import any XML or CSV file to WordPress.
  * Author: James Collings <james@jclabs.co.uk>
- * Version: 2.11.4 
+ * Version: 2.11.5 
  * Author URI: https://www.importwp.com
  * Network: True
+ * Text Domain: jc-importer
+ * Domain Path: /languages
  */
 
 $iwp_base_path = dirname(__FILE__);
 
 if (!defined('IWP_VERSION')) {
-	define('IWP_VERSION', '2.11.4');
+	define('IWP_VERSION', '2.11.5');
 }
 
 if (!defined('IWP_MINIMUM_PHP_VERSION')) {

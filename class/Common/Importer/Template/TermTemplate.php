@@ -56,48 +56,48 @@ class TermTemplate extends Template implements TemplateInterface
     public function register()
     {
         return [
-            $this->register_group('Term', 'term', [
-                $this->register_field('ID', 'term_id', [
-                    'tooltip' => __('ID is only used to reference existing records', 'importwp')
+            $this->register_group(__('Term', 'jc-importer'), 'term', [
+                $this->register_field(__('ID', 'jc-importer'), 'term_id', [
+                    'tooltip' => __('ID is only used to reference existing records', 'jc-importer')
                 ]),
-                $this->register_core_field('Name', 'name', [
-                    'tooltip' => __('The term name', 'importwp')
+                $this->register_core_field(__('Name', 'jc-importer'), 'name', [
+                    'tooltip' => __('The term name', 'jc-importer')
                 ]),
-                $this->register_field('Description', 'description', [
-                    'tooltip' => __('The term description', 'importwp')
+                $this->register_field(__('Description', 'jc-importer'), 'description', [
+                    'tooltip' => __('The term description', 'jc-importer')
                 ]),
-                $this->register_field('Slug', 'slug', [
-                    'tooltip' => __('The term slug to use', 'importwp')
+                $this->register_field(__('Slug', 'jc-importer'), 'slug', [
+                    'tooltip' => __('The term slug to use', 'jc-importer')
                 ]),
-                $this->register_group('Parent Settings', '_parent', [
-                    $this->register_field('Parent', 'parent', [
+                $this->register_group(__('Parent Settings', 'jc-importer'), '_parent', [
+                    $this->register_field(__('Parent', 'jc-importer'), 'parent', [
                         'default' => '',
                         'options' => 'callback',
-                        'tooltip' => __('The id of the parent term', 'importwp')
+                        'tooltip' => __('The id of the parent term', 'jc-importer')
                     ]),
-                    $this->register_field('Parent Field Type', '_parent_type', [
+                    $this->register_field(__('Parent Field Type', 'jc-importer'), '_parent_type', [
                         'default' => 'id',
                         'options' => [
-                            ['value' => 'id', 'label' => 'ID'],
-                            ['value' => 'slug', 'label' => 'Slug'],
-                            ['value' => 'name', 'label' => 'Name'],
-                            ['value' => 'column', 'label' => 'Reference Column'],
-                            ['value' => 'custom_field', 'label' => 'Custom Field'],
+                            ['value' => 'id', 'label' => __('ID', 'jc-importer')],
+                            ['value' => 'slug', 'label' => __('Slug', 'jc-importer')],
+                            ['value' => 'name', 'label' => __('Name', 'jc-importer')],
+                            ['value' => 'column', 'label' => __('Reference Column', 'jc-importer')],
+                            ['value' => 'custom_field', 'label' => __('Custom Field', 'jc-importer')],
                         ],
                         'type' => 'select',
-                        'tooltip' => __('Select how the parent field should be handled', 'importwp')
+                        'tooltip' => __('Select how the parent field should be handled', 'jc-importer')
                     ]),
-                    $this->register_field('Parent Reference Column', '_parent_ref', [
+                    $this->register_field(__('Parent Reference Column', 'jc-importer'), '_parent_ref', [
                         'condition' => ['_parent_type', '==', 'column'],
-                        'tooltip' => __('Select the column/node that the parent field is referencing', 'importwp')
+                        'tooltip' => __('Select the column/node that the parent field is referencing', 'jc-importer')
                     ]),
-                    $this->register_field('Custom Field Key', '_custom_field', [
+                    $this->register_field(__('Custom Field Key', 'jc-importer'), '_custom_field', [
                         'condition' => ['_parent_type', '==', 'custom_field'],
-                        'tooltip' => __('Enter the name of the custom field.', 'importwp')
+                        'tooltip' => __('Enter the name of the custom field.', 'jc-importer')
                     ])
                 ]),
-                $this->register_field('Alias of', 'alias_of', [
-                    'tooltip' => __('Slug of the term to make this term an alias of', 'importwp')
+                $this->register_field(__('Alias of', 'jc-importer'), 'alias_of', [
+                    'tooltip' => __('Slug of the term to make this term an alias of', 'jc-importer')
                 ]),
             ], ['link' => 'https://www.importwp.com/docs/wordpress-taxonomy-importer-template/'])
         ];
@@ -362,12 +362,12 @@ class TermTemplate extends Template implements TemplateInterface
         $permission_fields = parent::get_permission_fields($importer_model);
 
         $permission_fields['core'] = [
-            'term_id' => 'ID',
-            'name' => 'Name',
-            'description' => 'Description',
-            'slug' => 'Slug',
-            'alias_of' => 'Alias Of',
-            'parent' => 'Parent'
+            'term_id' => __('ID', 'jc-importer'),
+            'name' => __('Name', 'jc-importer'),
+            'description' => __('Description', 'jc-importer'),
+            'slug' => __('Slug', 'jc-importer'),
+            'alias_of' => __('Alias Of', 'jc-importer'),
+            'parent' => __('Parent', 'jc-importer'),
         ];
 
         return $permission_fields;

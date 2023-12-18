@@ -327,7 +327,7 @@ class ImporterManager
 
                 if (preg_match('/^(?<protocol>s?ftp):\/\/(?:(?<user>[^\:@]+)(?:\:(?<pass>[^@]+))?@)?(?<host>[^\:\/]+)(?:\:(?<port>[0-9]+))?(?:\/(?<path>.*))$/', $source, $matches) !== 1) {
 
-                    return new \WP_Error("IM_RM_FTP_PARSE", "Unable to parse FTP connection string");
+                    return new \WP_Error("IM_RM_FTP_PARSE", __("Unable to parse FTP connection string", 'jc-importer'));
                 }
 
                 $user = isset($matches['user']) ? urldecode($matches['user']) : '';
@@ -337,11 +337,11 @@ class ImporterManager
                 $path = isset($matches['path']) ? $matches['path'] : false;
 
                 if (!$host) {
-                    return new \WP_Error("IM_RM_FTP_HOST", "Unable to parse ftp host from connection string");
+                    return new \WP_Error("IM_RM_FTP_HOST", __("Unable to parse ftp host from connection string", 'jc-importer'));
                 }
 
                 if (!$path) {
-                    return new \WP_Error("IM_RM_FTP_HOST", "Unable to parse ftp host from connection string");
+                    return new \WP_Error("IM_RM_FTP_HOST", __("Unable to parse ftp host from connection string", 'jc-importer'));
                 }
 
                 /**
@@ -426,7 +426,7 @@ class ImporterManager
 
         $file_id = $this->link_importer_file($id, $file_path);
         if (!$file_id) {
-            return new \WP_Error('IWP_IM_01', 'Unable to link importer file');
+            return new \WP_Error('IWP_IM_01', __('Unable to link importer file', 'jc-importer'));
         }
 
         if (is_null($importer_model->getParser())) {
@@ -489,7 +489,7 @@ class ImporterManager
         $base .= str_pad($id, 2, STR_PAD_LEFT) . DIRECTORY_SEPARATOR;
         if (!file_exists($base)) {
             if (!is_writable(dirname($base)) || !mkdir($base)) {
-                throw new \Exception("Unable to create directory: " . $base);
+                throw new \Exception(sprintf(__("Unable to create directory: %s", 'jc-importer'), $base));
             }
         }
 
@@ -498,7 +498,7 @@ class ImporterManager
             if (!file_exists($base)) {
 
                 if (!is_writable(dirname($base)) || !mkdir($base)) {
-                    throw new \Exception("Unable to create directory: " . $base);
+                    throw new \Exception(sprintf(__("Unable to create directory: %s", 'jc-importer'), $base));
                 }
             }
 
@@ -620,12 +620,12 @@ class ImporterManager
                             break;
                         default:
                             // TODO: record error 
-                            $attachment_id = new \WP_Error('IWP_CRON_1', 'Unable to get new file using datasource: ' . $datasource);
+                            $attachment_id = new \WP_Error('IWP_CRON_1', sprintf(__('Unable to get new file using datasource: %s', 'jc-importer'), $datasource));
                             break;
                     }
 
                     if (is_wp_error($attachment_id)) {
-                        throw new \Exception('Importer Datasource: ' . $attachment_id->get_error_message());
+                        throw new \Exception(sprintf(__('Importer Datasource: %s', 'jc-importer'), $attachment_id->get_error_message()));
                     }
                 }
             }
@@ -784,7 +784,7 @@ class ImporterManager
         $template_name = $importer_model->getTemplate();
 
         if (!isset($templates[$template_name])) {
-            $exception_msg = "Unable to locate importer template: " . $template_name;
+            $exception_msg = sprintf(__("Unable to locate importer template: %s", 'jc-importer'), $template_name);
             Logger::error('import -get_importer_template=' . $exception_msg, $importer_model->getId());
             throw new \Exception($exception_msg);
         }
@@ -826,7 +826,7 @@ class ImporterManager
     {
         $mappers = $this->get_mappers();
         if (!isset($mappers[$key])) {
-            return new \WP_Error('IWP_IM_1', 'Unable to locate mapper: ' . $key);
+            return new \WP_Error('IWP_IM_1', sprintf(__('Unable to locate mapper: %s', 'jc-importer'), $key));
         }
 
         return $mappers[$key];
@@ -851,7 +851,7 @@ class ImporterManager
     {
         $templates = $this->get_templates();
         if (!isset($templates[$key])) {
-            return new \WP_Error('IWP_IM_1', 'Unable to locate template: ' . $key);
+            return new \WP_Error('IWP_IM_1', sprintf(__('Unable to locate template: %s', 'jc-importer'), $key));
         }
 
         return $templates[$key];

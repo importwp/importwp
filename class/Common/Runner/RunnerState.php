@@ -44,13 +44,13 @@ abstract class RunnerState
         $state = self::wait_for_lock_and_get_state($this->id, $this->user, $this->default($session));
 
         if (!$state || !isset($state['status'])) {
-            throw new \Exception("Invalid state");
+            throw new \Exception(__("Invalid state", 'jc-importer'));
         }
 
         $this->populate($state);
 
         if (!$this->validate($session)) {
-            throw new \Exception("Session has changed");
+            throw new \Exception(__("Session has changed", 'jc-importer'));
         }
     }
 
@@ -179,7 +179,7 @@ abstract class RunnerState
         } while (!$has_lock && (microtime(true) - $start < 30));
 
         if (!$has_lock) {
-            throw new \Exception("Unable to get lock");
+            throw new \Exception(__("Unable to get lock", 'jc-importer'));
         }
 
         return $result;

@@ -61,10 +61,10 @@ class Menu
             [
                 '<a href="' .
                     admin_url('tools.php?page=' . $this->properties->plugin_domain) .
-                    '">' . __('Dashboard', 'importwp') . '</a>',
+                    '">' . __('Dashboard', 'jc-importer') . '</a>',
                 '<a href="' .
                     admin_url('tools.php?page=' . $this->properties->plugin_domain . '&tab=settings') .
-                    '">' . __('Settings', 'importwp') . '</a>',
+                    '">' . __('Settings', 'jc-importer') . '</a>',
             ],
             $links
         );
@@ -190,15 +190,15 @@ class Menu
         $screen->add_help_tab(array(
             'id'    => 'iwp_help_tab',
             'title' => __('Overview'),
-            'content'   => '<p>' . __('Import WP allows you to import any XML or CSV file into WordPress posts, pages, users, categories and tags.', 'importwp') . '</p>',
+            'content'   => '<p>' . __('ImportWP allows you to import any XML or CSV file into WordPress posts, pages, users, categories and tags.', 'jc-importer') . '</p>',
         ));
 
         $screen->add_help_tab([
             'id' => 'iwp_support_tab',
-            'title' => __('Plugin Support', 'importwp'),
-            'content' => '<p>' . __('Import WP  has the following support:', 'importwp') . '</p>'
-                . '<p>' . __('<strong>Plugin documentation</strong> — Online documentation can be found at <a href="https://www.importwp.com/docs/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=help%2Btab" target="_blank">https://www.importwp.com/docs/</a>', 'importwp') . '</p>'
-                . '<p>' . __('<strong>Support Tickets</strong> — Support requests are handled on our support system at <a href="https://helpdesk.importwp.com/" target="_blank">https://helpdesk.importwp.com/</a>', 'importwp') . '</p>',
+            'title' => __('Plugin Support', 'jc-importer'),
+            'content' => '<p>' . __('Import WP  has the following support:', 'jc-importer') . '</p>'
+                . '<p>' . sprintf(__('documentation — Online documentation can be found at %s', 'jc-importer'), '<a href="https://www.importwp.com/docs/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=help%2Btab" target="_blank">https://www.importwp.com/docs/</a>') . '</p>'
+                . '<p>' . sprintf(__('Support Tickets — Support requests are handled on our support system at %s', 'jc-importer'), '<a href="https://helpdesk.importwp.com/" target="_blank">https://helpdesk.importwp.com/</a>') . '</p>',
         ]);
     }
 }

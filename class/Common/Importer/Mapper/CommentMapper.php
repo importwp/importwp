@@ -103,7 +103,7 @@ class CommentMapper extends AbstractMapper implements MapperInterface
         }
 
         if (!$has_unique_field) {
-            throw new MapperException("No Unique fields present.");
+            throw new MapperException(__("No Unique fields present.", 'jc-importer'));
         }
 
         if (!empty($meta_args)) {
@@ -114,7 +114,7 @@ class CommentMapper extends AbstractMapper implements MapperInterface
 
         // $query->found_comments doesnt work when using field ids
         if (count($query->comments) > 1) {
-            throw new MapperException("Record is not unique: " . $unique_field_found . ", Matching Ids: (" . implode(', ', $query->comments) . ").");
+            throw new MapperException(sprintf(__("Record is not unique: %s, Matching Ids: (%s).", 'jc-importer'), $unique_field_found, implode(', ', $query->comments)));
         }
 
         if (count($query->comments) == 1) {
@@ -168,7 +168,7 @@ class CommentMapper extends AbstractMapper implements MapperInterface
         Logger::debug('CommentMapper::insert -wp_insert_comment=' . wp_json_encode($comment));
         $this->ID = wp_insert_comment($comment);
         if (!$this->ID) {
-            throw new MapperException("Unable to insert comment");
+            throw new MapperException(__("Unable to insert comment", 'jc-importer'));
         }
 
         $this->template->process($this->ID, $data, $this->importer);

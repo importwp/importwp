@@ -102,7 +102,7 @@ class TermMapper extends AbstractMapper implements MapperInterface
         }
 
         if (!$has_unique_field) {
-            throw new MapperException("No Unique fields present.");
+            throw new MapperException(__("No Unique fields present.", 'jc-importer'));
         }
 
         if (!empty($meta_args)) {
@@ -115,7 +115,7 @@ class TermMapper extends AbstractMapper implements MapperInterface
         }
 
         if (count($query->terms) > 1) {
-            throw new MapperException("Record is not unique: " . $unique_field_found . ", Matching Ids: (" . implode(', ', $query->terms) . ").");
+            throw new MapperException(sprintf(__("Record is not unique: %s, Matching Ids: (%s).", 'jc-importer'), $unique_field_found, implode(', ', $query->terms)));
         }
 
         if (count($query->terms) == 1) {

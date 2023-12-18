@@ -42,7 +42,7 @@ class Http
             $response_code = wp_remote_retrieve_response_code($response);
             Logger::write(__CLASS__ . '::download_file -response-code=' . $response_code . ' -url=' . esc_url($source));
             if ($response_code !== 200) {
-                return new \WP_Error('IWP_HTTP_1', 'Unable to download: ' . esc_url($source) . ', Response Code: ' . $response_code);
+                return new \WP_Error('IWP_HTTP_1', sprintf(__('Unable to download: %s, Response Code: %s', 'jc-importer'), esc_url($source), $response_code));
             }
 
             $filename = $this->get_response_filename($response);
@@ -75,7 +75,7 @@ class Http
 
         Logger::write(__CLASS__ . '::download_file_stream -response-code=' . $response_code . ' -url=' . esc_url($source) . ' -size=' . filesize($destination));
         if ($response_code !== 200) {
-            return new \WP_Error('IWP_HTTP_1', 'Unable to download: ' . esc_url($source) . ', Response Code: ' . $response_code);
+            return new \WP_Error('IWP_HTTP_1', sprintf(__('Unable to download: %s, Response Code: %s', 'jc-importer'), esc_url($source), $response_code));
         }
 
         $filename = $this->get_response_filename($response);

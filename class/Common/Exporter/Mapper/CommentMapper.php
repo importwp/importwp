@@ -53,13 +53,13 @@ class CommentMapper extends AbstractMapper implements MapperInterface
 
         $fields = [
             'key' => 'main',
-            'label' => 'Comment',
+            'label' => __('Comment', 'jc-importer'),
             'loop' => true,
             'fields' => [],
             'children' => [
                 'custom_fields' => [
                     'key' => 'custom_fields',
-                    'label' => 'Custom Fields',
+                    'label' => __('Custom Fields', 'jc-importer'),
                     'loop' => true,
                     'loop_fields' => ['meta_key', 'meta_value'],
                     'fields' => [],
