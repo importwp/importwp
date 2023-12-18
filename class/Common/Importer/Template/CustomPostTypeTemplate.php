@@ -24,10 +24,10 @@ class CustomPostTypeTemplate extends PostTemplate
             $output[] = ['value' => 'iwp_pro', 'label' => $value];
         }
 
-        $options = array_merge([['value' => '', 'label' => 'Choose a Post Type']], $output);
+        $options = array_merge([['value' => '', 'label' => __('Choose a Post Type', 'jc-importer')]], $output);
 
         return [
-            $this->register_field('Post Type', 'post_type', [
+            $this->register_field(__('Post Type', 'jc-importer'), 'post_type', [
                 'options' => $options
             ])
         ];

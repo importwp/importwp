@@ -33,7 +33,7 @@ class ImporterRunner extends Runner
         $state->populate($state_data);
 
         if (!$state->validate($config['id'])) {
-            throw new \Exception("Importer session has changed");
+            throw new \Exception(__("Importer session has changed", 'jc-importer'));
         }
 
         if ($state->has_status('running')) {

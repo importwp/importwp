@@ -66,34 +66,34 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
         $fields = [
             'key' => 'main',
-            'label' => 'Post',
+            'label' => __('Post', 'jc-importer'),
             'loop' => true,
             'fields' => [],
             'children' => [
                 'author' => [
                     'key' => 'author',
-                    'label' => 'Author',
+                    'label' => __('Author', 'jc-importer'),
                     'loop' => false,
                     'fields' => [],
                     'children' => []
                 ],
                 'image' => [
                     'key' => 'image',
-                    'label' => 'Featured Image',
+                    'label' => __('Featured Image', 'jc-importer'),
                     'loop' => false,
                     'fields' => ['id', 'url', 'title', 'alt', 'caption', 'description'],
                     'children' => []
                 ],
                 'parent' => [
                     'key' => 'parent',
-                    'label' => 'Parent',
+                    'label' => __('Parent', 'jc-importer'),
                     'loop' => false,
                     'fields' => ['id', 'name', 'slug'],
                     'children' => []
                 ],
                 'custom_fields' => [
                     'key' => 'custom_fields',
-                    'label' => 'Custom Fields',
+                    'label' => __('Custom Fields', 'jc-importer'),
                     'loop' => true,
                     'loop_fields' => ['meta_key', 'meta_value'],
                     'fields' => [],

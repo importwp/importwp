@@ -222,11 +222,11 @@ class Importer
     public function import($id, $user, $importer_state)
     {
         if ($this->parser == null) {
-            throw new \Exception("Parser Not Loaded.");
+            throw new \Exception(__("Parser Not Loaded.", 'jc-importer'));
         }
 
         if ($this->mapper == null) {
-            throw new \Exception("Mapper Not Loaded.");
+            throw new \Exception(__("Mapper Not Loaded.", 'jc-importer'));
         }
 
         $this->mapper->setup();

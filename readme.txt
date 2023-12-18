@@ -130,6 +130,10 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.11.5 =
+
+* ADD - Add pot translation file.
+
 = 2.11.4 =
 
 * ADD - Add missing `iwp/exporter/user/fields` filter when generating user exporter field list.

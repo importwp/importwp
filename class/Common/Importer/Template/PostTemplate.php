@@ -83,7 +83,7 @@ class PostTemplate extends Template implements TemplateInterface
         }
 
         if (!empty($this->_attachments)) {
-            $message .= ', Attachments: (' . implode(', ', $this->_attachments) . ')';
+            $message .= sprintf(__(', Attachments: (%s)', 'jc-importer'), implode(', ', $this->_attachments));
         }
 
         return $message;
@@ -94,94 +94,94 @@ class PostTemplate extends Template implements TemplateInterface
         $groups = [];
 
         // Post
-        $groups[] = $this->register_group('Post Fields', 'post', [
-            $this->register_field('ID', 'ID', [
-                'tooltip' => __('ID is only used to reference existing records', 'importwp')
+        $groups[] = $this->register_group(__('Post Fields', 'jc-importer'), 'post', [
+            $this->register_field(__('ID', 'jc-importer'), 'ID', [
+                'tooltip' => __('ID is only used to reference existing records', 'jc-importer')
             ]),
-            $this->register_core_field('Title', 'post_title', [
-                'tooltip' => __('Title of the post.', 'importwp')
+            $this->register_core_field(__('Title', 'jc-importer'), 'post_title', [
+                'tooltip' => __('Title of the post.', 'jc-importer')
             ]),
-            $this->register_core_field('Content', 'post_content', [
-                'tooltip' => __('Main WYSIWYG editor content of the post.', 'importwp')
+            $this->register_core_field(__('Content', 'jc-importer'), 'post_content', [
+                'tooltip' => __('Main WYSIWYG editor content of the post.', 'jc-importer')
             ]),
-            $this->register_field('Excerpt', 'post_excerpt', [
-                'tooltip' => __('A custom short extract for the post.', 'importwp')
+            $this->register_field(__('Excerpt', 'jc-importer'), 'post_excerpt', [
+                'tooltip' => __('A custom short extract for the post.', 'jc-importer')
             ]),
-            $this->register_field('Slug', 'post_name', [
-                'tooltip' => __('The slug is the user friendly and URL valid name of the post.', 'importwp')
+            $this->register_field(__('Slug', 'jc-importer'), 'post_name', [
+                'tooltip' => __('The slug is the user friendly and URL valid name of the post.', 'jc-importer')
             ]),
-            $this->register_field('Status', 'post_status', [
+            $this->register_field(__('Status', 'jc-importer'), 'post_status', [
                 'default' => 'publish',
                 'options'         => [
-                    ['value' => 'draft', 'label' => 'Draft'],
-                    ['value' => 'publish', 'label' => 'Published'],
-                    ['value' => 'pending', 'label' => 'Pending'],
-                    ['value' => 'future', 'label' => 'Future'],
-                    ['value' => 'private', 'label' => 'Private'],
-                    ['value' => 'trash', 'label' => 'Trash']
+                    ['value' => 'draft', 'label' => __('Draft', 'jc-importer')],
+                    ['value' => 'publish', 'label' => __('Published', 'jc-importer')],
+                    ['value' => 'pending', 'label' => __('Pending', 'jc-importer')],
+                    ['value' => 'future', 'label' => __('Future', 'jc-importer')],
+                    ['value' => 'private', 'label' => __('Private', 'jc-importer')],
+                    ['value' => 'trash', 'label' => __('Trash', 'jc-importer')]
                 ],
-                'tooltip' => __('The status of a given post determines how WordPress handles that post', 'importwp')
+                'tooltip' => __('The status of a given post determines how WordPress handles that post', 'jc-importer')
             ]),
-            $this->register_group('Parent Settings', '_parent', [
-                $this->register_field('Parent', 'parent', [
+            $this->register_group(__('Parent Settings', 'jc-importer'), '_parent', [
+                $this->register_field(__('Parent', 'jc-importer'), 'parent', [
                     'default' => '',
                     'options' => 'callback',
-                    'tooltip' => __('Set this for the post it belongs to', 'importwp')
+                    'tooltip' => __('Set this for the post it belongs to', 'jc-importer')
                 ]),
-                $this->register_field('Parent Field Type', '_parent_type', [
+                $this->register_field(__('Parent Field Type', 'jc-importer'), '_parent_type', [
                     'default' => 'id',
                     'options' => [
-                        ['value' => 'id', 'label' => 'ID'],
-                        ['value' => 'slug', 'label' => 'Slug'],
-                        ['value' => 'name', 'label' => 'Name'],
-                        ['value' => 'column', 'label' => 'Reference Column'],
+                        ['value' => 'id', 'label' => __('ID', 'jc-importer')],
+                        ['value' => 'slug', 'label' => __('Slug', 'jc-importer')],
+                        ['value' => 'name', 'label' => __('Name', 'jc-importer')],
+                        ['value' => 'column', 'label' => __('Reference Column', 'jc-importer')],
                     ],
                     'type' => 'select',
-                    'tooltip' => __('Select how the parent field should be handled', 'importwp')
+                    'tooltip' => __('Select how the parent field should be handled', 'jc-importer')
                 ]),
-                $this->register_field('Parent Reference Column', '_parent_ref', [
+                $this->register_field(__('Parent Reference Column', 'jc-importer'), '_parent_ref', [
                     'condition' => ['_parent_type', '==', 'column'],
-                    'tooltip' => __('Select the column/node that the parent field is referencing', 'importwp')
+                    'tooltip' => __('Select the column/node that the parent field is referencing', 'jc-importer')
                 ])
             ]),
-            $this->register_field('Order', 'menu_order', [
-                'tooltip' => __('The order the post should be displayed in', 'importwp')
+            $this->register_field(__('Order', 'jc-importer'), 'menu_order', [
+                'tooltip' => __('The order the post should be displayed in', 'jc-importer')
             ]),
-            $this->register_group('Author Settings', '_author', [
-                $this->register_field('Author', 'post_author', [
-                    'tooltip' => __('The user of who added this post', 'importwp')
+            $this->register_group(__('Author Settings', 'jc-importer'), '_author', [
+                $this->register_field(__('Author', 'jc-importer'), 'post_author', [
+                    'tooltip' => __('The user of who added this post', 'jc-importer')
                 ]),
-                $this->register_field('Author Field Type', '_author_type', [
+                $this->register_field(__('Author Field Type', 'jc-importer'), '_author_type', [
                     'default' => 'id',
                     'options' => [
-                        ['value' => 'id', 'label' => 'ID'],
-                        ['value' => 'login', 'label' => 'Login'],
-                        ['value' => 'email', 'label' => 'Email'],
+                        ['value' => 'id', 'label' => __('ID', 'jc-importer')],
+                        ['value' => 'login', 'label' => __('Login', 'jc-importer')],
+                        ['value' => 'email', 'label' => __('Email', 'jc-importer')],
                     ],
-                    'tooltip' => __('Select how the author field should be handled', 'importwp')
+                    'tooltip' => __('Select how the author field should be handled', 'jc-importer')
                 ])
             ]),
-            $this->register_field('Password', 'post_password', [
-                'tooltip' => __('The password to access the post', 'importwp')
+            $this->register_field(__('Password', 'jc-importer'), 'post_password', [
+                'tooltip' => __('The password to access the post', 'jc-importer')
             ]),
-            $this->register_field('Date', 'post_date', [
-                'tooltip' => __('The date of the post , enter in the format "YYYY-MM-DD HH:ii:ss"', 'importwp')
+            $this->register_field(__('Date', 'jc-importer'), 'post_date', [
+                'tooltip' => __('The date of the post , enter in the format "YYYY-MM-DD HH:ii:ss"', 'jc-importer')
             ]),
-            $this->register_field('Allow Comments', 'comment_status', [
+            $this->register_field(__('Allow Comments', 'jc-importer'), 'comment_status', [
                 'options' => [
-                    ['value' => '0', 'label' => 'Disabled'],
-                    ['value' => '1', 'label' => 'Enabled']
+                    ['value' => '0', 'label' => __('Disabled', 'jc-importer')],
+                    ['value' => '1', 'label' => __('Enabled', 'jc-importer')]
                 ],
                 'default' => '0',
-                'tooltip' => __('Whether the post can accept comments', 'importwp')
+                'tooltip' => __('Whether the post can accept comments', 'jc-importer')
             ]),
-            $this->register_field('Allow Pingbacks', 'ping_status', [
+            $this->register_field(__('Allow Pingbacks', 'jc-importer'), 'ping_status', [
                 'options' => [
-                    ['value' => 'closed', 'label' => 'Closed'],
-                    ['value' => 'open', 'label' => 'Open']
+                    ['value' => 'closed', 'label' => __('Closed', 'jc-importer')],
+                    ['value' => 'open', 'label' => __('Open', 'jc-importer')]
                 ],
                 'default' => 'closed',
-                'tooltip' => __('Whether the post can accept pings', 'importwp')
+                'tooltip' => __('Whether the post can accept pings', 'jc-importer')
             ])
         ], ['link' => 'https://www.importwp.com/docs/wordpress-page-importer-template/']);
 
@@ -196,47 +196,47 @@ class PostTemplate extends Template implements TemplateInterface
 
     public function register_taxonomy_fields()
     {
-        return $this->register_group('Taxonomies', 'taxonomies', [
-            $this->register_field('Taxonomy', 'tax', [
+        return $this->register_group(__('Taxonomies', 'jc-importer'), 'taxonomies', [
+            $this->register_field(__('Taxonomy', 'jc-importer'), 'tax', [
                 'default' => 'category',
                 'options' => 'callback',
-                'tooltip' => __('Select the type of taxonomy you are importing to.', 'importwp')
+                'tooltip' => __('Select the type of taxonomy you are importing to.', 'jc-importer')
             ]),
-            $this->register_field('Terms', 'term', [
-                'tooltip' => __('Name of the taxonomy term or terms (entered as a comma seperated list).', 'importwp')
+            $this->register_field(__('Terms', 'jc-importer'), 'term', [
+                'tooltip' => __('Name of the taxonomy term or terms (entered as a comma seperated list).', 'jc-importer')
             ]),
-            $this->register_group('Settings', 'settings', [
-                $this->register_field('Delimiter', '_delimiter', [
+            $this->register_group(__('Settings', 'jc-importer'), 'settings', [
+                $this->register_field(__('Delimiter', 'jc-importer'), '_delimiter', [
                     'type' => 'text',
-                    'tooltip' => 'A single character used to seperate terms when listing multiple, Leave empty to use default: ,'
+                    'tooltip' => sprintf(__('A single character used to seperate terms when listing multiple, Leave empty to use default: %s', 'jc-importer'), ',')
                 ]),
-                $this->register_field('Term Type', '_type', [
-                    'tooltip' => 'Select what type the term values are (e.g. Name, Slug, or ID)',
+                $this->register_field(__('Term Type', 'jc-importer'), '_type', [
+                    'tooltip' => __('Select what type the term values are (e.g. Name, Slug, or ID)', 'jc-importer'),
                     'default' => 'name',
                     'options' => [
-                        ['value' => 'name', 'label' => 'Name'],
-                        ['value' => 'slug', 'label' => 'Slug'],
-                        ['value' => 'term_id', 'label' => 'ID'],
+                        ['value' => 'name', 'label' => __('Name', 'jc-importer')],
+                        ['value' => 'slug', 'label' => __('Slug', 'jc-importer')],
+                        ['value' => 'term_id', 'label' => __('ID', 'jc-importer')],
                     ],
                     'type' => 'select'
                 ]),
-                $this->register_field('Enable Hierarchy', '_hierarchy', [
+                $this->register_field(__('Enable Hierarchy', 'jc-importer'), '_hierarchy', [
                     'default' => 'no',
                     'options' => [
-                        ['value' => 'no', 'label' => 'No'],
-                        ['value' => 'yes', 'label' => 'Yes'],
+                        ['value' => 'no', 'label' => __('No', 'jc-importer')],
+                        ['value' => 'yes', 'label' => __('Yes', 'jc-importer')],
                     ],
                     'type' => 'select'
                 ]),
-                $this->register_field('Hierarchy Character', '_hierarchy_character', [
+                $this->register_field(__('Hierarchy Character', 'jc-importer'), '_hierarchy_character', [
                     'default' => '>',
                     'condition' => ['_hierarchy', '==', 'yes'],
                 ]),
-                $this->register_field('Append Terms', '_append', [
+                $this->register_field(__('Append Terms', 'jc-importer'), '_append', [
                     'default' => 'no',
                     'options' => [
-                        ['value' => 'no', 'label' => 'No'],
-                        ['value' => 'yes', 'label' => 'Yes'],
+                        ['value' => 'no', 'label' => __('No', 'jc-importer')],
+                        ['value' => 'yes', 'label' => __('Yes', 'jc-importer')],
                     ],
                     'type' => 'select'
                 ]),
@@ -1035,19 +1035,19 @@ class PostTemplate extends Template implements TemplateInterface
         $permission_fields = parent::get_permission_fields($importer_model);
 
         $permission_fields['core'] = [
-            'ID' => 'ID',
-            'post_title' => 'Title',
-            'post_content' => 'Content',
-            'post_excerpt' => 'Excerpt',
-            'post_name' => 'Slug',
-            'post_status' => 'Post Status',
-            'menu_order' => 'Menu order',
-            'post_password' => 'password',
-            'post_date' => 'Date',
-            'comment_status' => 'Comment Status',
-            'ping_status' => 'Ping Status',
-            'post_parent' => 'Parent',
-            'post_author' => 'Author',
+            'ID' => __('ID', 'jc-importer'),
+            'post_title' => __('Title', 'jc-importer'),
+            'post_content' => __('Content', 'jc-importer'),
+            'post_excerpt' => __('Excerpt', 'jc-importer'),
+            'post_name' => __('Slug', 'jc-importer'),
+            'post_status' => __('Post Status', 'jc-importer'),
+            'menu_order' => __('Menu order', 'jc-importer'),
+            'post_password' => __('password', 'jc-importer'),
+            'post_date' => __('Date', 'jc-importer'),
+            'comment_status' => __('Comment Status', 'jc-importer'),
+            'ping_status' => __('Ping Status', 'jc-importer'),
+            'post_parent' => __('Parent', 'jc-importer'),
+            'post_author' => __('Author', 'jc-importer'),
         ];
 
         $permission_fields['taxonomies'] = [];

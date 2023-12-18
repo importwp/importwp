@@ -33,6 +33,9 @@ rsync -av .. . --exclude '.git' --exclude 'bin' --exclude "$FOLDER" --exclude 'n
 sed -i -e "s/__STABLE_TAG__/$TAG/g" readme.txt
 sed -i -e "s/__STABLE_TAG__/$TAG/g" jc-importer.php
 
+# Generate POT
+wp i18n make-pot . languages/jc-importer.pot
+
 # Confirm pushing of build.
 while true; do
 

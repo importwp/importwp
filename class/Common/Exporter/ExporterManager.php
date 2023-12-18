@@ -190,7 +190,7 @@ class ExporterManager
             if ($state->has_status('init')) {
 
                 if (!$mapper->have_records($exporter_id)) {
-                    throw new \Exception(("No records found to export"));
+                    throw new \Exception(__("No records found to export", 'jc-importer'));
                 }
 
                 // write

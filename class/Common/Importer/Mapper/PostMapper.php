@@ -140,7 +140,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
             // fallback to post_title
             $unique_value = $data->getValue('post_title');
             if (empty($unique_value)) {
-                throw new MapperException("No Unique fields present.");
+                throw new MapperException(__("No Unique fields present.", 'jc-importer'));
             }
 
             $query_args['title'] = $unique_value;
@@ -152,7 +152,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
         $query = new \WP_Query($query_args);
         if ($query->post_count > 1) {
-            throw new MapperException("Record is not unique: " . $unique_field_found . ", Matching Ids: (" . implode(', ', $query->posts) . ").");
+            throw new MapperException(sprintf(__("Record is not unique: %s, Matching Ids: (%s).", 'jc-importer'), $unique_field_found, implode(', ', $query->posts)));
         }
 
         if ($query->post_count == 1) {

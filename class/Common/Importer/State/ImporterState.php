@@ -50,13 +50,13 @@ class ImporterState
         }
 
         if (!$state || !isset($state['status'])) {
-            throw new \Exception("Invalid state");
+            throw new \Exception(__("Invalid state", 'jc-importer'));
         }
 
         $this->populate($state);
 
         if (!$this->validate($session_id)) {
-            throw new \Exception("Session has changed");
+            throw new \Exception(__("Session has changed", 'jc-importer'));
         }
     }
 

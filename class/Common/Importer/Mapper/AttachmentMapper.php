@@ -143,7 +143,7 @@ class AttachmentMapper extends PostMapper
         }
 
         if (!$has_unique_field) {
-            throw new MapperException("No Unique fields present.");
+            throw new MapperException(__("No Unique fields present.", 'jc-importer'));
         }
 
         if (!empty($meta_args)) {
@@ -152,7 +152,7 @@ class AttachmentMapper extends PostMapper
 
         $query = new \WP_Query($query_args);
         if ($query->post_count > 1) {
-            throw new MapperException("Record is not unique: " . $unique_field_found . ", Matching Ids: (" . implode(', ', $query->posts) . ").");
+            throw new MapperException(sprintf(__("Record is not unique: %s, Matching Ids: (%s).", 'jc-importer'), $unique_field_found, implode(', ', $query->posts)));
         }
 
         if ($query->post_count == 1) {
@@ -217,7 +217,7 @@ class AttachmentMapper extends PostMapper
 
         $this->ID = $attachment_id = $this->download_attachment($data);
         if (!$this->ID) {
-            throw new MapperException("Unable to download and insert attachment");
+            throw new MapperException(__("Unable to download and insert attachment", 'jc-importer'));
         }
 
         $this->update_post_object($fields, $data);

@@ -81,7 +81,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
         }
 
         if (!$has_unique_field) {
-            throw new MapperException("No Unique fields present.");
+            throw new MapperException(__("No Unique fields present.", 'jc-importer'));
         }
 
         // create search
@@ -95,7 +95,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
             foreach ($query->results as $result) {
                 $ids[] = $result->ID;
             }
-            throw new MapperException("Record is not unique: " . $unique_field_found . ", Matching Ids: (" . implode(', ', $ids) . ").");
+            throw new MapperException(sprintf(__("Record is not unique: %s, Matching Ids: (%s).", 'jc-importer'), $unique_field_found, implode(', ', $ids)));
         }
 
         if ($query->total_users == 1) {
@@ -126,15 +126,15 @@ class UserMapper extends AbstractMapper implements MapperInterface
         }
 
         if (!isset($core['user_login']) || empty($core['user_login'])) {
-            throw new MapperException("No username present");
+            throw new MapperException(__("No username present", 'jc-importer'));
         }
 
         if (!isset($core['user_pass']) || empty($core['user_pass'])) {
-            throw new MapperException("No password present");
+            throw new MapperException(__("No password present", 'jc-importer'));
         }
 
         if (!empty($core['user_email']) && !is_email($core['user_email'])) {
-            throw new MapperException(strval($core['user_email']) . " is not a valid email address");
+            throw new MapperException(sprintf(__("%s is not a valid email address", 'jc-importer'), strval($core['user_email'])));
         }
 
         Logger::debug('UserMapper::insert -wp_insert_user=' . wp_json_encode($core));

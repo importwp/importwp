@@ -8,6 +8,8 @@
  * Version: __STABLE_TAG__ 
  * Author URI: https://www.importwp.com
  * Network: True
+ * Text Domain: jc-importer
+ * Domain Path: /languages
  */
 
 $iwp_base_path = dirname(__FILE__);

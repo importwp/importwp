@@ -37,17 +37,17 @@ class Ftp
 
         if (!$this->_conn) {
             if (!$this->login($host, $user, $pass, $port)) {
-                return new \WP_Error('IWP_FTP_0', "Unable to login to ftp server");
+                return new \WP_Error('IWP_FTP_0', __("Unable to login to ftp server", 'jc-importer'));
             }
         }
 
         if (!$this->_conn) {
-            return new \WP_Error('IWP_FTP_0', "Unable to connect to ftp server");
+            return new \WP_Error('IWP_FTP_0', __("Unable to connect to ftp server", 'jc-importer'));
         }
 
         $size = ftp_size($this->_conn, $url);
         if ($size === -1) {
-            return new \WP_Error('IWP_FTP_1', 'File doesn\'t exist on ftp server.');
+            return new \WP_Error('IWP_FTP_1', __('File doesn\'t exist on ftp server.', 'jc-importer'));
         }
 
 
@@ -71,7 +71,7 @@ class Ftp
 
         $result = ftp_get($this->_conn, $wp_dest, $url, FTP_BINARY);
         if (false === $result) {
-            return new \WP_Error('IWP_FTP_2', 'Unable to download: ' . $url . '  file via ftp.');
+            return new \WP_Error('IWP_FTP_2', sprintf(__('Unable to download: %s file via ftp.', 'jc-importer'), $url));
         }
 
         return array(
