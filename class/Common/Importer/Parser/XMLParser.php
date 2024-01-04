@@ -35,9 +35,11 @@ class XMLParser extends AbstractParser implements ParserInterface
             $sub_records = $this->query($group['base'], false);
             $this->setQueryBase($group['base']);
 
-            foreach ($sub_records as $record) {
-                $this->record_xml = $record;
-                $output[]         = parent::queryGroup($group);
+            if (!empty($sub_records)) {
+                foreach ($sub_records as $record) {
+                    $this->record_xml = $record;
+                    $output[]         = parent::queryGroup($group);
+                }
             }
 
             $this->resetQueryBase();
