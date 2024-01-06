@@ -109,6 +109,7 @@ class TermMapper extends AbstractMapper implements MapperInterface
             $query_args['meta_query'] = $meta_args;
         }
 
+        $query_args = apply_filters('iwp/importer/mapper/term_exists_query', $query_args);
         $query = new \WP_Term_Query($query_args);
         if (!$query->terms) {
             return false;

@@ -110,6 +110,7 @@ class CommentMapper extends AbstractMapper implements MapperInterface
             $query_args['meta_query'] = $meta_args;
         }
 
+        $query_args = apply_filters('iwp/importer/mapper/comment_exists_query', $query_args);
         $query = new \WP_Comment_Query($query_args);
 
         // $query->found_comments doesnt work when using field ids

@@ -150,6 +150,7 @@ class AttachmentMapper extends PostMapper
             $query_args['meta_query'] = $meta_args;
         }
 
+        $query_args = apply_filters('iwp/importer/mapper/attachment_exists_query', $query_args);
         $query = new \WP_Query($query_args);
         if ($query->post_count > 1) {
             throw new MapperException(sprintf(__("Record is not unique: %s, Matching Ids: (%s).", 'jc-importer'), $unique_field_found, implode(', ', $query->posts)));
