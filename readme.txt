@@ -133,6 +133,8 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 = 2.11.5 =
 
 * ADD - Add pot translation file.
+* ADD - Add mapper exist query filters.
+* ADD - Add post template term filter.
 
 = 2.11.4 =
 

@@ -88,6 +88,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
         $query_args['search']         = implode(', ', $search);
         $query_args['search_columns'] = $search_columns;
         $query_args['meta_query']     = $meta_args;
+        $query_args = apply_filters('iwp/importer/mapper/user_exists_query', $query_args);
         $query = new \WP_User_Query($query_args);
 
         if ($query->total_users > 1) {

@@ -607,6 +607,7 @@ class PostTemplate extends Template implements TemplateInterface
             // we do not care about parent, just fetch first
             $tmp_term = get_term_by($term_type, $term, $tax);
             if ($tmp_term) {
+                $tmp_term = apply_filters('iwp/importer/template/post_term', $tmp_term, $tax);
                 wp_set_object_terms($post_id, $tmp_term->term_id, $tax, true);
                 return $tmp_term;
             }
@@ -641,6 +642,7 @@ class PostTemplate extends Template implements TemplateInterface
                     if (intval($tmp_term->parent) === intval($parent)) {
 
                         // attach term to post
+                        $tmp_term = apply_filters('iwp/importer/template/post_term', $tmp_term, $tax);
                         wp_set_object_terms($post_id, $tmp_term->term_id, $tax, true);
                         return $tmp_term;
                     }
