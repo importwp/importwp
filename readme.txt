@@ -135,6 +135,7 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 * ADD - Add pot translation file.
 * ADD - Add mapper exist query filters.
 * ADD - Add post template term filter.
+* FIX - Importing Post parent field, if searching by name make sure it is not an empty value.
 
 = 2.11.4 =
 
