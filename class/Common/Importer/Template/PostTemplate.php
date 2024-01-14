@@ -362,7 +362,7 @@ class PostTemplate extends Template implements TemplateInterface
         //     $data->add(['post_name' => 'yes'], '_generated');
         // }
 
-        if ($this->importer->isEnabledField('post._parent') && isset($post_field_map['post_parent'])) {
+        if ($this->importer->isEnabledField('post._parent') && isset($post_field_map['post_parent']) && !empty($post_field_map['post_parent'])) {
 
             $parent_id = 0;
             $parent_field_type = $data->getValue('post._parent._parent_type');
