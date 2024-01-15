@@ -97,8 +97,23 @@ class EditPage extends React.Component {
 
   logError(error) {
     let message = error;
-    if (error.hasOwnProperty('statusText') && error.hasOwnProperty('status')) {
-      message = `The following error has occured: ${error.statusText}, Code: ${error.status}`;
+
+    let tmpMessage = [];
+
+    if (error.hasOwnProperty('responseText')) {
+      tmpMessage.push(`Error: ${error.responseText}`);
+    }
+
+    if (error.hasOwnProperty('status')) {
+      tmpMessage.push(`Error Code: ${error.status}`);
+    }
+
+    if (error.hasOwnProperty('statusText')) {
+      tmpMessage.push(`Error Status Text: ${error.statusText}`);
+    }
+
+    if (tmpMessage.length > 0) {
+      message = tmpMessage.join(', ');
     }
 
     this.setState({
@@ -106,6 +121,8 @@ class EditPage extends React.Component {
         ...this.state.notices,
         { message: message, type: 'error', dismissible: true },
       ],
+    }, () => {
+      window.scrollTo(0, 0);
     });
   }
 

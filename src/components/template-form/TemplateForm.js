@@ -144,7 +144,7 @@ class TemplateForm extends PureComponent {
     });
   }
 
-  save(callback = () => {}) {
+  save(callback = () => { }) {
     this.setState({ saving: true });
     const { id } = this.props;
 
@@ -179,15 +179,20 @@ class TemplateForm extends PureComponent {
         callback();
       })
       .catch((error) => {
+
+        // console.log('ERROR', error);
+
+        this.props.onError(error);
+
         this.setState({
           saving: false,
-          errors: [
-            ...this.state.errors,
-            {
-              section: 'setup',
-              message: error,
-            },
-          ],
+          // errors: [
+          //   ...this.state.errors,
+          //   {
+          //     section: 'setup',
+          //     message: error.responseText,
+          //   },
+          // ],
         });
       });
   }
@@ -326,8 +331,8 @@ class TemplateForm extends PureComponent {
       parser === 'csv'
         ? 'CSV Data Selector'
         : parser === 'xml'
-        ? 'XML Data Selector'
-        : 'Data Selector';
+          ? 'XML Data Selector'
+          : 'Data Selector';
 
     if (!this.state.loaded) {
       return <NoticeList notices={[{ message: 'Loading', type: 'info' }]} />;
@@ -412,7 +417,7 @@ TemplateForm.propTypes = {
 TemplateForm.defaultProps = {
   map: {},
   enabled: {},
-  onError: () => {},
+  onError: () => { },
   pro: false,
   templates: [],
 };
