@@ -157,7 +157,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
         }
 
         $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/post_type/custom_field_list',  $fields['children']['custom_fields']['fields'], $this->post_type);
-        $fields = apply_filters('iwp/exporter/post_type/fields', $fields, $this->post_type);
+        $fields = apply_filters('iwp/exporter/post_type/fields', $fields, $this->get_post_types_array());
 
         if (in_array('attachment', $post_types)) {
             $fields['fields'][] = 'url';
