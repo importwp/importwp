@@ -328,7 +328,6 @@ class ExporterManager
             ExporterState::set_state($id, $exporter_state->get_raw());
 
             $max_record_time = max($max_record_time, microtime(true) - $record_time);
-            break;
         }
 
         // TODO: need a new state that will stop the running from happening more than once.

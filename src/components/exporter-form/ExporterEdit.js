@@ -164,7 +164,6 @@ const ExporterEdit = ({ id, pro = false }) => {
   };
 
   const getStatus = () => {
-    console.log('getStatus init');
     statusXHR.current = exporter.status([id]);
     statusXHR.current.request.subscribe(
       (response) => {
