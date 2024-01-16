@@ -125,6 +125,11 @@ const ExporterEdit = ({ id, pro = false }) => {
     setProgress(0);
     setStatus(null);
 
+    if (statusXHR.current !== null) {
+      statusXHR.current.abort();
+      statusXHR.current = null;
+    }
+
     exporter.init(id).then(
       (init_response) => {
         const { session } = init_response;
@@ -133,7 +138,7 @@ const ExporterEdit = ({ id, pro = false }) => {
         runnerXHR.current = exporter.run(id, session);
         runnerXHR.current.request.subscribe(
           (response) => {
-            if (response.status === 'running') {
+            if (response.status === 'running' || response.status === 'timeout') {
               setProgress(((response.progress.export.current_row / (response.progress.export.end - response.progress.export.start)) * 100).toFixed());
             } else if (response.status == 'complete') {
               setModalTitle('Export Complete');
@@ -141,21 +146,25 @@ const ExporterEdit = ({ id, pro = false }) => {
               setStatus(response);
               setRunning(false);
               runnerXHR.current.abort();
+              getStatus();
             }
           },
           (error) => {
             logError(error);
             runnerXHR.current.abort();
+            getStatus();
           }
         );
       },
       (error) => {
         logError(error);
+        getStatus();
       }
     );
   };
 
   const getStatus = () => {
+    console.log('getStatus init');
     statusXHR.current = exporter.status([id]);
     statusXHR.current.request.subscribe(
       (response) => {
