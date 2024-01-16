@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the Import WP plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Import WP 2.11.5\n"
+"Project-Id-Version: Import WP 2.11.6-rc1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/build\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-01-14T21:54:27+00:00\n"
+"POT-Creation-Date: 2024-01-16T22:36:10+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.9.0\n"
 "X-Domain: jc-importer\n"
@@ -31,7 +31,7 @@ msgstr ""
 msgid "James Collings <james@jclabs.co.uk>"
 msgstr ""
 
-#: class/Common/Exporter/ExporterManager.php:193
+#: class/Common/Exporter/ExporterManager.php:198
 msgid "No records found to export"
 msgstr ""
 
@@ -82,6 +82,18 @@ msgstr ""
 
 #: class/Common/Exporter/Mapper/UserMapper.php:45
 msgid "User"
+msgstr ""
+
+#: class/Common/Exporter/State/ExporterState.php:48
+#: class/Common/Importer/State/ImporterState.php:53
+#: class/Common/Runner/RunnerState.php:47
+msgid "Invalid state"
+msgstr ""
+
+#: class/Common/Exporter/State/ExporterState.php:54
+#: class/Common/Importer/State/ImporterState.php:59
+#: class/Common/Runner/RunnerState.php:53
+msgid "Session has changed"
 msgstr ""
 
 #: class/Common/Filesystem/Filesystem.php:36
@@ -233,16 +245,6 @@ msgstr ""
 #: class/Common/Importer/Permission/Permission.php:27
 #: class/Common/Importer/Permission/Permission.php:31
 msgid "Not enough permissions to %s record."
-msgstr ""
-
-#: class/Common/Importer/State/ImporterState.php:53
-#: class/Common/Runner/RunnerState.php:47
-msgid "Invalid state"
-msgstr ""
-
-#: class/Common/Importer/State/ImporterState.php:59
-#: class/Common/Runner/RunnerState.php:53
-msgid "Session has changed"
 msgstr ""
 
 #: class/Common/Importer/Template/AttachmentTemplate.php:51

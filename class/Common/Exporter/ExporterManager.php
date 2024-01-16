@@ -12,12 +12,17 @@ use ImportWP\Common\Exporter\Mapper\TaxMapper;
 use ImportWP\Common\Exporter\Mapper\UserMapper;
 use ImportWP\Common\Exporter\State\ExporterState;
 use ImportWP\Common\Model\ExporterModel;
-use ImportWP\Common\Runner\ExporterRunner;
 use ImportWP\Common\Util\Logger;
+use ImportWP\Common\Util\Util;
 use ImportWP\Container;
 
 class ExporterManager
 {
+    /**
+     * @var int
+     */
+    protected $memory_limit;
+
     public function __construct()
     {
         add_action('admin_init', [$this, 'download_file']);
@@ -220,30 +225,7 @@ class ExporterManager
              * @var Properties $properties
              */
             $properties = Container::getInstance()->get('properties');
-            $runner = new ExporterRunner($properties, $mapper, $file);
-            $runner->process($exporter_id, $user, $state);
-
-            // Lock the file to only write 1 end of file
-            if ($state->has_status('end')) {
-                $state->update(function ($state) use ($exporter_data, $file) {
-
-                    if ($state['status'] !== 'end') {
-                        return $state;
-                    }
-
-                    $file->end();
-
-                    $key = md5(time());
-                    add_post_meta($exporter_data->getId(), '_ewp_file_' . $key, array(
-                        'url' => $file->get_file_url(),
-                        'path' => $file->get_file_path(),
-                        'type' => $exporter_data->getFileType()
-                    ));
-                    $state['file'] = $key;
-                    $state['status'] = 'complete';
-                    return $state;
-                });
-            }
+            $this->process_chunk($exporter_data, $user, $state, $mapper, $file, $properties);
         } catch (\Exception $e) {
 
             Logger::error('import -error=' . $e->getMessage(), $exporter_id);
@@ -255,6 +237,193 @@ class ExporterManager
             $data['duration'] = floatval($data['duration']) + Logger::timer();
             return $data;
         })->get_raw();
+    }
+
+    public function process_chunk($exporter_data, $user, $exporter_state, $mapper, $file, $properties)
+    {
+        $id = $exporter_data->getId();
+
+        $exporter_state->populate([
+            'status' => 'processing'
+        ]);
+        ExporterState::set_state($id, $exporter_state->get_raw());
+
+        $time_limit = $properties->get_setting('timeout');
+        Logger::info('time_limit ' . $time_limit . 's');
+
+        $start = microtime(true);
+        $max_record_time = 0;
+        $memory_max_usage = 0;
+
+        $progress = $exporter_state->get_progress();
+        $session = $exporter_state->get_session();
+        $max_total = $progress['end'] - 1;
+        $i = $progress['start'] + $progress['current_row'] - 1;
+
+        // limit to max 20 rows per chunk
+        $i_max = $i + apply_filters('iwp/exporter/chunk_max_records', 100);
+
+        while (
+            $i < $max_total
+            && (!defined('REST_REQUEST') || !REST_REQUEST ||  $i < $i_max)
+            && (
+                $time_limit === 0 || $this->has_enough_time($start, $time_limit, $max_record_time)
+            )
+            && $this->has_enough_memory($memory_max_usage)
+        ) {
+            $i++;
+
+            $flag = ExporterState::get_flag($id);
+
+            if (ExporterState::is_paused($flag)) {
+
+                $exporter_state->populate([
+                    'status' => 'paused'
+                ]);
+
+                ExporterState::set_state($id, $exporter_state->get_raw());
+                Util::write_status_session_to_file($id, $exporter_state);
+                return;
+            }
+
+            if (ExporterState::is_cancelled($flag)) {
+                $exporter_state->populate([
+                    'status' => 'cancelled'
+                ]);
+
+                ExporterState::set_state($id, $exporter_state->get_raw());
+                Util::write_status_session_to_file($id, $exporter_state);
+                return;
+            }
+
+            $stats = [
+                'rows' => 0,
+                'skips' => 0,
+                'errors' => 0,
+            ];
+
+            $record_time = microtime(true);
+
+            try {
+
+                // TODO: Export row
+
+                $mapper_data = new MapperData($mapper, $i);
+                if (!$mapper_data->skip()) {
+                    $file->add($mapper_data);
+                }
+
+                Logger::write('export:' . $i . ' -success');
+                $stats['rows']++;
+            } catch (\Exception $e) {
+                $stats['errors']++;
+                Logger::error('export:' . $i . ' -error=' . $e->getMessage());
+            }
+
+            $exporter_state->update_importer_stats($stats);
+
+            $exporter_state->increment_current_row();
+            $progress = $exporter_state->get_progress();
+
+            ExporterState::set_state($id, $exporter_state->get_raw());
+
+            $max_record_time = max($max_record_time, microtime(true) - $record_time);
+        }
+
+        // TODO: need a new state that will stop the running from happening more than once.
+        // if returning timeout then the cron will stop on older versions
+        if (defined('IWP_PRO_VERSION') && version_compare(IWP_PRO_VERSION, '2.8.0', '>')) {
+            // default status to idle after run
+            $exporter_state->populate([
+                'status' => 'timeout'
+            ]);
+        } else {
+            $exporter_state->populate([
+                'status' => 'running'
+            ]);
+        }
+
+        $state_data = $exporter_state->get_raw();
+        $progress = $exporter_state->get_progress();
+
+        if ($progress['end'] - $progress['start'] <= $progress['current_row']) {
+            switch ($exporter_state->get_section()) {
+                case 'export':
+
+                    // complete
+                    $file->end();
+
+                    $key = md5(time());
+                    add_post_meta($exporter_data->getId(), '_ewp_file_' . $key, array(
+                        'url' => $file->get_file_url(),
+                        'path' => $file->get_file_path(),
+                        'type' => $exporter_data->getFileType()
+                    ));
+
+                    $state_data['section'] = '';
+                    $state_data['status'] = 'complete';
+                    $state_data['file'] = $key;
+
+                    break;
+            }
+        }
+
+        ExporterState::set_state($id, $state_data);
+        $exporter_state->populate($state_data);
+    }
+
+    function has_enough_time($start, $time_limit, $max_record_time)
+    {
+        return (microtime(true) - $start) < $time_limit - $max_record_time;
+    }
+
+    function get_memory_usage()
+    {
+        return memory_get_usage(true);
+    }
+
+    function has_enough_memory($memory_max_usage)
+    {
+        $limit = $this->get_memory_limit();
+
+        // Has unlimited memory
+        if ($limit == '-1') {
+            return true;
+        }
+
+        $limit *= 0.9;
+        $current_usage = $this->get_memory_usage();
+
+        if ($current_usage + $memory_max_usage < $limit) {
+            return true;
+        }
+
+        Logger::error(sprintf("Not Enough Memory left to use %s,  %s/%s", Logger::formatBytes($memory_max_usage, 2), Logger::formatBytes($current_usage, 2), Logger::formatBytes($limit, 2)));
+
+        return false;
+    }
+
+    function get_memory_limit($force = false)
+    {
+        if ($force || is_null($this->memory_limit)) {
+
+            $memory_limit = ini_get('memory_limit');
+            if (preg_match('/^(\d+)(.)$/', $memory_limit, $matches)) {
+                if ($matches[2] == 'G') {
+                    $memory_limit = $matches[1] * 1024 * 1024 * 1024; // nnnM -> nnn MB
+                } elseif ($matches[2] == 'M') {
+                    $memory_limit = $matches[1] * 1024 * 1024; // nnnM -> nnn MB
+                } else if ($matches[2] == 'K') {
+                    $memory_limit = $matches[1] * 1024; // nnnK -> nnn KB
+                }
+            }
+
+            $this->memory_limit = $memory_limit;
+
+            Logger::info('memory_limit ' . $this->memory_limit . ' bytes');
+        }
+
+        return $this->memory_limit;
     }
 
     public function export_old($id)
