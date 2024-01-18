@@ -135,7 +135,7 @@ class FieldGroup extends React.PureComponent {
                             show_field_dropdown: false,
                           });
 
-                          this.props.setEnabled({ [key]: !enabledData[key] });
+                          this.props.dispatch(setEnabled({ [key]: !enabledData[key] }));
                         }}
                       >
                         {enabledData[key] === true ? 'Disable' : 'Enable'}:{' '}
@@ -170,6 +170,4 @@ const mapStateToProps = (state, props) => ({
   map: getFieldMap(state, props.group.id),
 });
 
-const mapDispatchToProps = dispatch => ({ setEnabled, dispatch });
-
-export default connect(mapStateToProps, mapDispatchToProps)(FieldGroup);
+export default connect(mapStateToProps)(FieldGroup);
