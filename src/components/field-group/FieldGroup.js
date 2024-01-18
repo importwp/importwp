@@ -2,9 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import FieldSet from '../field-set/FieldSet';
 import { connect } from 'react-redux';
+import Switch from 'react-switch';
 import {
   getEnabledMap,
+  getFieldMap,
   setEnabled,
+  setTemplate,
 } from '../../features/importer/importerSlice';
 
 class FieldGroup extends React.PureComponent {
@@ -13,7 +16,6 @@ class FieldGroup extends React.PureComponent {
 
     this.state = {
       show_field_dropdown: false,
-      // ...enable_state
     };
 
     this.setWrapperRef = this.setWrapperRef.bind(this);
@@ -21,21 +23,9 @@ class FieldGroup extends React.PureComponent {
     this.getEnableFieldLabel = this.getEnableFieldLabel.bind(this);
   }
 
-  // componentDidUpdate(prevProps, prevState, snapshot){
-  //   // console.log('componentDidUpdate', 'FieldGroup', this.props.group.id);
-
-  //   // console.log('FieldGroup props', prevProps, this.props);
-  //   // console.log('FieldGroup state', prevState, this.state);
-  //   // console.log('FieldGroup snapshot', snapshot);
-  // }
-
   componentDidMount() {
     document.addEventListener('mousedown', this.handleClickOutside);
   }
-
-  // componentDidUpdate(){
-  //   console.log(this.props.group.id, this.props);
-  // }
 
   componentWillUnmount() {
     document.removeEventListener('mousedown', this.handleClickOutside);
@@ -76,13 +66,43 @@ class FieldGroup extends React.PureComponent {
   }
 
   render() {
-    const { heading, type, link } = this.props.group;
+    const { heading, type, link, settings = [] } = this.props.group;
     const { enabledData } = this.props;
+
+    const switch_height = 20;
+    const switch_width = 40;
 
     return (
       <div className="iwp-form iwp-form--mb">
         <form>
           {link ? <p className="iwp-heading iwp-heading--has-tooltip">{heading} <a href={`${link}?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer`} target='_blank' className='iwp-label__tooltip'>?</a></p> : <p className="iwp-heading">{heading}</p>}
+
+          {/* Output panel settings */}
+          {settings && <div className='iwp-panel-settings'>
+            {settings.map(field => {
+
+              const field_id = `${this.props.group.id}._iwp_settings.${field.id}`;
+              const value = this.props.map.hasOwnProperty(field_id) ? (this.props.map[field_id] == 'yes' ? true : false) : false;
+
+              return <div className="iwp-form__row iwp-form__row--small">
+                <label className="iwp-form__label iwp-form__label--switch">
+                  <span>{field.label}</span>
+                  <Switch
+                    checked={value}
+                    name={field_id}
+                    height={switch_height}
+                    width={switch_width}
+                    onColor="#22c48f"
+                    onChange={(checked) => {
+                      this.props.dispatch(
+                        setTemplate({ [field_id]: checked ? 'yes' : 'no' })
+                      );
+                    }}
+                  />
+                </label>
+              </div>
+            })}
+          </div>}
 
           <FieldSet
             id={this.props.group.id}
@@ -147,8 +167,9 @@ FieldGroup.defaultProps = {
 
 const mapStateToProps = (state, props) => ({
   enabledData: getEnabledMap(state, props.group.id),
+  map: getFieldMap(state, props.group.id),
 });
 
-const mapDispatchToProps = { setEnabled };
+const mapDispatchToProps = dispatch => ({ setEnabled, dispatch });
 
 export default connect(mapStateToProps, mapDispatchToProps)(FieldGroup);
