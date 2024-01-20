@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the Import WP plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Import WP 2.11.6-rc1\n"
+"Project-Id-Version: Import WP 2.11.6-rc2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/build\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-01-16T22:36:10+00:00\n"
+"POT-Creation-Date: 2024-01-20T15:39:51+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.9.0\n"
 "X-Domain: jc-importer\n"
@@ -318,7 +318,7 @@ msgstr ""
 
 #: class/Common/Importer/Template/AttachmentTemplate.php:64
 #: class/Common/Importer/Template/AttachmentTemplate.php:486
-#: class/Common/Importer/Template/Template.php:344
+#: class/Common/Importer/Template/Template.php:350
 msgid "Alt Text"
 msgstr ""
 
@@ -461,7 +461,7 @@ msgstr ""
 #: class/Common/Importer/Template/AttachmentTemplate.php:113
 #: class/Common/Importer/Template/AttachmentTemplate.php:480
 #: class/Common/Importer/Template/PostTemplate.php:164
-#: class/Common/Importer/Template/Template.php:300
+#: class/Common/Importer/Template/Template.php:306
 #: class/Common/Importer/Template/UserTemplate.php:78
 #: class/Common/Importer/Template/UserTemplate.php:265
 msgid "Password"
@@ -807,13 +807,13 @@ msgid "Name of the taxonomy term or terms (entered as a comma seperated list)."
 msgstr ""
 
 #: class/Common/Importer/Template/PostTemplate.php:208
-#: class/Common/Importer/Template/Template.php:363
+#: class/Common/Importer/Template/Template.php:369
 #: class/Common/Plugin/Menu.php:67
 msgid "Settings"
 msgstr ""
 
 #: class/Common/Importer/Template/PostTemplate.php:209
-#: class/Common/Importer/Template/Template.php:326
+#: class/Common/Importer/Template/Template.php:332
 msgid "Delimiter"
 msgstr ""
 
@@ -835,15 +835,15 @@ msgstr ""
 
 #: class/Common/Importer/Template/PostTemplate.php:226
 #: class/Common/Importer/Template/PostTemplate.php:238
-#: class/Common/Importer/Template/Template.php:274
-#: class/Common/Importer/Template/Template.php:338
+#: class/Common/Importer/Template/Template.php:280
+#: class/Common/Importer/Template/Template.php:344
 msgid "No"
 msgstr ""
 
 #: class/Common/Importer/Template/PostTemplate.php:227
 #: class/Common/Importer/Template/PostTemplate.php:239
-#: class/Common/Importer/Template/Template.php:275
-#: class/Common/Importer/Template/Template.php:339
+#: class/Common/Importer/Template/Template.php:281
+#: class/Common/Importer/Template/Template.php:345
 msgid "Yes"
 msgstr ""
 
@@ -879,145 +879,145 @@ msgstr ""
 msgid "Select the path to the parent node containing values for this record, The preview when selecting data for each record should show a single record. Please note changing this will require updating references in this record."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:271
+#: class/Common/Importer/Template/Template.php:277
 msgid "Is Featured?"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:277
+#: class/Common/Importer/Template/Template.php:283
 msgid "Is the attachment the featured image for the current post."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:282
+#: class/Common/Importer/Template/Template.php:288
 msgid "Download"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:285
+#: class/Common/Importer/Template/Template.php:291
 msgid "Remote URL"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:286
+#: class/Common/Importer/Template/Template.php:292
 msgid "FTP"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:287
+#: class/Common/Importer/Template/Template.php:293
 msgid "Local Filesystem"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:288
+#: class/Common/Importer/Template/Template.php:294
 msgid "Media Library"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:290
+#: class/Common/Importer/Template/Template.php:296
 msgid "Select how the attachment is being downloaded."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:292
+#: class/Common/Importer/Template/Template.php:298
 msgid "Host"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:294
+#: class/Common/Importer/Template/Template.php:300
 msgid "Enter the FTP hostname"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:296
+#: class/Common/Importer/Template/Template.php:302
 #: class/Common/Importer/Template/UserTemplate.php:58
 msgid "Username"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:298
+#: class/Common/Importer/Template/Template.php:304
 msgid "Enter the FTP username"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:302
+#: class/Common/Importer/Template/Template.php:308
 msgid "Enter the FTP password"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:304
+#: class/Common/Importer/Template/Template.php:310
 msgid "Path"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:306
+#: class/Common/Importer/Template/Template.php:312
 msgid "Enter the FTP base path, this is prefixed onto the Location field, leave empty to be ignore"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:308
-#: class/Common/Importer/Template/Template.php:312
+#: class/Common/Importer/Template/Template.php:314
+#: class/Common/Importer/Template/Template.php:318
 msgid "Base URL"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:310
+#: class/Common/Importer/Template/Template.php:316
 msgid "Enter the base url, this is prefixed onto the Location field, leave empty to be ignore"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:314
+#: class/Common/Importer/Template/Template.php:320
 msgid "Enter the base path from this servers root file system, this is prefixed onto the Location field, leave empty to be ignore"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:317
+#: class/Common/Importer/Template/Template.php:323
 msgid "Permissions"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:321
+#: class/Common/Importer/Template/Template.php:327
 msgid "Always download new files"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:322
+#: class/Common/Importer/Template/Template.php:328
 msgid "Search media library before downloading new files"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:324
+#: class/Common/Importer/Template/Template.php:330
 msgid "Enable to stop duplicate images by searching the media library before downloading new files."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:328
+#: class/Common/Importer/Template/Template.php:334
 msgid "A single character used to seperate attachments when listing multiple, Leave empty to use the default: %s"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:334
+#: class/Common/Importer/Template/Template.php:340
 msgid "Attachment Meta"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:335
+#: class/Common/Importer/Template/Template.php:341
 msgid "Enable Meta"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:342
+#: class/Common/Importer/Template/Template.php:348
 msgid "Enable/Disable the fields to import attachment meta data."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:346
+#: class/Common/Importer/Template/Template.php:352
 msgid "Image attachment alt text."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:348
+#: class/Common/Importer/Template/Template.php:354
 msgid "Title Text"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:350
+#: class/Common/Importer/Template/Template.php:356
 msgid "Attachments title text."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:352
+#: class/Common/Importer/Template/Template.php:358
 msgid "Caption Text"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:354
+#: class/Common/Importer/Template/Template.php:360
 msgid "Image attachments caption text."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:356
+#: class/Common/Importer/Template/Template.php:362
 msgid "Description Text"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:358
+#: class/Common/Importer/Template/Template.php:364
 msgid "Attachments description text."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:378
+#: class/Common/Importer/Template/Template.php:384
 msgid "The source location of the file being attached."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:706
+#: class/Common/Importer/Template/Template.php:712
 msgid "Error downloading zip file"
 msgstr ""
 

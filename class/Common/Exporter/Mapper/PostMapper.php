@@ -215,29 +215,31 @@ class PostMapper extends AbstractMapper implements MapperInterface
                 $value = wp_get_attachment_url(get_post_thumbnail_id($record['ID']));
                 break;
             case 'image':
+
+                $value = [
+                    'id' => '',
+                    'url' => '',
+                    'title' => '',
+                    'alt' => '',
+                    'caption' => '',
+                    'description' => ''
+                ];
+
                 $thumbnail_id = intval(get_post_thumbnail_id($record['ID']));
                 if ($thumbnail_id > 0) {
-
                     $attachment = get_post($thumbnail_id, ARRAY_A);
-                    $alt = get_post_meta($thumbnail_id, '_wp_attachment_image_alt', true);
+                    if ($attachment) {
 
-                    $value = [
-                        'id' => $thumbnail_id,
-                        'url' => wp_get_attachment_url($thumbnail_id),
-                        'title' => $attachment['post_title'],
-                        'alt' => $alt,
-                        'caption' => $attachment['post_excerpt'],
-                        'description' => $attachment['post_content']
-                    ];
-                } else {
-                    $value = [
-                        'id' => '',
-                        'url' => '',
-                        'title' => '',
-                        'alt' => '',
-                        'caption' => '',
-                        'description' => ''
-                    ];
+                        $alt = get_post_meta($thumbnail_id, '_wp_attachment_image_alt', true);
+                        $value = [
+                            'id' => $thumbnail_id,
+                            'url' => wp_get_attachment_url($thumbnail_id),
+                            'title' => $attachment['post_title'],
+                            'alt' => $alt,
+                            'caption' => $attachment['post_excerpt'],
+                            'description' => $attachment['post_content']
+                        ];
+                    }
                 }
                 break;
             case 'custom_fields':

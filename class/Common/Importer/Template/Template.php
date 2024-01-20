@@ -228,6 +228,12 @@ class Template extends AbstractTemplate
             $tmp['condition'] = $args['condition'];
         }
 
+        // Allow for setting fields to be registered for the group
+        // currently only supporting toggle fields.
+        if (isset($args['settings']) && !empty($args['settings'])) {
+            $tmp['settings'] = $args['settings'];
+        }
+
         return $tmp;
     }
 
