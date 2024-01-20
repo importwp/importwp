@@ -424,7 +424,7 @@ class PostTemplate extends Template implements TemplateInterface
                     'value' => $value
                 )
             ),
-            'post_status' => 'any'
+            'post_status' => 'any, trash, future'
         ));
         if ($query->have_posts()) {
             return $query->posts[0];
