@@ -130,6 +130,12 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.11.6 =
+
+* ADD - Allow for addons to register panel settings, currently only supports toggle fields.
+* FIX - Fix error if id passed to attachment is not of an attachment type.
+* FIX - Reduce database calls during import.
+
 = 2.11.5 =
 
 * ADD - Add pot translation file.
