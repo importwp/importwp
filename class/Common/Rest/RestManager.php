@@ -1568,6 +1568,8 @@ class RestManager extends \WP_REST_Controller
                         case 'complete':
                             $output .= 'Export complete';
                             break;
+                        case 'processing':
+                        case 'timeout':
                         case 'running':
                             $output .= 'Exporting: ' . $current . '/' . $end;
                             break;
