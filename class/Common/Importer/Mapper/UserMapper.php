@@ -157,7 +157,6 @@ class UserMapper extends AbstractMapper implements MapperInterface
             foreach ($meta as $key => $value) {
                 if (!in_array($key, $this->_user_fields)) {
                     if (is_array($value)) {
-                        $this->clear_custom_field($this->ID, $key);
                         foreach ($value as $v) {
                             $this->add_custom_field($this->ID, $key, $v);
                         }
@@ -214,8 +213,8 @@ class UserMapper extends AbstractMapper implements MapperInterface
         if (!empty($meta)) {
             foreach ($meta as $key => $value) {
                 if (!in_array($key, $this->_user_fields)) {
+                    $this->clear_custom_field($this->ID, $key);
                     if (is_array($value)) {
-                        $this->clear_custom_field($this->ID, $key);
                         foreach ($value as $v) {
                             $this->add_custom_field($this->ID, $key, $v);
                         }

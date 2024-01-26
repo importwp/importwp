@@ -182,7 +182,6 @@ class TermMapper extends AbstractMapper implements MapperInterface
             if (!is_wp_error($this->ID) && intval($this->ID) > 0 && !empty($custom_fields)) {
                 foreach ($custom_fields as $key => $value) {
                     if (is_array($value)) {
-                        $this->clear_custom_field($this->ID, $key);
                         foreach ($value as $v) {
                             $this->add_custom_field($this->ID, $key, $v);
                         }
@@ -239,8 +238,8 @@ class TermMapper extends AbstractMapper implements MapperInterface
 
         if (!empty($custom_fields)) {
             foreach ($custom_fields as $key => $value) {
+                $this->clear_custom_field($this->ID, $key);
                 if (is_array($value)) {
-                    $this->clear_custom_field($this->ID, $key);
                     foreach ($value as $v) {
                         $this->add_custom_field($this->ID, $key, $v);
                     }

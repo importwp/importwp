@@ -206,7 +206,6 @@ class PostMapper extends AbstractMapper implements MapperInterface
         if ($this->ID && !empty($meta)) {
             foreach ($meta as $key => $value) {
                 if (is_array($value)) {
-                    $this->clear_custom_field($this->ID, $key);
                     foreach ($value as $v) {
                         $this->add_custom_field($this->ID, $key, $v);
                     }
@@ -305,8 +304,8 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
         if (!empty($meta)) {
             foreach ($meta as $key => $value) {
+                $this->clear_custom_field($this->ID, $key);
                 if (is_array($value)) {
-                    $this->clear_custom_field($this->ID, $key);
                     foreach ($value as $v) {
                         $this->add_custom_field($this->ID, $key, $v);
                     }
