@@ -7,6 +7,7 @@ import {
   getEnabledMap,
   getFieldMap,
   setEnabled,
+  setPreview,
   setTemplate,
 } from '../../features/importer/importerSlice';
 
@@ -72,12 +73,29 @@ class FieldGroup extends React.PureComponent {
     const switch_height = 20;
     const switch_width = 40;
 
+
     return (
       <div className="iwp-form iwp-form--mb">
         <form>
           {link ? <p className="iwp-heading iwp-heading--has-tooltip">{heading} <a href={`${link}?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer`} target='_blank' className='iwp-label__tooltip'>?</a></p> : <p className="iwp-heading">{heading}</p>}
 
-          {/* Output panel settings */}
+          {React.cloneElement(window.iwp.hooks.applyFilters(
+            `iwp_panel_${this.props.group.id}`,
+            <></>
+          ), {
+            ...this.props,
+            setTemplate: (data) => {
+              this.props.dispatch(
+                setTemplate(data)
+              );
+            },
+            setPreview: (data) => {
+              this.props.dispatch(
+                setPreview(data)
+              );
+            }
+          })}
+
           {settings && <div className='iwp-panel-settings'>
             {settings.map(field => {
 
