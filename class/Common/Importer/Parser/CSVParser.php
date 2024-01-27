@@ -31,4 +31,14 @@ class CSVParser extends AbstractParser implements ParserInterface
     {
         return $this->csv_record;
     }
+
+    public function query_matches($matches)
+    {
+        // make sure the selector is numeric {0}
+        if (isset($matches[0]) && preg_match('/^\d+$/', $matches[1]) === 1) {
+            return parent::query_matches($matches);
+        }
+
+        return $matches[0];
+    }
 }
