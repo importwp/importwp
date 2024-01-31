@@ -88,7 +88,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
         $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/user/custom_field_list', $fields['children']['custom_fields']['fields'], null);
         $fields = apply_filters('iwp/exporter/user/fields', $fields, 'user');
 
-        return $fields;
+        return $this->parse_fields($fields);
     }
 
     public function have_records($exporter_id)

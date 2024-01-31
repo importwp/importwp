@@ -11,6 +11,7 @@ import StatusMessage from '../status-message/StatusMessage';
 import UpgradeMessage from '../upgrade-message/UpgradeMessage';
 import ExporterFieldSelector from './ExporterFieldSelector';
 import ExportFilter from './ExportFilter';
+import { ErrorBoundary } from "react-error-boundary";
 
 const AJAX_BASE = window.iwp.admin_base;
 const AJAX_URL_BASE = window.iwp.ajax_base;
@@ -29,6 +30,17 @@ const default_schedule = {
   setting_cron_hour: 0,
   setting_cron_minute: 0,
 };
+
+function fallbackRender({ error, resetErrorBoundary, info }) {
+  // Call resetErrorBoundary() to reset the error boundary and retry the render.
+
+  return (
+    <div role="alert">
+      <p>Something went wrong:</p>
+      <pre style={{ color: "red" }}>{error.message}</pre>
+    </div>
+  );
+}
 
 const ExporterEdit = ({ id, pro = false }) => {
   const [name, setName] = useState('');
@@ -484,12 +496,14 @@ const ExporterEdit = ({ id, pro = false }) => {
                   )} */}
 
                   {fileType && (
-                    <ExporterFieldSelector
-                      fileType={fileType}
-                      activeType={activeType}
-                      setFields={setFields}
-                      fields={fields}
-                    />
+                    <ErrorBoundary fallbackRender={fallbackRender}>
+                      <ExporterFieldSelector
+                        fileType={fileType}
+                        activeType={activeType}
+                        setFields={setFields}
+                        fields={fields}
+                      />
+                    </ErrorBoundary>
                   )}
                 </>
               )}

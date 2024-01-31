@@ -192,4 +192,18 @@ abstract class AbstractMapper
 
         return $custom_fields;
     }
+
+    public function parse_fields($fields)
+    {
+        $fields['fields'] = isset($fields['fields']) ? array_values($fields['fields']) : [];
+
+        if (isset($fields['children']) && !empty($fields['fields'])) {
+
+            foreach ($fields['children'] as $child_id => $child_data) {
+                $fields['children'][$child_id] = $this->parse_fields($child_data);
+            }
+        }
+
+        return $fields;
+    }
 }
