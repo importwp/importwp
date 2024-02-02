@@ -163,7 +163,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
             $fields['fields'][] = 'url';
         }
 
-        return $fields;
+        return $this->parse_fields($fields);
     }
 
 
