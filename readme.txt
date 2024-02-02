@@ -130,6 +130,9 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.11.7 =
+* FIX - Fix issue causing csv exporter to show empty screen after clicking "Add fields".
+
 = 2.11.6 =
 
 * ADD - Allow for addons to register panel settings, currently only supports toggle fields.
