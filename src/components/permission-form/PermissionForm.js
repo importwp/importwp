@@ -49,17 +49,11 @@ class PermissionForm extends Component {
           : '',
       saving: false,
       disabled: true,
-      unique_identifiers: window.iwp.templates.find(item => item.id === props.template).unique_fields.map(item => {
-        return { label: item, value: item };
-      }),
+      unique_identifiers: [],
       permission_fields: [],
       update_permission_fields: [],
       create_permission_fields: [],
     };
-
-    if (this.state.setting_unique_identifier.length > 0 && !this.state.unique_identifiers.find(item => item.value == this.state.setting_unique_identifier)) {
-      this.state.unique_identifiers = [...this.state.unique_identifiers, { label: 'Custom: ' + this.state.setting_unique_identifier, value: this.state.setting_unique_identifier }];
-    }
 
     this.state.update_permission_fields = this.state.update_permissions.split("\n");
     this.state.create_permission_fields = this.state.create_permissions.split("\n");
@@ -99,6 +93,14 @@ class PermissionForm extends Component {
     this.isDisabled();
 
     try {
+
+      // Load list of unique identifier fields
+      const unique_identifiers_result = await importer.templateUniqueIdentifiers(this.props.id);
+      let unique_identifiers = unique_identifiers_result.options;
+      if (this.state.setting_unique_identifier.length > 0 && !unique_identifiers.find(item => item.value == this.state.setting_unique_identifier)) {
+        unique_identifiers = [...unique_identifiers, { label: 'Custom: ' + this.state.setting_unique_identifier, value: this.state.setting_unique_identifier }];
+      }
+      this.setState({ unique_identifiers });
 
       // load list of permission_fields
       const template_group = await importer.template(this.props.id);

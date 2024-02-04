@@ -279,6 +279,14 @@ class RestManager extends \WP_REST_Controller
             )
         ));
 
+        register_rest_route($namespace, '/importer/(?P<id>\d+)/template_unique_identifiers', array(
+            array(
+                'methods' => \WP_REST_Server::READABLE,
+                'callback' => array($this, 'get_importer_unique_identifier_options'),
+                'permission_callback' => array($this, 'get_permission')
+            )
+        ));
+
         // Exporter
 
         register_rest_route($namespace, '/exporter', array(
@@ -1584,5 +1592,33 @@ class RestManager extends \WP_REST_Controller
 
         echo json_encode($result) . "\n";
         die();
+    }
+
+    public function get_importer_unique_identifier_options(\WP_REST_Request $request)
+    {
+        $id = intval($request->get_param('id'));
+        $importer_model = $this->importer_manager->get_importer($id);
+        if (!$importer_model) {
+            return $this->http->end_rest_error(['msg' => 'Invalid importer']);
+        }
+
+        $options = [];
+
+        // Get default template options
+        $template = $this->importer_manager->get_template($importer_model->getTemplate());
+        $template_class = $this->template_manager->load_template($template);
+        $unique_fields = $this->template_manager->get_template_unique_fields($template_class);
+
+        foreach ($unique_fields as $field) {
+            $options[] = [
+                'value' => $field,
+                'label' => $field
+            ];
+        }
+
+        // TODO: Loop through all populated fields and add them to this list
+        $mapped_data = $importer_model->getMap();
+
+        return $this->http->end_rest_success(['options' => $options]);
     }
 }
