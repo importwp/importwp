@@ -71,7 +71,9 @@ class XMLParser extends AbstractParser implements ParserInterface
         }
 
         $results = $this->record_xml->xpath($xpath_prefix . $query);
-        if (count($results) > 0) {
+
+        // make sure the result has records
+        if (is_array($results) && count($results) > 0) {
             if ($as_string) {
                 $temp = [];
                 foreach ($results as $result) {
