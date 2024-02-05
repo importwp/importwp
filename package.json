@@ -4,7 +4,7 @@
     "main": "index.js",
     "scripts": {
         "build": "wp-scripts build",
-        "start": "wp-scripts start"
+        "start": "wp-scripts start --config=dev-webpack.config.js"
     },
     "dependencies": {
         "@wordpress/hooks": "^2.6.0"
