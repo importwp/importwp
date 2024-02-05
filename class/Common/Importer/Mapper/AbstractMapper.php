@@ -158,4 +158,18 @@ class AbstractMapper
         $item_ids = $wpdb->get_col($query);
         return $item_ids;
     }
+
+    public function update_custom_field($id, $key, $value, $unique = false, $skip_permissions = false)
+    {
+    }
+
+    public function add_reference_tag($data)
+    {
+        if (!$this->importer->has_custom_unique_identifier()) {
+            return;
+        }
+
+        $key = $this->importer->get_iwp_reference_meta_key();
+        $this->update_custom_field($this->ID, $key, $data->getValue($key, 'iwp'));
+    }
 }

@@ -91,7 +91,6 @@ export const importerSlice = createSlice({
         ...action.payload,
       };
     },
-
     addMapFieldRow(state, action) {
       const key = action.payload;
       const prefix = key;

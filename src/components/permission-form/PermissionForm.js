@@ -5,6 +5,9 @@ import './PermissionForm.scss';
 import { importer } from '../../services/importer.service';
 import FieldLabel from '../field-label/FieldLabel';
 import CreatableSelect from 'react-select/creatable';
+import { connect } from 'react-redux';
+import InputField from '../InputField/InputField';
+import InputFieldDataSelector from '../InputFieldDataSelector/InputFieldDataSelector';
 
 class PermissionForm extends Component {
   constructor(props) {
@@ -47,12 +50,14 @@ class PermissionForm extends Component {
         props.permissions.remove && props.settings.unique_identifier
           ? props.settings.unique_identifier
           : '',
+      setting_unique_identifier_type: props.settings.unique_identifier_type ? props.settings.unique_identifier_type : '',
+      setting_unique_identifier_ref: props.settings.unique_identifier_ref ? props.settings.unique_identifier_ref : '',
       saving: false,
       disabled: true,
       unique_identifiers: [],
       permission_fields: [],
       update_permission_fields: [],
-      create_permission_fields: [],
+      create_permission_fields: []
     };
 
     this.state.update_permission_fields = this.state.update_permissions.split("\n");
@@ -64,6 +69,8 @@ class PermissionForm extends Component {
     this.onSubmit = this.onSubmit.bind(this);
     this.isDisabled = this.isDisabled.bind(this);
     this.setPermissionFields = this.setPermissionFields.bind(this);
+    this.onUniqueIdentifierTypeChange = this.onUniqueIdentifierTypeChange.bind(this);
+    this.hasNewUniqueIdentifierUI = this.hasNewUniqueIdentifierUI.bind(this);
   }
 
   onChange(event) {
@@ -80,7 +87,13 @@ class PermissionForm extends Component {
   }
 
   isDisabled() {
-    if (this.state.create || this.state.update || this.state.remove) {
+
+    if ((this.state.create || this.state.update || this.state.remove) &&
+      (
+        !this.hasNewUniqueIdentifierUI() ||
+        (this.state.setting_unique_identifier_type == 'field' && this.state.setting_unique_identifier) ||
+        (this.state.setting_unique_identifier_type == 'custom' && this.state.setting_unique_identifier_ref)
+      )) {
       // can save if there are some permissions enabled
       this.setState({ disabled: false });
     } else {
@@ -152,6 +165,8 @@ class PermissionForm extends Component {
       remove,
       remove_trash,
       setting_unique_identifier,
+      setting_unique_identifier_type,
+      setting_unique_identifier_ref,
     } = this.state;
     const permissions = {
       create: {
@@ -172,12 +187,23 @@ class PermissionForm extends Component {
 
     this.setState({ saving: true });
 
+    let data = {
+      id: id,
+      permissions: permissions,
+      setting_unique_identifier: setting_unique_identifier,
+    };
+
+    if (this.hasNewUniqueIdentifierUI()) {
+      // save new permission form data
+      data = {
+        ...data,
+        setting_unique_identifier_type: setting_unique_identifier_type,
+        setting_unique_identifier_ref: setting_unique_identifier_ref,
+      }
+    }
+
     importer
-      .save({
-        id: id,
-        permissions: permissions,
-        setting_unique_identifier: setting_unique_identifier,
-      })
+      .save(data)
       .then(() => {
         this.setState({ saving: false });
         callback();
@@ -232,6 +258,17 @@ class PermissionForm extends Component {
     }
   }
 
+  onUniqueIdentifierTypeChange(e) {
+    this.setState({
+      setting_unique_identifier_type: e.target.value
+    }, this.isDisabled);
+  }
+
+  hasNewUniqueIdentifierUI() {
+    const { version = 0 } = this.props.importer;
+    return version >= 2 || this.state.setting_unique_identifier_type;
+  }
+
   render() {
     const {
       create,
@@ -276,52 +313,159 @@ class PermissionForm extends Component {
 
     return (
       <React.Fragment>
+
         <div className="iwp-form iwp-form--mb">
           <form>
             <p className="iwp-heading iwp-heading--has-tooltip">Permissions. <a href="https://www.importwp.com/docs/permissions/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer" target='_blank' className='iwp-label__tooltip'>?</a></p>
 
-            <div className="iwp-form__grid">
-              <div className="iwp-form__row iwp-form__row--left">
-                <FieldLabel
-                  label="Unique Identifier"
-                  field="setting_unique_identifier"
-                  id="setting_unique_identifier"
-                  tooltip="Set which field should be used to uniquely identify each record, Either select from the predefined list of fields, manually type to set a custom identifier, or Leave empty to use the template default."
-                  display="inline-block"
-                />
-                <CreatableSelect
-                  id="setting_unique_identifier"
-                  name="setting_unique_identifier"
-                  isClearable
-                  options={this.state.unique_identifiers}
-                  value={this.state.unique_identifiers.find(item => item.value == setting_unique_identifier)}
-                  onChange={(data) => {
+            {this.hasNewUniqueIdentifierUI() ? <>
+              <p className="iwp-form__label">
+                Unique identifier:
+              </p>
+              <div className='iwp-permissions'>
+                <div className='iwp-permission__block iwp-permission__block--first'>
+                  <div className='iwp-block__handle'>
+                    <input type='radio' id="setting_unique_identifier_type__field" name="setting_unique_identifier_type" value="field" defaultChecked={this.state.setting_unique_identifier_type === 'field'} onChange={this.onUniqueIdentifierTypeChange} />
+                    <label htmlFor='setting_unique_identifier_type__field'>Choose from populated template fields.</label>
+                  </div>
+                  <div className='iwp-block__content' style={{
+                    display: this.state.setting_unique_identifier_type === 'field' ? 'block' : 'none',
+                    paddingBottom: '10px'
+                  }}>
+                    <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+                    <div className="iwp-field__left">
+                      <FieldLabel
+                        label="Field"
+                        field="setting_unique_identifier"
+                        id="setting_unique_identifier"
+                        tooltip="Set which field should be used to uniquely identify each record, Either select from the predefined list of fields, manually type to set a custom identifier, or Leave empty to use the template default."
+                      />
+                    </div>
+                    <div className="iwp-field__right">
+                      <CreatableSelect
+                        id="setting_unique_identifier"
+                        name="setting_unique_identifier"
+                        isClearable
+                        options={this.state.unique_identifiers}
+                        value={this.state.unique_identifiers.find(item => item.value == setting_unique_identifier)}
+                        onChange={(data) => {
 
-                    let value = data?.value;
+                          let value = data?.value;
 
-                    if (value) {
-                      if (!this.state.unique_identifiers.find(item => item.value == value)) {
-                        this.setState({
-                          unique_identifiers: [...this.state.unique_identifiers, { label: 'Custom: ' + value, value }]
-                        });
-                      }
-                    } else {
-                      value = '';
-                    }
+                          if (value) {
+                            if (!this.state.unique_identifiers.find(item => item.value == value)) {
+                              this.setState({
+                                unique_identifiers: [...this.state.unique_identifiers, { label: 'Custom: ' + value, value }]
+                              });
+                            }
+                          } else {
+                            value = '';
+                          }
 
 
-                    this.setState(
-                      {
-                        setting_unique_identifier: value,
-                      },
-                      this.isDisabled
-                    );
-                  }}
-                  className="iwp-form__select"
-                  placeholder="Leave empty to use the templates default."
-                />
+                          this.setState(
+                            {
+                              setting_unique_identifier: value,
+                            },
+                            this.isDisabled
+                          );
+                        }}
+                        className="iwp-form__select"
+                        placeholder="Select a field from the importer template."
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className='iwp-permission__block'>
+                  <div className='iwp-block__handle'>
+                    <input type='radio' id="setting_unique_identifier_type__custom" name="setting_unique_identifier_type" value="custom" defaultChecked={this.state.setting_unique_identifier_type === 'custom'} onChange={this.onUniqueIdentifierTypeChange} />
+                    <label htmlFor='setting_unique_identifier_type__custom'>Set a custom unique identifier value.</label>
+                  </div>
+                  <div className='iwp-block__content' style={{
+                    display: this.state.setting_unique_identifier_type === 'custom' ? 'block' : 'none',
+                    paddingBottom: '10px'
+                  }}>
+                    <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+                    <div className="iwp-field__left">
+                      <FieldLabel
+                        label='Unique identifier'
+                        id='setting_unique_identifier_ref'
+                        field='setting_unique_identifier_ref'
+                      />
+                    </div>
+                    <div className="iwp-field__right">
+                      <InputField
+                        name="setting_unique_identifier_ref"
+                        value={this.state.setting_unique_identifier_ref}
+                        onChange={val => this.setState({
+                          setting_unique_identifier_ref: val
+                        }, this.isDisabled)}
+                      >
+                        <InputFieldDataSelector
+                          value={this.state.setting_unique_identifier_ref}
+                          onClose={(selection) => {
+                            this.setState({
+                              setting_unique_identifier_ref: selection !== null ? selection : this.state.setting_unique_identifier_ref
+                            }, this.isDisabled);
+                          }} />
+                      </InputField>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            </> : <>
+              <div className="iwp-form__grid">
+                <div className="iwp-form__row iwp-form__row--left">
+                  <FieldLabel
+                    label="Unique Identifier"
+                    field="setting_unique_identifier"
+                    id="setting_unique_identifier"
+                    tooltip="Set which field should be used to uniquely identify each record, Either select from the predefined list of fields, manually type to set a custom identifier, or Leave empty to use the template default."
+                    display="inline-block"
+                  />
+                  <CreatableSelect
+                    id="setting_unique_identifier"
+                    name="setting_unique_identifier"
+                    isClearable
+                    options={this.state.unique_identifiers}
+                    value={this.state.unique_identifiers.find(item => item.value == setting_unique_identifier)}
+                    onChange={(data) => {
+
+                      let value = data?.value;
+
+                      if (value) {
+                        if (!this.state.unique_identifiers.find(item => item.value == value)) {
+                          this.setState({
+                            unique_identifiers: [...this.state.unique_identifiers, { label: 'Custom: ' + value, value }]
+                          });
+                        }
+                      } else {
+                        value = '';
+                      }
+
+
+                      this.setState(
+                        {
+                          setting_unique_identifier: value,
+                        },
+                        this.isDisabled
+                      );
+                    }}
+                    className="iwp-form__select"
+                    placeholder="Leave empty to use the templates default."
+                  />
+                </div>
+              </div>
+
+              <button type="button" className='button button-primary' onClick={() => {
+                this.setState({
+                  setting_unique_identifier_type: 'custom'
+                })
+              }}>Enable new unique identifier UI</button>
+            </>}
+
+
 
             <p className="iwp-form__label">
               Restrict which fields can be imported:
@@ -336,7 +480,7 @@ class PermissionForm extends Component {
                       checked={create}
                       onChange={this.onChange}
                     />{' '}
-                    Create - <em>Allow the creation of new records.</em>
+                    Create - <em>Allow the creation of new records when no unique identifer match have been found.</em>
                   </label>
                 </div>
                 {create && (
@@ -407,7 +551,7 @@ class PermissionForm extends Component {
                       checked={update}
                       onChange={this.onChange}
                     />{' '}
-                    Update - <em>Allow updating of existing records.</em>
+                    Update - <em>Allow updating of existing records when a unique identifier match has been found.</em>
                   </label>
                 </div>
                 {update && (
@@ -502,7 +646,7 @@ class PermissionForm extends Component {
               </div>
             </div>
           </form>
-        </div>
+        </div >
 
         <div className="iwp-form__actions">
           <div className="iwp-buttons">
@@ -546,4 +690,8 @@ PermissionForm.defaultProps = {
   onError: () => { },
 };
 
-export default PermissionForm;
+const mapStateToProps = (state, props) => ({
+  importer: state.importer.importer,
+});
+
+export default connect(mapStateToProps)(PermissionForm);

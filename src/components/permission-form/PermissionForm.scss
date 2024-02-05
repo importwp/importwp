@@ -1,6 +1,6 @@
 @mixin clearfix {
   &:after {
-    content: '';
+    content: "";
     display: table;
     clear: both;
   }
@@ -10,7 +10,8 @@
   &permission__block {
     border: 1px solid #e2e2e2;
     border-top: none;
-    &--create {
+    &--create,
+    &--first {
       border-top: 1px solid #e2e2e2;
     }
 

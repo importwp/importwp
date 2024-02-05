@@ -99,6 +99,12 @@ class ImporterModel
     protected $settings = [];
 
     /**
+     * @var int
+     */
+    protected $version;
+    protected $version_latest = 2;
+
+    /**
      * @var bool
      */
     protected $debug;
@@ -134,6 +140,7 @@ class ImporterModel
             $this->start_row = isset($data['settings'], $data['settings']['start_row']) ? $data['settings']['start_row'] : null;
             $this->max_row = isset($data['settings'], $data['settings']['max_row']) ? $data['settings']['max_row'] : null;
             $this->settings = isset($data['settings']) ? $data['settings'] : [];
+            $this->version = isset($data['version']) ? $data['version'] : 0;
         } elseif (!is_null($data)) {
 
             $post = false;
@@ -181,6 +188,7 @@ class ImporterModel
                 $this->start_row = isset($json['settings'], $json['settings']['start_row']) ? $json['settings']['start_row'] : null;
                 $this->max_row = isset($json['settings'], $json['settings']['max_row']) ? $json['settings']['max_row'] : null;
                 $this->settings = isset($json['settings']) ? $json['settings'] : [];
+                $this->version = isset($json['version']) ? $json['version'] : 0;
             }
         }
 
@@ -232,7 +240,8 @@ class ImporterModel
             'map' => (object) $this->map,
             'enabled' => (object) $this->enabled,
             'permissions' => (object) $this->getPermissions(),
-            'settings' => (object) $settings
+            'settings' => (object) $settings,
+            'version' => $this->version,
         );
 
         if (true === $this->debug) {
@@ -274,8 +283,8 @@ class ImporterModel
                 'map' => $this->map,
                 'enabled' => $this->enabled,
                 'permissions' => $this->permissions,
-
-                'settings' => $settings
+                'settings' => $settings,
+                'version' => is_null($this->id) ? $this->version_latest : $this->version
             )),
         );
 
@@ -643,5 +652,25 @@ class ImporterModel
     public function getUserId()
     {
         return intval($this->user_id) > 0 ? intval($this->user_id) : false;
+    }
+
+    public function getVersion()
+    {
+        return $this->version;
+    }
+
+    public function get_iwp_reference_meta_key()
+    {
+        return '_iwp_ref_id';
+    }
+
+    public function has_custom_unique_identifier()
+    {
+        return $this->getSetting('unique_identifier_type') === 'custom';
+    }
+
+    public function has_field_unique_identifier()
+    {
+        return $this->getSetting('unique_identifier_type') === 'field';
     }
 }

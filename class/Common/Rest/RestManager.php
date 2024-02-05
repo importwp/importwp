@@ -1608,16 +1608,15 @@ class RestManager extends \WP_REST_Controller
         $template = $this->importer_manager->get_template($importer_model->getTemplate());
         $template_class = $this->template_manager->load_template($template);
         $unique_fields = $this->template_manager->get_template_unique_fields($template_class);
+        $mapped_data = $importer_model->getMap();
 
         foreach ($unique_fields as $field) {
+            // TODO: Only add to list if field is populated.
             $options[] = [
                 'value' => $field,
                 'label' => $field
             ];
         }
-
-        // TODO: Loop through all populated fields and add them to this list
-        $mapped_data = $importer_model->getMap();
 
         return $this->http->end_rest_success(['options' => $options]);
     }

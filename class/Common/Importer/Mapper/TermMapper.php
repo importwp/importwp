@@ -30,15 +30,36 @@ class TermMapper extends AbstractMapper implements MapperInterface
     public function exists(ParsedData $data)
     {
         $unique_fields = TemplateManager::get_template_unique_fields($this->template);
+        $has_unique_field = false;
+        $meta_args = [];
 
-        // allow user to set unique field name, get from importer setting
-        $unique_field = $this->importer->getSetting('unique_field');
-        if ($unique_field !== null) {
-            $unique_fields = is_string($unique_field) ? [$unique_field] : $unique_field;
+        if ($this->importer->has_custom_unique_identifier()) {
+
+            // custom unique identifier is stored in meta table
+            $has_unique_field = true;
+            $meta_args[] = array(
+                'key'   => $this->importer->get_iwp_reference_meta_key(),
+                'value' => $data->getValue($this->importer->get_iwp_reference_meta_key(), 'iwp')
+            );
+        } elseif ($this->importer->has_field_unique_identifier()) {
+
+            // we have set a specific identifier
+            $unique_field = $this->importer->getSetting('unique_field');
+            if ($unique_field !== null) {
+                $unique_fields = is_string($unique_field) ? [$unique_field] : $unique_field;
+            }
+        } else {
+
+            // NOTE: fallback to allow templates to set this in pre 2.11.9
+            // allow user to set unique field name, get from importer setting
+            $unique_field = $this->importer->getSetting('unique_field');
+            if ($unique_field !== null) {
+                $unique_fields = is_string($unique_field) ? [$unique_field] : $unique_field;
+            }
+
+            $unique_fields = $this->getUniqueIdentifiers($unique_fields);
+            $unique_fields = apply_filters('iwp/template_unique_fields', $unique_fields, $this->template, $this->importer);
         }
-
-        $unique_fields = $this->getUniqueIdentifiers($unique_fields);
-        $unique_fields = apply_filters('iwp/template_unique_fields', $unique_fields, $this->template, $this->importer);
 
         $unique_field_found = false;
 
@@ -51,54 +72,54 @@ class TermMapper extends AbstractMapper implements MapperInterface
             'taxonomy' => $taxonomy
         ];
 
-        $has_unique_field = false;
+        if (!$has_unique_field) {
+            foreach ($unique_fields as $field) {
 
-        foreach ($unique_fields as $field) {
-
-            // check all groups for a unique value
-            $unique_value = $data->getValue($field, '*');
-            if (empty($unique_value)) {
-                $cf = $data->getData('custom_fields');
-                if (!empty($cf)) {
-                    $cf_index = intval($cf['custom_fields._index']);
-                    if ($cf_index > 0) {
-                        for ($i = 0; $i < $cf_index; $i++) {
-                            $row = 'custom_fields.' . $i . '.';
-                            $custom_field_key = apply_filters('iwp/custom_field_key', $cf[$row . 'key']);
-                            if ($custom_field_key !== $field) {
-                                continue;
+                // check all groups for a unique value
+                $unique_value = $data->getValue($field, '*');
+                if (empty($unique_value)) {
+                    $cf = $data->getData('custom_fields');
+                    if (!empty($cf)) {
+                        $cf_index = intval($cf['custom_fields._index']);
+                        if ($cf_index > 0) {
+                            for ($i = 0; $i < $cf_index; $i++) {
+                                $row = 'custom_fields.' . $i . '.';
+                                $custom_field_key = apply_filters('iwp/custom_field_key', $cf[$row . 'key']);
+                                if ($custom_field_key !== $field) {
+                                    continue;
+                                }
+                                $unique_value = $cf[$row . 'value'];
+                                break;
                             }
-                            $unique_value = $cf[$row . 'value'];
-                            break;
                         }
                     }
                 }
-            }
 
-            if (empty($unique_value)) {
-                continue;
-            }
-
-            $has_unique_field = true;
-
-            if (in_array($field, $this->_term_fields, true)) {
-
-                switch ($field) {
-                    case 'term_id':
-                        $query_args['include'] = [intval($unique_value)];
-                        break;
-                    default:
-                        $query_args[$field] = $unique_value;
-                        break;
+                if (empty($unique_value)) {
+                    continue;
                 }
-            } else {
-                $meta_args[] = array(
-                    'key'   => $field,
-                    'value' => $unique_value
-                );
+
+                $has_unique_field = true;
+
+                if (in_array($field, $this->_term_fields, true)) {
+
+                    switch ($field) {
+                        case 'term_id':
+                            $query_args['include'] = [intval($unique_value)];
+                            break;
+                        default:
+                            $query_args[$field] = $unique_value;
+                            break;
+                    }
+                } else {
+                    $meta_args[] = array(
+                        'key'   => $field,
+                        'value' => $unique_value
+                    );
+                }
+                $unique_field_found = $field;
+                break;
             }
-            $unique_field_found = $field;
-            break;
         }
 
         if (!$has_unique_field) {
@@ -193,6 +214,7 @@ class TermMapper extends AbstractMapper implements MapperInterface
         }
 
         $this->add_version_tag();
+        $this->add_reference_tag($data);
         $this->template->post_process($this->ID, $data);
 
         return $this->ID;
@@ -250,6 +272,7 @@ class TermMapper extends AbstractMapper implements MapperInterface
         }
 
         $this->add_version_tag();
+        $this->add_reference_tag($data);
         $this->template->post_process($this->ID, $data);
 
         return $this->ID;
@@ -324,7 +347,7 @@ class TermMapper extends AbstractMapper implements MapperInterface
         add_term_meta($term_id, $key, $value);
     }
 
-    public function update_custom_field($id, $key, $value)
+    public function update_custom_field($id, $key, $value, $unique = false, $skip_permissions = false)
     {
         // Stop double serialization
         if (is_serialized($value)) {

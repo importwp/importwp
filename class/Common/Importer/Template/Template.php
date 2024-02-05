@@ -6,6 +6,7 @@ use ImportWP\Common\Attachment\Attachment;
 use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Ftp\Ftp;
 use ImportWP\Common\Importer\File\XMLFile;
+use ImportWP\Common\Importer\Mapper\AbstractMapper;
 use ImportWP\Common\Importer\ParsedData;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Util\Logger;
@@ -485,6 +486,16 @@ class Template extends AbstractTemplate
             if (false === $found) {
                 $field_groups['default']['fields'][$field_id] = $field_value;
             }
+        }
+
+        if ($this->importer->has_custom_unique_identifier()) {
+
+            $field_groups['iwp'] = [
+                'id' => 'iwp',
+                'fields' => [
+                    $this->importer->get_iwp_reference_meta_key() => $this->importer->getSetting('unique_identifier_ref')
+                ]
+            ];
         }
 
         return $field_groups;

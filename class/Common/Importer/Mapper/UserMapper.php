@@ -43,40 +43,62 @@ class UserMapper extends AbstractMapper implements MapperInterface
     public function exists(ParsedData $data)
     {
         $unique_fields = TemplateManager::get_template_unique_fields($this->template);
+        $has_unique_field = false;
+        $meta_args  = array();
 
-        $unique_fields = $this->getUniqueIdentifiers($unique_fields);
-        $unique_fields = apply_filters('iwp/template_unique_fields', $unique_fields, $this->template, $this->importer);
+        if ($this->importer->has_custom_unique_identifier()) {
+
+            // custom unique identifier is stored in meta table
+            $has_unique_field = true;
+            $meta_args[] = array(
+                'key'   => $this->importer->get_iwp_reference_meta_key(),
+                'value' => $data->getValue($this->importer->get_iwp_reference_meta_key(), 'iwp'),
+                'compare' => '=',
+                'type'    => 'CHAR'
+            );
+        } elseif ($this->importer->has_field_unique_identifier()) {
+
+            // we have set a specific identifier
+            $unique_field = $this->importer->getSetting('unique_field');
+            if ($unique_field !== null) {
+                $unique_fields = is_string($unique_field) ? [$unique_field] : $unique_field;
+            }
+        } else {
+
+            // NOTE: fallback to allow templates to set this in pre 2.11.9
+            $unique_fields = $this->getUniqueIdentifiers($unique_fields);
+            $unique_fields = apply_filters('iwp/template_unique_fields', $unique_fields, $this->template, $this->importer);
+        }
 
         $unique_field_found = false;
 
         $default_group = $data->getData('default');
         $query_args = array();
-        $meta_args  = array();
         $search         = array(); // store search values
         $search_columns = array(); // store search columns
 
-        $has_unique_field = false;
+        if (!$has_unique_field) {
+            foreach ($unique_fields as $field) {
 
-        foreach ($unique_fields as $field) {
+                // check all groups for a unique value
+                $unique_value = $data->getValue($field, '*');
+                if (!empty($unique_value)) {
+                    $has_unique_field = true;
 
-            // check all groups for a unique value
-            $unique_value = $data->getValue($field, '*');
-            if (!empty($unique_value)) {
-                $has_unique_field = true;
-
-                if (in_array($field, $this->_user_fields)) {
-                    $search_columns[] = $field;
-                    $search[]         = $default_group[$field];
-                } else {
-                    $meta_args[] = array(
-                        'key'     => $field,
-                        'value'   => $default_group[$field],
-                        'compare' => '=',
-                        'type'    => 'CHAR'
-                    );
+                    if (in_array($field, $this->_user_fields)) {
+                        $search_columns[] = $field;
+                        $search[]         = $default_group[$field];
+                    } else {
+                        $meta_args[] = array(
+                            'key'     => $field,
+                            'value'   => $default_group[$field],
+                            'compare' => '=',
+                            'type'    => 'CHAR'
+                        );
+                    }
+                    $unique_field_found = $field;
+                    break;
                 }
-                $unique_field_found = $field;
-                break;
             }
         }
 
@@ -168,6 +190,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
         }
 
         $this->add_version_tag();
+        $this->add_reference_tag($data);
         $this->template->post_process($this->ID, $data);
 
         return $this->ID;
@@ -226,6 +249,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
         }
 
         $this->add_version_tag();
+        $this->add_reference_tag($data);
         $this->template->post_process($this->ID, $data);
 
         return $this->ID;
@@ -296,14 +320,14 @@ class UserMapper extends AbstractMapper implements MapperInterface
         add_user_meta($user_id, $key, $value);
     }
 
-    public function update_custom_field($user_id, $key, $value)
+    public function update_custom_field($id, $key, $value, $unique = false, $skip_permissions = false)
     {
         // Stop double serialization
         if (is_serialized($value)) {
             $value = unserialize($value);
         }
 
-        update_user_meta($user_id, $key, $value);
+        update_user_meta($id, $key, $value);
     }
 
     public function add_version_tag()

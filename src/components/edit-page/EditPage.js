@@ -234,7 +234,16 @@ class EditPage extends React.Component {
       max = 3;
     }
 
-    if (importer.permissions) {
+    const hasNewUniqueIdentifierUI = () => {
+      return +importer?.version >= 2 || importer.settings.unique_identifier_type;
+    }
+
+    // TODO: make sure a unique identifier has been chosen.
+    if (importer.permissions && (
+      !hasNewUniqueIdentifierUI() ||
+      (importer.settings.unique_identifier_type === 'field' && importer.settings.unique_identifier.length > 0) ||
+      (importer.settings.unique_identifier_type === 'custom' && importer.settings.unique_identifier_ref.length > 0)
+    )) {
       if (
         (importer.permissions.create &&
           importer.permissions.create.enabled === true) ||
