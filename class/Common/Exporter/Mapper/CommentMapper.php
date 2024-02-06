@@ -89,7 +89,7 @@ class CommentMapper extends AbstractMapper implements MapperInterface
 
         $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/comment/custom_field_list', $fields['children']['custom_fields']['fields'], $this->post_type);
 
-        return $fields;
+        return $this->parse_fields($fields);
     }
 
     public function have_records($exporter_id)
