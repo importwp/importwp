@@ -210,6 +210,10 @@ class ImporterManagerTest extends \WP_UnitTestCase
         $new_importer->setMap('post.post_content', '{/content}');
         $new_importer->save();
 
+        // Switch to original unique identifier
+        $new_importer->setSetting('unique_identifier_type', '');
+        $new_importer->save();
+
         $manager->local_file($new_importer, IWP_TEST_ROOT . "/data/xml/simple.xml");
         $new_importer->setFileSetting('base_path', 'posts/post');
         $importer_id = $new_importer->save();
