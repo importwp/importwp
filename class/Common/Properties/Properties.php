@@ -4,6 +4,7 @@ namespace ImportWP\Common\Properties;
 
 use ImportWP\Common\Util\Singleton;
 
+#[\AllowDynamicProperties]
 class Properties
 {
     use Singleton;
