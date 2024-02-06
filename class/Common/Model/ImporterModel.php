@@ -266,26 +266,35 @@ class ImporterModel
             'max_row' => $this->max_row,
         ]);
 
+        $post_content = array(
+            'template' => $this->template,
+            'template_type' => $this->template_type,
+            'file' => [
+                'id' => $this->file_id,
+                'settings' => $this->file_settings
+            ],
+            'datasource' => [
+                'type' => $this->datasource,
+                'settings' => $this->getDatasourceSettings()
+            ],
+            'parser' => $this->parser,
+            'map' => $this->map,
+            'enabled' => $this->enabled,
+            'permissions' => $this->permissions,
+            'settings' => $settings,
+            'version' => $this->version
+        );
+
+        if (is_null($this->id)) {
+
+            // set defaults on new importers
+            $post_content['version'] = $this->version_latest;
+            $post_content['settings']['unique_identifier_type'] = 'custom';
+        }
+
         $postarr = array(
             'post_title' => $this->name,
-            'post_content' => serialize(array(
-                'template' => $this->template,
-                'template_type' => $this->template_type,
-                'file' => [
-                    'id' => $this->file_id,
-                    'settings' => $this->file_settings
-                ],
-                'datasource' => [
-                    'type' => $this->datasource,
-                    'settings' => $this->getDatasourceSettings()
-                ],
-                'parser' => $this->parser,
-                'map' => $this->map,
-                'enabled' => $this->enabled,
-                'permissions' => $this->permissions,
-                'settings' => $settings,
-                'version' => is_null($this->id) ? $this->version_latest : $this->version
-            )),
+            'post_content' => serialize($post_content),
         );
 
         if (is_null($this->id)) {
