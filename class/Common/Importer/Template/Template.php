@@ -490,10 +490,12 @@ class Template extends AbstractTemplate
 
         if ($this->importer->has_custom_unique_identifier()) {
 
+            $ref = $this->importer->getSetting('unique_identifier_ref');
+
             $field_groups['iwp'] = [
                 'id' => 'iwp',
                 'fields' => [
-                    $this->importer->get_iwp_reference_meta_key() => $this->importer->getSetting('unique_identifier_ref')
+                    $this->importer->get_iwp_reference_meta_key() => (!is_null($ref) ? $ref : '')
                 ]
             ];
         }
