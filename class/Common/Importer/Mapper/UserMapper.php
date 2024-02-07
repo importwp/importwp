@@ -5,7 +5,6 @@ namespace ImportWP\Common\Importer\Mapper;
 use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\MapperInterface;
 use ImportWP\Common\Importer\ParsedData;
-use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Util\Logger;
 
 class UserMapper extends AbstractMapper implements MapperInterface
@@ -42,32 +41,12 @@ class UserMapper extends AbstractMapper implements MapperInterface
 
     public function exists(ParsedData $data)
     {
-        $unique_fields = TemplateManager::get_template_unique_fields($this->template);
-        $has_unique_field = false;
-        $meta_args  = array();
-
-        if ($this->importer->has_custom_unique_identifier()) {
-
-            // custom unique identifier is stored in meta table
-            $has_unique_field = true;
-            $meta_args[] = array(
-                'key'   => $this->importer->get_iwp_reference_meta_key(),
-                'value' => $data->getValue($this->importer->get_iwp_reference_meta_key(), 'iwp'),
-                'compare' => '=',
-                'type'    => 'CHAR'
-            );
-        } elseif ($this->importer->has_field_unique_identifier()) {
-
-            // we have set a specific identifier
-            $unique_field = $this->importer->getSetting('unique_field');
-            if ($unique_field !== null) {
-                $unique_fields = is_string($unique_field) ? [$unique_field] : $unique_field;
+        list($unique_fields, $meta_args, $has_unique_field) = $this->exists_get_identifier($data);
+        if (!empty($meta_args)) {
+            foreach ($meta_args as &$meta_arg_v) {
+                $meta_arg_v['compare'] = '=';
+                $meta_arg_v['type'] = 'CHAR';
             }
-        } else {
-
-            // NOTE: fallback to allow templates to set this in pre 2.11.9
-            $unique_fields = $this->getUniqueIdentifiers($unique_fields);
-            $unique_fields = apply_filters('iwp/template_unique_fields', $unique_fields, $this->template, $this->importer);
         }
 
         $unique_field_found = false;
@@ -81,7 +60,8 @@ class UserMapper extends AbstractMapper implements MapperInterface
             foreach ($unique_fields as $field) {
 
                 // check all groups for a unique value
-                $unique_value = $data->getValue($field, '*');
+                $unique_value = $this->find_unique_field_in_data($data, $field);
+
                 if (!empty($unique_value)) {
                     $has_unique_field = true;
 
