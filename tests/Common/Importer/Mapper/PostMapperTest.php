@@ -285,6 +285,211 @@ class PostMapperTest extends \WP_UnitTestCase
         ];
     }
 
+    public function testExistsWithCustomUniqueIdentifier()
+    {
+        $importer_model = $this->createPartialMock(ImporterModel::class, ['has_custom_unique_identifier', 'getSetting']);
+        $importer_model->method('has_custom_unique_identifier')->willReturn(true);
+        $importer_model->method('getSetting')->willReturnMap([
+            ['post_type', 'post']
+        ]);
+
+        $mapper = $this->createPartialMock(PostMapper::class, []);
+        $this->setProtectedProperty($mapper, 'importer', $importer_model);
+
+        $uid_key = $importer_model->get_iwp_reference_meta_key();
+
+        // Create mock data
+        $post = $this->factory()->post->create_and_get([
+            'post_type' => 'post',
+        ]);
+        $post_with_cf = $this->factory()->post->create_and_get([
+            'post_type' => 'post',
+            'meta_input' => [
+                'custom_field' => '123'
+            ]
+        ]);
+        $post_with_title = $this->factory()->post->create_and_get([
+            'post_type' => 'post',
+            'post_title' => '123',
+        ]);
+
+        $post_with_slug = $this->factory()->post->create_and_get([
+            'post_type' => 'post',
+            'post_name' => '123',
+        ]);
+
+        // make sure no matches
+        $data = $this->createPartialMock(ParsedData::class, []);
+        $data->add([
+            $uid_key => '123'
+        ], 'iwp');
+        $this->assertFalse($mapper->exists($data));
+
+        $post_with_uid = $this->factory()->post->create_and_get([
+            'post_type' => 'post',
+            'meta_input' => [
+                $uid_key => '123'
+            ]
+        ]);
+
+        // should match
+        $this->assertEquals($post_with_uid->ID, $mapper->exists($data));
+    }
+
+    public function testExistsWithFieldUniqueIdentifier()
+    {
+        $mock_importer = function ($settings) {
+
+            $importer_model = $this->createPartialMock(ImporterModel::class, ['has_custom_unique_identifier', 'has_field_unique_identifier', 'getSetting']);
+            $importer_model->method('has_custom_unique_identifier')->willReturn(false);
+            $importer_model->method('has_field_unique_identifier')->willReturn(true);
+            $importer_model->method('getSetting')->willReturnMap($settings);
+
+            $mapper = $this->createPartialMock(PostMapper::class, []);
+            $this->setProtectedProperty($mapper, 'importer', $importer_model);
+
+            return [$importer_model, $mapper];
+        };
+
+        /**
+         * @var ImporterModel|\PHPUnit\Framework\MockObject\MockObject $importer_model
+         * @var PostMapper|\PHPUnit\Framework\MockObject\MockObject $mapper
+         */
+        list($importer_model, $mapper) = $mock_importer([
+            ['post_type', 'post'],
+        ]);
+
+        $uid_key = $importer_model->get_iwp_reference_meta_key();
+
+        // Create mock data
+        $post = $this->factory()->post->create_and_get([
+            'post_type' => 'post',
+        ]);
+        $post_with_cf = $this->factory()->post->create_and_get([
+            'post_type' => 'post',
+            'meta_input' => [
+                'custom_field' => '123'
+            ]
+        ]);
+        $post_with_slug = $this->factory()->post->create_and_get([
+            'post_type' => 'post',
+            'post_name' => '123',
+        ]);
+        $post_with_title = $this->factory()->post->create_and_get([
+            'post_type' => 'post',
+            'post_title' => '123',
+        ]);
+        $post_with_uid = $this->factory()->post->create_and_get([
+            'post_type' => 'post',
+            'meta_input' => [
+                $uid_key => '123'
+            ]
+        ]);
+
+        try {
+            $data = $this->createPartialMock(ParsedData::class, []);
+            $mapper->exists($data);
+            $this->fail('MapperException was not thrown');
+        } catch (MapperException $e) {
+            $this->assertSame('No Unique fields present.', $e->getMessage());
+        }
+
+        // if unique_identifier has a value, but it is not found in the template
+
+        /**
+         * @var ImporterModel|\PHPUnit\Framework\MockObject\MockObject $importer_model
+         * @var PostMapper|\PHPUnit\Framework\MockObject\MockObject $mapper
+         */
+        list($importer_model, $mapper) = $mock_importer([
+            ['post_type', 'post'],
+            ['unique_identifier', 'post_title']
+        ]);
+
+        try {
+            $data = $this->createPartialMock(ParsedData::class, []);
+            $mapper->exists($data);
+            $this->fail('MapperException was not thrown');
+        } catch (MapperException $e) {
+            $this->assertSame('No Unique fields present.', $e->getMessage());
+        }
+
+        // Match post_title
+
+        /**
+         * @var ImporterModel|\PHPUnit\Framework\MockObject\MockObject $importer_model
+         * @var PostMapper|\PHPUnit\Framework\MockObject\MockObject $mapper
+         */
+        list($importer_model, $mapper) = $mock_importer([
+            ['post_type', 'post'],
+            ['unique_identifier', 'post_title']
+        ]);
+
+        $data = $this->createPartialMock(ParsedData::class, []);
+        $data->add([
+            'post_title' => '123'
+        ]);
+
+        $this->assertEquals($post_with_title->ID, $mapper->exists($data));
+
+        // Match post_name
+
+        /**
+         * @var ImporterModel|\PHPUnit\Framework\MockObject\MockObject $importer_model
+         * @var PostMapper|\PHPUnit\Framework\MockObject\MockObject $mapper
+         */
+        list($importer_model, $mapper) = $mock_importer([
+            ['post_type', 'post'],
+            ['unique_identifier', 'post_name']
+        ]);
+
+        $data = $this->createPartialMock(ParsedData::class, []);
+        $data->add([
+            'post_name' => '123'
+        ]);
+
+        $this->assertEquals($post_with_slug->ID, $mapper->exists($data));
+
+        // Match custom field
+
+        /**
+         * @var ImporterModel|\PHPUnit\Framework\MockObject\MockObject $importer_model
+         * @var PostMapper|\PHPUnit\Framework\MockObject\MockObject $mapper
+         */
+        list($importer_model, $mapper) = $mock_importer([
+            ['post_type', 'post'],
+            ['unique_identifier', 'custom_field']
+        ]);
+
+        $data = $this->createPartialMock(ParsedData::class, []);
+
+        // no custom fields
+        try {
+            $data = $this->createPartialMock(ParsedData::class, []);
+            $mapper->exists($data);
+            $this->fail('MapperException was not thrown');
+        } catch (MapperException $e) {
+            $this->assertSame('No Unique fields present.', $e->getMessage());
+        }
+
+        // field but no match
+        $data = $this->createPartialMock(ParsedData::class, []);
+        $data->add([
+            'custom_fields._index' => '1',
+            'custom_fields.0.key' => 'custom_field',
+            'custom_fields.0.value' => '1231',
+        ], 'custom_fields');
+        $this->assertFalse($mapper->exists($data));
+
+        // with match
+        $data = $this->createPartialMock(ParsedData::class, []);
+        $data->add([
+            'custom_fields._index' => '1',
+            'custom_fields.0.key' => 'custom_field',
+            'custom_fields.0.value' => '123',
+        ], 'custom_fields');
+        $this->assertEquals($post_with_cf->ID, $mapper->exists($data));
+    }
+
     /**
      * @dataProvider provideInsertData
      */

@@ -57,7 +57,8 @@ class PostMapper extends AbstractMapper implements MapperInterface
     public function exists(ParsedData $data)
     {
         $has_unique_field = false;
-        $unique_fields = TemplateManager::get_template_unique_fields($this->template);
+        $unique_fields = [];
+
         $meta_args = array();
 
         if ($this->importer->has_custom_unique_identifier()) {
@@ -71,13 +72,15 @@ class PostMapper extends AbstractMapper implements MapperInterface
         } elseif ($this->importer->has_field_unique_identifier()) {
 
             // we have set a specific identifier
-            $unique_field = $this->importer->getSetting('unique_field');
+            $unique_field = $this->importer->getSetting('unique_identifier');
             if ($unique_field !== null) {
                 $unique_fields = is_string($unique_field) ? [$unique_field] : $unique_field;
             }
         } else {
 
             // NOTE: fallback to allow templates to set this in pre 2.11.9
+            $unique_fields = TemplateManager::get_template_unique_fields($this->template);
+
             // allow user to set unique field name, get from importer setting
             $unique_field = $this->importer->getSetting('unique_field');
             if ($unique_field !== null) {
