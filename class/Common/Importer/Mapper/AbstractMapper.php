@@ -8,6 +8,7 @@ use ImportWP\Common\Importer\Template\Template;
 use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Importer\TemplateInterface;
 use ImportWP\Common\Model\ImporterModel;
+use ImportWP\Common\Util\Logger;
 
 class AbstractMapper
 {
@@ -73,6 +74,8 @@ class AbstractMapper
                 'key'   => $key,
                 'value' => $value
             );
+
+            Logger::debug('AbstractMapper::exists_get_identifier -type="custom" -field="' . $key . '" -value="' . $value . '"');
         } elseif ($this->importer->has_field_unique_identifier()) {
 
             // we have set a specific identifier
@@ -80,6 +83,8 @@ class AbstractMapper
             if ($unique_field !== null && !empty($unique_field)) {
                 $unique_fields = is_string($unique_field) ? [$unique_field] : $unique_field;
             }
+
+            Logger::debug('AbstractMapper::exists_get_identifier -type="field" -field="' . wp_json_encode($unique_fields) . '"');
         } else {
 
             // NOTE: fallback to allow templates to set this in pre 2.11.9
@@ -93,6 +98,8 @@ class AbstractMapper
 
             $unique_fields = $this->getUniqueIdentifiers($unique_fields);
             $unique_fields = apply_filters('iwp/template_unique_fields', $unique_fields, $this->template, $this->importer);
+
+            Logger::debug('AbstractMapper::exists_get_identifier -type="legacy" -fields="' . wp_json_encode($unique_fields) . '"');
         }
 
 
@@ -126,6 +133,7 @@ class AbstractMapper
 
     public function find_unique_field_in_data($data, $field)
     {
+        // TODO: this should only be done once per update
         $unique_value = $data->getValue($field, '*');
         if (empty($unique_value)) {
             $cf = $data->getData('custom_fields');

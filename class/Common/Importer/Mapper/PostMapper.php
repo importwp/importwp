@@ -106,6 +106,9 @@ class PostMapper extends AbstractMapper implements MapperInterface
             }
         }
 
+
+
+
         if (!$has_unique_field) {
 
             // fallback to post_title
@@ -122,6 +125,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
         }
 
         $query_args = apply_filters('iwp/importer/mapper/post_exists_query', $query_args);
+        Logger::debug("PostMapper::exists -query=" . wp_json_encode($query_args));
 
         $query = new \WP_Query($query_args);
         if ($query->post_count > 1) {

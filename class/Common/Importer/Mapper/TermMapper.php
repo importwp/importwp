@@ -32,7 +32,6 @@ class TermMapper extends AbstractMapper implements MapperInterface
         $unique_field_found = false;
 
         $taxonomy = $this->importer->getSetting('taxonomy');
-
         $query_args = [
             'fields' => 'ids',
             'hide_empty' => false,
@@ -82,6 +81,7 @@ class TermMapper extends AbstractMapper implements MapperInterface
         }
 
         $query_args = apply_filters('iwp/importer/mapper/term_exists_query', $query_args);
+        Logger::debug("TermMapper::exists -query=" . wp_json_encode($query_args));
         $query = new \WP_Term_Query($query_args);
         if (!$query->terms) {
             return false;

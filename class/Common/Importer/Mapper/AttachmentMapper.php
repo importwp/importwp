@@ -120,6 +120,7 @@ class AttachmentMapper extends PostMapper
         }
 
         $query_args = apply_filters('iwp/importer/mapper/attachment_exists_query', $query_args);
+        Logger::debug("AttachmentMapper::exists -query=" . wp_json_encode($query_args));
         $query = new \WP_Query($query_args);
         if ($query->post_count > 1) {
             throw new MapperException(sprintf(__("Record is not unique: %s, Matching Ids: (%s).", 'jc-importer'), $unique_field_found, implode(', ', $query->posts)));
@@ -193,6 +194,7 @@ class AttachmentMapper extends PostMapper
         $this->update_post_object($fields, $data);
 
         $this->add_version_tag();
+        $this->add_reference_tag($data);
         $this->template->post_process($this->ID, $data);
 
         return $attachment_id;
@@ -212,6 +214,7 @@ class AttachmentMapper extends PostMapper
         $this->update_post_object($fields, $data);
 
         $this->add_version_tag();
+        $this->add_reference_tag($data);
         $this->template->post_process($this->ID, $data);
 
         return $attachment_id;

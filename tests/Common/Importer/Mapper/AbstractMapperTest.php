@@ -61,7 +61,7 @@ class AbstractMapperTest extends \WP_UnitTestCase
         $this->assertEmpty($unique_fields);
         $this->assertTrue($has_unique_field);
         $this->assertCount(1, $meta_args);
-        $this->assertEquals('_iwp_ref_id', $meta_args[0]['key']);
+        $this->assertEquals('_iwp_ref_uid', $meta_args[0]['key']);
         $this->assertTrue($meta_args[0]['value'] === '', 'string is not empty');
 
 
@@ -72,7 +72,7 @@ class AbstractMapperTest extends \WP_UnitTestCase
          */
         $data = $this->createPartialMock(ParsedData::class, []);
         $data->add([
-            '_iwp_ref_id' => ''
+            '_iwp_ref_uid' => ''
         ], 'iwp');
 
         $mapper = $this->create_abstract_mapper_mock(true, true);
@@ -80,7 +80,7 @@ class AbstractMapperTest extends \WP_UnitTestCase
         $this->assertEmpty($unique_fields);
         $this->assertTrue($has_unique_field);
         $this->assertCount(1, $meta_args);
-        $this->assertEquals('_iwp_ref_id', $meta_args[0]['key']);
+        $this->assertEquals('_iwp_ref_uid', $meta_args[0]['key']);
         $this->assertTrue($meta_args[0]['value'] === '', 'string is not empty');
 
 
@@ -91,14 +91,14 @@ class AbstractMapperTest extends \WP_UnitTestCase
          */
         $data = $this->createPartialMock(ParsedData::class, []);
         $data->add([
-            '_iwp_ref_id' => '123'
+            '_iwp_ref_uid' => '123'
         ], 'iwp');
 
         $mapper = $this->create_abstract_mapper_mock(true, true);
         list($unique_fields, $meta_args, $has_unique_field) = $mapper->exists_get_identifier($data);
         $this->assertEmpty($unique_fields);
         $this->assertEquals([[
-            'key' => '_iwp_ref_id',
+            'key' => '_iwp_ref_uid',
             'value' => '123'
         ]], $meta_args);
         $this->assertTrue($has_unique_field);
@@ -110,7 +110,7 @@ class AbstractMapperTest extends \WP_UnitTestCase
          */
         $data = $this->createPartialMock(ParsedData::class, []);
         $data->add([
-            '_iwp_ref_id' => '123'
+            '_iwp_ref_uid' => '123'
         ], 'default');
 
         $mapper = $this->create_abstract_mapper_mock(true, true);
@@ -118,7 +118,7 @@ class AbstractMapperTest extends \WP_UnitTestCase
         $this->assertEmpty($unique_fields);
         $this->assertTrue($has_unique_field);
         $this->assertCount(1, $meta_args);
-        $this->assertEquals('_iwp_ref_id', $meta_args[0]['key']);
+        $this->assertEquals('_iwp_ref_uid', $meta_args[0]['key']);
         $this->assertTrue($meta_args[0]['value'] === '', 'string is not empty');
     }
 

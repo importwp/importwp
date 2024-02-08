@@ -670,7 +670,7 @@ class ImporterModel
 
     public function get_iwp_reference_meta_key()
     {
-        return '_iwp_ref_id';
+        return '_iwp_ref_uid';
     }
 
     public function has_custom_unique_identifier()
