@@ -375,6 +375,10 @@ class PermissionForm extends Component {
                         className="iwp-form__select"
                         placeholder="Select a field from the importer template."
                       />
+
+                      {setting_unique_identifier === 'ID' && <NoticeList notices={[
+                        { message: 'Using ID as the unqiue identifier field will match against existing wordpress ID\'s. Please note that the importer cannot create records with a specific ID. Instead i would recommend creating a custom identifier from the import file by selecting "Select a unique identifier from your import file".', type: 'info' },
+                      ]} />}
                     </div>
                   </div>
                 </div>
