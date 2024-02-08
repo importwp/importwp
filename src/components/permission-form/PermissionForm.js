@@ -8,6 +8,7 @@ import CreatableSelect from 'react-select/creatable';
 import { connect } from 'react-redux';
 import InputField from '../InputField/InputField';
 import InputFieldDataSelector from '../InputFieldDataSelector/InputFieldDataSelector';
+import NoticeList from '../notice-list/NoticeList';
 
 class PermissionForm extends Component {
   constructor(props) {
@@ -459,11 +460,17 @@ class PermissionForm extends Component {
                 </div>
               </div>
 
-              <button type="button" className='button button-primary' onClick={() => {
-                this.setState({
-                  setting_unique_identifier_type: 'custom'
-                })
-              }}>Enable new unique identifier UI</button>
+              {this.state.setting_unique_identifier.length > 0 && <>
+                <NoticeList notices={[
+                  { message: 'Please backup your site database before enabling the new unique identifier Interface, The new unique identifier interface is not required for the importer to still run, and if enabled may change how your importer currently finds existing records.', type: 'error' },
+                ]} />
+
+                <button type="button" className='button button-primary' onClick={() => {
+                  this.setState({
+                    setting_unique_identifier_type: 'field'
+                  })
+                }}>Enable new unique identifier interface</button>
+              </>}
             </>}
 
 
