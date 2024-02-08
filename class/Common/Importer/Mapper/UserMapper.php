@@ -51,7 +51,6 @@ class UserMapper extends AbstractMapper implements MapperInterface
 
         $unique_field_found = false;
 
-        $default_group = $data->getData('default');
         $query_args = array();
         $search         = array(); // store search values
         $search_columns = array(); // store search columns
@@ -65,13 +64,13 @@ class UserMapper extends AbstractMapper implements MapperInterface
                 if (!empty($unique_value)) {
                     $has_unique_field = true;
 
-                    if (in_array($field, $this->_user_fields)) {
+                    if (in_array($field, ['ID', 'user_login', 'user_nicename', 'user_email', 'user_url'])) {
                         $search_columns[] = $field;
-                        $search[]         = $default_group[$field];
+                        $search[]         = $unique_value;
                     } else {
                         $meta_args[] = array(
                             'key'     => $field,
-                            'value'   => $default_group[$field],
+                            'value'   => $unique_value,
                             'compare' => '=',
                             'type'    => 'CHAR'
                         );
