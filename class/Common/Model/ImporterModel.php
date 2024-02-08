@@ -682,4 +682,9 @@ class ImporterModel
     {
         return $this->getSetting('unique_identifier_type') === 'field';
     }
+
+    public function has_legacy_unique_identifier()
+    {
+        return !in_array($this->getSetting('unique_identifier_type'), ['custom', 'field']);
+    }
 }

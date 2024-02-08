@@ -110,7 +110,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
             // fallback to post_title
             $unique_value = $data->getValue('post_title');
-            if (empty($unique_value)) {
+            if (empty($unique_value) || !$this->importer->has_legacy_unique_identifier()) {
                 throw new MapperException(__("No Unique fields present.", 'jc-importer'));
             }
 

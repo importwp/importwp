@@ -42,8 +42,7 @@ class PostMapperTest extends \WP_UnitTestCase
         $importer_model->method('getSetting')->will($this->returnCallback(function ($key) use ($post_type) {
             return $key === 'post_type' ? $post_type : null;
         }));
-
-
+        $importer_model->method('has_legacy_unique_identifier')->willReturn(true);
 
         $mapper = $this->createPartialMock(PostMapper::class, []);
         $this->setProtectedProperty($mapper, 'importer', $importer_model);
