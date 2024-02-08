@@ -319,26 +319,27 @@ class PermissionForm extends Component {
             <p className="iwp-heading iwp-heading--has-tooltip">Permissions. <a href="https://www.importwp.com/docs/permissions/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer" target='_blank' className='iwp-label__tooltip'>?</a></p>
 
             {this.hasNewUniqueIdentifierUI() ? <>
-              <p className="iwp-form__label">
+              <p className="iwp-form__label" style={{ marginBlock: '10px', paddingBottom: 0 }}>
                 Unique identifier:
               </p>
+              <p style={{ fontStyle: 'italic' }}>Set how each record in the import file should be identified, using a previously populated template field, or by creating a custom identifier mode from one or more sections of the import file. This unique identifier is then used to either create new records if no match is found, update existing records, or delete records no longer found in the import file.</p>
               <div className='iwp-permissions'>
                 <div className='iwp-permission__block iwp-permission__block--first'>
                   <div className='iwp-block__handle'>
                     <input type='radio' id="setting_unique_identifier_type__field" name="setting_unique_identifier_type" value="field" defaultChecked={this.state.setting_unique_identifier_type === 'field'} onChange={this.onUniqueIdentifierTypeChange} />
-                    <label htmlFor='setting_unique_identifier_type__field'>Choose from populated template fields.</label>
+                    <label htmlFor='setting_unique_identifier_type__field'>Select a unique identifier from the template fields.</label>
                   </div>
                   <div className='iwp-block__content' style={{
                     display: this.state.setting_unique_identifier_type === 'field' ? 'block' : 'none',
-                    paddingBottom: '10px'
+                    paddingBottom: '10px',
+                    paddingTop: '10px',
                   }}>
-                    <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
                     <div className="iwp-field__left">
                       <FieldLabel
-                        label="Field"
+                        label="Template Field"
                         field="setting_unique_identifier"
                         id="setting_unique_identifier"
-                        tooltip="Set which field should be used to uniquely identify each record, Either select from the predefined list of fields, manually type to set a custom identifier, or Leave empty to use the template default."
+                        tooltip="Select from the predefined list of fields or manually type to a field name."
                       />
                     </div>
                     <div className="iwp-field__right">
@@ -380,16 +381,16 @@ class PermissionForm extends Component {
                 <div className='iwp-permission__block'>
                   <div className='iwp-block__handle'>
                     <input type='radio' id="setting_unique_identifier_type__custom" name="setting_unique_identifier_type" value="custom" defaultChecked={this.state.setting_unique_identifier_type === 'custom'} onChange={this.onUniqueIdentifierTypeChange} />
-                    <label htmlFor='setting_unique_identifier_type__custom'>Set a custom unique identifier value.</label>
+                    <label htmlFor='setting_unique_identifier_type__custom'>Select a unique identifier from your import file.</label>
                   </div>
                   <div className='iwp-block__content' style={{
                     display: this.state.setting_unique_identifier_type === 'custom' ? 'block' : 'none',
-                    paddingBottom: '10px'
+                    paddingBottom: '10px',
+                    paddingTop: '10px',
                   }}>
-                    <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
                     <div className="iwp-field__left">
                       <FieldLabel
-                        label='Unique identifier'
+                        label='Custom identifier'
                         id='setting_unique_identifier_ref'
                         field='setting_unique_identifier_ref'
                       />
