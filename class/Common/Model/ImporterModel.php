@@ -287,9 +287,16 @@ class ImporterModel
 
         if (is_null($this->id)) {
 
-            // set defaults on new importers
-            $post_content['version'] = $this->version_latest;
-            $post_content['settings']['unique_identifier_type'] = 'custom';
+            if ($this->template === 'jet-engine-cct') {
+
+                // do not force the new permissions interface.
+
+            } else {
+
+                // set defaults on new importers
+                $post_content['version'] = $this->version_latest;
+                $post_content['settings']['unique_identifier_type'] = 'custom';
+            }
         }
 
         $postarr = array(

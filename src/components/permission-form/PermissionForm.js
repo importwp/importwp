@@ -464,7 +464,7 @@ class PermissionForm extends Component {
                 </div>
               </div>
 
-              {this.state.setting_unique_identifier.length > 0 && <>
+              {(this.state.setting_unique_identifier.length > 0 && this.props.importer.template !== 'jet-engine-cct') && <>
                 <NoticeList notices={[
                   { message: 'Please backup your site database before enabling the new unique identifier Interface, The new unique identifier interface is not required for the importer to still run, and if enabled may change how your importer currently finds existing records.', type: 'error' },
                 ]} />
