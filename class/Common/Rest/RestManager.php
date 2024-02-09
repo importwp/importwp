@@ -1602,22 +1602,11 @@ class RestManager extends \WP_REST_Controller
             return $this->http->end_rest_error(['msg' => 'Invalid importer']);
         }
 
-        $options = [];
-
         // Get default template options
         $template = $this->importer_manager->get_template($importer_model->getTemplate());
         $template_class = $this->template_manager->load_template($template);
-        $unique_fields = $this->template_manager->get_template_unique_fields($template_class);
-        $mapped_data = $importer_model->getMap();
+        $options = $template_class->get_unique_identifier_options($importer_model);
 
-        foreach ($unique_fields as $field) {
-            // TODO: Only add to list if field is populated.
-            $options[] = [
-                'value' => $field,
-                'label' => $field
-            ];
-        }
-
-        return $this->http->end_rest_success(['options' => $options]);
+        return $this->http->end_rest_success(['options' => array_values($options)]);
     }
 }

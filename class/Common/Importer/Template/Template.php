@@ -1071,4 +1071,11 @@ class Template extends AbstractTemplate
     {
         return $this->default_enabled_fields;
     }
+
+
+    public function get_unique_identifier_options($importer_model)
+    {
+        $output = [];
+        return $output;
+    }
 }

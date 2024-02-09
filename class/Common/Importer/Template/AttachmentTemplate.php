@@ -14,10 +14,10 @@ class AttachmentTemplate extends Template implements TemplateInterface
 
     protected $field_map = [
         'ID' => 'post.ID',
+        'post_name' => 'post.post_name',
         'post_title' => 'post.post_title',
         'post_content' => 'post.post_content',
         'post_excerpt' => 'post.post_excerpt',
-        'post_name' => 'post.post_name',
         'post_status' => 'post.post_status',
         'menu_order' => 'post.menu_order',
         'post_password' => 'post.post_password',
@@ -487,5 +487,41 @@ class AttachmentTemplate extends Template implements TemplateInterface
         ];
 
         return $permission_fields;
+    }
+
+    public function get_unique_identifier_options($importer_model)
+    {
+        $output = parent::get_unique_identifier_options($importer_model);
+
+        $mapped_data = $importer_model->getMap();
+
+        if (isset($mapped_data['post.file.location']) && !empty($mapped_data['post.file.location']) && $importer_model->isEnabledField('post.file')) {
+            $output['src'] = [
+                'value' => 'src',
+                'label' => 'src',
+            ];
+        }
+
+        foreach ($this->field_map as $field_id => $field_map_key) {
+
+            if (isset($output[$field_id])) {
+                continue;
+            }
+
+            if (!isset($mapped_data[$field_map_key]) || empty($mapped_data[$field_map_key])) {
+                continue;
+            }
+
+            if (in_array($field_id, $this->optional_fields) && true !== $importer_model->isEnabledField($field_map_key)) {
+                continue;
+            }
+
+            $output[$field_id] = [
+                'value' => $field_id,
+                'label' => $field_id
+            ];
+        }
+
+        return $output;
     }
 }
