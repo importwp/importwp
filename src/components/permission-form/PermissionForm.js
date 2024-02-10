@@ -58,7 +58,8 @@ class PermissionForm extends Component {
       unique_identifiers: [],
       permission_fields: [],
       update_permission_fields: [],
-      create_permission_fields: []
+      create_permission_fields: [],
+      isLoading: false,
     };
 
     this.state.update_permission_fields = this.state.update_permissions.split("\n");
@@ -108,13 +109,15 @@ class PermissionForm extends Component {
 
     try {
 
+      this.setState({ isLoading: true });
+
       // Load list of unique identifier fields
       const unique_identifiers_result = await importer.templateUniqueIdentifiers(this.props.id);
       let unique_identifiers = unique_identifiers_result.options;
       if (this.state.setting_unique_identifier.length > 0 && !unique_identifiers.find(item => item.value == this.state.setting_unique_identifier)) {
         unique_identifiers = [...unique_identifiers, { label: 'Custom: ' + this.state.setting_unique_identifier, value: this.state.setting_unique_identifier }];
       }
-      this.setState({ unique_identifiers });
+      this.setState({ unique_identifiers, isLoading: false });
 
       // load list of permission_fields
       const template_group = await importer.template(this.props.id);
@@ -348,6 +351,7 @@ class PermissionForm extends Component {
                         id="setting_unique_identifier"
                         name="setting_unique_identifier"
                         isClearable
+                        isLoading={this.state.isLoading}
                         options={this.state.unique_identifiers}
                         value={this.state.unique_identifiers.find(item => item.value == setting_unique_identifier)}
                         onChange={(data) => {
@@ -434,6 +438,7 @@ class PermissionForm extends Component {
                     id="setting_unique_identifier"
                     name="setting_unique_identifier"
                     isClearable
+                    isLoading={this.state.isLoading}
                     options={this.state.unique_identifiers}
                     value={this.state.unique_identifiers.find(item => item.value == setting_unique_identifier)}
                     onChange={(data) => {

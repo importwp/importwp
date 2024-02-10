@@ -397,4 +397,34 @@ class CommentTemplate extends Template implements TemplateInterface
 
         return $permission_fields;
     }
+
+    public function get_unique_identifier_options($importer_model, $unique_fields = [])
+    {
+        $output = parent::get_unique_identifier_options($importer_model, $unique_fields);
+
+        $field_map = [
+            'comment_ID' => 'comment.comment_ID',
+            'comment_agent' => 'comment.comment_agent',
+            'comment_approved' => 'comment.comment_approved',
+            'comment_author' => 'comment.comment_author',
+            'comment_author_email' => 'comment.comment_author_email',
+            'comment_author_IP' => 'comment.comment_author_IP',
+            'comment_author_url' => 'comment.comment_author_url',
+            'comment_content' => 'comment.comment_content',
+            'comment_date' => 'comment.comment_date',
+            'comment_date_gmt' => 'comment.comment_date_gmt',
+            'comment_karma' => 'comment.comment_karma',
+            'comment_parent' => 'comment.comment_parent',
+            'comment_post_ID' => 'comment.comment_post_ID',
+            'comment_type' => 'comment.comment_type',
+            'user_id' => 'comment.user_id',
+            '_iwp_ref_id' => 'comment._iwp_ref_id',
+        ];
+        $optional_fields = array_keys($field_map);
+
+        return array_merge(
+            $output,
+            $this->get_unique_identifier_options_from_map($importer_model, $unique_fields, $field_map, $optional_fields)
+        );
+    }
 }

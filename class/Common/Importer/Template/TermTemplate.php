@@ -372,4 +372,14 @@ class TermTemplate extends Template implements TemplateInterface
 
         return $permission_fields;
     }
+
+    public function get_unique_identifier_options($importer_model, $unique_fields = [])
+    {
+        $output = parent::get_unique_identifier_options($importer_model, $unique_fields);
+
+        return array_merge(
+            $output,
+            $this->get_unique_identifier_options_from_map($importer_model, $unique_fields, $this->field_map, $this->optional_fields)
+        );
+    }
 }

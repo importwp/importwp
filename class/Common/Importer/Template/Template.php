@@ -1073,9 +1073,45 @@ class Template extends AbstractTemplate
     }
 
 
-    public function get_unique_identifier_options($importer_model)
+    public function get_unique_identifier_options($importer_model, $unique_fields = [])
     {
         $output = [];
+        return $output;
+    }
+
+    public function get_unique_identifier_options_from_map($importer_model, $unique_fields, $field_map, $optional_fields)
+    {
+        $output = [];
+        $mapped_data = $importer_model->getMap();
+
+        foreach ($field_map as $field_id => $field_map_key) {
+
+            if (isset($output[$field_id])) {
+                continue;
+            }
+
+            $output[$field_id] = [
+                'value' => $field_id,
+                'label' => $field_id,
+                'uid' => false,
+                'active' => false,
+            ];
+
+            if (in_array($field_id, $unique_fields)) {
+                $output[$field_id]['uid'] = true;
+            }
+
+            if (!isset($mapped_data[$field_map_key]) || empty($mapped_data[$field_map_key])) {
+                continue;
+            }
+
+            if (in_array($field_id, $optional_fields) && true !== $importer_model->isEnabledField($field_map_key)) {
+                continue;
+            }
+
+            $output[$field_id]['active'] = true;
+        }
+
         return $output;
     }
 }
