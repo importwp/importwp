@@ -6,6 +6,7 @@ use ImportWP\Common\Attachment\Attachment;
 use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Ftp\Ftp;
 use ImportWP\Common\Importer\File\XMLFile;
+use ImportWP\Common\Importer\Mapper\AbstractMapper;
 use ImportWP\Common\Importer\ParsedData;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Util\Logger;
@@ -485,6 +486,18 @@ class Template extends AbstractTemplate
             if (false === $found) {
                 $field_groups['default']['fields'][$field_id] = $field_value;
             }
+        }
+
+        if ($this->importer->has_custom_unique_identifier()) {
+
+            $ref = $this->importer->getSetting('unique_identifier_ref');
+
+            $field_groups['iwp'] = [
+                'id' => 'iwp',
+                'fields' => [
+                    $this->importer->get_iwp_reference_meta_key() => (!is_null($ref) ? $ref : '')
+                ]
+            ];
         }
 
         return $field_groups;
@@ -1057,5 +1070,48 @@ class Template extends AbstractTemplate
     public function get_default_enabled_fields()
     {
         return $this->default_enabled_fields;
+    }
+
+
+    public function get_unique_identifier_options($importer_model, $unique_fields = [])
+    {
+        $output = [];
+        return $output;
+    }
+
+    public function get_unique_identifier_options_from_map($importer_model, $unique_fields, $field_map, $optional_fields)
+    {
+        $output = [];
+        $mapped_data = $importer_model->getMap();
+
+        foreach ($field_map as $field_id => $field_map_key) {
+
+            if (isset($output[$field_id])) {
+                continue;
+            }
+
+            $output[$field_id] = [
+                'value' => $field_id,
+                'label' => $field_id,
+                'uid' => false,
+                'active' => false,
+            ];
+
+            if (in_array($field_id, $unique_fields)) {
+                $output[$field_id]['uid'] = true;
+            }
+
+            if (!isset($mapped_data[$field_map_key]) || empty($mapped_data[$field_map_key])) {
+                continue;
+            }
+
+            if (in_array($field_id, $optional_fields) && true !== $importer_model->isEnabledField($field_map_key)) {
+                continue;
+            }
+
+            $output[$field_id]['active'] = true;
+        }
+
+        return $output;
     }
 }

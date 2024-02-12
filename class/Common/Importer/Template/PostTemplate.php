@@ -18,10 +18,10 @@ class PostTemplate extends Template implements TemplateInterface
     protected $mapper = 'post';
     protected $field_map = [
         'ID' => 'post.ID',
+        'post_name' => 'post.post_name',
         'post_title' => 'post.post_title',
         'post_content' => 'post.post_content',
         'post_excerpt' => 'post.post_excerpt',
-        'post_name' => 'post.post_name',
         'post_status' => 'post.post_status',
         'menu_order' => 'post.menu_order',
         'post_password' => 'post.post_password',
@@ -1089,5 +1089,15 @@ class PostTemplate extends Template implements TemplateInterface
         }
 
         return $permission_fields;
+    }
+
+    public function get_unique_identifier_options($importer_model, $unique_fields = [])
+    {
+        $output = parent::get_unique_identifier_options($importer_model, $unique_fields);
+
+        return array_merge(
+            $output,
+            $this->get_unique_identifier_options_from_map($importer_model, $unique_fields, $this->field_map, $this->optional_fields)
+        );
     }
 }

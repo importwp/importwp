@@ -7,7 +7,6 @@ use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Ftp\Ftp;
 use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\ParsedData;
-use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Util\Logger;
 use ImportWP\Container;
 
@@ -15,23 +14,12 @@ class AttachmentMapper extends PostMapper
 {
     public function exists(ParsedData $data)
     {
-        $unique_fields = TemplateManager::get_template_unique_fields($this->template);
-
-        // allow user to set unique field name, get from importer setting
-        $unique_field = $this->importer->getSetting('unique_field');
-        if ($unique_field !== null) {
-            $unique_fields = is_string($unique_field) ? [$unique_field] : $unique_field;
-        }
-
-        $unique_fields = $this->getUniqueIdentifiers($unique_fields);
-        $unique_fields = apply_filters('iwp/template_unique_fields', $unique_fields, $this->template, $this->importer);
-
+        list($unique_fields, $meta_args, $has_unique_field) = $this->exists_get_identifier($data);
         $unique_field_found = false;
 
         $post_type = 'attachment';
         $post_status = 'any, trash, future';
 
-        $meta_args = array();
         $query_args = array(
             'post_type' => $post_type,
             'post_status' => $post_status,
@@ -41,8 +29,6 @@ class AttachmentMapper extends PostMapper
             'update_post_term_cache' => false,
             'no_found_rows' => true,
         );
-
-        $has_unique_field = false;
 
         foreach ($unique_fields as $field) {
 
@@ -94,24 +80,7 @@ class AttachmentMapper extends PostMapper
             } else {
 
                 // check all groups for a unique value
-                $unique_value = $data->getValue($field, '*');
-                if (empty($unique_value)) {
-                    $cf = $data->getData('custom_fields');
-                    if (!empty($cf)) {
-                        $cf_index = intval($cf['custom_fields._index']);
-                        if ($cf_index > 0) {
-                            for ($i = 0; $i < $cf_index; $i++) {
-                                $row = 'custom_fields.' . $i . '.';
-                                $custom_field_key = apply_filters('iwp/custom_field_key', $cf[$row . 'key']);
-                                if ($custom_field_key !== $field) {
-                                    continue;
-                                }
-                                $unique_value = $cf[$row . 'value'];
-                                break;
-                            }
-                        }
-                    }
-                }
+                $unique_value = $this->find_unique_field_in_data($data, $field);
 
                 if (!empty($unique_value)) {
                     $has_unique_field = true;
@@ -151,6 +120,7 @@ class AttachmentMapper extends PostMapper
         }
 
         $query_args = apply_filters('iwp/importer/mapper/attachment_exists_query', $query_args);
+        Logger::debug("AttachmentMapper::exists -query=" . wp_json_encode($query_args));
         $query = new \WP_Query($query_args);
         if ($query->post_count > 1) {
             throw new MapperException(sprintf(__("Record is not unique: %s, Matching Ids: (%s).", 'jc-importer'), $unique_field_found, implode(', ', $query->posts)));
@@ -224,6 +194,7 @@ class AttachmentMapper extends PostMapper
         $this->update_post_object($fields, $data);
 
         $this->add_version_tag();
+        $this->add_reference_tag($data);
         $this->template->post_process($this->ID, $data);
 
         return $attachment_id;
@@ -243,6 +214,7 @@ class AttachmentMapper extends PostMapper
         $this->update_post_object($fields, $data);
 
         $this->add_version_tag();
+        $this->add_reference_tag($data);
         $this->template->post_process($this->ID, $data);
 
         return $attachment_id;

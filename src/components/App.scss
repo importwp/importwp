@@ -53,70 +53,72 @@
     margin-left: 20px;
   }
 
-  .button-primary {
-    background: #22c48f;
-    border-color: #22c48f;
-    // -webkit-box-shadow: 0 1px 0 #279d77;
-    // box-shadow: 0 1px 0 #279d77;
-    // color: #fff;
-    // text-decoration: none;
-    // text-shadow: 0 -1px 1px #279d77, 1px 0 1px #279d77, 0 1px 1px #279d77,
-    //   -1px 0 1px #279d77;
+  #importwp-root {
+    .button-primary {
+      background: #22c48f;
+      border-color: #22c48f;
+      // -webkit-box-shadow: 0 1px 0 #279d77;
+      // box-shadow: 0 1px 0 #279d77;
+      // color: #fff;
+      // text-decoration: none;
+      // text-shadow: 0 -1px 1px #279d77, 1px 0 1px #279d77, 0 1px 1px #279d77,
+      //   -1px 0 1px #279d77;
 
-    &:hover,
-    &:focus {
-      background: #279d77;
-      border-color: #279d77;
-      color: #fff;
+      &:hover,
+      &:focus {
+        background: #279d77;
+        border-color: #279d77;
+        color: #fff;
+      }
+
+      &[disabled] {
+        color: #c3d5c3 !important;
+        background: #22c48f !important;
+        border-color: #279d77 !important;
+        //   box-shadow: none !important;
+        //   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.1) !important;
+        cursor: not-allowed;
+      }
+
+      .spinner {
+        background: url(../img/loading.gif);
+        background-size: 20px 20px;
+        margin-right: 0;
+      }
     }
 
-    &[disabled] {
-      color: #c3d5c3 !important;
-      background: #22c48f !important;
-      border-color: #279d77 !important;
-      //   box-shadow: none !important;
-      //   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.1) !important;
-      cursor: not-allowed;
+    .button-secondary {
+      border-color: #22c48f;
+      color: #22c48f;
+      &:hover,
+      &:focus {
+        background: #fff;
+        color: #279d77 !important;
+        border-color: #279d77 !important;
+      }
+
+      &[disabled] {
+        color: #c3d5c3 !important;
+        border-color: #c3d5c3 !important;
+        cursor: not-allowed;
+      }
     }
 
-    .spinner {
-      background: url(../img/loading.gif);
-      background-size: 20px 20px;
-      margin-right: 0;
-    }
-  }
-
-  .button-secondary {
-    border-color: #22c48f;
-    color: #22c48f;
-    &:hover,
-    &:focus {
-      background: #fff;
-      color: #279d77 !important;
-      border-color: #279d77 !important;
+    .button-link {
+      padding: 0 10px;
+      color: #22c48f;
+      &:hover,
+      &:focus {
+        color: #279d77 !important;
+      }
     }
 
-    &[disabled] {
-      color: #c3d5c3 !important;
-      border-color: #c3d5c3 !important;
-      cursor: not-allowed;
-    }
-  }
-
-  .button-link {
-    padding: 0 10px;
-    color: #22c48f;
-    &:hover,
-    &:focus {
-      color: #279d77 !important;
-    }
-  }
-
-  .button-link-delete {
-    border-color: #a00;
-    &:hover {
+    .button-link-delete {
       border-color: #a00;
-      background: #fff;
+      &:hover {
+        border-color: #a00;
+        background: #fff;
+      }
     }
   }
 }

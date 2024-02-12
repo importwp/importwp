@@ -35,6 +35,7 @@ export const importer = {
   saveCompatibility,
   debug_log,
   template,
+  templateUniqueIdentifiers,
   toolExport,
   toolImport,
 };
@@ -982,6 +983,34 @@ function saveCompatibility(data) {
 function template(id) {
   const abortToken = getAbortToken('template');
   const url = AJAX_BASE + '/importer/' + id + '/template';
+  return new Promise((resolve, reject) => {
+    service_xhr.template = window.jQuery.ajax({
+      url: url,
+      dataType: 'json',
+      method: 'GET',
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader('X-WP-Nonce', window.iwp.nonce);
+      },
+      success: function (response) {
+        if (response.status === 'S') {
+          resolve(response.data);
+        } else {
+          reject(response.data);
+        }
+      },
+      error: function (response) {
+        if (aborted(abortToken)) {
+          return;
+        }
+        reject(response.statusText);
+      },
+    });
+  });
+}
+
+function templateUniqueIdentifiers(id) {
+  const abortToken = getAbortToken('templateUniqueIdentifiers');
+  const url = AJAX_BASE + '/importer/' + id + '/template_unique_identifiers';
   return new Promise((resolve, reject) => {
     service_xhr.template = window.jQuery.ajax({
       url: url,
