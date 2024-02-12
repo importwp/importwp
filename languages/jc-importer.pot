@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the Import WP plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Import WP 2.11.8\n"
+"Project-Id-Version: Import WP 2.12.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/build\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-02-04T22:02:12+00:00\n"
+"POT-Creation-Date: 2024-02-12T22:02:52+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.9.0\n"
 "X-Domain: jc-importer\n"
@@ -56,7 +56,7 @@ msgstr ""
 #: class/Common/Importer/Template/AttachmentTemplate.php:485
 #: class/Common/Importer/Template/CommentTemplate.php:384
 #: class/Common/Importer/Template/PostTemplate.php:151
-#: class/Common/Importer/Template/PostTemplate.php:1052
+#: class/Common/Importer/Template/PostTemplate.php:1074
 msgid "Author"
 msgstr ""
 
@@ -70,7 +70,7 @@ msgstr ""
 #: class/Common/Importer/Template/AttachmentTemplate.php:484
 #: class/Common/Importer/Template/CommentTemplate.php:392
 #: class/Common/Importer/Template/PostTemplate.php:126
-#: class/Common/Importer/Template/PostTemplate.php:1051
+#: class/Common/Importer/Template/PostTemplate.php:1073
 #: class/Common/Importer/Template/TermTemplate.php:73
 #: class/Common/Importer/Template/TermTemplate.php:370
 msgid "Parent"
@@ -206,39 +206,39 @@ msgstr ""
 msgid "Unable to locate template: %s"
 msgstr ""
 
-#: class/Common/Importer/Mapper/AttachmentMapper.php:146
-#: class/Common/Importer/Mapper/CommentMapper.php:106
-#: class/Common/Importer/Mapper/PostMapper.php:143
-#: class/Common/Importer/Mapper/TermMapper.php:105
-#: class/Common/Importer/Mapper/UserMapper.php:84
+#: class/Common/Importer/Mapper/AttachmentMapper.php:115
+#: class/Common/Importer/Mapper/CommentMapper.php:80
+#: class/Common/Importer/Mapper/PostMapper.php:117
+#: class/Common/Importer/Mapper/TermMapper.php:76
+#: class/Common/Importer/Mapper/UserMapper.php:85
 msgid "No Unique fields present."
 msgstr ""
 
-#: class/Common/Importer/Mapper/AttachmentMapper.php:156
-#: class/Common/Importer/Mapper/CommentMapper.php:118
-#: class/Common/Importer/Mapper/PostMapper.php:157
-#: class/Common/Importer/Mapper/TermMapper.php:119
-#: class/Common/Importer/Mapper/UserMapper.php:99
+#: class/Common/Importer/Mapper/AttachmentMapper.php:126
+#: class/Common/Importer/Mapper/CommentMapper.php:93
+#: class/Common/Importer/Mapper/PostMapper.php:132
+#: class/Common/Importer/Mapper/TermMapper.php:91
+#: class/Common/Importer/Mapper/UserMapper.php:101
 msgid "Record is not unique: %s, Matching Ids: (%s)."
 msgstr ""
 
-#: class/Common/Importer/Mapper/AttachmentMapper.php:221
+#: class/Common/Importer/Mapper/AttachmentMapper.php:191
 msgid "Unable to download and insert attachment"
 msgstr ""
 
-#: class/Common/Importer/Mapper/CommentMapper.php:172
+#: class/Common/Importer/Mapper/CommentMapper.php:147
 msgid "Unable to insert comment"
 msgstr ""
 
-#: class/Common/Importer/Mapper/UserMapper.php:130
+#: class/Common/Importer/Mapper/UserMapper.php:132
 msgid "No username present"
 msgstr ""
 
-#: class/Common/Importer/Mapper/UserMapper.php:134
+#: class/Common/Importer/Mapper/UserMapper.php:136
 msgid "No password present"
 msgstr ""
 
-#: class/Common/Importer/Mapper/UserMapper.php:138
+#: class/Common/Importer/Mapper/UserMapper.php:140
 msgid "%s is not a valid email address"
 msgstr ""
 
@@ -263,7 +263,7 @@ msgstr ""
 #: class/Common/Importer/Template/PostTemplate.php:134
 #: class/Common/Importer/Template/PostTemplate.php:157
 #: class/Common/Importer/Template/PostTemplate.php:219
-#: class/Common/Importer/Template/PostTemplate.php:1040
+#: class/Common/Importer/Template/PostTemplate.php:1062
 #: class/Common/Importer/Template/TermTemplate.php:60
 #: class/Common/Importer/Template/TermTemplate.php:81
 #: class/Common/Importer/Template/TermTemplate.php:365
@@ -283,7 +283,7 @@ msgstr ""
 #: class/Common/Importer/Template/AttachmentTemplate.php:55
 #: class/Common/Importer/Template/AttachmentTemplate.php:473
 #: class/Common/Importer/Template/PostTemplate.php:101
-#: class/Common/Importer/Template/PostTemplate.php:1041
+#: class/Common/Importer/Template/PostTemplate.php:1063
 msgid "Title"
 msgstr ""
 
@@ -318,7 +318,7 @@ msgstr ""
 
 #: class/Common/Importer/Template/AttachmentTemplate.php:64
 #: class/Common/Importer/Template/AttachmentTemplate.php:486
-#: class/Common/Importer/Template/Template.php:350
+#: class/Common/Importer/Template/Template.php:351
 msgid "Alt Text"
 msgstr ""
 
@@ -335,7 +335,7 @@ msgstr ""
 #: class/Common/Importer/Template/PostTemplate.php:110
 #: class/Common/Importer/Template/PostTemplate.php:135
 #: class/Common/Importer/Template/PostTemplate.php:218
-#: class/Common/Importer/Template/PostTemplate.php:1044
+#: class/Common/Importer/Template/PostTemplate.php:1066
 #: class/Common/Importer/Template/TermTemplate.php:69
 #: class/Common/Importer/Template/TermTemplate.php:82
 #: class/Common/Importer/Template/TermTemplate.php:368
@@ -354,7 +354,7 @@ msgstr ""
 #: class/Common/Importer/Template/AttachmentTemplate.php:481
 #: class/Common/Importer/Template/CommentTemplate.php:389
 #: class/Common/Importer/Template/PostTemplate.php:167
-#: class/Common/Importer/Template/PostTemplate.php:1048
+#: class/Common/Importer/Template/PostTemplate.php:1070
 msgid "Date"
 msgstr ""
 
@@ -461,7 +461,7 @@ msgstr ""
 #: class/Common/Importer/Template/AttachmentTemplate.php:113
 #: class/Common/Importer/Template/AttachmentTemplate.php:480
 #: class/Common/Importer/Template/PostTemplate.php:164
-#: class/Common/Importer/Template/Template.php:306
+#: class/Common/Importer/Template/Template.php:307
 #: class/Common/Importer/Template/UserTemplate.php:78
 #: class/Common/Importer/Template/UserTemplate.php:265
 msgid "Password"
@@ -519,7 +519,7 @@ msgid "Attachment File"
 msgstr ""
 
 #: class/Common/Importer/Template/AttachmentTemplate.php:478
-#: class/Common/Importer/Template/PostTemplate.php:1045
+#: class/Common/Importer/Template/PostTemplate.php:1067
 msgid "Post Status"
 msgstr ""
 
@@ -530,7 +530,7 @@ msgstr ""
 #: class/Common/Importer/Template/CommentTemplate.php:42
 #: class/Common/Importer/Template/CommentTemplate.php:388
 #: class/Common/Importer/Template/PostTemplate.php:104
-#: class/Common/Importer/Template/PostTemplate.php:1042
+#: class/Common/Importer/Template/PostTemplate.php:1064
 msgid "Content"
 msgstr ""
 
@@ -750,7 +750,7 @@ msgid "Post Fields"
 msgstr ""
 
 #: class/Common/Importer/Template/PostTemplate.php:107
-#: class/Common/Importer/Template/PostTemplate.php:1043
+#: class/Common/Importer/Template/PostTemplate.php:1065
 msgid "Excerpt"
 msgstr ""
 
@@ -807,13 +807,13 @@ msgid "Name of the taxonomy term or terms (entered as a comma seperated list)."
 msgstr ""
 
 #: class/Common/Importer/Template/PostTemplate.php:208
-#: class/Common/Importer/Template/Template.php:369
+#: class/Common/Importer/Template/Template.php:370
 #: class/Common/Plugin/Menu.php:67
 msgid "Settings"
 msgstr ""
 
 #: class/Common/Importer/Template/PostTemplate.php:209
-#: class/Common/Importer/Template/Template.php:332
+#: class/Common/Importer/Template/Template.php:333
 msgid "Delimiter"
 msgstr ""
 
@@ -834,16 +834,16 @@ msgid "Enable Hierarchy"
 msgstr ""
 
 #: class/Common/Importer/Template/PostTemplate.php:226
-#: class/Common/Importer/Template/PostTemplate.php:238
-#: class/Common/Importer/Template/Template.php:280
-#: class/Common/Importer/Template/Template.php:344
+#: class/Common/Importer/Template/PostTemplate.php:247
+#: class/Common/Importer/Template/Template.php:281
+#: class/Common/Importer/Template/Template.php:345
 msgid "No"
 msgstr ""
 
 #: class/Common/Importer/Template/PostTemplate.php:227
-#: class/Common/Importer/Template/PostTemplate.php:239
-#: class/Common/Importer/Template/Template.php:281
-#: class/Common/Importer/Template/Template.php:345
+#: class/Common/Importer/Template/PostTemplate.php:248
+#: class/Common/Importer/Template/Template.php:282
+#: class/Common/Importer/Template/Template.php:346
 msgid "Yes"
 msgstr ""
 
@@ -852,172 +852,184 @@ msgid "Hierarchy Character"
 msgstr ""
 
 #: class/Common/Importer/Template/PostTemplate.php:235
+msgid "Hierarchy Relationship"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:238
+msgid "Connect all terms"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:239
+msgid "Connect last term"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:244
 msgid "Append Terms"
 msgstr ""
 
-#: class/Common/Importer/Template/PostTemplate.php:1046
+#: class/Common/Importer/Template/PostTemplate.php:1068
 msgid "Menu order"
 msgstr ""
 
-#: class/Common/Importer/Template/PostTemplate.php:1047
+#: class/Common/Importer/Template/PostTemplate.php:1069
 msgid "password"
 msgstr ""
 
-#: class/Common/Importer/Template/PostTemplate.php:1049
+#: class/Common/Importer/Template/PostTemplate.php:1071
 msgid "Comment Status"
 msgstr ""
 
-#: class/Common/Importer/Template/PostTemplate.php:1050
+#: class/Common/Importer/Template/PostTemplate.php:1072
 msgid "Ping Status"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:207
+#: class/Common/Importer/Template/Template.php:208
 msgid "Repeater Node"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:210
+#: class/Common/Importer/Template/Template.php:211
 msgid "Select the path to the parent node containing values for this record, The preview when selecting data for each record should show a single record. Please note changing this will require updating references in this record."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:277
+#: class/Common/Importer/Template/Template.php:278
 msgid "Is Featured?"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:283
+#: class/Common/Importer/Template/Template.php:284
 msgid "Is the attachment the featured image for the current post."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:288
+#: class/Common/Importer/Template/Template.php:289
 msgid "Download"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:291
+#: class/Common/Importer/Template/Template.php:292
 msgid "Remote URL"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:292
+#: class/Common/Importer/Template/Template.php:293
 msgid "FTP"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:293
+#: class/Common/Importer/Template/Template.php:294
 msgid "Local Filesystem"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:294
+#: class/Common/Importer/Template/Template.php:295
 msgid "Media Library"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:296
+#: class/Common/Importer/Template/Template.php:297
 msgid "Select how the attachment is being downloaded."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:298
+#: class/Common/Importer/Template/Template.php:299
 msgid "Host"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:300
+#: class/Common/Importer/Template/Template.php:301
 msgid "Enter the FTP hostname"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:302
+#: class/Common/Importer/Template/Template.php:303
 #: class/Common/Importer/Template/UserTemplate.php:58
 msgid "Username"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:304
+#: class/Common/Importer/Template/Template.php:305
 msgid "Enter the FTP username"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:308
+#: class/Common/Importer/Template/Template.php:309
 msgid "Enter the FTP password"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:310
+#: class/Common/Importer/Template/Template.php:311
 msgid "Path"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:312
+#: class/Common/Importer/Template/Template.php:313
 msgid "Enter the FTP base path, this is prefixed onto the Location field, leave empty to be ignore"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:314
-#: class/Common/Importer/Template/Template.php:318
+#: class/Common/Importer/Template/Template.php:315
+#: class/Common/Importer/Template/Template.php:319
 msgid "Base URL"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:316
+#: class/Common/Importer/Template/Template.php:317
 msgid "Enter the base url, this is prefixed onto the Location field, leave empty to be ignore"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:320
+#: class/Common/Importer/Template/Template.php:321
 msgid "Enter the base path from this servers root file system, this is prefixed onto the Location field, leave empty to be ignore"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:323
+#: class/Common/Importer/Template/Template.php:324
 msgid "Permissions"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:327
+#: class/Common/Importer/Template/Template.php:328
 msgid "Always download new files"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:328
+#: class/Common/Importer/Template/Template.php:329
 msgid "Search media library before downloading new files"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:330
+#: class/Common/Importer/Template/Template.php:331
 msgid "Enable to stop duplicate images by searching the media library before downloading new files."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:334
+#: class/Common/Importer/Template/Template.php:335
 msgid "A single character used to seperate attachments when listing multiple, Leave empty to use the default: %s"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:340
+#: class/Common/Importer/Template/Template.php:341
 msgid "Attachment Meta"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:341
+#: class/Common/Importer/Template/Template.php:342
 msgid "Enable Meta"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:348
+#: class/Common/Importer/Template/Template.php:349
 msgid "Enable/Disable the fields to import attachment meta data."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:352
+#: class/Common/Importer/Template/Template.php:353
 msgid "Image attachment alt text."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:354
+#: class/Common/Importer/Template/Template.php:355
 msgid "Title Text"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:356
+#: class/Common/Importer/Template/Template.php:357
 msgid "Attachments title text."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:358
+#: class/Common/Importer/Template/Template.php:359
 msgid "Caption Text"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:360
+#: class/Common/Importer/Template/Template.php:361
 msgid "Image attachments caption text."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:362
+#: class/Common/Importer/Template/Template.php:363
 msgid "Description Text"
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:364
+#: class/Common/Importer/Template/Template.php:365
 msgid "Attachments description text."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:384
+#: class/Common/Importer/Template/Template.php:385
 msgid "The source location of the file being attached."
 msgstr ""
 
-#: class/Common/Importer/Template/Template.php:712
+#: class/Common/Importer/Template/Template.php:725
 msgid "Error downloading zip file"
 msgstr ""
 
@@ -1192,81 +1204,81 @@ msgstr ""
 msgid "Support Tickets — Support requests are handled on our support system at %s"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:347
+#: class/Common/Rest/RestManager.php:355
 msgid "You do not have permissions."
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:394
+#: class/Common/Rest/RestManager.php:402
 msgid "WordPress is unable to write to directory: %s, make sure this directory is writable."
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:428
+#: class/Common/Rest/RestManager.php:436
 msgid "Migration Complete."
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:727
+#: class/Common/Rest/RestManager.php:735
 msgid "Import cancelled"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:730
+#: class/Common/Rest/RestManager.php:738
 msgid "Import complete"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:744
+#: class/Common/Rest/RestManager.php:752
 msgid "Importing: %s"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:744
+#: class/Common/Rest/RestManager.php:752
 msgid "Deleting: %s"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:751
+#: class/Common/Rest/RestManager.php:759
 msgid ", Inserts: %d"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:754
+#: class/Common/Rest/RestManager.php:762
 msgid ", Updates: %d"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:757
+#: class/Common/Rest/RestManager.php:765
 msgid ", Deletes: %d"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:760
+#: class/Common/Rest/RestManager.php:768
 msgid ", Skips: %d"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:763
+#: class/Common/Rest/RestManager.php:771
 msgid ", Errors: %d"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:772
-#: class/Common/Rest/RestManager.php:778
+#: class/Common/Rest/RestManager.php:780
+#: class/Common/Rest/RestManager.php:786
 msgid ", Run Time: %s"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:827
+#: class/Common/Rest/RestManager.php:835
 msgid "Invalid form action"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:846
+#: class/Common/Rest/RestManager.php:854
 msgid "Invalid importer"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:896
-#: class/Common/Rest/RestManager.php:993
+#: class/Common/Rest/RestManager.php:904
+#: class/Common/Rest/RestManager.php:1001
 msgid "Unable to load preview, %s"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1203
+#: class/Common/Rest/RestManager.php:1211
 msgid "Invalid template \"%s\""
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1377
+#: class/Common/Rest/RestManager.php:1385
 msgid "No Importers found."
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1380
+#: class/Common/Rest/RestManager.php:1388
 msgid "Import Complete, %d Importer"
 msgid_plural "Import Complete, %d Importers"
 msgstr[0] ""

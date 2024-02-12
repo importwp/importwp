@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version (x.x.x)'
+        description: "Version (x.x.x)"
         required: true
 
 jobs:
@@ -19,11 +19,11 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 'lts'
-          cache: 'yarn'
+          node-version: "lts"
+          cache: "yarn"
 
       - name: Build plugin
-        run : |
+        run: |
           cd build
           yarn install
           yarn build
@@ -43,5 +43,5 @@ jobs:
           rm -rf package.json
           rm -rf phpunit.xml.dist
           rm -rf webpack.config.js
+          rm -rf dev-webpack.config.js
           ls -la
-

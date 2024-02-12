@@ -4,7 +4,7 @@ Tags: import, csv, xml, importer, woocommerce, product import, post import, expo
 Requires at least: 4.0  
 Tested up to: 6.4  
 Requires PHP: 5.6  
-Stable tag: 2.11.8  
+Stable tag: 2.12.0  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -130,11 +130,19 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.12.0 =
+
+* ADD - New unique identifier UI, allowing you to select from template fields or create a custom identifier. 
+* ADD - Add filter to enable custom delete actions
+* ADD - Add action to override default delete behaviour with custom code.
+* ADD - Add post taxonomy field labelled Hierarchy relationship, allowing you to choose from connecting all to just last term.
+
 = 2.11.8 =
 
 * FIX - Fix issue TypeError: count() in xml parser.
 
 = 2.11.7 =
+
 * FIX - Fix issue causing csv exporter to show empty screen after clicking "Add fields".
 
 = 2.11.6 =

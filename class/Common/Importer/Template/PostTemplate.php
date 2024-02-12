@@ -18,10 +18,10 @@ class PostTemplate extends Template implements TemplateInterface
     protected $mapper = 'post';
     protected $field_map = [
         'ID' => 'post.ID',
+        'post_name' => 'post.post_name',
         'post_title' => 'post.post_title',
         'post_content' => 'post.post_content',
         'post_excerpt' => 'post.post_excerpt',
-        'post_name' => 'post.post_name',
         'post_status' => 'post.post_status',
         'menu_order' => 'post.menu_order',
         'post_password' => 'post.post_password',
@@ -230,6 +230,15 @@ class PostTemplate extends Template implements TemplateInterface
                 ]),
                 $this->register_field(__('Hierarchy Character', 'jc-importer'), '_hierarchy_character', [
                     'default' => '>',
+                    'condition' => ['_hierarchy', '==', 'yes'],
+                ]),
+                $this->register_field(__('Hierarchy Relationship', 'jc-importer'), '_hierarchy_relationship', [
+                    'default' => 'all',
+                    'options' => [
+                        ['value' => 'all', 'label' => __('Connect all terms', 'jc-importer')],
+                        ['value' => 'last', 'label' => __('Connect last term', 'jc-importer')],
+                    ],
+                    'type' => 'select',
                     'condition' => ['_hierarchy', '==', 'yes'],
                 ]),
                 $this->register_field(__('Append Terms', 'jc-importer'), '_append', [
@@ -514,6 +523,8 @@ class PostTemplate extends Template implements TemplateInterface
 
                 $hierarchy_enabled = isset($row[$prefix . 'settings._hierarchy']) && $row[$prefix . 'settings._hierarchy'] === 'yes' ? true : false;
                 $hierarchy_character = isset($row[$prefix . 'settings._hierarchy_character']) ? $row[$prefix . 'settings._hierarchy_character'] : null;
+                $hierarchy_terms = isset($row[$prefix . 'settings._hierarchy_relationship']) ? $row[$prefix . 'settings._hierarchy_relationship'] : null;
+
 
                 $delimiter = isset($row[$prefix . 'settings._delimiter']) && strlen(trim($row[$prefix . 'settings._delimiter'])) === 1 ? trim($row[$prefix . 'settings._delimiter']) : $delimiter;
 
@@ -581,12 +592,17 @@ class PostTemplate extends Template implements TemplateInterface
                 $prev_term = isset($term_hierarchy_enabled[$processed_tax]) ? 0 : null;
                 $type = $term_types[$processed_tax];
 
-                foreach ($hierarchy_list as $term) {
+                foreach ($hierarchy_list as $term_i => $term) {
                     if (!isset($this->_taxonomies[$processed_tax])) {
                         $this->_taxonomies[$processed_tax] = [];
                     }
 
-                    $term_result = $this->create_or_get_taxonomy_term($post_id, $processed_tax, $term, $prev_term, $type);
+                    $connect_terms = true;
+                    if ($hierarchy_enabled && $hierarchy_terms === 'last') {
+                        $connect_terms = $term_i == count($hierarchy_list) - 1;
+                    }
+
+                    $term_result = $this->create_or_get_taxonomy_term($post_id, $processed_tax, $term, $prev_term, $type, $connect_terms);
                     if ($term_result) {
                         $prev_term = $term_result->term_id;
                         $this->_taxonomies[$processed_tax][] = $term_result->name;
@@ -596,7 +612,7 @@ class PostTemplate extends Template implements TemplateInterface
         }
     }
 
-    private function create_or_get_taxonomy_term($post_id, $tax, $term, $parent, $term_type = 'name')
+    private function create_or_get_taxonomy_term($post_id, $tax, $term, $parent, $term_type = 'name', $set = true)
     {
         if (!in_array($term_type, ['slug', 'name', 'term_id'])) {
             $term_type = 'name';
@@ -608,7 +624,9 @@ class PostTemplate extends Template implements TemplateInterface
             $tmp_term = get_term_by($term_type, $term, $tax);
             if ($tmp_term) {
                 $tmp_term = apply_filters('iwp/importer/template/post_term', $tmp_term, $tax);
-                wp_set_object_terms($post_id, $tmp_term->term_id, $tax, true);
+                if ($set) {
+                    wp_set_object_terms($post_id, $tmp_term->term_id, $tax, true);
+                }
                 return $tmp_term;
             }
         } else {
@@ -643,7 +661,9 @@ class PostTemplate extends Template implements TemplateInterface
 
                         // attach term to post
                         $tmp_term = apply_filters('iwp/importer/template/post_term', $tmp_term, $tax);
-                        wp_set_object_terms($post_id, $tmp_term->term_id, $tax, true);
+                        if ($set) {
+                            wp_set_object_terms($post_id, $tmp_term->term_id, $tax, true);
+                        }
                         return $tmp_term;
                     }
                 }
@@ -658,7 +678,9 @@ class PostTemplate extends Template implements TemplateInterface
         // add term
         $term_id = wp_insert_term($term, $tax, ['parent' => $parent]);
         if (!is_wp_error($term_id)) {
-            wp_set_object_terms($post_id, $term_id['term_id'], $tax, true);
+            if ($set) {
+                wp_set_object_terms($post_id, $term_id['term_id'], $tax, true);
+            }
             return get_term($term_id['term_id'], $tax);
         }
 
@@ -1067,5 +1089,15 @@ class PostTemplate extends Template implements TemplateInterface
         }
 
         return $permission_fields;
+    }
+
+    public function get_unique_identifier_options($importer_model, $unique_fields = [])
+    {
+        $output = parent::get_unique_identifier_options($importer_model, $unique_fields);
+
+        return array_merge(
+            $output,
+            $this->get_unique_identifier_options_from_map($importer_model, $unique_fields, $this->field_map, $this->optional_fields)
+        );
     }
 }

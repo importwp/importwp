@@ -401,19 +401,35 @@ class Importer
 
                 if ($this->getMapper()->permission() && $this->getMapper()->permission()->allowed_method('remove')) {
 
-                    $GLOBALS['wp_object_cache']->delete('iwp_importer_config_' . $id, 'options');
-                    $config = get_site_option('iwp_importer_config_' . $id);
+                    try {
+                        $GLOBALS['wp_object_cache']->delete('iwp_importer_config_' . $id, 'options');
+                        $config = get_site_option('iwp_importer_config_' . $id);
 
-                    $object_ids = $config['delete_ids'];
-                    if ($object_ids && count($object_ids) > $i) {
-                        $object_id = $object_ids[$i];
-                        $this->getMapper()->delete($object_id);
-                        $stats['deletes']++;
+                        $object_ids = $config['delete_ids'];
+                        if ($object_ids && count($object_ids) > $i) {
 
-                        Logger::write('delete:' . $i . ' -object=' . $object_id);
+                            $object_id = $object_ids[$i];
 
-                        $message = apply_filters('iwp/status/record_deleted', 'Record Deleted: #' . $object_id, $object_id);
-                        Util::write_status_log_file_message($id, $session, $message, 'D', $progress['current_row']);
+                            if (apply_filters('iwp/importer/enable_custom_delete_action', false, $id)) {
+
+                                Logger::write('custom_delete_action:' . $i . ' -object=' . $object_id);
+                                do_action('iwp/importer/custom_delete_action', $id, $object_id);
+                            } else {
+
+                                Logger::write('delete:' . $i . ' -object=' . $object_id);
+                                $this->getMapper()->delete($object_id);
+                            }
+
+                            $message = apply_filters('iwp/status/record_deleted', 'Record Deleted: #' . $object_id, $object_id);
+                            $stats['deletes']++;
+
+                            Util::write_status_log_file_message($id, $session, $message, 'D', $progress['current_row']);
+                        }
+                    } catch (MapperException $e) {
+
+                        $stats['errors']++;
+                        Logger::error('delete:' . $i . ' -mapper-error=' . $e->getMessage());
+                        Util::write_status_log_file_message($id, $session, $e->getMessage(), 'E', $progress['current_row']);
                     }
                 }
             }

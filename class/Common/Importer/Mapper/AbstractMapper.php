@@ -2,11 +2,13 @@
 
 namespace ImportWP\Common\Importer\Mapper;
 
-use ImportWP\Common\Importer\Exception\MapperException;
+use ImportWP\Common\Importer\ParsedData;
 use ImportWP\Common\Importer\PermissionInterface;
 use ImportWP\Common\Importer\Template\Template;
+use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Importer\TemplateInterface;
 use ImportWP\Common\Model\ImporterModel;
+use ImportWP\Common\Util\Logger;
 
 class AbstractMapper
 {
@@ -46,6 +48,64 @@ class AbstractMapper
         return $this->permission;
     }
 
+    /**
+     * 
+     * @param ParsedData $data 
+     * @return array 
+     */
+    public function exists_get_identifier($data)
+    {
+        $unique_fields = [];
+        $has_unique_field = false;
+        $meta_args = [];
+
+        if ($this->importer->has_custom_unique_identifier()) {
+
+            // custom unique identifier is stored in meta table
+            $has_unique_field = true;
+            $key = $this->importer->get_iwp_reference_meta_key();
+
+            $value = $data->getValue($key, 'iwp');
+            if (!$value) {
+                $value = '';
+            }
+
+            $meta_args[] = array(
+                'key'   => $key,
+                'value' => $value
+            );
+
+            Logger::debug('AbstractMapper::exists_get_identifier -type="custom" -field="' . $key . '" -value="' . $value . '"');
+        } elseif ($this->importer->has_field_unique_identifier()) {
+
+            // we have set a specific identifier
+            $unique_field = $this->importer->getSetting('unique_identifier');
+            if ($unique_field !== null && !empty($unique_field)) {
+                $unique_fields = is_string($unique_field) ? [$unique_field] : $unique_field;
+            }
+
+            Logger::debug('AbstractMapper::exists_get_identifier -type="field" -field="' . wp_json_encode($unique_fields) . '"');
+        } else {
+
+            // NOTE: fallback to allow templates to set this in pre 2.11.9
+            $unique_fields = TemplateManager::get_template_unique_fields($this->template);
+
+            // allow user to set unique field name, get from importer setting
+            $unique_field = $this->importer->getSetting('unique_field');
+            if ($unique_field !== null) {
+                $unique_fields = is_string($unique_field) ? [$unique_field] : $unique_field;
+            }
+
+            $unique_fields = $this->getUniqueIdentifiers($unique_fields);
+            $unique_fields = apply_filters('iwp/template_unique_fields', $unique_fields, $this->template, $this->importer);
+
+            Logger::debug('AbstractMapper::exists_get_identifier -type="legacy" -fields="' . wp_json_encode($unique_fields) . '"');
+        }
+
+
+        return [$unique_fields, $meta_args, $has_unique_field];
+    }
+
     public function getUniqueIdentifiers($unique_fields = [])
     {
 
@@ -55,12 +115,45 @@ class AbstractMapper
             return $unique_fields;
         }
 
-        $parts = array_filter(array_map('trim', explode(',', $unique_identifier)));
+        if (is_string($unique_identifier)) {
+
+            $unique_identifier = explode(',', $unique_identifier);
+            if (!$unique_identifier) {
+                return $unique_fields;
+            }
+        }
+
+        $parts = array_filter(array_map('trim', (array)$unique_identifier));
         if (empty($parts)) {
             return $unique_fields;
         }
 
         return $parts;
+    }
+
+    public function find_unique_field_in_data($data, $field)
+    {
+        // TODO: this should only be done once per update
+        $unique_value = $data->getValue($field, '*');
+        if (empty($unique_value)) {
+            $cf = $data->getData('custom_fields');
+            if (!empty($cf)) {
+                $cf_index = intval($cf['custom_fields._index']);
+                if ($cf_index > 0) {
+                    for ($i = 0; $i < $cf_index; $i++) {
+                        $row = 'custom_fields.' . $i . '.';
+                        $custom_field_key = apply_filters('iwp/custom_field_key', $cf[$row . 'key']);
+                        if ($custom_field_key !== $field) {
+                            continue;
+                        }
+                        $unique_value = $cf[$row . 'value'];
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $unique_value;
     }
 
     public function is_session_tag_enabled()
@@ -157,5 +250,19 @@ class AbstractMapper
 
         $item_ids = $wpdb->get_col($query);
         return $item_ids;
+    }
+
+    public function update_custom_field($id, $key, $value, $unique = false, $skip_permissions = false)
+    {
+    }
+
+    public function add_reference_tag($data)
+    {
+        if (!$this->importer->has_custom_unique_identifier()) {
+            return;
+        }
+
+        $key = $this->importer->get_iwp_reference_meta_key();
+        $this->update_custom_field($this->ID, $key, $data->getValue($key, 'iwp'));
     }
 }

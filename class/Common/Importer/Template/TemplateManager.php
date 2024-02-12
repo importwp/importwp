@@ -38,7 +38,6 @@ class TemplateManager
             case 'page':
             case 'post':
             case 'custom-post-type':
-            case 'attachment':
                 $unique_fields = ['ID', 'post_name'];
                 break;
             case 'attachment':
