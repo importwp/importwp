@@ -142,6 +142,7 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 * FIX - Fix issue TypeError: count() in xml parser.
 
 = 2.11.7 =
+
 * FIX - Fix issue causing csv exporter to show empty screen after clicking "Add fields".
 
 = 2.11.6 =
