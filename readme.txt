@@ -132,6 +132,7 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 = 2.12.0 =
 
+* ADD - New unique identifier UI, allowing you to select from template fields or create a custom identifier. 
 * ADD - Add filter to enable custom delete actions
 * ADD - Add action to override default delete behaviour with custom code.
 * ADD - Add post taxonomy field labelled Hierarchy relationship, allowing you to choose from connecting all to just last term.
