@@ -9,6 +9,7 @@ import { connect } from 'react-redux';
 import InputField from '../InputField/InputField';
 import InputFieldDataSelector from '../InputFieldDataSelector/InputFieldDataSelector';
 import NoticeList from '../notice-list/NoticeList';
+import { Tooltip } from 'react-tooltip';
 
 class PermissionForm extends Component {
   constructor(props) {
@@ -323,15 +324,25 @@ class PermissionForm extends Component {
             <p className="iwp-heading iwp-heading--has-tooltip">Permissions. <a href="https://www.importwp.com/docs/permissions/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer" target='_blank' className='iwp-label__tooltip'>?</a></p>
 
             {this.hasNewUniqueIdentifierUI() ? <>
-              <p className="iwp-form__label" style={{ marginBlock: '10px', paddingBottom: 0 }}>
-                Unique identifier:
-              </p>
-              <p style={{ fontStyle: 'italic' }}>Set how each record in the import file should be identified, using a previously populated template field, or by creating a custom identifier mode from one or more sections of the import file. This unique identifier is then used to either create new records if no match is found, update existing records, or delete records no longer found in the import file.</p>
+              <div>
+                <p className="iwp-form__label iwp-label--has-tooltip iwp-label--inline-block" style={{ marginBlock: '10px', paddingBottom: 0 }}>
+                  Unique identifier:
+                  <span className="iwp-label__tooltip" data-tooltip-id={'iwp-tooltip_uid_heading'}>
+                    ?
+                  </span>
+                </p>
+                <Tooltip id='iwp-tooltip_uid_heading' effect="solid" delayHide={300} className="iwp-react-tooltip">
+                  <p>Set how each record in the import file should be identified during the import process, either by using a previously populated template field, or by creating a custom identifier made from one or more sections of the import file.</p>
+                  <p>This unique identifier is then used to either create new records if no match is found, update existing records, or delete records no longer found in the import file</p>
+                </Tooltip>
+              </div>
+
+              {/* <p style={{ fontStyle: 'italic' }}>Set how each record in the import file should be identified, using a previously populated template field, or by creating a custom identifier mode from one or more sections of the import file. This unique identifier is then used to either create new records if no match is found, update existing records, or delete records no longer found in the import file.</p> */}
               <div className='iwp-permissions'>
                 <div className='iwp-permission__block iwp-permission__block--first'>
                   <div className='iwp-block__handle'>
                     <input type='radio' id="setting_unique_identifier_type__field" name="setting_unique_identifier_type" value="field" defaultChecked={this.state.setting_unique_identifier_type === 'field'} onChange={this.onUniqueIdentifierTypeChange} />
-                    <label htmlFor='setting_unique_identifier_type__field'>Select a unique identifier from the template fields.</label>
+                    <label htmlFor='setting_unique_identifier_type__field'>Select a template field to be used as the unique identifier for each record.</label>
                   </div>
                   <div className='iwp-block__content' style={{
                     display: this.state.setting_unique_identifier_type === 'field' ? 'block' : 'none',
@@ -390,7 +401,7 @@ class PermissionForm extends Component {
                 <div className='iwp-permission__block'>
                   <div className='iwp-block__handle'>
                     <input type='radio' id="setting_unique_identifier_type__custom" name="setting_unique_identifier_type" value="custom" defaultChecked={this.state.setting_unique_identifier_type === 'custom'} onChange={this.onUniqueIdentifierTypeChange} />
-                    <label htmlFor='setting_unique_identifier_type__custom'>Select a unique identifier from your import file.</label>
+                    <label htmlFor='setting_unique_identifier_type__custom'>Select data from your import file to be used as the unique identifier per record.</label>
                   </div>
                   <div className='iwp-block__content' style={{
                     display: this.state.setting_unique_identifier_type === 'custom' ? 'block' : 'none',
@@ -399,9 +410,10 @@ class PermissionForm extends Component {
                   }}>
                     <div className="iwp-field__left">
                       <FieldLabel
-                        label='Custom identifier'
+                        label='Identifier'
                         id='setting_unique_identifier_ref'
                         field='setting_unique_identifier_ref'
+                        tooltip="Select one or more sections of your import file that can be combined to create an identifier for each row / record being imported."
                       />
                     </div>
                     <div className="iwp-field__right">
