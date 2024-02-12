@@ -392,7 +392,7 @@ class PermissionForm extends Component {
                       />
 
                       {setting_unique_identifier === 'ID' && <NoticeList notices={[
-                        { message: 'Using ID as the unqiue identifier field will match against existing wordpress ID\'s. Please note that the importer cannot create records with a specific ID. Instead i would recommend creating a custom identifier from the import file by selecting "Select a unique identifier from your import file".', type: 'info' },
+                        { message: 'Using ID as the unqiue identifier field will match against existing wordpress ID\'s. Please note that the importer cannot create records with a specific ID and in that case may create duplicate records. (If you want to use ID as a unique identfier and it does not need to match the WordPress ID, i would suggest instead using the "Select data from your import file" option and reference the ID that way). ', type: 'info' },
                       ]} />}
                     </div>
                   </div>
@@ -509,7 +509,7 @@ class PermissionForm extends Component {
                       checked={create}
                       onChange={this.onChange}
                     />{' '}
-                    Create - <em>Allow the creation of new records when no unique identifer match have been found.</em>
+                    Create - <em>Allow the creation of new records when no unique identifer match has been found.</em>
                   </label>
                 </div>
                 {create && (
@@ -654,7 +654,7 @@ class PermissionForm extends Component {
                       onChange={this.onChange}
                     />{' '}
                     Delete -{' '}
-                    <em>Allow deletion of previously imported records.</em>
+                    <em>Allow deletion of previously imported records that are no longer in the import file.</em>
                   </label>
                 </div>
                 {remove && (
