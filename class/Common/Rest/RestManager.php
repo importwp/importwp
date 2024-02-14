@@ -1604,6 +1604,10 @@ class RestManager extends \WP_REST_Controller
 
         // Get default template options
         $template = $this->importer_manager->get_template($importer_model->getTemplate());
+        if (is_wp_error($template)) {
+            return $this->http->end_rest_error($template->get_error_message());
+        }
+
         $template_class = $this->template_manager->load_template($template);
         $unique_fields = $this->template_manager->get_template_unique_fields($template_class);
         $options = $template_class->get_unique_identifier_options($importer_model, $unique_fields);
