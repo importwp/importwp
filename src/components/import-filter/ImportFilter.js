@@ -1,4 +1,7 @@
 import React from 'react';
+import InputFieldDataSelector from '../InputFieldDataSelector/InputFieldDataSelector';
+import InputField from '../InputField/InputField';
+import InputButton from '../InputButton/InputButton';
 
 const ROW_DEFAULT = { left: '', condition: 'equal', right: '' };
 
@@ -128,92 +131,90 @@ const ImportFilter = function ({ onFilterChange, filters }) {
               {rows.map((group, group_index) => (
                 <React.Fragment key={`row-${group_index}`}>
                   {group_index > 0 && (
-                    <tr colSpan={4}>
+                    <tr colSpan={3}>
                       <td>Or</td>
                     </tr>
                   )}
-                  {group.map((row, row_index) => (
-                    <tr key={`row-${group_index}-${row_index}`}>
-                      <td>
-                        <input
-                          type="text"
-                          name="left"
-                          value={row.left}
-                          onChange={(e) =>
-                            updateRow(
-                              e.target.value,
-                              'left',
-                              row_index,
-                              group_index
-                            )
-                          }
-                          style={{ width: '100%' }}
-                          placeholder="e.g. CSV {1} or XML {/guid}"
-                        />
-                      </td>
-                      <td>
-                        <select
-                          value={row.condition}
-                          onChange={(e) =>
-                            updateRow(
-                              e.target.value,
-                              'condition',
-                              row_index,
-                              group_index
-                            )
-                          }
-                          style={{ width: '100%' }}
-                        >
-                          <option value="equal">Text Equals</option>
-                          <option value="contains">Text Contains</option>
-                          <option value="in">Text is listed in</option>
-                          <option value="contains-in">
-                            Contains text in list
-                          </option>
-                          <option value="not-equal">Text Not Equals</option>
-                          <option value="not-contains">
-                            Text Not Contains
-                          </option>
-                          <option value="not-in">Text not listed in</option>
-                          <option value="not-contains-in">
-                            Does not contain text in list
-                          </option>
-                        </select>
-                      </td>
-                      <td>
-                        <input
-                          type="text"
-                          name="right"
-                          value={row.right}
-                          onChange={(e) =>
-                            updateRow(
-                              e.target.value,
+                  {group.map((row, row_index) => {
+
+                    const updateValue = (value) => {
+                      updateRow(value, 'left', row_index, group_index)
+                    }
+
+                    return (
+                      <tr key={`row-${group_index}-${row_index}`}>
+                        <td>
+                          <InputField
+                            name="left"
+                            value={row.left}
+                            onChange={updateValue}
+                            placeholder=''
+                          >
+                            <InputFieldDataSelector
+                              value={row.left}
+                              onClose={(selection) => {
+                                updateValue(selection !== null ? selection : row.left);
+                              }} />
+                          </InputField>
+                        </td>
+                        <td>
+                          <select
+                            value={row.condition}
+                            onChange={(e) =>
+                              updateRow(
+                                e.target.value,
+                                'condition',
+                                row_index,
+                                group_index
+                              )
+                            }
+                            style={{ width: '100%' }}
+                          >
+                            <option value="equal">Text Equals</option>
+                            <option value="contains">Text Contains</option>
+                            <option value="in">Text is listed in</option>
+                            <option value="contains-in">
+                              Contains text in list
+                            </option>
+                            <option value="not-equal">Text Not Equals</option>
+                            <option value="not-contains">
+                              Text Not Contains
+                            </option>
+                            <option value="not-in">Text not listed in</option>
+                            <option value="not-contains-in">
+                              Does not contain text in list
+                            </option>
+                          </select>
+                        </td>
+                        <td>
+                          <InputField
+                            name="right"
+                            value={row.right}
+                            onChange={(val) => updateRow(
+                              val,
                               'right',
                               row_index,
                               group_index
-                            )
-                          }
-                          style={{ width: '100%' }}
-                        />
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className="button button-secondary"
-                          onClick={() => addRow(group_index)}
-                        >
-                          And
-                        </button>{' '}
-                        <button
-                          type="button"
-                          className="button button-secondary"
-                          onClick={() => removeRow(row_index, group_index)}
-                        >
-                          -
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                            )}
+                            placeholder=''
+                          >
+                            <InputButton
+                              theme='secondary'
+                              onClick={() => addRow(group_index)}
+                            >
+                              And
+                            </InputButton>
+                            <InputButton
+                              theme='secondary'
+                              onClick={() => removeRow(row_index, group_index)}
+                            >
+                              -
+                            </InputButton>
+                          </InputField>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </React.Fragment>
               ))}
             </tbody>
@@ -222,19 +223,17 @@ const ImportFilter = function ({ onFilterChange, filters }) {
                 <th>Skip row if this</th>
                 <th></th>
                 <th>That</th>
-                <th></th>
               </tr>
             </thead>
             <tfoot>
               <tr>
-                <td colSpan={4}>
-                  <button
-                    type="button"
-                    className="button button-secondary"
+                <td colSpan={3}>
+                  <InputButton
+                    theme='secondary'
                     onClick={() => addGroup()}
                   >
                     Or
-                  </button>
+                  </InputButton>
                 </td>
               </tr>
             </tfoot>

@@ -1,4 +1,4 @@
-import FieldLabel from "../field-label/FieldLabel";
+import './InputField.scss';
 
 export default function InputField({
     name = '',
@@ -8,8 +8,15 @@ export default function InputField({
     placeholder = ''
 }) {
     return (
-        <div className="iwp-field__input-wrapper">
-            <input className="iwp-field__input-wrapper" type="text" id={name} name={name} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
+        <div className="iwp-input-field__wrapper">
+            <input
+                className="iwp-input-field iwp-input-field--text"
+                type="text"
+                id={name}
+                name={name}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={placeholder} />
             {children}
         </div>
     );

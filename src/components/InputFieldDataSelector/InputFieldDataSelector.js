@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import DataSelectorModal from "../DataSelectorModal/DataSelectorModal";
+import InputButton from '../InputButton/InputButton';
 
 export default function InputFieldSelector({
     value = '',
@@ -18,13 +19,12 @@ export default function InputFieldSelector({
                 }}
                 visible={visible}
             />
-            <button
+            <InputButton
                 className="iwp-field__select"
-                type="button"
                 onClick={() => setVisible(true)}
             >
                 Select
-            </button>
+            </InputButton>
         </>
     )
 }
