@@ -1,0 +1,46 @@
+.iwp-dropdown {
+  position: relative;
+
+  &__scroll {
+    max-height: 200px;
+    overflow: auto;
+  }
+
+  &__popover {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    min-width: 160px;
+    margin: 0 0 9px;
+    padding: 0;
+    border-radius: 5px;
+    border: 1px solid #3d4348;
+    background: #53595f;
+
+    &:after,
+    &:before {
+      top: 100%;
+      left: 20px;
+      border: solid transparent;
+      content: " ";
+      height: 0;
+      width: 0;
+      position: absolute;
+      pointer-events: none;
+    }
+
+    &:after {
+      border-color: rgba(83, 89, 95, 0);
+      border-top-color: #53595f;
+      border-width: 8px;
+      margin-left: -8px;
+    }
+
+    &:before {
+      border-color: rgba(61, 67, 72, 0);
+      border-top-color: #3d4348;
+      border-width: 9px;
+      margin-left: -9px;
+    }
+  }
+}

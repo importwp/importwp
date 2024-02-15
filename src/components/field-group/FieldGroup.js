@@ -11,41 +11,14 @@ import {
   setTemplate,
 } from '../../features/importer/importerSlice';
 
+import './FieldGroup.scss';
+import ButtonDropdown from '../ButtonDropdown/ButtonDropdown';
+
 class FieldGroup extends React.PureComponent {
   constructor(props) {
     super(props);
 
-    this.state = {
-      show_field_dropdown: false,
-    };
-
-    this.setWrapperRef = this.setWrapperRef.bind(this);
-    this.handleClickOutside = this.handleClickOutside.bind(this);
     this.getEnableFieldLabel = this.getEnableFieldLabel.bind(this);
-  }
-
-  componentDidMount() {
-    document.addEventListener('mousedown', this.handleClickOutside);
-  }
-
-  componentWillUnmount() {
-    document.removeEventListener('mousedown', this.handleClickOutside);
-  }
-
-  /**
-   * Set the wrapper ref
-   */
-  setWrapperRef(node) {
-    this.wrapperRef = node;
-  }
-
-  /**
-   * Alert if clicked on outside of element
-   */
-  handleClickOutside(event) {
-    if (this.wrapperRef && !this.wrapperRef.contains(event.target)) {
-      this.setState({ show_field_dropdown: false });
-    }
   }
 
   /**
@@ -72,7 +45,6 @@ class FieldGroup extends React.PureComponent {
 
     const switch_height = 20;
     const switch_width = 40;
-
 
     return (
       <div className="iwp-form iwp-form--mb">
@@ -131,28 +103,14 @@ class FieldGroup extends React.PureComponent {
         </form>
         {type !== 'repeatable' && Object.keys(enabledData).length > 0 && (
           <div className="iwp-buttons">
-            <div className="iwp-dropdown" ref={this.setWrapperRef}>
-              <button
-                type="button"
-                className="button button-secondary"
-                onClick={() => {
-                  this.setState({
-                    show_field_dropdown: !this.state.show_field_dropdown,
-                  });
-                }}
-              >
-                Enable Fields
-              </button>
-              {this.state.show_field_dropdown && (
+            <ButtonDropdown items={(closeDropdown) => {
+              return (
                 <ul className="iwp-dropdown__menu">
                   {Object.keys(enabledData).map((key) => (
                     <li key={key} className="iwp-dropdown__item">
                       <a
                         onClick={() => {
-                          this.setState({
-                            show_field_dropdown: false,
-                          });
-
+                          closeDropdown();
                           this.props.dispatch(setEnabled({ [key]: !enabledData[key] }));
                         }}
                       >
@@ -162,8 +120,8 @@ class FieldGroup extends React.PureComponent {
                     </li>
                   ))}
                 </ul>
-              )}
-            </div>
+              )
+            }} />
           </div>
         )}
       </div>
