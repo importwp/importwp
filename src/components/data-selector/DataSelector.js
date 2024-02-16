@@ -6,6 +6,8 @@ import { importer } from '../../services/importer.service';
 
 import './DataSelector.scss';
 import PreviewRecord from '../preview-form/PreviewRecord';
+import InputButton from '../InputButton/InputButton';
+import InputField from '../InputField/InputField';
 
 class DataSelector extends Component {
   constructor(props) {
@@ -109,17 +111,21 @@ class DataSelector extends Component {
           </>}
         </div>
         <div className="iwp-data-selector__tool">
-          <div className="iwp-field__input-wrapper">
-            <input
-              type="text"
-              name="selection"
-              value={selection}
-              onChange={this.onChange}
-            ></input>
-            <button type="button" onClick={this.onSubmit}>
+
+          <InputField
+            name="selection"
+            value={selection}
+            onChange={val => this.onChange({
+              target: {
+                name: 'selection',
+                value: val
+              }
+            })}
+          >
+            <InputButton onClick={this.onSubmit}>
               Select and Close
-            </button>
-          </div>
+            </InputButton>
+          </InputField>
           <p className="iwp-preview--text" title={preview}>
             Preview: {preview}
           </p>
