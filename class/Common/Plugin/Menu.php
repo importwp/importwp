@@ -41,10 +41,21 @@ class Menu
         add_action('admin_menu', array($this, 'register_tools_menu'));
         add_action('tool_box', array($this->view_manager, 'tool_box'));
         add_filter('plugin_action_links_' . $this->properties->plugin_basename, array($this, 'add_plugin_links'));
-        add_filter('update_footer', [$this, 'add_footer_links'], 20);
+        add_filter('update_footer', [$this, 'add_footer_text_right'], 20);
+        add_filter('admin_footer_text', [$this, 'add_footer_text_left']);
     }
 
-    public function add_footer_links($text)
+    public function add_footer_text_left($text)
+    {
+        $screen = get_current_screen();
+        if ($screen->id !== 'tools_page_importwp') {
+            return $text;
+        }
+
+        return '<a target="_blank" href="https://www.importwp.com/support/">Contact support</a> | Add your <a target="_blank" href="http://wordpress.org/support/view/plugin-reviews/jc-importer#postform">★★★★★</a> on <a target="_blank" href="http://wordpress.org/plugins/jc-importer/">wordpress.org</a>';
+    }
+
+    public function add_footer_text_right($text)
     {
         $screen = get_current_screen();
         if ($screen->id !== 'tools_page_importwp') {
