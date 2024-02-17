@@ -21,7 +21,7 @@ class TemplateTest extends \WP_UnitTestCase
 
         $fields = $template->register_attachment_fields();
         $this->assertEquals('attachments', $fields['id']);
-        $this->assertEquals('Attachments', $fields['heading']);
+        $this->assertEquals('Images & Attachments', $fields['heading']);
 
         $location_item = $this->find_item($fields['fields'], 'location');
         $this->assertNotFalse($location_item);
