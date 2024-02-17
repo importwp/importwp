@@ -41,6 +41,17 @@ class Menu
         add_action('admin_menu', array($this, 'register_tools_menu'));
         add_action('tool_box', array($this->view_manager, 'tool_box'));
         add_filter('plugin_action_links_' . $this->properties->plugin_basename, array($this, 'add_plugin_links'));
+        add_filter('update_footer', [$this, 'add_footer_links'], 20);
+    }
+
+    public function add_footer_links($text)
+    {
+        $screen = get_current_screen();
+        if ($screen->id !== 'tools_page_importwp') {
+            return $text;
+        }
+
+        return '<a class="iwp-footer-link" target="_blank" href="https://translate.wordpress.org/projects/wp-plugins/jc-importer/"><span class="dashicons dashicons-translation"></span> Translate</a> | ' . '<a class="iwp-footer-link" target="_blank" href="https://www.importwp.com/documentation/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=footer">View Documentation</a> | ' . $text;
     }
 
     public function register_tools_menu()

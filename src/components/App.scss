@@ -689,6 +689,12 @@
   background: #f5f5f5 !important;
 }
 
+.iwp-footer-link {
+  text-decoration: none;
+  margin-right: 5px;
+  margin-left: 5px;
+}
+
 @media screen and (max-width: 782px) {
   .iwp-field__input-wrapper input,
   .iwp-field__input-wrapper button {

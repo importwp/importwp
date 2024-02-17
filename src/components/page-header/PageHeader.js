@@ -69,7 +69,7 @@ const PageHeader = ({ active, pro }) => {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Documentation
+                Docs
               </a>
             ) : (
               <a
