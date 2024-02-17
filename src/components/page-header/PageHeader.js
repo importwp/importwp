@@ -1,10 +1,10 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
+import React from "react";
+import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
 
-import Icon from './icon.svg';
+import Icon from "./icon.svg";
 
-import './PageHeader.scss';
+import "./PageHeader.scss";
 
 const ADMIN_BASE = window.iwp.admin_base;
 const PLUGIN_VERSION = window.iwp.version;
@@ -13,7 +13,7 @@ const PageHeader = ({ active, pro }) => {
   return (
     <React.Fragment>
       <div className="iwp-header">
-        <div className='iwp-header__inside'>
+        <div className="iwp-header__inside">
           <p className="iwp-header__heading">
             <span
               className="iwp-brand"
@@ -21,57 +21,45 @@ const PageHeader = ({ active, pro }) => {
                 backgroundImage: `url(${Icon})`,
               }}
             >
-              Import WP {pro === true ? 'PRO ' : ''}
+              Import WP {pro === true ? "PRO " : ""}
             </span>
-            {PLUGIN_VERSION !== '__STABLE_TAG__' && (
-              <small>{PLUGIN_VERSION}</small>
-            )}
           </p>
 
           <div className="iwp-header__tabs">
             <Link
               to={ADMIN_BASE}
               className={
-                'iwp-header__tab' +
-                (active === 'archive' || active === 'edit' || active === 'new'
-                  ? ' iwp-header__tab--active'
-                  : '')
+                "iwp-header__tab" +
+                (active === "archive" || active === "edit" || active === "new"
+                  ? " iwp-header__tab--active"
+                  : "")
               }
             >
               Importers
             </Link>
             <Link
-              to={ADMIN_BASE + '&tab=exporters'}
+              to={ADMIN_BASE + "&tab=exporters"}
               className={
-                'iwp-header__tab' +
-                (active === 'exporters' ||
-                  active === 'edit-exporter' ||
-                  active === 'new-exporter'
-                  ? ' iwp-header__tab--active'
-                  : '')
+                "iwp-header__tab" +
+                (active === "exporters" ||
+                active === "edit-exporter" ||
+                active === "new-exporter"
+                  ? " iwp-header__tab--active"
+                  : "")
               }
             >
               Exporters
             </Link>
             <Link
-              to={ADMIN_BASE + '&tab=settings'}
+              to={ADMIN_BASE + "&tab=settings"}
               className={
-                'iwp-header__tab' +
-                (active === 'settings' ? ' iwp-header__tab--active' : '')
+                "iwp-header__tab" +
+                (active === "settings" ? " iwp-header__tab--active" : "")
               }
             >
               Settings / Tools
             </Link>
-            {pro === true ? (
-              <a
-                href="https://www.importwp.com/documentation/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=navigation"
-                className="iwp-header__tab"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Docs
-              </a>
-            ) : (
+            {pro !== true && (
               <a
                 href="https://www.importwp.com/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=Import%2BWP%2BFree&utm_medium=navigation"
                 className="iwp-header__tab iwp-header__tab--icon"
@@ -97,7 +85,7 @@ PageHeader.propTypes = {
 };
 
 PageHeader.defaultProps = {
-  active: 'archive',
+  active: "archive",
   pro: false,
 };
 

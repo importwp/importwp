@@ -51,7 +51,9 @@ class Menu
             return $text;
         }
 
-        return '<a class="iwp-footer-link" target="_blank" href="https://translate.wordpress.org/projects/wp-plugins/jc-importer/"><span class="dashicons dashicons-translation"></span> Translate</a> | ' . '<a class="iwp-footer-link" target="_blank" href="https://www.importwp.com/documentation/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=footer">View Documentation</a> | ' . $text;
+        return '<a class="iwp-footer-link" target="_blank" href="https://translate.wordpress.org/projects/wp-plugins/jc-importer/"><span class="dashicons dashicons-translation"></span> Translate</a> | 
+        <a class="iwp-footer-link" target="_blank" href="https://www.importwp.com/documentation/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=footer">View Documentation</a> | 
+        ImportWP v' . IWP_VERSION . (defined('IWP_PRO_VERSION') ? ' | ImportWP PRO v' . IWP_PRO_VERSION : '');
     }
 
     public function register_tools_menu()
