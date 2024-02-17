@@ -7,9 +7,9 @@
 }
 
 #importwp-root {
-  float: left;
+  // float: left;
   width: 100%;
-  position: absolute;
+  // position: absolute;
   z-index: 1;
 }
 
@@ -693,6 +693,11 @@
   .iwp-field__input-wrapper input,
   .iwp-field__input-wrapper button {
     height: 40px;
+  }
+
+  // hide help tab on smaller screens
+  .tools_page_importwp #screen-meta-links{
+    display: none;
   }
 }
 
