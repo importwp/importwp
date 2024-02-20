@@ -14,6 +14,7 @@ export const exporter = {
   init,
   run,
   status,
+  abort
 };
 
 function abort(id = null) {

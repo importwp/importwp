@@ -2,11 +2,14 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import UpgradeMessage from '../upgrade-message/UpgradeMessage';
 
-import { createHooks } from '@wordpress/hooks';
 import { importer } from '../../services/importer.service';
+import { exporter as ExporterService, exporter } from '../../services/exporter.service';
 import FieldLabel from '../field-label/FieldLabel';
-
-const hooks = createHooks();
+import InputRadioAccordion from '../InputRadioAccordion/InputRadioAccordion';
+import InputRadioAccordionPanel from '../InputRadioAccordionPanel/InputRadioAccordionPanel';
+import SelectField from '../SelectField/SelectField';
+import InputField from '../InputField/InputField';
+import InputButton from '../InputButton/InputButton';
 
 class SetupForm extends Component {
   constructor(props) {
@@ -26,23 +29,40 @@ class SetupForm extends Component {
       name: '',
       template: '',
       template_type: '',
+      exporter: '',
+      setup_type: 'manual',
       ...template_options,
       saving: false,
       disabled: true,
       upgrade: false,
+      exporters: []
     };
 
     this.onSubmit = this.onSubmit.bind(this);
     this.onChange = this.onChange.bind(this);
   }
 
+  componentDidMount() {
+    ExporterService.exporters().then((exporters) => {
+      this.setState({
+        exporters: exporters.filter(item => item.type?.length > 0 && item.unique_identifier?.length > 0 && item.file_type?.length > 0).reduce((carry, item) => {
+          return [...carry, { value: item.id, label: item.name }];
+        }, [])
+      });
+    });
+  }
+
+  componentWillUnmount() {
+    ExporterService.abort('exporters');
+  }
+
   isDisabled() {
-    const { template, name } = this.state;
+    const { template, name, setup_type, exporter } = this.state;
 
     let disabled = true;
     let upgrade = false;
 
-    if (template) {
+    if (setup_type === 'manual' && template) {
       disabled = template.length > 0 ? false : true;
 
       const current_template = this.templates.find(
@@ -61,6 +81,8 @@ class SetupForm extends Component {
           }
         }
       });
+    } else if (setup_type === 'generate' && exporter) {
+      disabled = exporter.length > 0 ? false : true;
     }
 
     if (name === '') {
@@ -73,15 +95,28 @@ class SetupForm extends Component {
     });
   }
 
-  onChange(event) {
-    const { name, value } = event.target;
+  onChange(name, value) {
+
+    let stateChange = {
+      [name]: value
+    }
 
     // reset template_type on template change
     if (name === 'template') {
-      this.setState({ template_type: '' });
+      stateChange = {
+        ...stateChange,
+        template_type: '',
+      };
+    } else if (name === 'setup_type') {
+      stateChange = {
+        ...stateChange,
+        template: '',
+        template_type: '',
+        exporter: '',
+      };
     }
 
-    this.setState({ [name]: value }, this.isDisabled);
+    this.setState(stateChange, this.isDisabled);
   }
 
   onSubmit() {
@@ -99,20 +134,14 @@ class SetupForm extends Component {
       }, {});
     }
 
-    // const template_options = Object.keys(this.state)
-    //   .filter(item => item.startsWith('option_'))
-    //   .reduce((obj, key) => {
-    //     obj[key.substring('option_'.length)] = this.state[key];
-    //     return obj;
-    //   }, {});
-
-    // console.log('ASD');
     importer
       .save({
         name: this.state.name,
         template: this.state.template,
         template_type: this.state.template_type,
         template_options: template_options,
+        setup_type: this.state.setup_type,
+        exporter: this.state.exporter,
       })
       .then((data) => {
         this.setState({ saving: false });
@@ -127,7 +156,7 @@ class SetupForm extends Component {
   }
 
   render() {
-    const { template, saving, disabled, upgrade } = this.state;
+    const { name, template, saving, disabled, upgrade, exporters, exporter } = this.state;
     const current_template = this.templates.find(
       (template_data) => template_data.value === template
     );
@@ -137,7 +166,7 @@ class SetupForm extends Component {
         <div className="iwp-form">
           <form>
             <p className="iwp-heading">Create Importer</p>
-            <div className="iwp-form__row ">
+            <div className="iwp-form__row">
               <FieldLabel
                 id="name"
                 field="name"
@@ -145,84 +174,137 @@ class SetupForm extends Component {
                 tooltip="Enter the name of the importer, the name is only used to help find your importer."
                 display="inline-block"
               />
-              <input
+              <InputField
                 id="name"
                 name="name"
                 type="text"
                 className="iwp-form__input"
-                onChange={this.onChange}
+                value={name}
+                onChange={(value) => this.onChange('name', value)}
                 placeholder="importer name"
               />
             </div>
-            <div className="iwp-form__row">
-              <FieldLabel
-                id="template"
-                field="template"
-                label="What are you wanting to import?"
-                tooltip="Select from the dropdown what import template you want to use for your import file."
-                display="inline-block"
-              />
-              <select
-                id="template"
-                name="template"
-                className="iwp-form__input"
-                onChange={this.onChange}
-                value={template}
+
+            <InputRadioAccordion
+              name="setup_type"
+              defaultActive="manual"
+              onChange={(value) => this.onChange('setup_type', value)}
+            >
+              <InputRadioAccordionPanel
+                value="generate"
+                label="Use an existing exporter to populate importer fields."
               >
-                <option value="">Choose Template</option>
-                {this.templates.map((row) => (
-                  <option key={row.value} value={row.value}>
-                    {row.label}
-                  </option>
-                ))}
-              </select>
-            </div>
 
-            {template &&
-              template_options.map((template_data) => (
-                <div key={template_data.id} className="iwp-form__row">
-                  <label className="iwp-form__label">
-                    {template_data.label}
-                  </label>
-                  <select
-                    name={'option_' + template_data.id}
-                    className="iwp-form__input"
-                    onChange={this.onChange}
-                    value={this.state['option_' + template_data.id]}
-                  >
-                    {template_data.options.map((row, i) => (
-                      <option
-                        key={row.value === 'iwp_pro' ? i : row.value}
-                        value={row.value}
-                      >
-                        {row.label}
-                      </option>
-                    ))}
-                  </select>
+                <div className="iwp-form__row">
+                  <FieldLabel
+                    id="exporter"
+                    field="exporter"
+                    label="Choose exiting Exporter"
+                    display="inline-block"
+                  />
+                  <SelectField
+                    id="exporter"
+                    name="exporter"
+                    placeholder='Choose Exporter'
+                    onChange={(value) => this.onChange('exporter', value)}
+                    value={exporter}
+                    options={<>
+                      <option value="">Choose Exporter</option>
+                      {exporters.map((row) => (
+                        <option key={row.value} value={row.value}>
+                          {`#${row.value} - ${row.label}`}
+                        </option>
+                      ))}
+                    </>}
+                  />
                 </div>
-              ))}
 
-            {window.iwp.hooks.applyFilters(
-              'iwp_after_template_select',
-              <UpgradeMessage message="Please upgrade to Import WP Pro into import Custom Post Types." />
-            )}
+              </InputRadioAccordionPanel>
+              <InputRadioAccordionPanel
+                value="manual"
+                label="Manually configure the importer."
+              >
+                <div className="iwp-form__row">
+                  <FieldLabel
+                    id="template"
+                    field="template"
+                    label="What are you wanting to import?"
+                    tooltip="Select from the dropdown what import template you want to use for your import file."
+                    display="inline-block"
+                  />
+                  <SelectField
+                    id="template"
+                    name="template"
+                    placeholder='Choose Template'
+                    onChange={(value) => this.onChange('template', value)}
+                    value={template}
+                    options={<>
+                      <option value="">Choose Template</option>
+                      {this.templates.map((row) => (
+                        <option key={row.value} value={row.value}>
+                          {row.label}
+                        </option>
+                      ))}
+                    </>}
+                  />
+                </div>
+
+                {template &&
+                  template_options.map((template_data) => {
+                    const field_id = `option_${template_data.id}`;
+                    return (
+                      <div key={template_data.id} className="iwp-form__row">
+                        <FieldLabel
+                          id={field_id}
+                          field={field_id}
+                          label={template_data.label}
+                        />
+                        <SelectField
+                          id={field_id}
+                          name={field_id}
+                          className="iwp-form__input"
+                          onChange={(value) => this.onChange(field_id, value)}
+                          value={this.state['option_' + template_data.id]}
+                          options={<>
+                            {template_data.options.map((row, i) => (
+                              <option
+                                key={row.value === 'iwp_pro' ? i : row.value}
+                                value={row.value}
+                              >
+                                {row.label}
+                              </option>
+                            ))}
+                          </>}
+                        />
+                      </div>
+                    )
+                  })}
+
+                {window.iwp.hooks.applyFilters(
+                  'iwp_after_template_select',
+                  <UpgradeMessage message="Please upgrade to Import WP Pro into import Custom Post Types." />
+                )}
+              </InputRadioAccordionPanel>
+            </InputRadioAccordion>
+
+
           </form>
         </div>
 
         <div className="iwp-form__actions">
           <div className="iwp-buttons">
-            <button
-              className="button button-primary"
+            <InputButton
+              theme="primary"
               type="button"
               onClick={this.onSubmit}
               disabled={disabled}
             >
               {saving && <span className="spinner is-active"></span>}
               {saving ? 'Saving' : 'Create Importer'}
-            </button>
+            </InputButton>
           </div>
         </div>
-      </React.Fragment>
+      </React.Fragment >
     );
   }
 }
@@ -235,7 +317,7 @@ SetupForm.propTypes = {
 };
 
 SetupForm.defaultProps = {
-  onError: () => {},
+  onError: () => { },
   templates: [],
 };
 

@@ -8,6 +8,13 @@
   white-space: nowrap;
   box-sizing: border-box;
   border: 1px solid transparent;
+
+  &[disabled] {
+    color: #a7aaad !important;
+    border-color: #dcdcde !important;
+    background: #f6f7f7 !important;
+    cursor: not-allowed;
+  }
 }
 
 .iwp-input-button--primary {
@@ -21,6 +28,12 @@
     background: #739e73;
     border-color: #279d77;
     color: #fff;
+  }
+
+  &[disabled] {
+    color: #c3d5c3 !important;
+    background: #22c48f !important;
+    border-color: #279d77 !important;
   }
 }
 

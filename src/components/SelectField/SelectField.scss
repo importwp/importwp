@@ -1,0 +1,15 @@
+.iwp-select-field {
+  flex-grow: 1;
+  border: 1px solid #7e8993;
+
+  &__wrapper {
+    display: flex;
+    column-gap: 5px;
+  }
+
+  button {
+    flex-basis: 0;
+    flex-grow: 0;
+    flex-shrink: 0;
+  }
+}
