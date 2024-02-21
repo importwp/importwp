@@ -413,7 +413,7 @@ function save(data) {
           importerSubject.next(response.data);
           resolve(response.data);
         } else {
-          importerSubject.error(response.data);
+          // importerSubject.error(response.data);
           reject(response.data);
         }
       },
