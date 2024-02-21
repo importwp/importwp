@@ -121,6 +121,51 @@ class ExporterManager
         $exporter->delete();
     }
 
+    /**
+     * @param \ImportWP\Common\Model\ExporterModel $exporter_data 
+     * @return \ImportWP\Common\Exporter\File\File 
+     */
+    public function get_exporter_file($exporter_data)
+    {
+
+        if ($exporter_data->getFileType() === 'csv') {
+            $file = new CSVFile($exporter_data);
+        } elseif ($exporter_data->getFileType() === 'xml') {
+            $file = new XMLFile($exporter_data);
+        } else {
+            $file = new JSONFile($exporter_data);
+        }
+
+        return $file;
+    }
+
+    /**
+     * @param \ImportWP\Common\Model\ExporterModel $exporter_data 
+     * @return \ImportWP\Common\Exporter\Mapper\MapperInterface 
+     */
+    public function get_exporter_mapper($exporter_data)
+    {
+        $type = $exporter_data->getType();
+        $matches = null;
+        if (preg_match('/^ewp_tax_(.*?)$/', $type, $matches) == 1) {
+            $taxonomy = $matches[1];
+            $mapper = new TaxMapper($taxonomy);
+        } elseif (preg_match('/^ewp_comment_(.*?)$/', $type, $matches) == 1) {
+            $post_type = $matches[1];
+            $mapper = new CommentMapper($post_type);
+        } elseif ($type === 'user') {
+            $mapper = new UserMapper();
+        } else {
+
+            $mapper = apply_filters('iwp/exporter/load_mapper', false, $type);
+            if (!$mapper) {
+                $mapper = new PostMapper($type);
+            }
+        }
+
+        return $mapper;
+    }
+
     public function export($id, $user = null, $session = null)
     {
         Logger::timer();
@@ -141,31 +186,8 @@ class ExporterManager
 
             $state->init($session);
 
-            if ($exporter_data->getFileType() === 'csv') {
-                $file = new CSVFile($exporter_data);
-            } elseif ($exporter_data->getFileType() === 'xml') {
-                $file = new XMLFile($exporter_data);
-            } else {
-                $file = new JSONFile($exporter_data);
-            }
-
-            $type = $exporter_data->getType();
-            $matches = null;
-            if (preg_match('/^ewp_tax_(.*?)$/', $type, $matches) == 1) {
-                $taxonomy = $matches[1];
-                $mapper = new TaxMapper($taxonomy);
-            } elseif (preg_match('/^ewp_comment_(.*?)$/', $type, $matches) == 1) {
-                $post_type = $matches[1];
-                $mapper = new CommentMapper($post_type);
-            } elseif ($type === 'user') {
-                $mapper = new UserMapper();
-            } else {
-
-                $mapper = apply_filters('iwp/exporter/load_mapper', false, $type);
-                if (!$mapper) {
-                    $mapper = new PostMapper($type);
-                }
-            }
+            $file = $this->get_exporter_file($exporter_data);
+            $mapper = $this->get_exporter_mapper($exporter_data);
 
             /**
              * @var MapperInterface $mapper
@@ -639,5 +661,33 @@ class ExporterManager
         }
 
         return $output;
+    }
+
+    public function get_importer_map_fields($exporter_id)
+    {
+        $exporter_data = $this->get_exporter($exporter_id);
+        if (!$exporter_data) {
+            return new \WP_Error("Unable to get exporter");
+        }
+
+        $mapper = $this->get_exporter_mapper($exporter_data);
+        $file_type = $exporter_data->getFileType();
+
+        $fields = $exporter_data->getFields(true);
+        if (empty($fields)) {
+
+            $fields = $mapper->get_fields();
+
+            switch ($file_type) {
+                case 'csv':
+                    $fields = $this->flattenFields($fields);
+                    break;
+                default:
+                    $fields = $this->nestedFields($fields);
+                    break;
+            }
+        }
+
+        return $fields;
     }
 }

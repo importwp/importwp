@@ -204,34 +204,6 @@ class ImporterManager
         $file->setEnclosure($enclosure);
         $file->processing(true);
 
-        if (empty($importer->getMap())) {
-
-            // we are on first file import
-            $headings = str_getcsv($file->getRecord(0), $file->getDelimiter(), $file->getEnclosure());
-            $headings = array_map('trim', $headings);
-
-            $template = $this->get_importer_template($id);
-            $field_map = $template->generate_field_map($headings, $importer);
-            $field_map = apply_filters('iwp/importer/generate_field_map', $field_map, $headings, $importer);
-
-            $map = $field_map['map'];
-            foreach ($map as $key => $value) {
-                $importer->setMap($key, $value);
-            }
-
-            $enabled = $field_map['enabled'];
-            foreach ($enabled as $enabled_field) {
-                $importer->setEnabled($enabled_field);
-            }
-
-            // Disabled due to testing: 
-            // https://localdev/wp-admin/tools.php?page=importwp&edit=29&step=1
-            // 
-            // a:9:{s:8:"template";s:19:"woocommerce-product";s:13:"template_type";s:0:"";s:4:"file";a:2:{s:2:"id";i:9;s:8:"settings";a:6:{s:9:"enclosure";s:1:""";s:9:"delimiter";s:1:",";s:13:"show_headings";b:1;s:5:"setup";b:0;s:5:"count";i:2;s:9:"processed";b:1;}}s:10:"datasource";a:2:{s:4:"type";s:5:"local";s:8:"settings";a:2:{s:10:"remote_url";s:0:"";s:9:"local_url";s:48:"/var/www/html/wp-content/uploads/exportwp/30.csv";}}s:6:"parser";s:3:"csv";s:3:"map";a:0:{}s:7:"enabled";a:0:{}s:11:"permissions";a:0:{}s:8:"settings";a:4:{s:9:"post_type";a:2:{i:0;s:7:"product";i:1;s:17:"product_variation";}s:12:"unique_field";a:3:{i:0;s:2:"ID";i:1;s:4:"_sku";i:2;s:9:"post_name";}s:9:"start_row";N;s:7:"max_row";N;}}
-            // 
-            $importer->save();
-        }
-
         return $file->getRecordCount();
     }
 

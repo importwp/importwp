@@ -490,10 +490,7 @@ class RestManager extends \WP_REST_Controller
             }
         }
 
-
-
         $importer = new ImporterModel($id, $this->importer_manager->is_debug());
-
         if (isset($post_data['datasource'])) {
             $importer->setDatasource($post_data['datasource']);
         }
@@ -539,6 +536,41 @@ class RestManager extends \WP_REST_Controller
 
         if (isset($post_data['name'])) {
             $importer->setName($post_data['name']);
+        }
+
+        if (is_null($id)) {
+
+            // NOTE: New importer, should we generate field map from exporter.
+            if (isset($post_data['setup_type'])) {
+
+                /**
+                 * @var \ImportWP\Common\Model\ExporterModel $exporter_data
+                 */
+                $exporter_data = $this->exporter_manager->get_exporter($post_data['exporter']);
+                $fields = $this->exporter_manager->get_importer_map_fields($exporter_data);
+
+                $importer->setParser($exporter_data->getFileType());
+
+                switch ($exporter_data->getFileType()) {
+                    case 'csv':
+                        $headings = array_reduce($fields, function ($carry, $item) {
+                            $carry[] = $item['selection'];
+                            return $carry;
+                        }, []);
+                        $headings = array_map('trim', $headings);
+
+                        $template = $this->importer_manager->get_importer_template($importer);
+                        $field_map = $template->generate_field_map($headings, $importer);
+                        $field_map = apply_filters('iwp/importer/generate_field_map', $field_map, $headings, $importer);
+
+                        $post_data['map'] = $field_map['map'];
+                        $post_data['enabled'] = $field_map['enabled'];
+                        break;
+                    case 'xml':
+                        return $this->http->end_rest_error("Error: XML importer setup has not been created.");
+                        break;
+                }
+            }
         }
 
         if (isset($post_data['setting_start_row'])) {
