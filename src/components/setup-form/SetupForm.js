@@ -62,7 +62,7 @@ class SetupForm extends Component {
     let disabled = true;
     let upgrade = false;
 
-    if (setup_type === 'manual' && template) {
+    if (template) {
       disabled = template.length > 0 ? false : true;
 
       const current_template = this.templates.find(
@@ -81,7 +81,9 @@ class SetupForm extends Component {
           }
         }
       });
-    } else if (setup_type === 'generate' && exporter) {
+    }
+
+    if (setup_type === 'generate') {
       disabled = exporter.length > 0 ? false : true;
     }
 
@@ -110,8 +112,8 @@ class SetupForm extends Component {
     } else if (name === 'setup_type') {
       stateChange = {
         ...stateChange,
-        template: '',
-        template_type: '',
+        // template: '',
+        // template_type: '',
         exporter: '',
       };
     }
@@ -224,68 +226,68 @@ class SetupForm extends Component {
                 value="manual"
                 label="Manually configure the importer."
               >
-                <div className="iwp-form__row">
-                  <FieldLabel
-                    id="template"
-                    field="template"
-                    label="What are you wanting to import?"
-                    tooltip="Select from the dropdown what import template you want to use for your import file."
-                    display="inline-block"
-                  />
-                  <SelectField
-                    id="template"
-                    name="template"
-                    placeholder='Choose Template'
-                    onChange={(value) => this.onChange('template', value)}
-                    value={template}
-                    options={<>
-                      <option value="">Choose Template</option>
-                      {this.templates.map((row) => (
-                        <option key={row.value} value={row.value}>
-                          {row.label}
-                        </option>
-                      ))}
-                    </>}
-                  />
-                </div>
-
-                {template &&
-                  template_options.map((template_data) => {
-                    const field_id = `option_${template_data.id}`;
-                    return (
-                      <div key={template_data.id} className="iwp-form__row">
-                        <FieldLabel
-                          id={field_id}
-                          field={field_id}
-                          label={template_data.label}
-                        />
-                        <SelectField
-                          id={field_id}
-                          name={field_id}
-                          className="iwp-form__input"
-                          onChange={(value) => this.onChange(field_id, value)}
-                          value={this.state['option_' + template_data.id]}
-                          options={<>
-                            {template_data.options.map((row, i) => (
-                              <option
-                                key={row.value === 'iwp_pro' ? i : row.value}
-                                value={row.value}
-                              >
-                                {row.label}
-                              </option>
-                            ))}
-                          </>}
-                        />
-                      </div>
-                    )
-                  })}
-
-                {window.iwp.hooks.applyFilters(
-                  'iwp_after_template_select',
-                  <UpgradeMessage message="Please upgrade to Import WP Pro into import Custom Post Types." />
-                )}
               </InputRadioAccordionPanel>
             </InputRadioAccordion>
+            <div className="iwp-form__row">
+              <FieldLabel
+                id="template"
+                field="template"
+                label="What are you wanting to import?"
+                tooltip="Select from the dropdown what import template you want to use for your import file."
+                display="inline-block"
+              />
+              <SelectField
+                id="template"
+                name="template"
+                placeholder='Choose Template'
+                onChange={(value) => this.onChange('template', value)}
+                value={template}
+                options={<>
+                  <option value="">Choose Template</option>
+                  {this.templates.map((row) => (
+                    <option key={row.value} value={row.value}>
+                      {row.label}
+                    </option>
+                  ))}
+                </>}
+              />
+            </div>
+
+            {template &&
+              template_options.map((template_data) => {
+                const field_id = `option_${template_data.id}`;
+                return (
+                  <div key={template_data.id} className="iwp-form__row">
+                    <FieldLabel
+                      id={field_id}
+                      field={field_id}
+                      label={template_data.label}
+                    />
+                    <SelectField
+                      id={field_id}
+                      name={field_id}
+                      className="iwp-form__input"
+                      onChange={(value) => this.onChange(field_id, value)}
+                      value={this.state['option_' + template_data.id]}
+                      options={<>
+                        {template_data.options.map((row, i) => (
+                          <option
+                            key={row.value === 'iwp_pro' ? i : row.value}
+                            value={row.value}
+                          >
+                            {row.label}
+                          </option>
+                        ))}
+                      </>}
+                    />
+                  </div>
+                )
+              })}
+
+            {window.iwp.hooks.applyFilters(
+              'iwp_after_template_select',
+              <UpgradeMessage message="Please upgrade to Import WP Pro into import Custom Post Types." />
+            )}
 
 
           </form>
