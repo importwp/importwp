@@ -1143,13 +1143,18 @@ class RestManager extends \WP_REST_Controller
      */
     public function get_template_field_options(\WP_REST_Request $request)
     {
-        $id = intval($request->get_param('id'));
-        $field = $this->sanitize($request->get_param('field'), 'field');
+        try {
 
-        $importer_data = $this->importer_manager->get_importer($id);
-        $template = $this->importer_manager->get_importer_template($id);
+            $id = intval($request->get_param('id'));
+            $field = $this->sanitize($request->get_param('field'), 'field');
 
-        return $this->http->end_rest_success($template->get_field_options($field, $importer_data));
+            $importer_data = $this->importer_manager->get_importer($id);
+            $template = $this->importer_manager->get_importer_template($id);
+
+            return $this->http->end_rest_success($template->get_field_options($field, $importer_data));
+        } catch (\Exception $e) {
+            return $this->http->end_rest_error($e->getMessage());
+        }
     }
 
     public function get_logs(\WP_REST_Request $request)
