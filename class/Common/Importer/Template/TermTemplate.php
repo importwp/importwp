@@ -309,12 +309,12 @@ class TermTemplate extends Template implements TemplateInterface
                     $parent['map'] = [];
                 }
 
-                $parent['map'][$matches[1]] = sprintf('{%d}', $index);
+                $parent['map'][$matches[1]] = sprintf('{%s}', $index);
             } elseif (isset($this->field_map[$field])) {
 
                 // Handle core fields
                 $field_key = $this->field_map[$field];
-                $map[$field_key] = sprintf('{%d}', $index);
+                $map[$field_key] = sprintf('{%s}', $index);
 
                 if (in_array($field, $this->optional_fields)) {
                     $enabled[] = $field_key;

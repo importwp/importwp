@@ -541,7 +541,7 @@ class RestManager extends \WP_REST_Controller
         if (is_null($id)) {
 
             // NOTE: New importer, should we generate field map from exporter.
-            if (isset($post_data['setup_type'])) {
+            if (isset($post_data['setup_type']) && $post_data['setup_type'] === 'generate') {
 
                 /**
                  * @var \ImportWP\Common\Model\ExporterModel $exporter_data
@@ -551,6 +551,7 @@ class RestManager extends \WP_REST_Controller
 
                 $importer->setParser($exporter_data->getFileType());
 
+                $headings = [];
                 switch ($exporter_data->getFileType()) {
                     case 'csv':
                         $headings = array_reduce($fields, function ($carry, $item) {
@@ -558,17 +559,136 @@ class RestManager extends \WP_REST_Controller
                             return $carry;
                         }, []);
                         $headings = array_map('trim', $headings);
-
-                        $template = $this->importer_manager->get_importer_template($importer);
-                        $field_map = $template->generate_field_map($headings, $importer);
-                        $field_map = apply_filters('iwp/importer/generate_field_map', $field_map, $headings, $importer);
-
-                        $post_data['map'] = $field_map['map'];
-                        $post_data['enabled'] = $field_map['enabled'];
                         break;
                     case 'xml':
-                        return $this->http->end_rest_error("Error: XML importer setup has not been created.");
+
+                        // TODO:
+                        // 1.   find loop=1, selection=main (everything after this is data)
+                        // 2.   find all non loop items that have a selection, 
+                        //      add them to the headings with [/path/to/node] => selection
+
+                        function generate_base_path($field, $fields, $output = [], $stop = 0)
+                        {
+                            $output[] = isset($field['label']) && !empty($field['label']) ? $field['label'] : $field['selection'];
+
+                            if ($field['parent'] !== $stop) {
+
+                                foreach ($fields as $sub_field) {
+                                    if ($sub_field['id'] == $field['parent']) {
+
+                                        return generate_base_path($sub_field, $fields, $output, $stop);
+                                    }
+                                }
+                            }
+                            return $output;
+                        }
+
+                        function complete_section_map($headings, $current_section_map, $current_section)
+                        {
+                            if (is_null($current_section)) {
+                                return $headings;
+                            }
+
+                            if ($current_section === 'custom_fields') {
+                                // $headings['/test/@value'] = 'custom_fields.{/test/@key}';
+
+                                $meta_key = false;
+                                $meta_val = false;
+
+                                if (count($current_section_map) == 2) {
+                                    foreach ($current_section_map as $row_map => $row_value) {
+                                        if ($row_value == 'custom_fields.meta_key') {
+                                            $meta_key = $row_map;
+                                        } elseif ($row_value == 'custom_fields.meta_value') {
+                                            $meta_val = $row_map;
+                                        }
+                                    }
+
+                                    if ($meta_key && $meta_val) {
+                                        $headings[$meta_val] = sprintf('custom_fields.{%s}', $meta_key);
+                                        return $headings;
+                                    }
+                                }
+
+                                return array_merge($headings, $current_section_map);
+                            }
+
+                            return array_merge($headings, $current_section_map);
+                        }
+
+                        $main = false;
+                        foreach ($fields as $field) {
+                            if ($field['selection'] === 'main' && ($field['loop'] === true || $field['loop'] === "true")) {
+                                $main = $field;
+                                break;
+                            }
+                        }
+
+                        if (!$main) {
+                            return $this->http->end_rest_error("XML exporter is missing main loop.");
+                        }
+
+                        // generate base_path
+                        $post_data['file_settings_base_path'] = '/' . implode('/', array_reverse(array_filter(generate_base_path($main, $fields))));
+
+                        $allowed = [$main['id']];
+
+                        $current_section = null;
+                        $current_section_ancestors = [];
+                        $current_section_map = [];
+
+
+                        foreach ($fields as $field) {
+
+                            if (in_array($field['parent'], $allowed)) {
+
+                                $field_map = '/' . implode('/', array_reverse(array_filter(generate_base_path($field, $fields, [], $main['id']))));
+                                $headings[$field_map] = $field['selection'];
+
+                                if ($field['loop'] === true || $field['loop'] === 'true') {
+
+                                    // we need to convert all sub fields to tax_category.id ....
+                                    $current_section = $field['selection'];
+                                    $current_section_ancestors = [$field['id']];
+                                } else {
+
+                                    if (!is_null($current_section) && in_array($field['parent'], $current_section_ancestors)) {
+
+                                        $current_section_ancestors[] = $field['id'];
+                                        $current_section_map[$field_map] = $current_section . '.' . $field['selection'];
+                                    } else {
+                                        $headings = complete_section_map($headings, $current_section_map, $current_section);
+                                        $current_section = null;
+                                        $current_section_ancestors = [];
+                                        $current_section_map = [];
+                                    }
+                                }
+
+                                if (!in_array($field['id'], $allowed)) {
+                                    $allowed[] = $field['id'];
+                                }
+                            }
+                        }
+
+
+                        $headings = complete_section_map($headings, $current_section_map, $current_section);
+
+                        $tmp = [];
+                        foreach ($headings as $map => $heading) {
+                            $tmp[$map] = $heading;
+                        }
+
+                        $headings = $tmp;
                         break;
+                }
+
+                if (!empty($headings)) {
+                    $template = $this->importer_manager->get_importer_template($importer);
+                    $field_map = $template->generate_field_map($headings, $importer);
+                    $field_map = apply_filters('iwp/importer/generate_field_map', $field_map, $headings, $importer);
+
+                    $post_data['map'] = $field_map['map'];
+                    $post_data['enabled'] = $field_map['enabled'];
                 }
             }
         }
