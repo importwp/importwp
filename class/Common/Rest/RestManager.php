@@ -562,60 +562,6 @@ class RestManager extends \WP_REST_Controller
                         break;
                     case 'xml':
 
-                        // TODO:
-                        // 1.   find loop=1, selection=main (everything after this is data)
-                        // 2.   find all non loop items that have a selection, 
-                        //      add them to the headings with [/path/to/node] => selection
-
-                        function generate_base_path($field, $fields, $output = [], $stop = 0)
-                        {
-                            $output[] = isset($field['label']) && !empty($field['label']) ? $field['label'] : $field['selection'];
-
-                            if ($field['parent'] !== $stop) {
-
-                                foreach ($fields as $sub_field) {
-                                    if ($sub_field['id'] == $field['parent']) {
-
-                                        return generate_base_path($sub_field, $fields, $output, $stop);
-                                    }
-                                }
-                            }
-                            return $output;
-                        }
-
-                        function complete_section_map($headings, $current_section_map, $current_section)
-                        {
-                            if (is_null($current_section)) {
-                                return $headings;
-                            }
-
-                            if ($current_section === 'custom_fields') {
-                                // $headings['/test/@value'] = 'custom_fields.{/test/@key}';
-
-                                $meta_key = false;
-                                $meta_val = false;
-
-                                if (count($current_section_map) == 2) {
-                                    foreach ($current_section_map as $row_map => $row_value) {
-                                        if ($row_value == 'custom_fields.meta_key') {
-                                            $meta_key = $row_map;
-                                        } elseif ($row_value == 'custom_fields.meta_value') {
-                                            $meta_val = $row_map;
-                                        }
-                                    }
-
-                                    if ($meta_key && $meta_val) {
-                                        $headings[$meta_val] = sprintf('custom_fields.{%s}', $meta_key);
-                                        return $headings;
-                                    }
-                                }
-
-                                return array_merge($headings, $current_section_map);
-                            }
-
-                            return array_merge($headings, $current_section_map);
-                        }
-
                         $main = false;
                         foreach ($fields as $field) {
                             if ($field['selection'] === 'main' && ($field['loop'] === true || $field['loop'] === "true")) {
@@ -629,7 +575,7 @@ class RestManager extends \WP_REST_Controller
                         }
 
                         // generate base_path
-                        $post_data['file_settings_base_path'] = '/' . implode('/', array_reverse(array_filter(generate_base_path($main, $fields))));
+                        $post_data['file_settings_base_path'] = '/' . implode('/', array_reverse(array_filter($this->generate_base_path($main, $fields))));
 
                         $allowed = [$main['id']];
 
@@ -637,12 +583,11 @@ class RestManager extends \WP_REST_Controller
                         $current_section_ancestors = [];
                         $current_section_map = [];
 
-
                         foreach ($fields as $field) {
 
                             if (in_array($field['parent'], $allowed)) {
 
-                                $field_map = '/' . implode('/', array_reverse(array_filter(generate_base_path($field, $fields, [], $main['id']))));
+                                $field_map = '/' . implode('/', array_reverse(array_filter($this->generate_base_path($field, $fields, [], $main['id']))));
                                 $headings[$field_map] = $field['selection'];
 
                                 if ($field['loop'] === true || $field['loop'] === 'true') {
@@ -657,7 +602,7 @@ class RestManager extends \WP_REST_Controller
                                         $current_section_ancestors[] = $field['id'];
                                         $current_section_map[$field_map] = $current_section . '.' . $field['selection'];
                                     } else {
-                                        $headings = complete_section_map($headings, $current_section_map, $current_section);
+                                        $headings = $this->complete_section_map($headings, $current_section_map, $current_section, $exporter_data);
                                         $current_section = null;
                                         $current_section_ancestors = [];
                                         $current_section_map = [];
@@ -670,8 +615,7 @@ class RestManager extends \WP_REST_Controller
                             }
                         }
 
-
-                        $headings = complete_section_map($headings, $current_section_map, $current_section);
+                        $headings = $this->complete_section_map($headings, $current_section_map, $current_section, $exporter_data);
 
                         $tmp = [];
                         foreach ($headings as $map => $heading) {
@@ -808,6 +752,88 @@ class RestManager extends \WP_REST_Controller
             return $this->http->end_rest_error($result->get_error_message());
         }
         return $this->http->end_rest_success($importer->data());
+    }
+
+    public function generate_base_path($field, $fields, $output = [], $stop = 0)
+    {
+        $output[] = isset($field['label']) && !empty($field['label']) ? $field['label'] : $field['selection'];
+
+        if ($field['parent'] !== $stop) {
+
+            foreach ($fields as $sub_field) {
+                if ($sub_field['id'] == $field['parent']) {
+
+                    return $this->generate_base_path($sub_field, $fields, $output, $stop);
+                }
+            }
+        }
+        return $output;
+    }
+
+    public function complete_section_map($headings, $current_section_map, $current_section, $exporter_data)
+    {
+        if (is_null($current_section)) {
+            return $headings;
+        }
+
+        if ($current_section === 'custom_fields') {
+            // $headings['/test/@value'] = 'custom_fields.{/test/@key}';
+
+            $meta_key = false;
+            $meta_val = false;
+
+            if (count($current_section_map) == 2) {
+                foreach ($current_section_map as $row_map => $row_value) {
+                    if ($row_value == 'custom_fields.meta_key') {
+                        $meta_key = $row_map;
+                    } elseif ($row_value == 'custom_fields.meta_value') {
+                        $meta_val = $row_map;
+                    }
+                }
+
+                if ($meta_key && $meta_val) {
+
+                    // Get full list of custom fields, that can be then be used to generate a full list
+                    // /custom_fields_wrapper/custom_fields[meta_key="_edit_lock"]/meta_key
+                    // /custom_fields_wrapper/custom_fields[meta_key="_edit_lock"]/meta_value
+
+                    // Compare the two strings and get the matching parts
+                    $meta_key_parts = array_values(array_filter(explode('/', $meta_key)));
+                    $meta_val_parts = array_values(array_filter(explode('/', $meta_val)));
+
+                    for ($i = 0; $i < count($meta_key_parts); $i++) {
+                        if ($meta_key_parts[$i] !== $meta_val_parts[$i]) {
+                            break;
+                        }
+                    }
+
+                    $start = array_slice($meta_key_parts, 0, $i);
+                    $end_key = array_slice($meta_key_parts, $i);
+                    $end_val = array_slice($meta_val_parts, $i);
+
+                    $start_path = implode('/', $start);
+                    $end_key_path = implode('/', $end_key);
+                    $end_val_path = implode('/', $end_val);
+
+                    $mapper = $this->exporter_manager->get_exporter_mapper($exporter_data);
+                    $fields = $mapper->get_fields();
+                    $custom_field_key_list = $fields['children']['custom_fields']['fields'];
+                    foreach ($custom_field_key_list as $custom_field_key) {
+
+                        // $tmp_field_key = '{/' . $start_path . sprintf('[%s="%s"]', $end_key_path, $custom_field_key) . '/' . $end_key_path . '}';
+                        $tmp_field_val = '/' . $start_path . sprintf('[%s="%s"]', $end_key_path, $custom_field_key) . '/' . $end_val_path;
+
+                        $headings[$tmp_field_val] = sprintf('custom_fields.%s', $custom_field_key);
+                    }
+
+                    return $headings;
+                }
+            }
+
+            return array_merge($headings, $current_section_map);
+        }
+
+        return array_merge($headings, $current_section_map);
     }
 
     private function sanitize_setting($value)
