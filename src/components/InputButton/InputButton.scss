@@ -15,6 +15,10 @@
     background: #f6f7f7 !important;
     cursor: not-allowed;
   }
+
+  .spinner {
+    margin: 0 0 0 10px;
+  }
 }
 
 .iwp-input-button--primary {
@@ -35,6 +39,11 @@
     background: #22c48f !important;
     border-color: #279d77 !important;
   }
+
+  .spinner {
+    background: url(../../img/loading.gif);
+    background-size: 20px 20px;
+  }
 }
 
 .iwp-input-button--secondary {
@@ -44,6 +53,18 @@
   &:hover {
     background: #fff;
     border-color: #279d77;
+    color: #279d77;
+  }
+}
+
+.iwp-input-button--link {
+  border-color: none;
+  color: #22c48f;
+  background: none;
+  text-decoration: underline;
+  &:hover {
+    background: none;
+    border-color: none;
     color: #279d77;
   }
 }

@@ -14,7 +14,8 @@ export const exporter = {
   init,
   run,
   status,
-  abort
+  abort,
+  exportConfig
 };
 
 function abort(id = null) {
@@ -345,4 +346,17 @@ function status(ids = []) {
       newConnection(subscriber);
     }),
   };
+}
+
+function exportConfig(id) {
+  const sep = AJAX_BASE.includes('?') ? '&' : '?';
+  const url = AJAX_BASE + '/exporter/' + id + '/download-config' + sep + '_wpnonce=' +
+    window.iwp.nonce;
+
+  let a = document.createElement('a');
+  a.href = url;
+  a.download = url.split('/').pop();
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }

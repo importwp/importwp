@@ -331,6 +331,22 @@ class RestManager extends \WP_REST_Controller
             )
         ));
 
+        register_rest_route($namespace, '/exporter/(?P<id>\d+)/download-config', array(
+            array(
+                'methods'             => \WP_REST_Server::READABLE,
+                'callback'            => array($this, 'download_exporter_config'),
+                'permission_callback' => array($this, 'get_permission')
+            )
+        ));
+
+        register_rest_route($namespace, '/importer/read-config', array(
+            array(
+                'methods'             => \WP_REST_Server::CREATABLE,
+                'callback'            => array($this, 'read_exporter_config'),
+                'permission_callback' => array($this, 'get_permission')
+            )
+        ));
+
         register_rest_route($namespace, '/exporter/(?P<id>\d+)/run', array(
             array(
                 'methods'             => \WP_REST_Server::CREATABLE,
@@ -541,18 +557,36 @@ class RestManager extends \WP_REST_Controller
         if (is_null($id)) {
 
             // NOTE: New importer, should we generate field map from exporter.
-            if (isset($post_data['setup_type']) && $post_data['setup_type'] === 'generate') {
+            if (isset($post_data['setup_type']) && in_array($post_data['setup_type'], ['upload', 'generate'])) {
 
-                /**
-                 * @var \ImportWP\Common\Model\ExporterModel $exporter_data
-                 */
-                $exporter_data = $this->exporter_manager->get_exporter($post_data['exporter']);
-                $fields = $this->exporter_manager->get_importer_map_fields($exporter_data);
+                $setup_type = $post_data['setup_type'] === 'upload' ? 'upload' : 'generate';
+                $file_type = null;
 
-                $importer->setParser($exporter_data->getFileType());
+                if ($setup_type === 'upload') {
+                    $config = json_decode($post_data['exporter_config_file'], true);
+                    $file_type = $config['data']['file_type'];
+                    $fields = $config['fields'];
+                    $formatted_fields = $config['formatted_fields'];
+                } else {
+
+                    /**
+                     * @var \ImportWP\Common\Model\ExporterModel $exporter_data
+                     */
+                    $exporter_data = $this->exporter_manager->get_exporter($post_data['exporter']);
+                    $fields = $this->exporter_manager->get_importer_map_fields($exporter_data);
+                    $mapper = $this->exporter_manager->get_exporter_mapper($exporter_data);
+                    $formatted_fields = $mapper->get_fields();
+                    $file_type = $exporter_data->getFileType();
+                }
+
+                if (is_null($file_type) || !in_array($file_type, ['xml', 'csv'])) {
+                    return $this->http->end_rest_error('Invalid exporter file type');
+                }
+
+                $importer->setParser($file_type);
 
                 $headings = [];
-                switch ($exporter_data->getFileType()) {
+                switch ($file_type) {
                     case 'csv':
                         $headings = array_reduce($fields, function ($carry, $item) {
                             $carry[] = $item['selection'];
@@ -602,7 +636,7 @@ class RestManager extends \WP_REST_Controller
                                         $current_section_ancestors[] = $field['id'];
                                         $current_section_map[$field_map] = $current_section . '.' . $field['selection'];
                                     } else {
-                                        $headings = $this->complete_section_map($headings, $current_section_map, $current_section, $exporter_data);
+                                        $headings = $this->complete_section_map($headings, $current_section_map, $current_section, $formatted_fields);
                                         $current_section = null;
                                         $current_section_ancestors = [];
                                         $current_section_map = [];
@@ -615,7 +649,7 @@ class RestManager extends \WP_REST_Controller
                             }
                         }
 
-                        $headings = $this->complete_section_map($headings, $current_section_map, $current_section, $exporter_data);
+                        $headings = $this->complete_section_map($headings, $current_section_map, $current_section, $formatted_fields);
 
                         $tmp = [];
                         foreach ($headings as $map => $heading) {
@@ -770,7 +804,7 @@ class RestManager extends \WP_REST_Controller
         return $output;
     }
 
-    public function complete_section_map($headings, $current_section_map, $current_section, $exporter_data)
+    public function complete_section_map($headings, $current_section_map, $current_section, $fields)
     {
         if (is_null($current_section)) {
             return $headings;
@@ -815,8 +849,6 @@ class RestManager extends \WP_REST_Controller
                     $end_key_path = implode('/', $end_key);
                     $end_val_path = implode('/', $end_val);
 
-                    $mapper = $this->exporter_manager->get_exporter_mapper($exporter_data);
-                    $fields = $mapper->get_fields();
                     $custom_field_key_list = $fields['children']['custom_fields']['fields'];
                     foreach ($custom_field_key_list as $custom_field_key) {
 
@@ -1458,6 +1490,72 @@ class RestManager extends \WP_REST_Controller
 
         echo $json;
         die();
+    }
+
+    /**
+     * Download exporter config json file.
+     * 
+     * File is used when creating an importer to auto generate field mapping.
+     * 
+     * @param WP_REST_Request|null $request 
+     * @return never 
+     */
+    public function download_exporter_config(\WP_REST_Request $request = null)
+    {
+        $exporter_id = $request->get_param('id');
+        $exporter_data = $this->exporter_manager->get_exporter($exporter_id);
+        $mapper = $this->exporter_manager->get_exporter_mapper($exporter_data);
+        $fields = $mapper->get_fields();
+
+
+
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+        $result = $wpdb->get_row("SELECT post_title, post_content from {$wpdb->posts} WHERE post_type='" . EWP_POST_TYPE . "' AND ID=" . intval($exporter_id), ARRAY_A);
+
+        $output = [
+            'name' => $result['post_title'],
+            'data' => unserialize($result['post_content']),
+            'fields' => $this->exporter_manager->get_importer_map_fields($exporter_data),
+            'formatted_fields' =>  $fields
+        ];
+
+        $json = json_encode($output);
+
+        header('Content-disposition: attachment; filename="ImportWP-exporter-' . $exporter_id . '-' . date('Y-m-d') . '.json"');
+        header('Content-type: "application/json"; charset="utf8"');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . strlen($json));
+
+        echo $json;
+        die();
+    }
+
+    public function read_exporter_config(\WP_REST_Request $request = null)
+    {
+        $upload = $this->filesystem->upload_file($_FILES['file']);
+        if (is_wp_error($upload)) {
+            return $this->http->end_rest_error($upload->get_error_message());
+        }
+
+        $json_contents = file_get_contents($upload['dest']);
+        @unlink($upload['dest']);
+
+        $contents = json_decode($json_contents, true);
+
+        if (!isset($contents['name'], $contents['fields'], $contents['data'], $contents['data']['file_type'])) {
+            return $this->http->end_rest_error("Invalid exporter config file.");
+        }
+
+        if (!in_array($contents['data']['file_type'], ['xml', 'csv'])) {
+            return $this->http->end_rest_error("Exporter file type is not supported.");
+        }
+
+        return $this->http->end_rest_success(['exporter' => $contents]);
     }
 
     public function get_compatibility_settings()

@@ -12,6 +12,7 @@ import UpgradeMessage from '../upgrade-message/UpgradeMessage';
 import ExporterFieldSelector from './ExporterFieldSelector';
 import ExportFilter from './ExportFilter';
 import { ErrorBoundary } from "react-error-boundary";
+import InputButton from '../InputButton/InputButton';
 
 const AJAX_BASE = window.iwp.admin_base;
 const AJAX_URL_BASE = window.iwp.ajax_base;
@@ -571,29 +572,34 @@ const ExporterEdit = ({ id, pro = false }) => {
       </form>
       <div className="iwp-form__actions">
         <div className="iwp-buttons">
-          <button
-            className={'button button-' + (id > 0 ? 'secondary' : 'primary')}
-            type="button"
+          <InputButton
+            theme={id > 0 ? 'secondary' : 'primary'}
             onClick={onSave}
             disabled={disabled}
+            loading={saving}
           >
-            {saving && <span className="spinner is-active"></span>}
             {saving ? 'Saving' : id > 0 ? 'Save' : 'Create Exporter'}
-          </button>{' '}
+          </InputButton>
           {id > 0 && (
-            <button
-              className="button button-primary"
-              type="button"
-              onClick={onSaveAndRun}
-              disabled={disabled}
-            >
-              {saving && <span className="spinner is-active"></span>}
-              {saving
-                ? 'Saving'
-                : exportMethod == 'run'
-                  ? 'Save & Run'
-                  : 'Save & Schedule'}
-            </button>
+            <>
+              {' '}
+              <InputButton
+                theme="primary"
+                onClick={onSaveAndRun}
+                disabled={disabled}
+                loading={saving}
+              >
+                {saving
+                  ? 'Saving'
+                  : exportMethod == 'run'
+                    ? 'Save & Run'
+                    : 'Save & Schedule'}
+              </InputButton>
+              {' '}
+              <InputButton theme='link' onClick={() => {
+                exporter.exportConfig(id);
+              }}>Download importer config</InputButton>
+            </>
           )}
         </div>
       </div>

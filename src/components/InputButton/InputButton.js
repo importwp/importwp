@@ -5,6 +5,7 @@ export default function InputButton({
     theme = 'primary',
     onClick = () => { },
     disabled = false,
+    loading = false,
     children
 }) {
     return (
@@ -13,6 +14,7 @@ export default function InputButton({
             className={`iwp-input-button iwp-input-button--${theme}`}
             type={type}
             onClick={onClick}>
+            {loading && <span className="spinner is-active"></span>}
             {children}
         </button>
     );

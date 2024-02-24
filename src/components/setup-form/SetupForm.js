@@ -35,7 +35,8 @@ class SetupForm extends Component {
       saving: false,
       disabled: true,
       upgrade: false,
-      exporters: []
+      exporters: [],
+      exporter_config_file: null
     };
 
     this.onSubmit = this.onSubmit.bind(this);
@@ -57,7 +58,7 @@ class SetupForm extends Component {
   }
 
   isDisabled() {
-    const { template, name, setup_type, exporter } = this.state;
+    const { template, name, setup_type, exporter, exporter_config_file } = this.state;
 
     let disabled = true;
     let upgrade = false;
@@ -84,7 +85,11 @@ class SetupForm extends Component {
     }
 
     if (setup_type === 'generate') {
-      disabled = exporter.length > 0 ? false : true;
+      disabled = exporter.length > 0 ? disabled : true;
+    }
+
+    if (setup_type === 'upload') {
+      disabled = !exporter_config_file ? true : disabled;
     }
 
     if (name === '') {
@@ -136,25 +141,61 @@ class SetupForm extends Component {
       }, {});
     }
 
-    importer
-      .save({
+    let exporter_config_file = null;
+
+    new Promise((resolve, reject) => {
+
+      if (this.state.setup_type !== 'upload') {
+        resolve();
+      }
+
+      let form_data = new FormData();
+      form_data.append('file', this.state.exporter_config_file);
+
+      importer.readExporterConfig(form_data)
+        .then((data) => {
+          exporter_config_file = JSON.stringify(data.exporter);
+          resolve();
+        }).catch((error) => {
+          reject(error);
+        });
+
+    }).then(() => {
+
+      let data = {
         name: this.state.name,
         template: this.state.template,
         template_type: this.state.template_type,
         template_options: template_options,
         setup_type: this.state.setup_type,
         exporter: this.state.exporter,
-      })
-      .then((data) => {
-        this.setState({ saving: false });
-        this.props.complete(data.id);
-      })
-      .catch((error) => {
-        this.props.onError(error);
-        this.setState({
-          saving: false,
+      };
+
+      if (exporter_config_file !== null) {
+        data = {
+          ...data,
+          exporter_config_file
+        };
+      }
+
+      importer
+        .save(data)
+        .then((data) => {
+          this.setState({ saving: false });
+          this.props.complete(data.id);
+        })
+        .catch((error) => {
+          this.props.onError(error);
+          this.setState({
+            saving: false,
+          });
         });
+    }).catch((error) => {
+      this.props.onError(error);
+      this.setState({
+        saving: false,
       });
+    });
   }
 
   render() {
@@ -223,10 +264,33 @@ class SetupForm extends Component {
 
               </InputRadioAccordionPanel>
               <InputRadioAccordionPanel
+                value="upload"
+                label="Upload importer config file from an exporter"
+              >
+                <div className='iwp-form__row'>
+                  <div className="iwp-field__left">
+                    <FieldLabel
+                      field="upload_file"
+                      id="upload_file"
+                      label="Upload File"
+                      tooltip="Select the file you wish to import via the file upload input."
+                    />
+                  </div>
+                  <div className="iwp-field__right">
+                    <input
+                      className="iwp-form__input"
+                      id="upload_file"
+                      name="file"
+                      type="file"
+                      onChange={(event) => { this.setState({ exporter_config_file: event.target.files[0] }, this.isDisabled) }}
+                    />
+                  </div>
+                </div>
+              </InputRadioAccordionPanel>
+              <InputRadioAccordionPanel
                 value="manual"
                 label="Manually configure the importer."
-              >
-              </InputRadioAccordionPanel>
+              />
             </InputRadioAccordion>
             <div className="iwp-form__row">
               <FieldLabel
@@ -300,8 +364,8 @@ class SetupForm extends Component {
               type="button"
               onClick={this.onSubmit}
               disabled={disabled}
+              loading={saving}
             >
-              {saving && <span className="spinner is-active"></span>}
               {saving ? 'Saving' : 'Create Importer'}
             </InputButton>
           </div>

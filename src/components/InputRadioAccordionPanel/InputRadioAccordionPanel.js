@@ -25,11 +25,13 @@ export default function InputRadioAccordionPanel({
                     }} />
                 <label htmlFor={id}>{label}</label>
             </div>
-            <div className='iwp-accordion__content' style={{
-                display: isActive ? 'block' : 'none'
-            }}>
-                {children}
-            </div>
+            {children && (
+                <div className='iwp-accordion__content' style={{
+                    display: isActive ? 'block' : 'none'
+                }}>
+                    {children}
+                </div>
+            )}
         </div>
     );
 }
