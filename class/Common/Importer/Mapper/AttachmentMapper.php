@@ -70,6 +70,8 @@ class AttachmentMapper extends PostMapper
                         break;
                 }
 
+                $this->set_unique_identifier_settings('src', $source);
+
                 if ($attachment_id > 0) {
                     $has_unique_field = true;
                     $query_args['p'] = $attachment_id;
@@ -106,6 +108,7 @@ class AttachmentMapper extends PostMapper
                         );
                     }
                     $unique_field_found = $field;
+                    $this->set_unique_identifier_settings($unique_field_found, $unique_value);
                     break;
                 }
             }
