@@ -32,6 +32,8 @@ class AbstractMapper
      */
     protected $permission;
 
+    protected $unique_indentifier_data;
+
     public function __construct(ImporterModel $importer, Template $template, PermissionInterface $permission = null)
     {
         $this->importer = $importer;
@@ -75,6 +77,8 @@ class AbstractMapper
                 'value' => $value
             );
 
+            $this->set_unique_identifier_settings($key, $value);
+
             Logger::debug('AbstractMapper::exists_get_identifier -type="custom" -field="' . $key . '" -value="' . $value . '"');
         } elseif ($this->importer->has_field_unique_identifier()) {
 
@@ -104,6 +108,16 @@ class AbstractMapper
 
 
         return [$unique_fields, $meta_args, $has_unique_field];
+    }
+
+    public function set_unique_identifier_settings($field, $value)
+    {
+        $this->unique_indentifier_data = ['field' => $field, 'value' => $value];
+    }
+
+    public function get_unqiue_identifier_settings()
+    {
+        return $this->unique_indentifier_data;
     }
 
     public function getUniqueIdentifiers($unique_fields = [])

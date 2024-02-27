@@ -361,6 +361,8 @@ class Importer
                         $data = apply_filters('iwp/importer/before_mapper', $data, $this);
                         $data->map();
 
+                        $unique_identifier_str = $this->get_unique_identifier_log_text();
+
                         if ($data->isInsert()) {
 
                             Logger::write('import:' . $i . ' -success -insert');
@@ -368,7 +370,7 @@ class Importer
                             $stats['inserts']++;
 
                             $message = apply_filters('iwp/status/record_inserted', 'Record Inserted: #' . $data->getId(), $data->getId(), $data);
-                            Util::write_status_log_file_message($id, $session, $message, 'S', $progress['current_row']);
+                            Util::write_status_log_file_message($id, $session, $message . $unique_identifier_str, 'S', $progress['current_row']);
                         }
 
                         if ($data->isUpdate()) {
@@ -378,7 +380,7 @@ class Importer
                             $stats['updates']++;
 
                             $message = apply_filters('iwp/status/record_updated', 'Record Updated: #' . $data->getId(), $data->getId(), $data);
-                            Util::write_status_log_file_message($id, $session, $message, 'S', $progress['current_row']);
+                            Util::write_status_log_file_message($id, $session, $message . $unique_identifier_str, 'S', $progress['current_row']);
                         }
                     }
                 } catch (ParserException $e) {
@@ -506,6 +508,24 @@ class Importer
         $importer_state->populate($state_data);
 
         Util::write_status_session_to_file($id, $importer_state);
+    }
+
+    function get_unique_identifier_log_text()
+    {
+        $unique_identifier_str = '';
+
+        $unqiue_identifier_settings = $this->getMapper()->get_unqiue_identifier_settings();
+        if (!empty($unqiue_identifier_settings) && isset($unqiue_identifier_settings['field'], $unqiue_identifier_settings['value'])) {
+
+            $unique_identifier_str = ' using unique identifier ';
+            if ($unqiue_identifier_settings['field'] === '_iwp_ref_uid') {
+                $unique_identifier_str .= sprintf('("%s")', $unqiue_identifier_settings['value']);
+            } else {
+                $unique_identifier_str .= sprintf('("%s" = "%s")', $unqiue_identifier_settings['field'], $unqiue_identifier_settings['value']);
+            }
+        }
+
+        return $unique_identifier_str;
     }
 
     function has_enough_time($start, $time_limit, $max_record_time)

@@ -3,6 +3,7 @@
 namespace ImportWP\Common\Exporter\File;
 
 use ImportWP\Common\Model\ExporterModel;
+use ImportWP\Container;
 
 class File
 {
@@ -66,16 +67,27 @@ class File
 
     public function get_file_path()
     {
-        $path = wp_normalize_path(WP_CONTENT_DIR . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'exportwp' . DIRECTORY_SEPARATOR);
+        /**
+         * @var \ImportWP\Common\Filesystem\Filesystem $filesystem
+         */
+        $filesystem = Container::getInstance()->get('filesystem');
+
+        $path = wp_normalize_path($filesystem->get_temp_directory(false, 'exportwp'));
         if (!file_exists($path)) {
             mkdir($path);
         }
 
-        return $path . $this->get_file_name();
+        return $path . '/' . $this->get_file_name();
     }
 
     public function get_file_url()
     {
-        return content_url('/uploads/exportwp/' . $this->get_file_name());
+        /**
+         * @var \ImportWP\Common\Filesystem\Filesystem $filesystem
+         */
+        $filesystem = Container::getInstance()->get('filesystem');
+        $url = $filesystem->get_temp_directory(true, 'exportwp');
+
+        return $url . '/' . $this->get_file_name();
     }
 }
