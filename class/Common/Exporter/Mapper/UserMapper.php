@@ -42,13 +42,13 @@ class UserMapper extends AbstractMapper implements MapperInterface
 
         $fields = [
             'key' => 'main',
-            'label' => 'User',
+            'label' => __('User', 'jc-importer'),
             'loop' => true,
             'fields' => [],
             'children' => [
                 'custom_fields' => [
                     'key' => 'custom_fields',
-                    'label' => 'Custom Fields',
+                    'label' => __('Custom Fields', 'jc-importer'),
                     'loop' => true,
                     'loop_fields' => ['meta_key', 'meta_value'],
                     'fields' => [],
@@ -86,8 +86,9 @@ class UserMapper extends AbstractMapper implements MapperInterface
         }
 
         $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/user/custom_field_list', $fields['children']['custom_fields']['fields'], null);
+        $fields = apply_filters('iwp/exporter/user/fields', $fields, 'user');
 
-        return $fields;
+        return $this->parse_fields($fields);
     }
 
     public function have_records($exporter_id)
@@ -122,7 +123,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
         $user = get_user_by('id', $this->items[$i]);
 
         $this->record = new ExporterRecord((array)$user->data, 'user');
-        $this->record = apply_filters('iwp/exporter/user/setup_data', $this->record);
+        $this->record = apply_filters('iwp/exporter/user/setup_data', $this->record, 'user');
 
         return true;
     }

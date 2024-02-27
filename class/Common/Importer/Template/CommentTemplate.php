@@ -26,114 +26,114 @@ class CommentTemplate extends Template implements TemplateInterface
 
         $post_types = get_post_types();
         $post_type_options = [
-            ['label' => 'Any', 'value' => '']
+            ['label' => __('Any', 'jc-importer'), 'value' => '']
         ];
         foreach ($post_types as $post_type => $label) {
             $post_type_options[] = ['label' => $label, 'value' => $post_type];
         }
 
         return [
-            $this->register_group('Comment', 'comment', [
+            $this->register_group(__('Comment', 'jc-importer'), 'comment', [
 
                 // Comment
-                $this->register_field('ID', 'comment_ID', [
-                    'tooltip' => __('ID is only used to reference existing records', 'importwp')
+                $this->register_field(__('ID', 'jc-importer'), 'comment_ID', [
+                    'tooltip' => __('ID is only used to reference existing records', 'jc-importer')
                 ]),
-                $this->register_field('Content', 'comment_content', [
-                    'tooltip' => __('The content of the comment.', 'importwp')
+                $this->register_field(__('Content', 'jc-importer'), 'comment_content', [
+                    'tooltip' => __('The content of the comment.', 'jc-importer')
                 ]),
-                $this->register_group('Comment Parent', '_parent', [
+                $this->register_group(__('Comment Parent', 'jc-importer'), '_parent', [
 
-                    $this->register_field('Comment Parent', 'id', [
+                    $this->register_field(__('Comment Parent', 'jc-importer'), 'id', [
                         'default' => '',
                         'options' => 'callback',
-                        'tooltip' => __('ID of this comment\'s parent, if any.', 'importwp')
+                        'tooltip' => __('ID of this comment\'s parent, if any.', 'jc-importer')
                     ]),
-                    $this->register_field('Comment Post Field Type', '_id_type', [
+                    $this->register_field(__('Comment Post Field Type', 'jc-importer'), '_id_type', [
                         'default' => 'id',
                         'options' => [
-                            ['value' => 'id', 'label' => 'ID'],
-                            ['value' => 'ref', 'label' => 'Comment Ref Field'],
-                            ['value' => 'custom_field', 'label' => 'Custom Field'],
+                            ['value' => 'id', 'label' => __('ID', 'jc-importer')],
+                            ['value' => 'ref', 'label' => __('Comment Ref Field', 'jc-importer')],
+                            ['value' => 'custom_field', 'label' => __('Custom Field', 'jc-importer')],
                         ],
                         'type' => 'select',
-                        'tooltip' => __('Select how the post ID field should be handled', 'importwp')
+                        'tooltip' => __('Select how the post ID field should be handled', 'jc-importer')
                     ]),
-                    $this->register_field('Custom Field Key', '_custom_field', [
+                    $this->register_field(__('Custom Field Key', 'jc-importer'), '_custom_field', [
                         'condition' => ['_id_type', '==', 'custom_field'],
-                        'tooltip' => __('Enter the name of the post\'s custom field.', 'importwp')
+                        'tooltip' => __('Enter the name of the post\'s custom field.', 'jc-importer')
                     ])
 
                 ]),
-                $this->register_group('Comment Post', '_post', [
-                    $this->register_field('Comment Post', 'id', [
+                $this->register_group(__('Comment Post', 'jc-importer'), '_post', [
+                    $this->register_field(__('Comment Post', 'jc-importer'), 'id', [
                         'default' => '',
-                        'tooltip' => __('ID of the post that relates to the comment, if any.', 'importwp')
+                        'tooltip' => __('ID of the post that relates to the comment, if any.', 'jc-importer')
                     ]),
-                    $this->register_field('Comment Post Field Type', '_id_type', [
+                    $this->register_field(__('Comment Post Field Type', 'jc-importer'), '_id_type', [
                         'default' => 'id',
                         'options' => [
-                            ['value' => 'id', 'label' => 'ID'],
-                            ['value' => 'slug', 'label' => 'Slug'],
-                            ['value' => 'name', 'label' => 'Name'],
-                            ['value' => 'custom_field', 'label' => 'Custom Field'],
+                            ['value' => 'id', 'label' => __('ID', 'jc-importer')],
+                            ['value' => 'slug', 'label' => __('Slug', 'jc-importer')],
+                            ['value' => 'name', 'label' => __('Name', 'jc-importer')],
+                            ['value' => 'custom_field', 'label' => __('Custom Field', 'jc-importer')],
                         ],
                         'type' => 'select',
-                        'tooltip' => __('Select how the post ID field should be handled', 'importwp')
+                        'tooltip' => __('Select how the post ID field should be handled', 'jc-importer')
                     ]),
-                    $this->register_field('Custom Field Key', '_custom_field', [
+                    $this->register_field(__('Custom Field Key', 'jc-importer'), '_custom_field', [
                         'condition' => ['_id_type', '==', 'custom_field'],
-                        'tooltip' => __('Enter the name of the post\'s custom field.', 'importwp')
+                        'tooltip' => __('Enter the name of the post\'s custom field.', 'jc-importer')
                     ])
                 ]),
-                $this->register_field('Comment Type', 'comment_type', [
+                $this->register_field(__('Comment Type', 'jc-importer'), 'comment_type', [
                     'default' => 'comment',
-                    'tooltip' => __('Comment type.', 'importwp')
+                    'tooltip' => __('Comment type.', 'jc-importer')
                 ]),
 
                 // Author
-                $this->register_field('Author ID', 'user_id', [
-                    'tooltip' => __('Author user id.', 'importwp')
+                $this->register_field(__('Author ID', 'jc-importer'), 'user_id', [
+                    'tooltip' => __('Author user id.', 'jc-importer')
                 ]),
-                $this->register_field('Author Name', 'comment_author', [
-                    'tooltip' => __('The name of the author of the comment.', 'importwp')
+                $this->register_field(__('Author Name', 'jc-importer'), 'comment_author', [
+                    'tooltip' => __('The name of the author of the comment.', 'jc-importer')
                 ]),
-                $this->register_field('Author Email', 'comment_author_email', [
-                    'tooltip' => __('The email address of the Comment Author', 'importwp')
+                $this->register_field(__('Author Email', 'jc-importer'), 'comment_author_email', [
+                    'tooltip' => __('The email address of the Comment Author', 'jc-importer')
                 ]),
-                $this->register_field('Author Url', 'comment_author_url', [
-                    'tooltip' => __('The URL address of the Comment Author.', 'importwp')
+                $this->register_field(__('Author Url', 'jc-importer'), 'comment_author_url', [
+                    'tooltip' => __('The URL address of the Comment Author.', 'jc-importer')
                 ]),
-                $this->register_field('Comment Author IP', 'comment_author_IP', [
-                    'tooltip' => __('The IP address of the Comment Author.', 'importwp')
+                $this->register_field(__('Comment Author IP', 'jc-importer'), 'comment_author_IP', [
+                    'tooltip' => __('The IP address of the Comment Author.', 'jc-importer')
                 ]),
 
                 // Meta
-                $this->register_field('Ref', '_iwp_ref_id', [
-                    'tooltip' => __('A custom field to uniquely identify the comment.', 'importwp')
+                $this->register_field(__('Ref', 'jc-importer'), '_iwp_ref_id', [
+                    'tooltip' => __('A custom field to uniquely identify the comment.', 'jc-importer')
                 ]),
-                $this->register_field('Post Type', 'post_type', [
+                $this->register_field(__('Post Type', 'jc-importer'), 'post_type', [
                     'options' => $post_type_options,
                     'default' => '',
-                    'tooltip' => __('The post type the comment belongs to.', 'importwp')
+                    'tooltip' => __('The post type the comment belongs to.', 'jc-importer')
                 ]),
-                $this->register_field('Comment Approved', 'comment_approved', [
+                $this->register_field(__('Comment Approved', 'jc-importer'), 'comment_approved', [
                     'options' => [
-                        ['value' => '0', 'label' => 'Disapproved'],
-                        ['value' => '1', 'label' => 'Approved']
+                        ['value' => '0', 'label' => __('Disapproved', 'jc-importer')],
+                        ['value' => '1', 'label' => __('Approved', 'jc-importer')]
                     ],
                     'default' => '1',
-                    'tooltip' => __('Whether the comment has been approved. 1 = Approved, 0 = Disapproved', 'importwp')
+                    'tooltip' => __('Whether the comment has been approved. 1 = Approved, 0 = Disapproved', 'jc-importer')
                 ]),
-                $this->register_field('Comment Karma', 'comment_karma', [
+                $this->register_field(__('Comment Karma', 'jc-importer'), 'comment_karma', [
                     'default' => '0',
-                    'tooltip' => __('The karma of the comment.', 'importwp')
+                    'tooltip' => __('The karma of the comment.', 'jc-importer')
                 ]),
-                $this->register_field('Comment Agent', 'comment_agent', [
-                    'tooltip' => __('The HTTP user agent of the Comment Author when the comment was submitted.', 'importwp')
+                $this->register_field(__('Comment Agent', 'jc-importer'), 'comment_agent', [
+                    'tooltip' => __('The HTTP user agent of the Comment Author when the comment was submitted.', 'jc-importer')
                 ]),
-                $this->register_field('Comment Date', 'comment_date', [
-                    'tooltip' => __('The date the comment was submitted.', 'importwp')
+                $this->register_field(__('Comment Date', 'jc-importer'), 'comment_date', [
+                    'tooltip' => __('The date the comment was submitted.', 'jc-importer')
                 ]),
             ])
         ];
@@ -169,7 +169,7 @@ class CommentTemplate extends Template implements TemplateInterface
         foreach ($results as $result) {
             $vars[] = [
                 'value' => $result,
-                'label' => 'Comment #' . $result
+                'label' => sprintf(__('Comment #%s', 'jc-importer'), $result)
             ];
         }
 
@@ -378,23 +378,53 @@ class CommentTemplate extends Template implements TemplateInterface
         $permission_fields = parent::get_permission_fields($importer_model);
 
         $permission_fields['core'] = [
-            'comment_ID' => 'ID',
-            'comment_agent' => 'User Agent',
-            'comment_approved' => 'Approved',
-            'comment_author' => 'Author',
-            'comment_author_email' => 'Author Email',
-            'comment_author_IP' => 'Ip Address',
-            'comment_author_url' => 'Author Url',
-            'comment_content' => 'Content',
-            'comment_date' => 'Date',
-            'comment_date_gmt' => 'Date GMT',
-            'comment_karma' => 'Karma',
-            'comment_parent' => 'Parent',
-            'comment_post_ID' => 'Post ID',
-            'comment_type' => 'Comment Type',
-            'user_id' => 'User ID'
+            'comment_ID' => __('ID', 'jc-importer'),
+            'comment_agent' => __('User Agent', 'jc-importer'),
+            'comment_approved' => __('Approved', 'jc-importer'),
+            'comment_author' => __('Author', 'jc-importer'),
+            'comment_author_email' => __('Author Email', 'jc-importer'),
+            'comment_author_IP' => __('Ip Address', 'jc-importer'),
+            'comment_author_url' => __('Author Url', 'jc-importer'),
+            'comment_content' => __('Content', 'jc-importer'),
+            'comment_date' => __('Date', 'jc-importer'),
+            'comment_date_gmt' => __('Date GMT', 'jc-importer'),
+            'comment_karma' => __('Karma', 'jc-importer'),
+            'comment_parent' => __('Parent', 'jc-importer'),
+            'comment_post_ID' => __('Post ID', 'jc-importer'),
+            'comment_type' => __('Comment Type', 'jc-importer'),
+            'user_id' => __('User ID', 'jc-importer')
         ];
 
         return $permission_fields;
+    }
+
+    public function get_unique_identifier_options($importer_model, $unique_fields = [])
+    {
+        $output = parent::get_unique_identifier_options($importer_model, $unique_fields);
+
+        $field_map = [
+            'comment_ID' => 'comment.comment_ID',
+            'comment_agent' => 'comment.comment_agent',
+            'comment_approved' => 'comment.comment_approved',
+            'comment_author' => 'comment.comment_author',
+            'comment_author_email' => 'comment.comment_author_email',
+            'comment_author_IP' => 'comment.comment_author_IP',
+            'comment_author_url' => 'comment.comment_author_url',
+            'comment_content' => 'comment.comment_content',
+            'comment_date' => 'comment.comment_date',
+            'comment_date_gmt' => 'comment.comment_date_gmt',
+            'comment_karma' => 'comment.comment_karma',
+            'comment_parent' => 'comment.comment_parent',
+            'comment_post_ID' => 'comment.comment_post_ID',
+            'comment_type' => 'comment.comment_type',
+            'user_id' => 'comment.user_id',
+            '_iwp_ref_id' => 'comment._iwp_ref_id',
+        ];
+        $optional_fields = array_keys($field_map);
+
+        return array_merge(
+            $output,
+            $this->get_unique_identifier_options_from_map($importer_model, $unique_fields, $field_map, $optional_fields)
+        );
     }
 }

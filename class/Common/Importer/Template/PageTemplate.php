@@ -20,7 +20,7 @@ class PageTemplate extends PostTemplate
     {
         $groups = parent::register();
 
-        $templates = array('default' => 'Default Template');
+        $templates = array('default' => __('Default Template', 'jc-importer'));
         $templates = array_merge($templates, wp_get_theme()->get_page_templates());
 
         $template_list = [];
@@ -28,10 +28,10 @@ class PageTemplate extends PostTemplate
             $template_list[] = ['value' => $id, 'label' => $name];
         }
 
-        $groups[0]['fields'][] = $this->register_field('Page Template', '_wp_page_template', [
+        $groups[0]['fields'][] = $this->register_field(__('Page Template', 'jc-importer'), '_wp_page_template', [
             'options' => $template_list,
             'options_default' => 'default',
-            'tooltip' => __('Select a page template from your active theme', 'importwp')
+            'tooltip' => __('Select a page template from your active theme', 'jc-importer')
         ]);
 
         return $groups;
@@ -88,7 +88,7 @@ class PageTemplate extends PostTemplate
     {
         $permission_fields = parent::get_permission_fields($importer_model);
 
-        $permission_fields['core']['_wp_page_template'] = 'Page Template';
+        $permission_fields['core']['_wp_page_template'] = __('Page Template', 'jc-importer');
 
         return $permission_fields;
     }

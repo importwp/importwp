@@ -53,13 +53,13 @@ class CommentMapper extends AbstractMapper implements MapperInterface
 
         $fields = [
             'key' => 'main',
-            'label' => 'Comment',
+            'label' => __('Comment', 'jc-importer'),
             'loop' => true,
             'fields' => [],
             'children' => [
                 'custom_fields' => [
                     'key' => 'custom_fields',
-                    'label' => 'Custom Fields',
+                    'label' => __('Custom Fields', 'jc-importer'),
                     'loop' => true,
                     'loop_fields' => ['meta_key', 'meta_value'],
                     'fields' => [],
@@ -89,7 +89,7 @@ class CommentMapper extends AbstractMapper implements MapperInterface
 
         $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/comment/custom_field_list', $fields['children']['custom_fields']['fields'], $this->post_type);
 
-        return $fields;
+        return $this->parse_fields($fields);
     }
 
     public function have_records($exporter_id)

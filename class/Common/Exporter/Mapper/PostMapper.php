@@ -66,34 +66,34 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
         $fields = [
             'key' => 'main',
-            'label' => 'Post',
+            'label' => __('Post', 'jc-importer'),
             'loop' => true,
             'fields' => [],
             'children' => [
                 'author' => [
                     'key' => 'author',
-                    'label' => 'Author',
+                    'label' => __('Author', 'jc-importer'),
                     'loop' => false,
                     'fields' => [],
                     'children' => []
                 ],
                 'image' => [
                     'key' => 'image',
-                    'label' => 'Featured Image',
+                    'label' => __('Featured Image', 'jc-importer'),
                     'loop' => false,
                     'fields' => ['id', 'url', 'title', 'alt', 'caption', 'description'],
                     'children' => []
                 ],
                 'parent' => [
                     'key' => 'parent',
-                    'label' => 'Parent',
+                    'label' => __('Parent', 'jc-importer'),
                     'loop' => false,
                     'fields' => ['id', 'name', 'slug'],
                     'children' => []
                 ],
                 'custom_fields' => [
                     'key' => 'custom_fields',
-                    'label' => 'Custom Fields',
+                    'label' => __('Custom Fields', 'jc-importer'),
                     'loop' => true,
                     'loop_fields' => ['meta_key', 'meta_value'],
                     'fields' => [],
@@ -157,13 +157,13 @@ class PostMapper extends AbstractMapper implements MapperInterface
         }
 
         $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/post_type/custom_field_list',  $fields['children']['custom_fields']['fields'], $this->post_type);
-        $fields = apply_filters('iwp/exporter/post_type/fields', $fields, $this->post_type);
+        $fields = apply_filters('iwp/exporter/post_type/fields', $fields, $this->get_post_types_array());
 
         if (in_array('attachment', $post_types)) {
             $fields['fields'][] = 'url';
         }
 
-        return $fields;
+        return $this->parse_fields($fields);
     }
 
 
@@ -215,29 +215,31 @@ class PostMapper extends AbstractMapper implements MapperInterface
                 $value = wp_get_attachment_url(get_post_thumbnail_id($record['ID']));
                 break;
             case 'image':
+
+                $value = [
+                    'id' => '',
+                    'url' => '',
+                    'title' => '',
+                    'alt' => '',
+                    'caption' => '',
+                    'description' => ''
+                ];
+
                 $thumbnail_id = intval(get_post_thumbnail_id($record['ID']));
                 if ($thumbnail_id > 0) {
-
                     $attachment = get_post($thumbnail_id, ARRAY_A);
-                    $alt = get_post_meta($thumbnail_id, '_wp_attachment_image_alt', true);
+                    if ($attachment) {
 
-                    $value = [
-                        'id' => $thumbnail_id,
-                        'url' => wp_get_attachment_url($thumbnail_id),
-                        'title' => $attachment['post_title'],
-                        'alt' => $alt,
-                        'caption' => $attachment['post_excerpt'],
-                        'description' => $attachment['post_content']
-                    ];
-                } else {
-                    $value = [
-                        'id' => '',
-                        'url' => '',
-                        'title' => '',
-                        'alt' => '',
-                        'caption' => '',
-                        'description' => ''
-                    ];
+                        $alt = get_post_meta($thumbnail_id, '_wp_attachment_image_alt', true);
+                        $value = [
+                            'id' => $thumbnail_id,
+                            'url' => wp_get_attachment_url($thumbnail_id),
+                            'title' => $attachment['post_title'],
+                            'alt' => $alt,
+                            'caption' => $attachment['post_excerpt'],
+                            'description' => $attachment['post_content']
+                        ];
+                    }
                 }
                 break;
             case 'custom_fields':

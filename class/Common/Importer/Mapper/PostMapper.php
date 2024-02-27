@@ -5,7 +5,6 @@ namespace ImportWP\Common\Importer\Mapper;
 use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\MapperInterface;
 use ImportWP\Common\Importer\ParsedData;
-use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Util\Logger;
 
 class PostMapper extends AbstractMapper implements MapperInterface
@@ -56,23 +55,12 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
     public function exists(ParsedData $data)
     {
-        $unique_fields = TemplateManager::get_template_unique_fields($this->template);
-
-        // allow user to set unique field name, get from importer setting
-        $unique_field = $this->importer->getSetting('unique_field');
-        if ($unique_field !== null) {
-            $unique_fields = is_string($unique_field) ? [$unique_field] : $unique_field;
-        }
-
-        $unique_fields = $this->getUniqueIdentifiers($unique_fields);
-        $unique_fields = apply_filters('iwp/template_unique_fields', $unique_fields, $this->template, $this->importer);
-
+        list($unique_fields, $meta_args, $has_unique_field) = $this->exists_get_identifier($data);
         $unique_field_found = false;
 
         $post_type = $this->importer->getSetting('post_type');
         $post_status = 'any, trash, future';
 
-        $meta_args = array();
         $query_args = array(
             'post_type' => $post_type,
             'post_status' => $post_status,
@@ -83,76 +71,67 @@ class PostMapper extends AbstractMapper implements MapperInterface
             'no_found_rows' => true,
         );
 
-        $has_unique_field = false;
+        if (!$has_unique_field) {
+            foreach ($unique_fields as $field) {
 
-        foreach ($unique_fields as $field) {
+                // check all groups for a unique value
+                $unique_value = $this->find_unique_field_in_data($data, $field);
 
-            // check all groups for a unique value
-            $unique_value = $data->getValue($field, '*');
-            if (empty($unique_value)) {
-                $cf = $data->getData('custom_fields');
-                if (!empty($cf)) {
-                    $cf_index = intval($cf['custom_fields._index']);
-                    if ($cf_index > 0) {
-                        for ($i = 0; $i < $cf_index; $i++) {
-                            $row = 'custom_fields.' . $i . '.';
-                            $custom_field_key = apply_filters('iwp/custom_field_key', $cf[$row . 'key']);
-                            if ($custom_field_key !== $field) {
-                                continue;
+                if (!empty($unique_value)) {
+                    $has_unique_field = true;
+
+                    if (in_array($field, $this->_post_fields, true)) {
+
+                        if (array_key_exists($field, $this->_query_vars)) {
+                            $query_args[$this->_query_vars[$field]] = $unique_value;
+                        } else {
+                            switch ($field) {
+                                case 'post_title':
+                                    $query_args['title'] = $unique_value;
+                                    break;
+                                default:
+                                    $query_args[$field] = $unique_value;
+                                    break;
                             }
-                            $unique_value = $cf[$row . 'value'];
-                            break;
                         }
-                    }
-                }
-            }
-
-            if (!empty($unique_value)) {
-                $has_unique_field = true;
-
-                if (in_array($field, $this->_post_fields, true)) {
-
-                    if (array_key_exists($field, $this->_query_vars)) {
-                        $query_args[$this->_query_vars[$field]] = $unique_value;
                     } else {
-                        switch ($field) {
-                            case 'post_title':
-                                $query_args['title'] = $unique_value;
-                                break;
-                            default:
-                                $query_args[$field] = $unique_value;
-                                break;
-                        }
+                        $meta_args[] = array(
+                            'key'   => $field,
+                            'value' => $unique_value
+                        );
                     }
-                } else {
-                    $meta_args[] = array(
-                        'key'   => $field,
-                        'value' => $unique_value
-                    );
+                    $unique_field_found = $field;
+                    $this->set_unique_identifier_settings($unique_field_found, $unique_value);
+                    break;
                 }
-                $unique_field_found = $field;
-                break;
             }
         }
+
+
+
 
         if (!$has_unique_field) {
 
             // fallback to post_title
             $unique_value = $data->getValue('post_title');
-            if (empty($unique_value)) {
-                throw new MapperException("No Unique fields present.");
+            if (empty($unique_value) || !$this->importer->has_legacy_unique_identifier()) {
+                throw new MapperException(__("No Unique fields present.", 'jc-importer'));
             }
 
             $query_args['title'] = $unique_value;
+            $this->set_unique_identifier_settings('title', $unique_value);
         }
 
         if (!empty($meta_args)) {
             $query_args['meta_query'] = $meta_args;
         }
 
+        $query_args = apply_filters('iwp/importer/mapper/post_exists_query', $query_args);
+        Logger::debug("PostMapper::exists -query=" . wp_json_encode($query_args));
+
         $query = new \WP_Query($query_args);
         if ($query->post_count > 1) {
-            throw new MapperException("Record is not unique: " . $unique_field_found . ", Matching Ids: (" . implode(', ', $query->posts) . ").");
+            throw new MapperException(sprintf(__("Record is not unique: %s, Matching Ids: (%s).", 'jc-importer'), $unique_field_found, implode(', ', $query->posts)));
         }
 
         if ($query->post_count == 1) {
@@ -204,7 +183,6 @@ class PostMapper extends AbstractMapper implements MapperInterface
         if ($this->ID && !empty($meta)) {
             foreach ($meta as $key => $value) {
                 if (is_array($value)) {
-                    $this->clear_custom_field($this->ID, $key);
                     foreach ($value as $v) {
                         $this->add_custom_field($this->ID, $key, $v);
                     }
@@ -215,6 +193,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
         }
 
         $this->add_version_tag();
+        $this->add_reference_tag($data);
         $this->template->post_process($this->ID, $data);
 
         clean_post_cache($this->ID);
@@ -303,8 +282,8 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
         if (!empty($meta)) {
             foreach ($meta as $key => $value) {
+                $this->clear_custom_field($this->ID, $key);
                 if (is_array($value)) {
-                    $this->clear_custom_field($this->ID, $key);
                     foreach ($value as $v) {
                         $this->add_custom_field($this->ID, $key, $v);
                     }
@@ -315,6 +294,8 @@ class PostMapper extends AbstractMapper implements MapperInterface
         }
 
         $this->add_version_tag();
+        $this->add_reference_tag($data);
+
         $this->template->post_process($this->ID, $data);
 
         // Delete trash flag once post has been updated.

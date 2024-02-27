@@ -17,35 +17,41 @@ class ExporterRecord implements \ArrayAccess, \Iterator, \Countable
         $this->keys = array_keys($this->_data);
     }
 
+    #[\ReturnTypeWillChange]
     public function current()
     {
         return $this->_data[$this->keys[$this->position]];
     }
 
     /** @return void  */
+    #[\ReturnTypeWillChange]
     public function next()
     {
         $this->position++;
     }
 
+    #[\ReturnTypeWillChange]
     public function key()
     {
         return $this->keys[$this->position];
     }
 
     /** @return bool  */
+    #[\ReturnTypeWillChange]
     public function valid()
     {
         return isset($this->keys[$this->position]);
     }
 
     /** @return void  */
+    #[\ReturnTypeWillChange]
     public function rewind()
     {
         $this->position = 0;
     }
 
     /** @return int<0, \max>  */
+    #[\ReturnTypeWillChange]
     public function count()
     {
         return count($this->keys);
@@ -55,6 +61,7 @@ class ExporterRecord implements \ArrayAccess, \Iterator, \Countable
      * @param mixed $offset 
      * @return bool 
      */
+    #[\ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         if (!isset($this->_data[$offset])) {
@@ -68,6 +75,7 @@ class ExporterRecord implements \ArrayAccess, \Iterator, \Countable
         return isset($this->_data[$offset]);
     }
 
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->offsetExists($offset) ? $this->_data[$offset] : null;
@@ -78,6 +86,7 @@ class ExporterRecord implements \ArrayAccess, \Iterator, \Countable
      * @param mixed $value 
      * @return void 
      */
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         if (is_null($offset)) {
@@ -93,6 +102,7 @@ class ExporterRecord implements \ArrayAccess, \Iterator, \Countable
      * @param mixed $offset 
      * @return void 
      */
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         unset($this->_data[$offset]);

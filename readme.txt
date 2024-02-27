@@ -4,16 +4,16 @@ Tags: import, csv, xml, importer, woocommerce, product import, post import, expo
 Requires at least: 4.0  
 Tested up to: 6.4  
 Requires PHP: 5.6  
-Stable tag: 2.11.0  
+Stable tag: 2.12.1-dev2  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
 
-Easily Export and Import CSV files with our WordPress csv importer. Export and Import XML files. Import posts, categories, images, and custom fields.
+Easily Import / Export CSV and xml files with our WordPress csv importer. Import posts, pages, users, categories, tags, and attachments.
 
 == Description ==
 
-Our optimised **WordPress importer** makes it easy to **export and import CSV and XML files** into WordPress posts, pages, categories, tags, custom post types, and custom taxonomies. We have simplified the process to **Import attachments, images, and any WordPress data** using our custom visual data selection tools that make it straightforward to import XML or CSV files from any **data feed**.
+Our optimised **WordPress importer** makes it easy to **export and import CSV and XML files** into WordPress posts, pages, categories, and tags. We have simplified the process to **Import attachments, images, and any WordPress data** using our custom visual data selection tools that make it straightforward to import XML or CSV files from any **data feed**.
 
 Our **WordPress exporter** allows you to **export CSV, XML or JSON files** with data from any wordpress post type or taxonomy, including exporting custom fields, images, attachments, and related terms. This means you can easily export CSV, XML or JSON files containing only the WordPress data and structure you need.
 
@@ -39,14 +39,13 @@ Attachments can be downloaded every time the importer runs, or can check the med
 * Import data from remote urls and data feeds.
 * Import data from an FTP server
 * Import data from files stored on the web server.
-* Import data to WordPress posts, pages and custom post types
-* Import categories, tags and custom taxonomies.
+* Import data to WordPress posts and pages
+* Import categories and tags.
 * Import Attachments from Remote URL
 * Import Attachments from  FTP server
 * Import Attachments from local filesystem
 * Import Attachments from Media Library.
 * Import Attachment title, caption, alt tag metadata.
-* Import custom fields
 
 = WordPress Exporter features =
 
@@ -130,6 +129,53 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.12.0 =
+
+* ADD - New unique identifier UI, allowing you to select from template fields or create a custom identifier. 
+* ADD - Add filter to enable custom delete actions
+* ADD - Add action to override default delete behaviour with custom code.
+* ADD - Add post taxonomy field labelled Hierarchy relationship, allowing you to choose from connecting all to just last term.
+
+= 2.11.8 =
+
+* FIX - Fix issue TypeError: count() in xml parser.
+
+= 2.11.7 =
+
+* FIX - Fix issue causing csv exporter to show empty screen after clicking "Add fields".
+
+= 2.11.6 =
+
+* ADD - Allow for addons to register panel settings, currently only supports toggle fields.
+* FIX - Fix error if id passed to attachment is not of an attachment type.
+* FIX - Reduce database calls during import.
+
+= 2.11.5 =
+
+* ADD - Add pot translation file.
+* ADD - Add mapper exist query filters.
+* ADD - Add post template term filter.
+* FIX - Importing Post parent field, if searching by name make sure it is not an empty value.
+
+= 2.11.4 =
+
+* ADD - Add missing `iwp/exporter/user/fields` filter when generating user exporter field list.
+
+= 2.11.3 =
+
+* FIX - remove status ajax request during manual import, instead add max record cap per request.
+* FIX - fix layer ordering issue where wp footer was in front of import interface.
+* FIX - If importing a remote attachment, if it starts with the uploads url search media library first.
+
+= 2.11.2 =
+
+* ADD - Add exporter rest points to compatibility module.
+* FIX - Add second argument to `iwp/exporter/user/setup_data` filter, to avoid conflict with ACF module in Pro.
+
+= 2.11.1 =
+
+* FIX - fix missing error when an importer is unable to download the source file.
 
 = 2.11.0 =
 

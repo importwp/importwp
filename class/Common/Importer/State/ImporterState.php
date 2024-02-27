@@ -50,13 +50,13 @@ class ImporterState
         }
 
         if (!$state || !isset($state['status'])) {
-            throw new \Exception("Invalid state");
+            throw new \Exception(__("Invalid state", 'jc-importer'));
         }
 
         $this->populate($state);
 
         if (!$this->validate($session_id)) {
-            throw new \Exception("Session has changed");
+            throw new \Exception(__("Session has changed", 'jc-importer'));
         }
     }
 
@@ -102,6 +102,21 @@ class ImporterState
 
     public function error($error)
     {
+        $this->update(function ($state) use ($error) {
+            $state['status'] = 'error';
+            if (is_wp_error($error)) {
+                /**
+                 * @var \WP_Error $error
+                 */
+                $state['message'] = $error->get_error_message();
+            } else if ($error instanceof \Exception) {
+                /**
+                 * @var \Exception $error
+                 */
+                $state['message'] = $error->getMessage();
+            }
+            return $state;
+        });
         return $this;
     }
 

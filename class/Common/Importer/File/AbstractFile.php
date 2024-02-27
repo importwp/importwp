@@ -34,7 +34,7 @@ abstract class AbstractFile
         if (file_exists($this->file_path)) {
             $this->file_handle = fopen($this->file_path, 'r');
         } else {
-            throw new FileException("File Not Found: " . $file_path);
+            throw new FileException(sprintf(__("File Not Found: %s", 'jc-importer'), $file_path));
         }
     }
 
@@ -91,7 +91,7 @@ abstract class AbstractFile
     public function getFileHandle()
     {
         if (!in_array(get_resource_type($this->file_handle), array('stream', 'file'), true)) {
-            throw new FileException("File not found: " . $this->file_path);
+            throw new FileException(sprintf(__("File not found: %s", 'jc-importer'), $this->file_path));
         }
         return $this->file_handle;
     }

@@ -40,7 +40,7 @@ function iwp_has_required_version_of_pro()
         remove_action('plugins_loaded', 'iwp_pro_loaded');
 
         // Display compatability message
-        $message = '<strong>Import WP v' . IWP_VERSION . '</strong> requires <strong>Import WP PRO v' . IWP_CORE_MIN_PRO_VERSION . ' or greater</strong>, Download the lastest version of Import WP Pro or Rollback Import WP to a compatable version.';
+        $message = sprintf(__('ImportWP v%s requires ImportWP PRO v%s or greater, Download the lastest version of Import WP Pro or Rollback Import WP to a compatable version.', 'jc-importer'), IWP_VERSION, IWP_CORE_MIN_PRO_VERSION);
         add_action('admin_notices', function () use ($message) {
 
             global $pagenow;
@@ -104,7 +104,7 @@ function iwp_check_installed_plugins()
         $upgrade_mesasge = function () {
         ?>
             <tr class="iwp-zip-remove-row-error iwp-invalid">
-                <td colspan="4">Import WP - Zip Archive Importer Addon is now included in ImportWP, please deactivate and remove this plugin.</td>
+                <td colspan="4"><?php _e('Import WP - Zip Archive Importer Addon is now included in ImportWP, please deactivate and remove this plugin.', 'jc-importer'); ?></td>
             </tr>
             <style>
                 .iwp-zip-remove-row-error td {
@@ -163,3 +163,8 @@ function iwp_register_muplugin_uninstall()
 {
     do_action('iwp/compat/register_muplugin_uninstall');
 }
+
+
+add_action('init', function () {
+    load_plugin_textdomain('jc-importer', false, basename(dirname(__FILE__)) . '/languages/');
+});

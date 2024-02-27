@@ -279,6 +279,14 @@ class RestManager extends \WP_REST_Controller
             )
         ));
 
+        register_rest_route($namespace, '/importer/(?P<id>\d+)/template_unique_identifiers', array(
+            array(
+                'methods' => \WP_REST_Server::READABLE,
+                'callback' => array($this, 'get_importer_unique_identifier_options'),
+                'permission_callback' => array($this, 'get_permission')
+            )
+        ));
+
         // Exporter
 
         register_rest_route($namespace, '/exporter', array(
@@ -344,7 +352,7 @@ class RestManager extends \WP_REST_Controller
     {
 
         if (!current_user_can('manage_options')) {
-            return new \WP_Error('rest_forbidden', esc_html__('You do not have permissions.', $this->properties->plugin_domain), array('status' => 401));
+            return new \WP_Error('rest_forbidden', __('You do not have permissions.', 'jc-importer'), array('status' => 401));
         }
 
         return true;
@@ -391,7 +399,7 @@ class RestManager extends \WP_REST_Controller
         $result = [
             'tmp_writable' => [
                 'status' => $tmp_writable ? 'yes' : 'no',
-                'message' => $tmp_writable ? '' : 'WordPress is unable to write to directory: ' . $this->filesystem->get_temp_directory() . ', make sure this directory is writable.',
+                'message' => $tmp_writable ? '' : sprintf(__('WordPress is unable to write to directory: %s, make sure this directory is writable.', 'jc-importer'), $this->filesystem->get_temp_directory()),
             ],
             'rest_enabled' => [
                 'status' => 'yes',
@@ -425,7 +433,7 @@ class RestManager extends \WP_REST_Controller
         $migration = new Migrations();
         $result = $migration->migrate();
 
-        return $this->http->end_rest_success("Migration Complete.");
+        return $this->http->end_rest_success(__("Migration Complete.", 'jc-importer'));
     }
 
     public function get_importers(\WP_REST_Request $request)
@@ -724,10 +732,10 @@ class RestManager extends \WP_REST_Controller
         if (isset($data['status'])) {
             switch ($data['status']) {
                 case 'cancelled':
-                    $output .= 'Import cancelled';
+                    $output .= __('Import cancelled', 'jc-importer');
                     break;
                 case 'complete':
-                    $output .= 'Import complete';
+                    $output .= __('Import complete', 'jc-importer');
                     break;
                 case 'error':
                     $output = $data['message'];
@@ -736,32 +744,31 @@ class RestManager extends \WP_REST_Controller
             }
         }
 
-        if (isset($data['status']) && ($data['status'] === 'running' || $data['status'] === 'processing') && isset($data['section'])) {
+        if (isset($data['status']) && ($data['status'] === 'running' || $data['status'] === 'processing' || $data['status'] === 'timeout') && isset($data['section'])) {
             switch ($data['section']) {
                 case 'import':
                 case 'delete':
-                    $output = $data['section'] === 'import' ? 'Importing: ' : 'Deleting: ';
-                    $output .= $data['progress'][$data['section']]['current_row'] . ' / ' . ($data['progress'][$data['section']]['end'] - $data['progress'][$data['section']]['start']);
-
+                    $progress = $data['progress'][$data['section']]['current_row'] . ' / ' . ($data['progress'][$data['section']]['end'] - $data['progress'][$data['section']]['start']);
+                    $output = sprintf($data['section'] === 'import' ? __('Importing: %s', 'jc-importer') : __('Deleting: %s', 'jc-importer'), $progress);
                     break;
             }
         }
 
         if (isset($data['stats'])) {
             if ($data['stats']['inserts'] > 0) {
-                $output .= sprintf(', Inserts: %d', $data['stats']['inserts']);
+                $output .= sprintf(__(', Inserts: %d', 'jc-importer'), $data['stats']['inserts']);
             }
             if ($data['stats']['updates'] > 0) {
-                $output .= sprintf(', Updates: %d', $data['stats']['updates']);
+                $output .= sprintf(__(', Updates: %d', 'jc-importer'), $data['stats']['updates']);
             }
             if ($data['stats']['deletes'] > 0) {
-                $output .= sprintf(', Deletes: %d', $data['stats']['deletes']);
+                $output .= sprintf(__(', Deletes: %d', 'jc-importer'), $data['stats']['deletes']);
             }
             if ($data['stats']['skips'] > 0) {
-                $output .= sprintf(', Skips: %d', $data['stats']['skips']);
+                $output .= sprintf(__(', Skips: %d', 'jc-importer'), $data['stats']['skips']);
             }
             if ($data['stats']['errors'] > 0) {
-                $output .= sprintf(', Errors: %d', $data['stats']['errors']);
+                $output .= sprintf(__(', Errors: %d', 'jc-importer'), $data['stats']['errors']);
             }
         }
 
@@ -770,13 +777,13 @@ class RestManager extends \WP_REST_Controller
              * @var Util $util
              */
             $util = Container::getInstance()->get('util');
-            $output .= ', Run Time: ' . $util->format_time($data['updated'] - $data['timestamp']);
+            $output .= sprintf(__(', Run Time: %s', 'jc-importer'), $util->format_time($data['updated'] - $data['timestamp']));
         } elseif (isset($data['duration'])) {
             /**
              * @var Util $util
              */
             $util = Container::getInstance()->get('util');
-            $output .= ', Run Time: ' . $util->format_time($data['duration']);
+            $output .= sprintf(__(', Run Time: %s', 'jc-importer'), $util->format_time($data['duration']));
         }
 
         return $output;
@@ -825,7 +832,7 @@ class RestManager extends \WP_REST_Controller
                 $attachment_id = $this->importer_manager->local_file($importer, $source);
                 break;
             default:
-                $attachment_id = new \WP_Error('IWP_RM_1', 'Invalid form action');
+                $attachment_id = new \WP_Error('IWP_RM_1', __('Invalid form action', 'jc-importer'));
                 break;
         }
 
@@ -844,7 +851,7 @@ class RestManager extends \WP_REST_Controller
 
             $importer = $this->importer_manager->get_importer($id);
             if (!$importer) {
-                return $this->http->end_rest_error('Invalid importer');
+                return $this->http->end_rest_error(__('Invalid importer', 'jc-importer'));
             }
 
             $this->importer_manager->clear_config_files($id, true);
@@ -894,7 +901,7 @@ class RestManager extends \WP_REST_Controller
 
             $import_file_exists = $this->filesystem->file_exists($importer->getFile());
             if (is_wp_error($import_file_exists)) {
-                throw new \Exception("Unable to load preview, " . $import_file_exists->get_error_message());
+                throw new \Exception(sprintf(__("Unable to load preview, %s", 'jc-importer'), $import_file_exists->get_error_message()));
             }
 
             $record_index = isset($post_data['record']) ? $post_data['record'] : null;
@@ -991,7 +998,7 @@ class RestManager extends \WP_REST_Controller
             $importer = $this->importer_manager->get_importer($id);
             $import_file_exists = $this->filesystem->file_exists($importer->getFile());
             if (is_wp_error($import_file_exists)) {
-                throw new \Exception("Unable to load preview, " . $import_file_exists->get_error_message());
+                throw new \Exception(sprintf(__("Unable to load preview, %s", 'jc-importer'), $import_file_exists->get_error_message()));
             }
 
             $parser = $importer->getParser();
@@ -1201,7 +1208,7 @@ class RestManager extends \WP_REST_Controller
         $templates = $this->importer_manager->get_templates();
 
         if (!isset($templates[$importer_template])) {
-            return $this->http->end_rest_error("Invalid template \"" . $importer_template . "\"");
+            return $this->http->end_rest_error(sprintf(__("Invalid template \"%s\"", 'jc-importer'), $importer_template));
         }
 
         $template_id = $templates[$importer_template];
@@ -1213,7 +1220,7 @@ class RestManager extends \WP_REST_Controller
             'map' => $template_class->get_fields($importer_model),
             'settings' => $template_class->register_settings(),
             'options' => $template_class->register_options(),
-            'permission_fields' => apply_filters('iwp/template/permission_fields', $template_class->get_permission_fields($importer_model))
+            'permission_fields' => apply_filters('iwp/template/permission_fields', $template_class->get_permission_fields($importer_model), $template_class)
         ];
         return $this->http->end_rest_success($output);
     }
@@ -1375,10 +1382,10 @@ class RestManager extends \WP_REST_Controller
         }
 
         if (empty($counter)) {
-            return $this->http->end_rest_error('No Importers found.');
+            return $this->http->end_rest_error(__('No Importers found.', 'jc-importer'));
         }
 
-        return $this->http->end_rest_success("Import Complete, {$counter} Importer" . ($counter > 1 ? 's' : '') . '.');
+        return $this->http->end_rest_success(sprintf(_n("Import Complete, %d Importer", "Import Complete, %d Importers", $counter, 'jc-importer'), $counter));
     }
 
     public function save_exporter(\WP_REST_Request $request = null)
@@ -1569,6 +1576,8 @@ class RestManager extends \WP_REST_Controller
                         case 'complete':
                             $output .= 'Export complete';
                             break;
+                        case 'processing':
+                        case 'timeout':
                         case 'running':
                             $output .= 'Exporting: ' . $current . '/' . $end;
                             break;
@@ -1583,5 +1592,43 @@ class RestManager extends \WP_REST_Controller
 
         echo json_encode($result) . "\n";
         die();
+    }
+
+    public function get_importer_unique_identifier_options(\WP_REST_Request $request)
+    {
+        $id = intval($request->get_param('id'));
+        $importer_model = $this->importer_manager->get_importer($id);
+        if (!$importer_model) {
+            return $this->http->end_rest_error(['msg' => 'Invalid importer']);
+        }
+
+        // Get default template options
+        $template = $this->importer_manager->get_template($importer_model->getTemplate());
+        if (is_wp_error($template)) {
+            return $this->http->end_rest_error($template->get_error_message());
+        }
+
+        $template_class = $this->template_manager->load_template($template);
+        $unique_fields = $this->template_manager->get_template_unique_fields($template_class);
+        $options = $template_class->get_unique_identifier_options($importer_model, $unique_fields);
+
+        // Only add in unqiue fields if they have not been found.
+        // Allowing for old templates to continue to list unique identifiers.
+        foreach ($unique_fields as $field_id) {
+            if (!isset($options[$field_id])) {
+                $options[$field_id] = [
+                    'value' => $field_id,
+                    'label' => $field_id,
+                    'uid' => true,
+                    'active' => true,
+                ];
+            }
+        }
+
+        $options = array_filter($options, function ($item) {
+            return $item['active'];
+        });
+
+        return $this->http->end_rest_success(['options' => array_values($options), 'unique_fields' => array_values($unique_fields)]);
     }
 }

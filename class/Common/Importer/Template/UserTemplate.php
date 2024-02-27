@@ -51,36 +51,36 @@ class UserTemplate extends Template implements TemplateInterface
         $groups = [];
 
         // User
-        $groups[] = $this->register_group('User Fields', 'user', [
-            $this->register_field('ID', 'ID', [
-                'tooltip' => __('ID is only used to reference existing records', 'importwp')
+        $groups[] = $this->register_group(__('User Fields', 'jc-importer'), 'user', [
+            $this->register_field(__('ID', 'jc-importer'), 'ID', [
+                'tooltip' => __('ID is only used to reference existing records', 'jc-importer')
             ]),
-            $this->register_core_field('Username', 'user_login', [
-                'tooltip' => __('The user\'s login username', 'importwp')
+            $this->register_core_field(__('Username', 'jc-importer'), 'user_login', [
+                'tooltip' => __('The user\'s login username', 'jc-importer')
             ]),
-            $this->register_core_field('Email', 'user_email', [
-                'tooltip' => __('The user email address', 'importwp')
+            $this->register_core_field(__('Email', 'jc-importer'), 'user_email', [
+                'tooltip' => __('The user email address', 'jc-importer')
             ]),
-            $this->register_core_field('First Name', 'first_name', [
-                'tooltip' => __('The user\'s first name', 'importwp')
+            $this->register_core_field(__('First Name', 'jc-importer'), 'first_name', [
+                'tooltip' => __('The user\'s first name', 'jc-importer')
             ]),
-            $this->register_core_field('Last Name', 'last_name', [
-                'tooltip' => __('The user\'s last name', 'importwp')
+            $this->register_core_field(__('Last Name', 'jc-importer'), 'last_name', [
+                'tooltip' => __('The user\'s last name', 'jc-importer')
             ]),
-            $this->register_field('Role', 'role', [
-                'tooltip' => __('The plain-text user password', 'importwp'),
+            $this->register_field(__('Role', 'jc-importer'), 'role', [
+                'tooltip' => __('The plain-text user password', 'jc-importer'),
                 'options' => 'callback',
                 'default' => 'subscriber'
             ]),
-            $this->register_field('Website', 'user_url', [
-                'tooltip' => __('The user\'s website address', 'importwp')
+            $this->register_field(__('Website', 'jc-importer'), 'user_url', [
+                'tooltip' => __('The user\'s website address', 'jc-importer')
             ]),
-            $this->register_field('Password', 'user_pass', [
-                'tooltip' => __('The plain-text user password', 'importwp')
+            $this->register_field(__('Password', 'jc-importer'), 'user_pass', [
+                'tooltip' => __('The plain-text user password', 'jc-importer')
             ]),
-            $this->register_field('Nicename', 'user_nicename', []),
-            $this->register_field('Display Name', 'display_name', []),
-            $this->register_field('Description', 'description', []),
+            $this->register_field(__('Nicename', 'jc-importer'), 'user_nicename', []),
+            $this->register_field(__('Display Name', 'jc-importer'), 'display_name', []),
+            $this->register_field(__('Description', 'jc-importer'), 'description', []),
         ], ['link' => 'https://www.importwp.com/docs/wordpress-user-importer-template/']);
 
         return $groups;
@@ -91,13 +91,13 @@ class UserTemplate extends Template implements TemplateInterface
     public function register_settings()
     {
         return [
-            $this->register_field('Enable user notifications.', 'notify_users', [
+            $this->register_field(__('Enable user notifications.', 'jc-importer'), 'notify_users', [
                 'type' => 'checkbox',
-                'tooltip' => __('Trigger the action to send WordPress notification emails', 'importwp')
+                'tooltip' => __('Trigger the action to send WordPress notification emails', 'jc-importer')
             ]),
-            $this->register_field('Generate user password.', 'generate_pass', [
+            $this->register_field(__('Generate user password.', 'jc-importer'), 'generate_pass', [
                 'type' => 'checkbox',
-                'tooltip' => __('Enable the generation of user passwords', 'importwp')
+                'tooltip' => __('Enable the generation of user passwords', 'jc-importer')
             ]),
         ];
     }
@@ -261,25 +261,35 @@ class UserTemplate extends Template implements TemplateInterface
         $permission_fields = parent::get_permission_fields($importer_model);
 
         $permission_fields['core'] = [
-            'ID' => 'ID',
-            'user_pass' => 'Password',
-            'user_login' => 'Login',
-            'user_nicename' => 'Nice name',
-            'user_url' => 'Url',
-            'user_email' => 'Email',
-            'display_name' => 'Display Name',
-            'nickname' => 'Nick name',
-            'first_name' => 'First name',
-            'last_name' => 'Last name',
-            'description' => 'Description',
-            'rich_editing' => 'Rich Editing',
-            'user_registered' => 'User Registered',
-            'role' => 'Role',
-            'jabber' => 'Jabber',
-            'aim' => 'Aim',
-            'yim' => 'Yim',
+            'ID' => __('ID', 'jc-importer'),
+            'user_pass' => __('Password', 'jc-importer'),
+            'user_login' => __('Login', 'jc-importer'),
+            'user_nicename' => __('Nice name', 'jc-importer'),
+            'user_url' => __('Url', 'jc-importer'),
+            'user_email' => __('Email', 'jc-importer'),
+            'display_name' => __('Display Name', 'jc-importer'),
+            'nickname' => __('Nick name', 'jc-importer'),
+            'first_name' => __('First name', 'jc-importer'),
+            'last_name' => __('Last name', 'jc-importer'),
+            'description' => __('Description', 'jc-importer'),
+            'rich_editing' => __('Rich Editing', 'jc-importer'),
+            'user_registered' => __('User Registered', 'jc-importer'),
+            'role' => __('Role', 'jc-importer'),
+            'jabber' => __('Jabber', 'jc-importer'),
+            'aim' => __('Aim', 'jc-importer'),
+            'yim' => __('Yim', 'jc-importer'),
         ];
 
         return $permission_fields;
+    }
+
+    public function get_unique_identifier_options($importer_model, $unique_fields = [])
+    {
+        $output = parent::get_unique_identifier_options($importer_model, $unique_fields);
+
+        return array_merge(
+            $output,
+            $this->get_unique_identifier_options_from_map($importer_model, $unique_fields, $this->field_map, $this->optional_fields)
+        );
     }
 }

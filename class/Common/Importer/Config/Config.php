@@ -91,7 +91,7 @@ class Config implements ConfigInterface
 
         $file = $this->getIndexFile($key);
         if (!file_exists($file)) {
-            throw new FileException("Config Index File Not Found: " . $file);
+            throw new FileException(sprintf(__("Config Index File Not Found: %s", 'jc-importer'), $file));
         }
 
         $fh = fopen($file, 'r');
@@ -158,7 +158,7 @@ class Config implements ConfigInterface
         }
 
         if (count($cache) < 2) {
-            throw new FileException("Unable to located record: " . ($record + 1) . ".");
+            throw new FileException(sprintf(__("Unable to located record: %s.", 'jc-importer'), ($record + 1)));
         }
 
         // store cache

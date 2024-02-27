@@ -46,21 +46,21 @@ class TaxMapper extends AbstractMapper implements MapperInterface
             'children' => [
                 'parent' => [
                     'key' => 'parent',
-                    'label' => 'Parent',
+                    'label' => __('Parent', 'jc-importer'),
                     'loop' => false,
                     'fields' => [],
                     'children' => []
                 ],
                 'anscestors' => [
                     'key' => 'anscestors',
-                    'label' => 'Anscestors',
+                    'label' => __('Anscestors', 'jc-importer'),
                     'loop' => true,
                     'fields' => [],
                     'children' => []
                 ],
                 'custom_fields' => [
                     'key' => 'custom_fields',
-                    'label' => 'Custom Fields',
+                    'label' => __('Custom Fields', 'jc-importer'),
                     'loop' => true,
                     'loop_fields' => ['meta_key', 'meta_value'],
                     'fields' => [],
@@ -106,7 +106,7 @@ class TaxMapper extends AbstractMapper implements MapperInterface
         $fields['children']['custom_fields']['fields'] = apply_filters('iwp/exporter/taxonomy/custom_field_list',  $fields['children']['custom_fields']['fields'], $this->taxonomy);
         $fields = apply_filters('iwp/exporter/taxonomy/fields', $fields, $this->taxonomy);
 
-        return $fields;
+        return $this->parse_fields($fields);
     }
 
     public function have_records($exporter_id)

@@ -4,7 +4,7 @@ function iwp_compat_is_rest_request()
 {
     $request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
 
-    if (preg_match('/iwp\/v1\/importer\/[\d]+\/(?:init|run|status)/', $request_uri) === 1) {
+    if (preg_match('/iwp\/v1\/(?:importer|exporter)\/[\d]+\/(?:init|run|status)/', $request_uri) === 1) {
         return true;
     }
 

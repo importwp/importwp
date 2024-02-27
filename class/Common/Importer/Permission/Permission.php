@@ -24,11 +24,11 @@ class Permission implements PermissionInterface
         } elseif ('UPDATE' === $method) {
             $permission_method = 'update';
         } else {
-            throw new MapperException('Not enough permissions to import record.');
+            throw new MapperException(sprintf(__('Not enough permissions to %s record.', 'jc-importer'), 'import'));
         }
 
         if (false === $this->allowed_method($permission_method)) {
-            throw new MapperException('Not enough permissions to ' . $permission_method . ' record.');
+            throw new MapperException(sprintf(__('Not enough permissions to %s record.', 'jc-importer'), $permission_method));
         }
 
         $permission_data = $this->importer_model->getPermission($permission_method);

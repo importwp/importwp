@@ -85,11 +85,11 @@ class Util
         $fh = fopen($file_path, 'a');
 
         if (!is_writable($file_path)) {
-            throw new \Exception(sprintf("Importer status file is not writable: %s.", $file_path));
+            throw new \Exception(sprintf(__("Importer status file is not writable: %s.", 'jc-importer'), $file_path));
         }
 
         if (false === $fh) {
-            throw new \Exception(sprintf("Unable to open Importer status file: %s.", $file_path));
+            throw new \Exception(sprintf(__("Unable to open Importer status file: %s.", 'jc-importer'), $file_path));
         }
 
         fputcsv($fh, [$counter, $type, $message]);
@@ -169,11 +169,11 @@ class Util
         $file = self::get_importer_status_file_path($id);
 
         if (false === file_exists($file) && false === file_put_contents($file, '')) {
-            throw new \Exception("Unable to create status file: " . $file);
+            throw new \Exception(sprintf(__("Unable to create status file: %s", 'jc-importer'), $file));
         }
 
         if (!is_writable($file)) {
-            throw new \Exception("Unable to write status file: " . $file);
+            throw new \Exception(sprintf(__("Unable to write status file: %s", 'jc-importer'), $file));
         }
 
         $f = fopen($file, 'r+');

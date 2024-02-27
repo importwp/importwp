@@ -33,7 +33,7 @@ class Filesystem
 
         if (!file_exists($source)) {
             Logger::write('File doesn`t exist on local filesystem: ' . $source);
-            return new \WP_Error('IWP_FS_7', 'File doesn`t exist on local filesystem.');
+            return new \WP_Error('IWP_FS_7', __('File doesn`t exist on local filesystem.', 'jc-importer'));
         }
 
         $filetype = $this->get_filetype($source);
@@ -42,17 +42,17 @@ class Filesystem
 
             if (!$filetype) {
                 Logger::write('Unable to determine filetype: ' . $source);
-                return new \WP_Error('IWP_FS_6', 'Unable to determine filetype.');
+                return new \WP_Error('IWP_FS_6', __('Unable to determine filetype.', 'jc-importer'));
             }
 
             if (!in_array($filetype, $allowed_mimes, true)) {
                 Logger::write('Invalid filetype: ' . $filetype . ', allowed(' . implode(', ', $allowed_mimes) . ')');
-                return new \WP_Error('IWP_FS_4', 'Invalid filetype.');
+                return new \WP_Error('IWP_FS_4', __('Invalid filetype.', 'jc-importer'));
             }
         }
 
         if (!copy($source, $destination)) {
-            return new \WP_Error('IWP_FS_4', 'Unable to copy file: ' . $source . '.');
+            return new \WP_Error('IWP_FS_4', sprintf(__('Unable to copy file: %s.', 'jc-importer'), $source));
         }
 
         $type = $this->get_file_mime($source);
@@ -87,7 +87,7 @@ class Filesystem
         // determine file type from mimetype.
         if (!is_null($allowed_mimes) && !in_array($filetype, $allowed_mimes, true)) {
             Logger::write('Invalid filetype: ' . $filetype . ', allowed(' . implode(', ', $allowed_mimes) . ')');
-            return new \WP_Error('IWP_FS_4', 'Invalid filetype.');
+            return new \WP_Error('IWP_FS_4', __('Invalid filetype.', 'jc-importer'));
         }
 
         Logger::write('Uploaded file: ' . $file . ' -type=' . $filetype . ' -mime=' . $type);
@@ -109,7 +109,7 @@ class Filesystem
             }
             if (!in_array($filetype, $allowed_mimes, true)) {
                 Logger::write('Invalid filetype: ' . $filetype . ', allowed(' . implode(', ', $allowed_mimes) . ')');
-                return new \WP_Error('IWP_FS_4', 'Invalid filetype.');
+                return new \WP_Error('IWP_FS_4', __('Invalid filetype.', 'jc-importer'));
             }
         }
 
@@ -183,13 +183,13 @@ class Filesystem
     {
         try {
             if (!file_exists($src)) {
-                throw new \Exception("File not found: " . $src);
+                throw new \Exception(sprintf(__("File not found: %s", 'jc-importer'), $src));
             }
 
             $size = filesize($src);
             if ($size == 0) {
                 unlink($src);
-                throw new \Exception("File not found or empty: " . $src);
+                throw new \Exception(sprintf(__("File not found or empty: %s", 'jc-importer'), $src));
             }
         } catch (\Exception $e) {
             return new \WP_Error('IWP_FS_8', $e->getMessage());
@@ -227,7 +227,7 @@ class Filesystem
         $wp_dest = $wp_upload_dir['path'] . '/' . $dest;
 
         if (file_put_contents($wp_dest, $string) === false) {
-            return new \WP_Error('IWP_FS_SF', "Unable to write string to file");
+            return new \WP_Error('IWP_FS_SF', __("Unable to write string to file", 'jc-importer'));
         }
 
         return array(
@@ -244,16 +244,14 @@ class Filesystem
      *
      * @return string
      */
-    public function get_temp_directory($url = false)
-    {
-        $base = $url ? WP_CONTENT_URL : WP_CONTENT_DIR;
-        $ds = $url ? '/' : DIRECTORY_SEPARATOR;
-        $path = $base . $ds . 'uploads';
-        if (!is_dir($path)) {
-            mkdir($path);
-        }
 
-        $path .= $ds . 'importwp';
+    public function get_temp_directory($url = false, $folder = 'importwp')
+    {
+        $dir = wp_upload_dir();
+
+        $base = $url ? $dir['baseurl'] : $dir['basedir'];
+        $ds = $url ? '/' : DIRECTORY_SEPARATOR;
+        $path = $base . $ds . $folder;
         if (!is_dir($path)) {
             mkdir($path);
         }

@@ -6,6 +6,7 @@ use ImportWP\Common\Attachment\Attachment;
 use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Ftp\Ftp;
 use ImportWP\Common\Importer\File\XMLFile;
+use ImportWP\Common\Importer\Mapper\AbstractMapper;
 use ImportWP\Common\Importer\ParsedData;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Util\Logger;
@@ -204,10 +205,10 @@ class Template extends AbstractTemplate
         if (isset($args['row_base']) && true === $args['row_base']) {
 
             $fields = array_merge(
-                [$this->register_field('Repeater Node', 'row_base', [
+                [$this->register_field(__('Repeater Node', 'jc-importer'), 'row_base', [
                     'type' => 'text',
                     'options' => 'callback',
-                    'tooltip' => 'Select the path to the parent node containing values for this record, The preview when selecting data for each record should show a single record. Please note changing this will require updating references in this record.'
+                    'tooltip' => __('Select the path to the parent node containing values for this record, The preview when selecting data for each record should show a single record. Please note changing this will require updating references in this record.', 'jc-importer')
                 ])],
                 $fields
             );
@@ -226,6 +227,12 @@ class Template extends AbstractTemplate
 
         if (isset($args['condition']) && !empty($args['condition'])) {
             $tmp['condition'] = $args['condition'];
+        }
+
+        // Allow for setting fields to be registered for the group
+        // currently only supporting toggle fields.
+        if (isset($args['settings']) && !empty($args['settings'])) {
+            $tmp['settings'] = $args['settings'];
         }
 
         return $tmp;
@@ -268,102 +275,102 @@ class Template extends AbstractTemplate
         $fields = [];
 
         if (!in_array('_featured', $disabled_fields)) {
-            $fields[] = $this->register_field('Is Featured?', '_featured', [
+            $fields[] = $this->register_field(__('Is Featured?', 'jc-importer'), '_featured', [
                 'default' => 'no',
                 'options' => [
-                    ['value' => 'no', 'label' => 'No'],
-                    ['value' => 'yes', 'label' => 'Yes'],
+                    ['value' => 'no', 'label' => __('No', 'jc-importer')],
+                    ['value' => 'yes', 'label' => __('Yes', 'jc-importer')],
                 ],
-                'tooltip' => __('Is the attachment the featured image for the current post.', 'importwp')
+                'tooltip' => __('Is the attachment the featured image for the current post.', 'jc-importer')
             ]);
         }
 
         $fields = array_merge($fields, [
-            $this->register_field('Download', '_download', [
+            $this->register_field(__('Download', 'jc-importer'), '_download', [
                 'default' => 'remote',
                 'options' => [
-                    ['value' => 'remote', 'label' => 'Remote URL'],
-                    ['value' => 'ftp', 'label' => 'FTP'],
-                    ['value' => 'local', 'label' => 'Local Filesystem'],
-                    ['value' => 'media', 'label' => 'Media Library'],
+                    ['value' => 'remote', 'label' => __('Remote URL', 'jc-importer')],
+                    ['value' => 'ftp', 'label' => __('FTP', 'jc-importer')],
+                    ['value' => 'local', 'label' => __('Local Filesystem', 'jc-importer')],
+                    ['value' => 'media', 'label' => __('Media Library', 'jc-importer')],
                 ],
-                'tooltip' => __('Select how the attachment is being downloaded.', 'importwp')
+                'tooltip' => __('Select how the attachment is being downloaded.', 'jc-importer')
             ]),
-            $this->register_field('Host', '_ftp_host', [
+            $this->register_field(__('Host', 'jc-importer'), '_ftp_host', [
                 'condition' => ['_download', '==', 'ftp'],
-                'tooltip' => __('Enter the FTP hostname', 'importwp')
+                'tooltip' => __('Enter the FTP hostname', 'jc-importer')
             ]),
-            $this->register_field('Username', '_ftp_user', [
+            $this->register_field(__('Username', 'jc-importer'), '_ftp_user', [
                 'condition' => ['_download', '==', 'ftp'],
-                'tooltip' => __('Enter the FTP username', 'importwp')
+                'tooltip' => __('Enter the FTP username', 'jc-importer')
             ]),
-            $this->register_field('Password', '_ftp_pass', [
+            $this->register_field(__('Password', 'jc-importer'), '_ftp_pass', [
                 'condition' => ['_download', '==', 'ftp'],
-                'tooltip' => __('Enter the FTP password', 'importwp')
+                'tooltip' => __('Enter the FTP password', 'jc-importer')
             ]),
-            $this->register_field('Path', '_ftp_path', [
+            $this->register_field(__('Path', 'jc-importer'), '_ftp_path', [
                 'condition' => ['_download', '==', 'ftp'],
-                'tooltip' => __('Enter the FTP base path, this is prefixed onto the Location field, leave empty to be ignore', 'importwp')
+                'tooltip' => __('Enter the FTP base path, this is prefixed onto the Location field, leave empty to be ignore', 'jc-importer')
             ]),
-            $this->register_field('Base URL', '_remote_url', [
+            $this->register_field(__('Base URL', 'jc-importer'), '_remote_url', [
                 'condition' => ['_download', '==', 'remote'],
-                'tooltip' => __('Enter the base url, this is prefixed onto the Location field, leave empty to be ignore', 'importwp')
+                'tooltip' => __('Enter the base url, this is prefixed onto the Location field, leave empty to be ignore', 'jc-importer')
             ]),
-            $this->register_field('Base URL', '_local_url', [
+            $this->register_field(__('Base URL', 'jc-importer'), '_local_url', [
                 'condition' => ['_download', '==', 'local'],
-                'tooltip' => __('Enter the base path from this servers root file system, this is prefixed onto the Location field, leave empty to be ignore', 'importwp')
+                'tooltip' => __('Enter the base path from this servers root file system, this is prefixed onto the Location field, leave empty to be ignore', 'jc-importer')
             ]),
 
-            $this->register_field('Permissions', '_enable_image_hash', [
+            $this->register_field(__('Permissions', 'jc-importer'), '_enable_image_hash', [
                 'condition' => ['_download', '!=', 'media'],
                 'default' => 'yes',
                 'options' => [
-                    ['value' => 'no', 'label' => 'Always download new files'],
-                    ['value' => 'yes', 'label' => 'Search media library before downloading new files'],
+                    ['value' => 'no', 'label' => __('Always download new files', 'jc-importer')],
+                    ['value' => 'yes', 'label' => __('Search media library before downloading new files', 'jc-importer')],
                 ],
-                'tooltip' => __('Enable to stop duplicate images by searching the media library before downloading new files.', 'importwp')
+                'tooltip' => __('Enable to stop duplicate images by searching the media library before downloading new files.', 'jc-importer')
             ]),
-            $this->register_field('Delimiter', '_delimiter', [
+            $this->register_field(__('Delimiter', 'jc-importer'), '_delimiter', [
                 'type' => 'text',
-                'tooltip' => 'A single character used to seperate attachments when listing multiple, Leave empty to use default: ,'
+                'tooltip' => sprintf(__('A single character used to seperate attachments when listing multiple, Leave empty to use the default: %s', 'jc-importer'), ',')
             ]),
 
         ]);
 
         if (!in_array('_meta', $disabled_fields)) {
-            $fields[] = $this->register_group('Attachment Meta', '_meta', [
-                $this->register_field('Enable Meta', '_enabled', [
+            $fields[] = $this->register_group(__('Attachment Meta', 'jc-importer'), '_meta', [
+                $this->register_field(__('Enable Meta', 'jc-importer'), '_enabled', [
                     'default' => 'no',
                     'options' => [
-                        ['value' => 'no', 'label' => 'No'],
-                        ['value' => 'yes', 'label' => 'Yes'],
+                        ['value' => 'no', 'label' => __('No', 'jc-importer')],
+                        ['value' => 'yes', 'label' => __('Yes', 'jc-importer')],
                     ],
                     'type' => 'select',
-                    'tooltip' => __('Enable/Disable the fields to import attachment meta data.', 'importwp')
+                    'tooltip' => __('Enable/Disable the fields to import attachment meta data.', 'jc-importer')
                 ]),
-                $this->register_field('Alt Text', '_alt', [
+                $this->register_field(__('Alt Text', 'jc-importer'), '_alt', [
                     'condition' => ['_enabled', '==', 'yes'],
-                    'tooltip' => __('Image attachment alt text.', 'importwp'),
+                    'tooltip' => __('Image attachment alt text.', 'jc-importer'),
                 ]),
-                $this->register_field('Title Text', '_title', [
+                $this->register_field(__('Title Text', 'jc-importer'), '_title', [
                     'condition' => ['_enabled', '==', 'yes'],
-                    'tooltip' => __('Attachments title text.', 'importwp')
+                    'tooltip' => __('Attachments title text.', 'jc-importer')
                 ]),
-                $this->register_field('Caption Text', '_caption', [
+                $this->register_field(__('Caption Text', 'jc-importer'), '_caption', [
                     'condition' => ['_enabled', '==', 'yes'],
-                    'tooltip' => __('Image attachments caption text.', 'importwp')
+                    'tooltip' => __('Image attachments caption text.', 'jc-importer')
                 ]),
-                $this->register_field('Description Text', '_description', [
+                $this->register_field(__('Description Text', 'jc-importer'), '_description', [
                     'condition' => ['_enabled', '==', 'yes'],
-                    'tooltip' => __('Attachments description text.', 'importwp')
+                    'tooltip' => __('Attachments description text.', 'jc-importer')
                 ])
             ]);
         }
 
-        return $this->register_group('Settings', 'settings', array_merge($extra_fields, $fields), ['type' => 'settings', 'condition' => $display_conditions]);
+        return $this->register_group(__('Settings', 'jc-importer'), 'settings', array_merge($extra_fields, $fields), ['type' => 'settings', 'condition' => $display_conditions]);
     }
 
-    public function register_attachment_fields($label = 'Attachments', $name = 'attachments', $field_label = 'Location', $group_args = null, $attachment_args = [])
+    public function register_attachment_fields($label = 'Images & Attachments', $name = 'attachments', $field_label = 'Location', $group_args = null, $attachment_args = [])
     {
         if (is_null($group_args)) {
             $group_args = ['type' => 'repeatable', 'row_base' => true, 'link' => 'https://www.importwp.com/docs/how-to-import-wordpress-attachments-onto-a-post-type/'];
@@ -375,7 +382,7 @@ class Template extends AbstractTemplate
 
         return $this->register_group($label, $name, [
             $this->register_field($field_label, 'location', [
-                'tooltip' => __('The source location of the file being attached.', 'importwp')
+                'tooltip' => __('The source location of the file being attached.', 'jc-importer')
             ]),
             $this->_register_attachment_setting_fields($display_conditions, $extra_fields, $disabled_fields)
         ], $group_args);
@@ -479,6 +486,18 @@ class Template extends AbstractTemplate
             if (false === $found) {
                 $field_groups['default']['fields'][$field_id] = $field_value;
             }
+        }
+
+        if ($this->importer->has_custom_unique_identifier()) {
+
+            $ref = $this->importer->getSetting('unique_identifier_ref');
+
+            $field_groups['iwp'] = [
+                'id' => 'iwp',
+                'fields' => [
+                    $this->importer->get_iwp_reference_meta_key() => (!is_null($ref) ? $ref : '')
+                ]
+            ];
         }
 
         return $field_groups;
@@ -669,6 +688,14 @@ class Template extends AbstractTemplate
                         $attachment_id = $attachment->get_attachment_by_hash($source);
                     }
 
+                    // check to see if remote url matches file existing in media library
+                    if ($attachment_id <= 0) {
+                        $dir  = wp_get_upload_dir();
+                        if (str_starts_with($source, $dir['baseurl'] . '/')) {
+                            $attachment_id = attachment_url_to_postid($source);
+                        }
+                    }
+
                     if ($attachment_id <= 0) {
 
                         $main_zip_file = false;
@@ -695,7 +722,7 @@ class Template extends AbstractTemplate
                                 }
 
                                 if (!$result) {
-                                    $result = new \WP_Error('IWP_HTTP_2', 'Error downloading zip file');
+                                    $result = new \WP_Error('IWP_HTTP_2', __('Error downloading zip file', 'jc-importer'));
                                     break;
                                 }
                             }
@@ -1043,5 +1070,48 @@ class Template extends AbstractTemplate
     public function get_default_enabled_fields()
     {
         return $this->default_enabled_fields;
+    }
+
+
+    public function get_unique_identifier_options($importer_model, $unique_fields = [])
+    {
+        $output = [];
+        return $output;
+    }
+
+    public function get_unique_identifier_options_from_map($importer_model, $unique_fields, $field_map, $optional_fields)
+    {
+        $output = [];
+        $mapped_data = $importer_model->getMap();
+
+        foreach ($field_map as $field_id => $field_map_key) {
+
+            if (isset($output[$field_id])) {
+                continue;
+            }
+
+            $output[$field_id] = [
+                'value' => $field_id,
+                'label' => $field_id,
+                'uid' => false,
+                'active' => false,
+            ];
+
+            if (in_array($field_id, $unique_fields)) {
+                $output[$field_id]['uid'] = true;
+            }
+
+            if (!isset($mapped_data[$field_map_key]) || empty($mapped_data[$field_map_key])) {
+                continue;
+            }
+
+            if (in_array($field_id, $optional_fields) && true !== $importer_model->isEnabledField($field_map_key)) {
+                continue;
+            }
+
+            $output[$field_id]['active'] = true;
+        }
+
+        return $output;
     }
 }

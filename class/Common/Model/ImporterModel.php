@@ -99,6 +99,12 @@ class ImporterModel
     protected $settings = [];
 
     /**
+     * @var int
+     */
+    protected $version;
+    protected $version_latest = 2;
+
+    /**
      * @var bool
      */
     protected $debug;
@@ -134,6 +140,7 @@ class ImporterModel
             $this->start_row = isset($data['settings'], $data['settings']['start_row']) ? $data['settings']['start_row'] : null;
             $this->max_row = isset($data['settings'], $data['settings']['max_row']) ? $data['settings']['max_row'] : null;
             $this->settings = isset($data['settings']) ? $data['settings'] : [];
+            $this->version = isset($data['version']) ? $data['version'] : 0;
         } elseif (!is_null($data)) {
 
             $post = false;
@@ -181,6 +188,7 @@ class ImporterModel
                 $this->start_row = isset($json['settings'], $json['settings']['start_row']) ? $json['settings']['start_row'] : null;
                 $this->max_row = isset($json['settings'], $json['settings']['max_row']) ? $json['settings']['max_row'] : null;
                 $this->settings = isset($json['settings']) ? $json['settings'] : [];
+                $this->version = isset($json['version']) ? $json['version'] : 0;
             }
         }
 
@@ -232,7 +240,8 @@ class ImporterModel
             'map' => (object) $this->map,
             'enabled' => (object) $this->enabled,
             'permissions' => (object) $this->getPermissions(),
-            'settings' => (object) $settings
+            'settings' => (object) $settings,
+            'version' => $this->version,
         );
 
         if (true === $this->debug) {
@@ -257,26 +266,42 @@ class ImporterModel
             'max_row' => $this->max_row,
         ]);
 
+        $post_content = array(
+            'template' => $this->template,
+            'template_type' => $this->template_type,
+            'file' => [
+                'id' => $this->file_id,
+                'settings' => $this->file_settings
+            ],
+            'datasource' => [
+                'type' => $this->datasource,
+                'settings' => $this->getDatasourceSettings()
+            ],
+            'parser' => $this->parser,
+            'map' => $this->map,
+            'enabled' => $this->enabled,
+            'permissions' => $this->permissions,
+            'settings' => $settings,
+            'version' => $this->version
+        );
+
+        if (is_null($this->id)) {
+
+            if ($this->template === 'jet-engine-cct') {
+
+                // do not force the new permissions interface.
+
+            } else {
+
+                // set defaults on new importers
+                $post_content['version'] = $this->version_latest;
+                $post_content['settings']['unique_identifier_type'] = 'custom';
+            }
+        }
+
         $postarr = array(
             'post_title' => $this->name,
-            'post_content' => serialize(array(
-                'template' => $this->template,
-                'template_type' => $this->template_type,
-                'file' => [
-                    'id' => $this->file_id,
-                    'settings' => $this->file_settings
-                ],
-                'datasource' => [
-                    'type' => $this->datasource,
-                    'settings' => $this->getDatasourceSettings()
-                ],
-                'parser' => $this->parser,
-                'map' => $this->map,
-                'enabled' => $this->enabled,
-                'permissions' => $this->permissions,
-
-                'settings' => $settings
-            )),
+            'post_content' => serialize($post_content),
         );
 
         if (is_null($this->id)) {
@@ -643,5 +668,30 @@ class ImporterModel
     public function getUserId()
     {
         return intval($this->user_id) > 0 ? intval($this->user_id) : false;
+    }
+
+    public function getVersion()
+    {
+        return $this->version;
+    }
+
+    public function get_iwp_reference_meta_key()
+    {
+        return '_iwp_ref_uid';
+    }
+
+    public function has_custom_unique_identifier()
+    {
+        return $this->getSetting('unique_identifier_type') === 'custom';
+    }
+
+    public function has_field_unique_identifier()
+    {
+        return $this->getSetting('unique_identifier_type') === 'field';
+    }
+
+    public function has_legacy_unique_identifier()
+    {
+        return !in_array($this->getSetting('unique_identifier_type'), ['custom', 'field']);
     }
 }

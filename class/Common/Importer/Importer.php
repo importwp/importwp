@@ -14,7 +14,6 @@ use ImportWP\Common\Importer\Parser\XMLParser;
 use ImportWP\Common\Importer\ParserInterface;
 use ImportWP\Common\Importer\State\ImporterState;
 use ImportWP\Common\Properties\Properties;
-use ImportWP\Common\Runner\ImporterRunner;
 use ImportWP\Common\Runner\ImporterRunnerState;
 use ImportWP\Common\Util\Logger;
 use ImportWP\Common\Util\Util;
@@ -223,11 +222,11 @@ class Importer
     public function import($id, $user, $importer_state)
     {
         if ($this->parser == null) {
-            throw new \Exception("Parser Not Loaded.");
+            throw new \Exception(__("Parser Not Loaded.", 'jc-importer'));
         }
 
         if ($this->mapper == null) {
-            throw new \Exception("Mapper Not Loaded.");
+            throw new \Exception(__("Mapper Not Loaded.", 'jc-importer'));
         }
 
         $this->mapper->setup();
@@ -285,8 +284,12 @@ class Importer
         $max_total = $progress['end'] - 1;
         $i = $progress['start'] + $progress['current_row'] - 1;
 
+        // limit to max 20 rows per chunk
+        $i_max = $i + apply_filters('iwp/chunk_max_records', 20);
+
         while (
             $i < $max_total
+            && (!defined('REST_REQUEST') || !REST_REQUEST ||  $i < $i_max)
             && (
                 $time_limit === 0 || $this->has_enough_time($start, $time_limit, $max_record_time)
             )
@@ -358,6 +361,8 @@ class Importer
                         $data = apply_filters('iwp/importer/before_mapper', $data, $this);
                         $data->map();
 
+                        $unique_identifier_str = $this->get_unique_identifier_log_text();
+
                         if ($data->isInsert()) {
 
                             Logger::write('import:' . $i . ' -success -insert');
@@ -365,7 +370,7 @@ class Importer
                             $stats['inserts']++;
 
                             $message = apply_filters('iwp/status/record_inserted', 'Record Inserted: #' . $data->getId(), $data->getId(), $data);
-                            Util::write_status_log_file_message($id, $session, $message, 'S', $progress['current_row']);
+                            Util::write_status_log_file_message($id, $session, $message . $unique_identifier_str, 'S', $progress['current_row']);
                         }
 
                         if ($data->isUpdate()) {
@@ -375,7 +380,7 @@ class Importer
                             $stats['updates']++;
 
                             $message = apply_filters('iwp/status/record_updated', 'Record Updated: #' . $data->getId(), $data->getId(), $data);
-                            Util::write_status_log_file_message($id, $session, $message, 'S', $progress['current_row']);
+                            Util::write_status_log_file_message($id, $session, $message . $unique_identifier_str, 'S', $progress['current_row']);
                         }
                     }
                 } catch (ParserException $e) {
@@ -398,19 +403,35 @@ class Importer
 
                 if ($this->getMapper()->permission() && $this->getMapper()->permission()->allowed_method('remove')) {
 
-                    $GLOBALS['wp_object_cache']->delete('iwp_importer_config_' . $id, 'options');
-                    $config = get_site_option('iwp_importer_config_' . $id);
+                    try {
+                        $GLOBALS['wp_object_cache']->delete('iwp_importer_config_' . $id, 'options');
+                        $config = get_site_option('iwp_importer_config_' . $id);
 
-                    $object_ids = $config['delete_ids'];
-                    if ($object_ids && count($object_ids) > $i) {
-                        $object_id = $object_ids[$i];
-                        $this->getMapper()->delete($object_id);
-                        $stats['deletes']++;
+                        $object_ids = $config['delete_ids'];
+                        if ($object_ids && count($object_ids) > $i) {
 
-                        Logger::write('delete:' . $i . ' -object=' . $object_id);
+                            $object_id = $object_ids[$i];
 
-                        $message = apply_filters('iwp/status/record_deleted', 'Record Deleted: #' . $object_id, $object_id);
-                        Util::write_status_log_file_message($id, $session, $message, 'D', $progress['current_row']);
+                            if (apply_filters('iwp/importer/enable_custom_delete_action', false, $id)) {
+
+                                Logger::write('custom_delete_action:' . $i . ' -object=' . $object_id);
+                                do_action('iwp/importer/custom_delete_action', $id, $object_id);
+                            } else {
+
+                                Logger::write('delete:' . $i . ' -object=' . $object_id);
+                                $this->getMapper()->delete($object_id);
+                            }
+
+                            $message = apply_filters('iwp/status/record_deleted', 'Record Deleted: #' . $object_id, $object_id);
+                            $stats['deletes']++;
+
+                            Util::write_status_log_file_message($id, $session, $message, 'D', $progress['current_row']);
+                        }
+                    } catch (MapperException $e) {
+
+                        $stats['errors']++;
+                        Logger::error('delete:' . $i . ' -mapper-error=' . $e->getMessage());
+                        Util::write_status_log_file_message($id, $session, $e->getMessage(), 'E', $progress['current_row']);
                     }
                 }
             }
@@ -487,6 +508,24 @@ class Importer
         $importer_state->populate($state_data);
 
         Util::write_status_session_to_file($id, $importer_state);
+    }
+
+    function get_unique_identifier_log_text()
+    {
+        $unique_identifier_str = '';
+
+        $unqiue_identifier_settings = $this->getMapper()->get_unqiue_identifier_settings();
+        if (!empty($unqiue_identifier_settings) && isset($unqiue_identifier_settings['field'], $unqiue_identifier_settings['value'])) {
+
+            $unique_identifier_str = ' using unique identifier ';
+            if ($unqiue_identifier_settings['field'] === '_iwp_ref_uid') {
+                $unique_identifier_str .= sprintf('("%s")', $unqiue_identifier_settings['value']);
+            } else {
+                $unique_identifier_str .= sprintf('("%s" = "%s")', $unqiue_identifier_settings['field'], $unqiue_identifier_settings['value']);
+            }
+        }
+
+        return $unique_identifier_str;
     }
 
     function has_enough_time($start, $time_limit, $max_record_time)
