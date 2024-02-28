@@ -7397,7 +7397,7 @@ const ExporterEdit = ({
   }, "Choose option"), fileTypes.map(option => (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
     key: option.id,
     value: option.id
-  }, option.label)))), fileType && (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FormRow_FormRow__WEBPACK_IMPORTED_MODULE_12__["default"], null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FormField_FormField__WEBPACK_IMPORTED_MODULE_13__["default"], null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
+  }, option.label)))), fileType === 'csv' && (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FormRow_FormRow__WEBPACK_IMPORTED_MODULE_12__["default"], null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FormField_FormField__WEBPACK_IMPORTED_MODULE_13__["default"], null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
     id: "delimiter",
     field: "delimiter",
     label: "Delimiter Character"
