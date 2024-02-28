@@ -158,6 +158,7 @@ class ImporterManager
         $file = new CSVFile($importer->getFile(), $config);
         $file->setDelimiter($importer->getFileSetting('delimiter'));
         $file->setEnclosure($importer->getFileSetting('enclosure'));
+        $file->setEscape($importer->getFileSetting('escape', "\\"));
         return $file;
     }
 
