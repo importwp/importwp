@@ -576,9 +576,9 @@ class ImporterModel
         return $this->file_settings;
     }
 
-    public function getFileSetting($key)
+    public function getFileSetting($key, $default = null)
     {
-        return isset($this->file_settings[$key]) ? $this->file_settings[$key] : null;
+        return isset($this->file_settings[$key]) ? $this->file_settings[$key] : $default;
     }
 
     public function setFileSetting($key, $value)
