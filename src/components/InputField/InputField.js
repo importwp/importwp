@@ -5,7 +5,8 @@ export default function InputField({
     value = '',
     onChange = () => { },
     children,
-    placeholder = ''
+    placeholder = '',
+    maxLength = null
 }) {
     return (
         <div className="iwp-input-field__wrapper">
@@ -16,7 +17,8 @@ export default function InputField({
                 name={name}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                placeholder={placeholder} />
+                placeholder={placeholder}
+                maxLength={maxLength} />
             {children}
         </div>
     );

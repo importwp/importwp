@@ -62,11 +62,12 @@ class RecordCsv extends Component {
   }
 
   getPreview() {
-    if (this.props.id && this.props.delimiter && this.props.enclosure) {
+    if (this.props.id && this.props.delimiter && this.props.enclosure && this.props.escape) {
       const { id } = this.props;
       const data = {
         delimiter: this.props.delimiter,
         enclosure: this.props.enclosure,
+        escape: this.props.escape,
         show_headings: this.props.show_headings,
         file_encoding: this.props.file_encoding,
       };
@@ -114,6 +115,13 @@ class RecordCsv extends Component {
     if (
       prevProps.enclosure !== this.props.enclosure &&
       this.props.enclosure !== ''
+    ) {
+      reload = true;
+    }
+
+    if (
+      prevProps.escape !== this.props.escape &&
+      this.props.escape !== ''
     ) {
       reload = true;
     }

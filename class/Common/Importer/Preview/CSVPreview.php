@@ -60,7 +60,7 @@ class CSVPreview implements PreviewInterface
     public function data($record_index = 0, $show_headings = true)
     {
         $result = [];
-        $headings = str_getcsv($this->file->getRecord(0), $this->file->getDelimiter(), $this->file->getEnclosure());
+        $headings = str_getcsv($this->file->getRecord(0), $this->file->getDelimiter(), $this->file->getEnclosure(), $this->file->getEscape());
 
         if (true === $show_headings) {
             $result['headings'] = $headings;
@@ -72,7 +72,7 @@ class CSVPreview implements PreviewInterface
             }
         }
 
-        $result['row'] = str_getcsv($this->file->getRecord($record_index), $this->file->getDelimiter(), $this->file->getEnclosure());
+        $result['row'] = str_getcsv($this->file->getRecord($record_index), $this->file->getDelimiter(), $this->file->getEnclosure(), $this->file->getEscape());
         return $result;
     }
 }
