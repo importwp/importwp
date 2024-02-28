@@ -1427,6 +1427,10 @@ class RestManager extends \WP_REST_Controller
             $exporter->setFileType($post_data['file_type']);
         }
 
+        if (isset($post_data['file_settings'])) {
+            $exporter->setFileSettings($post_data['file_settings']);
+        }
+
         if (isset($post_data['fields']) || $id > 0) {
             $exporter->setFields(isset($post_data['fields']) ? $post_data['fields'] : []);
         }

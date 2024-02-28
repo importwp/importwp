@@ -19,7 +19,7 @@ class CSVFile extends File
         }, []);
 
         // write headers
-        fputcsv($this->fh, array_keys($this->columns));
+        fputcsv($this->fh, array_keys($this->columns), $this->exporter->getFileSetting('delimiter', ","), $this->exporter->getFileSetting('enclosure', ","), $this->exporter->getFileSetting('escape', ","));
 
         update_site_option('iwp_exporter_csv_config', [
             'columns' => $this->columns
@@ -56,7 +56,7 @@ class CSVFile extends File
                 return is_array($tmp) ? implode(',', $tmp) : $tmp;
             }, $this->columns);
 
-            fputcsv($this->fh, $data);
+            fputcsv($this->fh, $data, $this->exporter->getFileSetting('delimiter', ","), $this->exporter->getFileSetting('enclosure', ","), $this->exporter->getFileSetting('escape', ","));
         }
     }
 
