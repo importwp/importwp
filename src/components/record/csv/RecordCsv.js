@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import debounce from 'lodash/debounce';
+import debounce from 'lodash.debounce';
 
 import { importer } from '../../../services/importer.service';
 
@@ -179,8 +179,8 @@ RecordCsv.propTypes = {
 RecordCsv.defaultProps = {
   file_encoding: '',
   show_headings: true,
-  onSelect: () => {},
-  onError: () => {},
+  onSelect: () => { },
+  onError: () => { },
 };
 
 export default RecordCsv;
