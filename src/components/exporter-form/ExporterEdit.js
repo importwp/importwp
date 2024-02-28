@@ -471,7 +471,7 @@ const ExporterEdit = ({ id, pro = false }) => {
                     </select>
                   </div>
 
-                  {fileType && <>
+                  {fileType === 'csv' && <>
                     <FormRow>
                       <FormField>
                         <FieldLabel
