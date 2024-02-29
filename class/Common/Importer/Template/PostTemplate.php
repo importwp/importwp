@@ -217,8 +217,14 @@ class PostTemplate extends Template implements TemplateInterface
                         ['value' => 'name', 'label' => __('Name', 'jc-importer')],
                         ['value' => 'slug', 'label' => __('Slug', 'jc-importer')],
                         ['value' => 'term_id', 'label' => __('ID', 'jc-importer')],
+                        ['value' => 'custom_field', 'label' => __('Custom Field', 'jc-importer')],
                     ],
                     'type' => 'select'
+                ]),
+                $this->register_field(__('Custom Field', 'jc-importer'), '_type_cf', [
+                    'condition' => [
+                        ['_type', '==', 'custom_field']
+                    ]
                 ]),
                 $this->register_field(__('Enable Hierarchy', 'jc-importer'), '_hierarchy', [
                     'default' => 'no',
@@ -520,6 +526,7 @@ class PostTemplate extends Template implements TemplateInterface
                 $delimiter = apply_filters('iwp/taxonomy=' . $tax . '/value_delimiter', $base_delimiter);
 
                 $term_types[$tax] = isset($row[$prefix . 'settings._type']) && !empty($row[$prefix . 'settings._type']) ? $row[$prefix . 'settings._type'] : 'name';
+                $term_types_cf[$tax] = isset($row[$prefix . 'settings._type_cf']) && !empty($row[$prefix . 'settings._type_cf']) ? $row[$prefix . 'settings._type_cf'] : '';
 
                 $hierarchy_enabled = isset($row[$prefix . 'settings._hierarchy']) && $row[$prefix . 'settings._hierarchy'] === 'yes' ? true : false;
                 $hierarchy_character = isset($row[$prefix . 'settings._hierarchy_character']) ? $row[$prefix . 'settings._hierarchy_character'] : null;
@@ -602,7 +609,15 @@ class PostTemplate extends Template implements TemplateInterface
                         $connect_terms = $term_i == count($hierarchy_list) - 1;
                     }
 
-                    $term_result = $this->create_or_get_taxonomy_term($post_id, $processed_tax, $term, $prev_term, $type, $connect_terms);
+                    $search_term = $term;
+                    if ($type === 'custom_field') {
+                        $search_term = [
+                            $term_types_cf[$processed_tax],
+                            $term
+                        ];
+                    }
+
+                    $term_result = $this->create_or_get_taxonomy_term($post_id, $processed_tax, $search_term, $prev_term, $type, $connect_terms);
                     if ($term_result) {
                         $prev_term = $term_result->term_id;
                         $this->_taxonomies[$processed_tax][] = $term_result->name;
@@ -612,16 +627,37 @@ class PostTemplate extends Template implements TemplateInterface
         }
     }
 
-    private function create_or_get_taxonomy_term($post_id, $tax, $term, $parent, $term_type = 'name', $set = true)
+    public function create_or_get_taxonomy_term($post_id, $tax, $term, $parent, $term_type = 'name', $set = true)
     {
-        if (!in_array($term_type, ['slug', 'name', 'term_id'])) {
+        if (!in_array($term_type, ['slug', 'name', 'term_id', 'custom_field'])) {
             $term_type = 'name';
         }
 
         if (is_null($parent)) {
 
             // we do not care about parent, just fetch first
-            $tmp_term = get_term_by($term_type, $term, $tax);
+
+            if ($term_type === 'custom_field') {
+
+                if (!isset($term[0], $term[1]) || empty($term[0]) || empty($term[1])) {
+                    return false;
+                }
+
+                $terms = get_terms([
+                    'taxonomy' => $tax,
+                    'meta_key' => $term[0],
+                    'meta_value' => $term[1],
+                    'hide_empty' => false
+                ]);
+                if (empty($terms)) {
+                    return false;
+                }
+
+                $tmp_term = $terms[0];
+            } else {
+                $tmp_term = get_term_by($term_type, $term, $tax);
+            }
+
             if ($tmp_term) {
                 $tmp_term = apply_filters('iwp/importer/template/post_term', $tmp_term, $tax);
                 if ($set) {
@@ -646,6 +682,18 @@ class PostTemplate extends Template implements TemplateInterface
                 if ($tmp_term) {
                     $terms[] = $tmp_term;
                 }
+            } else if ($term_type === 'custom_field') {
+
+                if (!isset($term[0], $term[1]) || empty($term[0]) || empty($term[1])) {
+                    return false;
+                }
+
+                $terms = get_terms([
+                    'taxonomy' => $tax,
+                    'meta_key' => $term[0],
+                    'meta_value' => $term[1],
+                    'hide_empty' => false
+                ]);
             } else {
 
                 $terms = get_terms([
@@ -671,7 +719,12 @@ class PostTemplate extends Template implements TemplateInterface
         }
 
         // should not create new term since we are using the term_id
-        if ($term_type === 'term_id') {
+        if ($term_type === 'term_id' || $term_type === 'custom_field') {
+            return false;
+        }
+
+        // allow the option to disable the creation of terms
+        if (false === apply_filters('iwp/importer/template/post_create_term', true)) {
             return false;
         }
 
