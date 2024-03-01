@@ -567,6 +567,7 @@ class RestManager extends \WP_REST_Controller
                     $file_type = $config['data']['file_type'];
                     $fields = $config['fields'];
                     $formatted_fields = $config['formatted_fields'];
+                    $file_settings = $config['data']['file_settings'];
                 } else {
 
                     /**
@@ -577,6 +578,7 @@ class RestManager extends \WP_REST_Controller
                     $mapper = $this->exporter_manager->get_exporter_mapper($exporter_data);
                     $formatted_fields = $mapper->get_fields();
                     $file_type = $exporter_data->getFileType();
+                    $file_settings = $exporter_data->getFileSettings();
                 }
 
                 if (is_null($file_type) || !in_array($file_type, ['xml', 'csv'])) {
@@ -593,6 +595,17 @@ class RestManager extends \WP_REST_Controller
                             return $carry;
                         }, []);
                         $headings = array_map('trim', $headings);
+
+                        if (isset($file_settings['delimiter']) && !empty($file_settings['delimiter']) && strlen($file_settings['delimiter']) === 1) {
+                            $importer->setFileSetting('delimiter', $file_settings['delimiter']);
+                        }
+                        if (isset($file_settings['enclosure']) && !empty($file_settings['enclosure']) && strlen($file_settings['enclosure']) === 1) {
+                            $importer->setFileSetting('enclosure', $file_settings['enclosure']);
+                        }
+                        if (isset($file_settings['escape']) && !empty($file_settings['escape']) && strlen($file_settings['escape']) === 1) {
+                            $importer->setFileSetting('escape', $file_settings['escape']);
+                        }
+
                         break;
                     case 'xml':
 
@@ -1085,12 +1098,17 @@ class RestManager extends \WP_REST_Controller
 
                 $delimiter = isset($post_data['delimiter']) ? $post_data['delimiter'] : null;
                 if (is_null($delimiter)) {
-                    $delimiter = ',';
+                    $delimiter = $importer->getFileSetting('delimiter', ',');
                 }
 
                 $enclosure = isset($post_data['enclosure']) ? $post_data['enclosure'] : null;
                 if (is_null($enclosure)) {
-                    $enclosure = '"';
+                    $enclosure = $importer->getFileSetting('enclosure', '"');
+                }
+
+                $escape = isset($post_data['escape']) ? $post_data['escape'] : null;
+                if (is_null($escape)) {
+                    $escape = $importer->getFileSetting('escape', '\\');
                 }
 
                 $count = $this->importer_manager->process_csv_file($id, $delimiter, $enclosure, true);
