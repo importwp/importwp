@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import debounce from "lodash/debounce";
+import debounce from "lodash.debounce";
 
 import { importer } from "../../../services/importer.service";
 
@@ -62,8 +62,8 @@ class RecordXml extends Component {
           <ul
             className={
               Object.keys(currentNode.value).length === 1 &&
-              currentNode.value["0"] &&
-              currentNode.value["0"].type
+                currentNode.value["0"] &&
+                currentNode.value["0"].type
                 ? "iwp-preview__" + currentNode.value["0"].type
                 : ""
             }
@@ -143,8 +143,8 @@ RecordXml.propTypes = {
 };
 
 RecordXml.defaultProps = {
-  onSelect: () => {},
-  onError: () => {},
+  onSelect: () => { },
+  onError: () => { },
 };
 
 export default RecordXml;

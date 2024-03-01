@@ -1,0 +1,9 @@
+.iwp-form__grid-flex {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+
+  & > * {
+    width: 100%;
+  }
+}

@@ -5,6 +5,9 @@ import RecordCsv from '../record/csv/RecordCsv';
 import { importer } from '../../services/importer.service';
 import NoticeList from '../notice-list/NoticeList';
 import FieldLabel from '../field-label/FieldLabel';
+import FormRow from '../FormRow/FormRow';
+import FormField from '../FormField/FormField';
+import InputField from '../InputField/InputField';
 
 const ENCODINGS = window.iwp.encodings;
 
@@ -15,6 +18,7 @@ class PreviewCsvForm extends Component {
     this.state = {
       delimiter: props.settings.delimiter,
       enclosure: props.settings.enclosure,
+      escape: props.settings.escape || '\\',
       show_headings: props.settings.show_headings,
       file_encoding: props.settings.file_encoding,
       processing: false,
@@ -45,13 +49,14 @@ class PreviewCsvForm extends Component {
     this.setState({ saving: true });
 
     const { id } = this.props;
-    const { delimiter, enclosure, show_headings, file_encoding } = this.state;
+    const { delimiter, enclosure, escape, show_headings, file_encoding } = this.state;
 
     importer
       .save({
         id: id,
         file_settings_delimiter: delimiter,
         file_settings_enclosure: enclosure,
+        file_settings_escape: escape,
         file_settings_show_headings: show_headings,
         file_settings_setup: true,
         file_settings_encoding: file_encoding,
@@ -79,7 +84,7 @@ class PreviewCsvForm extends Component {
   }
 
   isDisabled() {
-    if (this.state.delimiter !== '' && this.state.enclosure !== '') {
+    if (this.state.delimiter !== '' && this.state.enclosure !== '' && this.state.escape !== '') {
       this.setState({ disabled: false });
     } else {
       this.setState({ disabled: true });
@@ -110,6 +115,7 @@ class PreviewCsvForm extends Component {
     const {
       delimiter,
       enclosure,
+      escape,
       show_headings,
       saving,
       disabled,
@@ -141,43 +147,80 @@ class PreviewCsvForm extends Component {
               preview showing the first record is available at the bottom of the
               page.
             </p>
-            <div className="iwp-form__grid">
-              <div className="iwp-form__row iwp-form__row--left">
+
+            <FormRow>
+              <FormField>
                 <FieldLabel
-                  label="Delimiter"
+                  label="Delimiter Character"
                   id="delimiter"
                   field="delimiter"
                   tooltip="The character which separates the CSV record elements."
                   display="inline-block"
                 />
-                <input
+                <InputField
                   type="text"
                   id="delimiter"
                   className="iwp-form__input"
                   name="delimiter"
-                  onChange={this.onChange}
+                  maxLength={1}
+                  onChange={(value) => this.onChange({
+                    target: {
+                      name: 'delimiter',
+                      value: value
+                    }
+                  })}
                   value={delimiter}
                 />
-              </div>
+              </FormField>
 
-              <div className="iwp-form__row iwp-form__row--right">
+              <FormField>
                 <FieldLabel
-                  label="Enclosure"
+                  label="Enclosure Character"
                   id="enclosure"
                   field="enclosure"
                   tooltip="The character which is wrapper around the CSV record elements."
                   display="inline-block"
                 />
-                <input
+                <InputField
                   type="text"
                   id="enclosure"
                   className="iwp-form__input"
                   name="enclosure"
-                  onChange={this.onChange}
+                  maxLength={1}
+                  onChange={(value) => this.onChange({
+                    target: {
+                      name: 'enclosure',
+                      value: value
+                    }
+                  })}
                   value={enclosure}
                 />
-              </div>
-            </div>
+              </FormField>
+
+              <FormField>
+                <FieldLabel
+                  label="Escape Character"
+                  id="escape"
+                  field="escape"
+                  tooltip="The escape used to escape enclosure characters within a cells content."
+                  display="inline-block"
+                />
+                <InputField
+                  type="text"
+                  id="escape"
+                  className="iwp-form__input"
+                  maxLength={1}
+                  name="escape"
+                  onChange={(value) => this.onChange({
+                    target: {
+                      name: 'escape',
+                      value: value
+                    }
+                  })}
+                  value={escape}
+                />
+              </FormField>
+            </FormRow>
 
             <div className="iwp-form__grid">
               <div className="iwp-form__row iwp-form__row--left">
@@ -234,6 +277,7 @@ class PreviewCsvForm extends Component {
                 show_headings={show_headings}
                 delimiter={delimiter}
                 enclosure={enclosure}
+                escape={escape}
                 onError={this.props.onError}
               />
             </div>

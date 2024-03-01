@@ -370,4 +370,78 @@ class PostTemplateTest extends \WP_UnitTestCase
             }],
         ];
     }
+
+    public function test_create_or_get_taxonomy_term_disable_post_create_term_filter()
+    {
+        /**
+         * @var \PHPUnit\Framework\MockObject\MockObject | PostTemplate
+         */
+        $mock_post_template = $this->createPartialMock(PostTemplate::class, []);
+
+        $test_cat_name = 'Test Cat 1';
+        $post = $this->factory()->post->create_and_get();
+
+        add_filter('iwp/importer/template/post_create_term', '__return_false');
+        $result = $mock_post_template->create_or_get_taxonomy_term($post->ID, 'category', $test_cat_name, null);
+        $this->assertFalse($result);
+
+        $post_term = $this->factory()->category->create_and_get([
+            'name' => $test_cat_name
+        ]);
+
+        $result = $mock_post_template->create_or_get_taxonomy_term($post->ID, 'category', $test_cat_name, null);
+        $this->assertEquals($post_term, $result);
+    }
+
+    public function test_create_or_get_taxonomy_term_by_custom_field()
+    {
+        /**
+         * @var \PHPUnit\Framework\MockObject\MockObject | PostTemplate
+         */
+        $mock_post_template = $this->createPartialMock(PostTemplate::class, []);
+
+        $post = $this->factory()->post->create_and_get();
+        $cf_key = '_iwp_flag_1';
+        $cf_value = 'test_1';
+
+        // 1. Make sure if no result return false
+        $result = $mock_post_template->create_or_get_taxonomy_term($post->ID, 'category', [$cf_key, $cf_value], null, 'custom_field');
+        $this->assertFalse($result);
+
+        // 2. Check for matching term
+        $post_term = $this->factory()->category->create_and_get();
+        update_term_meta($post_term->term_id, $cf_key, $cf_value);
+        $result = $mock_post_template->create_or_get_taxonomy_term($post->ID, 'category', [$cf_key, $cf_value], null, 'custom_field');
+        $this->assertEquals($post_term, $result);
+
+        // 3. Make sure empty value return false
+        $result = $mock_post_template->create_or_get_taxonomy_term($post->ID, 'category', [$cf_key, ''], null, 'custom_field');
+        $this->assertFalse($result);
+
+        // 4. Make sure empty key return false
+        $result = $mock_post_template->create_or_get_taxonomy_term($post->ID, 'category', ['', $cf_value], null, 'custom_field');
+        $this->assertFalse($result);
+
+        // 5. Make sure fails with no array
+        $result = $mock_post_template->create_or_get_taxonomy_term($post->ID, 'category', $cf_key, null, 'custom_field');
+        $this->assertFalse($result);
+    }
+
+    public function test_create_or_get_taxonomy_term_by_custom_field_with_parent()
+    {
+        /**
+         * @var \PHPUnit\Framework\MockObject\MockObject | PostTemplate
+         */
+        $mock_post_template = $this->createPartialMock(PostTemplate::class, []);
+
+        $post = $this->factory()->post->create_and_get();
+        $cf_key = '_iwp_flag_1';
+        $cf_value = 'test_1';
+
+        $post_term_parent = $this->factory()->category->create_and_get();
+
+        // 1. Make sure if no result return false
+        $result = $mock_post_template->create_or_get_taxonomy_term($post->ID, 'category', [$cf_key, $cf_value], $post_term_parent->term_id, 'custom_field');
+        $this->assertFalse($result);
+    }
 }

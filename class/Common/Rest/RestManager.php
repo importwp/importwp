@@ -712,6 +712,16 @@ class RestManager extends \WP_REST_Controller
                 }
                 $importer->setFileSetting('enclosure', $post_data['file_settings_enclosure']);
             }
+
+            if (isset($post_data['file_settings_escape'])) {
+                $old_escape = $importer->getFileSetting('escape');
+                if ($old_escape !== $post_data['file_settings_escape']) {
+                    $clear_config = true;
+                }
+                $importer->setFileSetting('escape', $post_data['file_settings_escape']);
+            }
+
+
             if (isset($post_data['file_settings_show_headings'])) {
                 $importer->setFileSetting('show_headings', $post_data['file_settings_show_headings'] === 'true' || $post_data['file_settings_show_headings'] === true ? true : false);
             }
@@ -1151,6 +1161,8 @@ class RestManager extends \WP_REST_Controller
                     $clear_config = true;
                 } elseif (!is_null($post_data['enclosure']) && $post_data['enclosure'] !== $file->getEnclosure()) {
                     $clear_config = true;
+                } elseif (!is_null($post_data['escape']) && $post_data['escape'] !== $file->getEscape()) {
+                    $clear_config = true;
                 }
 
                 if ($clear_config) {
@@ -1167,6 +1179,11 @@ class RestManager extends \WP_REST_Controller
                 $enclosure = $post_data['enclosure'];
                 if (!is_null($enclosure)) {
                     $file->setEnclosure($enclosure);
+                }
+
+                $escape = $post_data['escape'];
+                if (!is_null($escape)) {
+                    $file->setEscape($escape);
                 }
 
                 // parse bool param from string
@@ -1689,6 +1706,10 @@ class RestManager extends \WP_REST_Controller
 
         if (isset($post_data['file_type'])) {
             $exporter->setFileType($post_data['file_type']);
+        }
+
+        if (isset($post_data['file_settings'])) {
+            $exporter->setFileSettings($post_data['file_settings']);
         }
 
         if (isset($post_data['fields']) || $id > 0) {

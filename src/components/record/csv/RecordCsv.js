@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import debounce from 'lodash/debounce';
+import debounce from 'lodash.debounce';
 
 import { importer } from '../../../services/importer.service';
 
@@ -62,11 +62,12 @@ class RecordCsv extends Component {
   }
 
   getPreview() {
-    if (this.props.id && this.props.delimiter && this.props.enclosure) {
+    if (this.props.id && this.props.delimiter && this.props.enclosure && this.props.escape) {
       const { id } = this.props;
       const data = {
         delimiter: this.props.delimiter,
         enclosure: this.props.enclosure,
+        escape: this.props.escape,
         show_headings: this.props.show_headings,
         file_encoding: this.props.file_encoding,
       };
@@ -114,6 +115,13 @@ class RecordCsv extends Component {
     if (
       prevProps.enclosure !== this.props.enclosure &&
       this.props.enclosure !== ''
+    ) {
+      reload = true;
+    }
+
+    if (
+      prevProps.escape !== this.props.escape &&
+      this.props.escape !== ''
     ) {
       reload = true;
     }
@@ -179,8 +187,8 @@ RecordCsv.propTypes = {
 RecordCsv.defaultProps = {
   file_encoding: '',
   show_headings: true,
-  onSelect: () => {},
-  onError: () => {},
+  onSelect: () => { },
+  onError: () => { },
 };
 
 export default RecordCsv;

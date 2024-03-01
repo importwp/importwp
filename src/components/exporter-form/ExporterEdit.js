@@ -12,6 +12,9 @@ import UpgradeMessage from '../upgrade-message/UpgradeMessage';
 import ExporterFieldSelector from './ExporterFieldSelector';
 import ExportFilter from './ExportFilter';
 import { ErrorBoundary } from "react-error-boundary";
+import FormRow from '../FormRow/FormRow';
+import FormField from '../FormField/FormField';
+import InputField from '../InputField/InputField';
 import InputButton from '../InputButton/InputButton';
 
 const AJAX_BASE = window.iwp.admin_base;
@@ -48,6 +51,7 @@ const ExporterEdit = ({ id, pro = false }) => {
   const [type, setType] = useState('');
   const [fileType, setFileType] = useState('');
   const [fields, setFields] = useState([]);
+  const [fileSettings, setFileSettings] = useState({});
   const [disabled, setDisabled] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -111,6 +115,7 @@ const ExporterEdit = ({ id, pro = false }) => {
         name,
         type,
         file_type: fileType,
+        file_settings: fileSettings,
         unique_identifier: uniqueIdentifier,
         fields: fields,
         filters,
@@ -231,6 +236,7 @@ const ExporterEdit = ({ id, pro = false }) => {
             setName(data.name);
             setFields(data.fields);
             setFileType(data.file_type);
+            setFileSettings(data?.file_settings ?? {});
             setType(data.type);
             setFilters(data.filters);
             setUniqueIdentifier(data.unique_identifier);
@@ -465,6 +471,54 @@ const ExporterEdit = ({ id, pro = false }) => {
                       ))}
                     </select>
                   </div>
+
+                  {fileType === 'csv' && <>
+                    <FormRow>
+                      <FormField>
+                        <FieldLabel
+                          id="delimiter"
+                          field="delimiter"
+                          label="Delimiter Character"
+                        />
+                        <InputField
+                          type="text"
+                          maxLength={1}
+                          name="delimiter"
+                          onChange={(e) => setFileSettings({ ...fileSettings, delimiter: e })}
+                          value={fileSettings?.delimiter ?? ','}
+                        />
+                      </FormField>
+                      <FormField>
+                        <FieldLabel
+                          id="enclosure"
+                          field="enclosure"
+                          label="Enclosure Character"
+                        />
+                        <InputField
+                          type="text"
+                          maxLength={1}
+                          name="enclosure"
+                          onChange={(e) => setFileSettings({ ...fileSettings, enclosure: e })}
+                          value={fileSettings?.enclosure ?? '"'}
+                        />
+                      </FormField>
+                      <FormField>
+                        <FieldLabel
+                          id="escape"
+                          field="escape"
+                          label="Escape Character"
+                        />
+                        <InputField
+                          type="text"
+                          maxLength={1}
+                          name="escape"
+                          onChange={(e) => setFileSettings({ ...fileSettings, escape: e })}
+                          value={fileSettings?.escape ?? '\\'}
+                        />
+                      </FormField>
+                    </FormRow>
+                  </>}
+
                   {/* {fileType && (
                     <>
                       <div className="iwp-form__row">

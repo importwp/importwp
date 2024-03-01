@@ -10,6 +10,7 @@ class CSVFile extends AbstractIndexedFile implements FileInterface
 
 	protected $enclosure = '"';
 	protected $delimiter = ',';
+	protected $escape = '\\';
 
 
 	/**
@@ -32,6 +33,11 @@ class CSVFile extends AbstractIndexedFile implements FileInterface
 		$this->delimiter = $delimiter;
 	}
 
+	public function setEscape($escape)
+	{
+		$this->escape = $escape;
+	}
+
 	/**
 	 * Get Delimiter
 	 *
@@ -52,6 +58,11 @@ class CSVFile extends AbstractIndexedFile implements FileInterface
 		return $this->enclosure;
 	}
 
+	public function getEscape()
+	{
+		return $this->escape;
+	}
+
 	/**
 	 * Generate record file positions
 	 *
@@ -69,7 +80,7 @@ class CSVFile extends AbstractIndexedFile implements FileInterface
 		while (!feof($this->getFileHandle())) {
 
 			$startIndex = ftell($this->getFileHandle());
-			$row = fgetcsv($this->getFileHandle(), 0, $this->getDelimiter(), $this->getEnclosure());
+			$row = fgetcsv($this->getFileHandle(), 0, $this->getDelimiter(), $this->getEnclosure(), $this->getEscape());
 
 			if (!empty($row)) {
 				$this->setIndex($record, $startIndex, ftell($this->getFileHandle()));
