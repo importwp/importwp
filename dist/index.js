@@ -4742,13 +4742,18 @@ function InputButton({
   type = 'button',
   theme = 'primary',
   onClick = () => {},
+  disabled = false,
+  loading = false,
   children
 }) {
   return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    disabled: disabled,
     className: `iwp-input-button iwp-input-button--${theme}`,
     type: type,
     onClick: onClick
-  }, children);
+  }, loading && (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), children);
 }
 
 /***/ }),
@@ -4830,6 +4835,137 @@ function InputField({
     placeholder: placeholder,
     maxLength: maxLength
   }), children);
+}
+
+/***/ }),
+
+/***/ "./src/components/InputRadioAccordionPanel/InputRadioAccordionPanel.js":
+/*!*****************************************************************************!*\
+  !*** ./src/components/InputRadioAccordionPanel/InputRadioAccordionPanel.js ***!
+  \*****************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ InputRadioAccordionPanel)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _InputRadioAccordionPanel_scss__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./InputRadioAccordionPanel.scss */ "./src/components/InputRadioAccordionPanel/InputRadioAccordionPanel.scss");
+
+
+function InputRadioAccordionPanel({
+  label,
+  children,
+  name,
+  value,
+  isActive = false,
+  setActive = () => {}
+}) {
+  const id = `${name}__${value}`;
+  return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-accordion__panel"
+  }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-accordion__handle"
+  }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "radio",
+    id: id,
+    name: name,
+    value: value,
+    defaultChecked: isActive,
+    onChange: () => {
+      setActive(value);
+    }
+  }), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    htmlFor: id
+  }, label)), children && (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-accordion__content",
+    style: {
+      display: isActive ? 'block' : 'none'
+    }
+  }, children));
+}
+
+/***/ }),
+
+/***/ "./src/components/InputRadioAccordion/InputRadioAccordion.js":
+/*!*******************************************************************!*\
+  !*** ./src/components/InputRadioAccordion/InputRadioAccordion.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ InputRadioAccordion)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _InputRadioAccordion_scss__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./InputRadioAccordion.scss */ "./src/components/InputRadioAccordion/InputRadioAccordion.scss");
+
+
+
+function InputRadioAccordion({
+  name,
+  children,
+  defaultActive = '',
+  onChange = () => {}
+}) {
+  const [activePanel, setActivePanel] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)(defaultActive);
+  return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-accordion"
+  }, react__WEBPACK_IMPORTED_MODULE_1__.Children.map(children, (child, i) => {
+    const isActive = child.props.value === activePanel;
+    return (0,react__WEBPACK_IMPORTED_MODULE_1__.cloneElement)(child, {
+      name,
+      isActive,
+      setActive: value => {
+        setActivePanel(value);
+        onChange(value);
+      }
+    });
+  }));
+}
+
+/***/ }),
+
+/***/ "./src/components/SelectField/SelectField.js":
+/*!***************************************************!*\
+  !*** ./src/components/SelectField/SelectField.js ***!
+  \***************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ SelectField)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _SelectField_scss__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./SelectField.scss */ "./src/components/SelectField/SelectField.scss");
+
+
+function SelectField({
+  name = '',
+  value = '',
+  onChange = () => {},
+  children,
+  options = null,
+  placeholder = ''
+}) {
+  return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: `iwp-select-field__wrapper`
+  }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
+    id: name,
+    name: name,
+    value: value,
+    className: "iwp-select-field",
+    onChange: e => onChange(e.target.value),
+    placeholder: placeholder
+  }, options), children);
 }
 
 /***/ }),
@@ -6997,7 +7133,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var react_router_dom__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router/esm/react-router.js");
+/* harmony import */ var react_router_dom__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router/esm/react-router.js");
 /* harmony import */ var _services_exporter_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../services/exporter.service */ "./src/services/exporter.service.js");
 /* harmony import */ var _field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../field-label/FieldLabel */ "./src/components/field-label/FieldLabel.js");
 /* harmony import */ var _global_notice_GlobalNotice__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../global-notice/GlobalNotice */ "./src/components/global-notice/GlobalNotice.js");
@@ -7008,10 +7144,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _upgrade_message_UpgradeMessage__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../upgrade-message/UpgradeMessage */ "./src/components/upgrade-message/UpgradeMessage.js");
 /* harmony import */ var _ExporterFieldSelector__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./ExporterFieldSelector */ "./src/components/exporter-form/ExporterFieldSelector.js");
 /* harmony import */ var _ExportFilter__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./ExportFilter */ "./src/components/exporter-form/ExportFilter.js");
-/* harmony import */ var react_error_boundary__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! react-error-boundary */ "./node_modules/react-error-boundary/dist/react-error-boundary.development.esm.js");
+/* harmony import */ var react_error_boundary__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! react-error-boundary */ "./node_modules/react-error-boundary/dist/react-error-boundary.development.esm.js");
 /* harmony import */ var _FormRow_FormRow__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../FormRow/FormRow */ "./src/components/FormRow/FormRow.js");
 /* harmony import */ var _FormField_FormField__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../FormField/FormField */ "./src/components/FormField/FormField.js");
 /* harmony import */ var _InputField_InputField__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../InputField/InputField */ "./src/components/InputField/InputField.js");
+/* harmony import */ var _InputButton_InputButton__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../InputButton/InputButton */ "./src/components/InputButton/InputButton.js");
+
 
 
 
@@ -7088,7 +7226,7 @@ const ExporterEdit = ({
   const [exportMethod, setExportMethod] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)('run');
   const [cronSettings, setCronSettings] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)([default_schedule]);
   const [activeSession, setActiveSession] = (0,react__WEBPACK_IMPORTED_MODULE_1__.useState)('');
-  const history = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_15__.useHistory)();
+  const history = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_16__.useHistory)();
   const didMount = (0,react__WEBPACK_IMPORTED_MODULE_1__.useRef)(-1);
   const runnerXHR = (0,react__WEBPACK_IMPORTED_MODULE_1__.useRef)(null);
   const statusXHR = (0,react__WEBPACK_IMPORTED_MODULE_1__.useRef)(null);
@@ -7436,7 +7574,7 @@ const ExporterEdit = ({
       escape: e
     }),
     value: (_fileSettings$escape = fileSettings?.escape) !== null && _fileSettings$escape !== void 0 ? _fileSettings$escape : '\\'
-  })))), fileType && (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_error_boundary__WEBPACK_IMPORTED_MODULE_16__.ErrorBoundary, {
+  })))), fileType && (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_error_boundary__WEBPACK_IMPORTED_MODULE_17__.ErrorBoundary, {
     fallbackRender: fallbackRender
   }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_ExporterFieldSelector__WEBPACK_IMPORTED_MODULE_10__["default"], {
     fileType: fileType,
@@ -7487,21 +7625,22 @@ const ExporterEdit = ({
     className: "iwp-form__actions"
   }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
     className: "iwp-buttons"
-  }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-    className: 'button button-' + (id > 0 ? 'secondary' : 'primary'),
-    type: "button",
+  }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputButton_InputButton__WEBPACK_IMPORTED_MODULE_15__["default"], {
+    theme: id > 0 ? 'secondary' : 'primary',
     onClick: onSave,
-    disabled: disabled
-  }, saving && (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-    className: "spinner is-active"
-  }), saving ? 'Saving' : id > 0 ? 'Save' : 'Create Exporter'), ' ', id > 0 && (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-    className: "button button-primary",
-    type: "button",
+    disabled: disabled,
+    loading: saving
+  }, saving ? 'Saving' : id > 0 ? 'Save' : 'Create Exporter'), id > 0 && (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, ' ', (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputButton_InputButton__WEBPACK_IMPORTED_MODULE_15__["default"], {
+    theme: "primary",
     onClick: onSaveAndRun,
-    disabled: disabled
-  }, saving && (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-    className: "spinner is-active"
-  }), saving ? 'Saving' : exportMethod == 'run' ? 'Save & Run' : 'Save & Schedule'))));
+    disabled: disabled,
+    loading: saving
+  }, saving ? 'Saving' : exportMethod == 'run' ? 'Save & Run' : 'Save & Schedule'), ' ', (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputButton_InputButton__WEBPACK_IMPORTED_MODULE_15__["default"], {
+    theme: "link",
+    onClick: () => {
+      _services_exporter_service__WEBPACK_IMPORTED_MODULE_2__.exporter.exportConfig(id);
+    }
+  }, "Download importer config")))));
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ExporterEdit);
 
@@ -8733,7 +8872,7 @@ class Field extends (react__WEBPACK_IMPORTED_MODULE_1___default().PureComponent)
           isClearable: true,
           defaultOptions: true,
           loadOptions: this.selectOptions,
-          value: options === 'callback' ? this.state.options.find(item => item.value === value) : options.find(item => item.value === value),
+          value: options === 'callback' ? this.state.options?.find(item => item.value === value) : options.find(item => item.value === value),
           name: name + '.' + id,
           id: name + '.' + id,
           onChange: this.onSelectChange,
@@ -13108,13 +13247,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! prop-types */ "./node_modules/prop-types/index.js");
-/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! prop-types */ "./node_modules/prop-types/index.js");
+/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_11__);
 /* harmony import */ var _upgrade_message_UpgradeMessage__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../upgrade-message/UpgradeMessage */ "./src/components/upgrade-message/UpgradeMessage.js");
-/* harmony import */ var _wordpress_hooks__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @wordpress/hooks */ "@wordpress/hooks");
-/* harmony import */ var _wordpress_hooks__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_wordpress_hooks__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _services_importer_service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../services/importer.service */ "./src/services/importer.service.js");
+/* harmony import */ var _services_importer_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../services/importer.service */ "./src/services/importer.service.js");
+/* harmony import */ var _services_exporter_service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../services/exporter.service */ "./src/services/exporter.service.js");
 /* harmony import */ var _field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../field-label/FieldLabel */ "./src/components/field-label/FieldLabel.js");
+/* harmony import */ var _InputRadioAccordion_InputRadioAccordion__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../InputRadioAccordion/InputRadioAccordion */ "./src/components/InputRadioAccordion/InputRadioAccordion.js");
+/* harmony import */ var _InputRadioAccordionPanel_InputRadioAccordionPanel__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../InputRadioAccordionPanel/InputRadioAccordionPanel */ "./src/components/InputRadioAccordionPanel/InputRadioAccordionPanel.js");
+/* harmony import */ var _SelectField_SelectField__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../SelectField/SelectField */ "./src/components/SelectField/SelectField.js");
+/* harmony import */ var _InputField_InputField__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../InputField/InputField */ "./src/components/InputField/InputField.js");
+/* harmony import */ var _InputButton_InputButton__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../InputButton/InputButton */ "./src/components/InputButton/InputButton.js");
 
 
 
@@ -13122,7 +13265,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const hooks = (0,_wordpress_hooks__WEBPACK_IMPORTED_MODULE_3__.createHooks)();
+
+
+
+
+
 class SetupForm extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
   constructor(props) {
     super(props);
@@ -13142,18 +13289,40 @@ class SetupForm extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
       name: '',
       template: '',
       template_type: '',
+      exporter: '',
+      setup_type: 'manual',
       ...template_options,
       saving: false,
       disabled: true,
-      upgrade: false
+      upgrade: false,
+      exporters: [],
+      exporter_config_file: null
     };
     this.onSubmit = this.onSubmit.bind(this);
     this.onChange = this.onChange.bind(this);
   }
+  componentDidMount() {
+    _services_exporter_service__WEBPACK_IMPORTED_MODULE_4__.exporter.exporters().then(exporters => {
+      this.setState({
+        exporters: exporters.filter(item => item.type?.length > 0 && item.unique_identifier?.length > 0 && item.file_type?.length > 0).reduce((carry, item) => {
+          return [...carry, {
+            value: item.id,
+            label: item.name
+          }];
+        }, [])
+      });
+    });
+  }
+  componentWillUnmount() {
+    _services_exporter_service__WEBPACK_IMPORTED_MODULE_4__.exporter.abort('exporters');
+  }
   isDisabled() {
     const {
       template,
-      name
+      name,
+      setup_type,
+      exporter,
+      exporter_config_file
     } = this.state;
     let disabled = true;
     let upgrade = false;
@@ -13173,6 +13342,12 @@ class SetupForm extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
         }
       });
     }
+    if (setup_type === 'generate') {
+      disabled = exporter.length > 0 ? disabled : true;
+    }
+    if (setup_type === 'upload') {
+      disabled = !exporter_config_file ? true : disabled;
+    }
     if (name === '') {
       disabled = true;
     }
@@ -13181,21 +13356,26 @@ class SetupForm extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
       upgrade: upgrade
     });
   }
-  onChange(event) {
-    const {
-      name,
-      value
-    } = event.target;
+  onChange(name, value) {
+    let stateChange = {
+      [name]: value
+    };
 
     // reset template_type on template change
     if (name === 'template') {
-      this.setState({
+      stateChange = {
+        ...stateChange,
         template_type: ''
-      });
+      };
+    } else if (name === 'setup_type') {
+      stateChange = {
+        ...stateChange,
+        // template: '',
+        // template_type: '',
+        exporter: ''
+      };
     }
-    this.setState({
-      [name]: value
-    }, this.isDisabled);
+    this.setState(stateChange, this.isDisabled);
   }
   onSubmit() {
     this.setState({
@@ -13211,25 +13391,45 @@ class SetupForm extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
         return obj;
       }, {});
     }
-
-    // const template_options = Object.keys(this.state)
-    //   .filter(item => item.startsWith('option_'))
-    //   .reduce((obj, key) => {
-    //     obj[key.substring('option_'.length)] = this.state[key];
-    //     return obj;
-    //   }, {});
-
-    // console.log('ASD');
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_4__.importer.save({
-      name: this.state.name,
-      template: this.state.template,
-      template_type: this.state.template_type,
-      template_options: template_options
-    }).then(data => {
-      this.setState({
-        saving: false
+    let exporter_config_file = null;
+    new Promise((resolve, reject) => {
+      if (this.state.setup_type !== 'upload') {
+        resolve();
+      }
+      let form_data = new FormData();
+      form_data.append('file', this.state.exporter_config_file);
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.readExporterConfig(form_data).then(data => {
+        exporter_config_file = JSON.stringify(data.exporter);
+        resolve();
+      }).catch(error => {
+        reject(error);
       });
-      this.props.complete(data.id);
+    }).then(() => {
+      let data = {
+        name: this.state.name,
+        template: this.state.template,
+        template_type: this.state.template_type,
+        template_options: template_options,
+        setup_type: this.state.setup_type,
+        exporter: this.state.exporter
+      };
+      if (exporter_config_file !== null) {
+        data = {
+          ...data,
+          exporter_config_file
+        };
+      }
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.save(data).then(data => {
+        this.setState({
+          saving: false
+        });
+        this.props.complete(data.id);
+      }).catch(error => {
+        this.props.onError(error);
+        this.setState({
+          saving: false
+        });
+      });
     }).catch(error => {
       this.props.onError(error);
       this.setState({
@@ -13239,10 +13439,13 @@ class SetupForm extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
   }
   render() {
     const {
+      name,
       template,
       saving,
       disabled,
-      upgrade
+      upgrade,
+      exporters,
+      exporter
     } = this.state;
     const current_template = this.templates.find(template_data => template_data.value === template);
     const template_options = current_template ? current_template.options : [];
@@ -13251,20 +13454,74 @@ class SetupForm extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
       className: "iwp-heading"
     }, "Create Importer"), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row "
+      className: "iwp-form__row"
     }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_5__["default"], {
       id: "name",
       field: "name",
       label: "Name the importer",
       tooltip: "Enter the name of the importer, the name is only used to help find your importer.",
       display: "inline-block"
-    }), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    }), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputField_InputField__WEBPACK_IMPORTED_MODULE_9__["default"], {
       id: "name",
       name: "name",
       type: "text",
       className: "iwp-form__input",
-      onChange: this.onChange,
+      value: name,
+      onChange: value => this.onChange('name', value),
       placeholder: "importer name"
+    })), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputRadioAccordion_InputRadioAccordion__WEBPACK_IMPORTED_MODULE_6__["default"], {
+      name: "setup_type",
+      defaultActive: "manual",
+      onChange: value => this.onChange('setup_type', value)
+    }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputRadioAccordionPanel_InputRadioAccordionPanel__WEBPACK_IMPORTED_MODULE_7__["default"], {
+      value: "generate",
+      label: "Use an existing exporter to populate importer fields."
+    }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+      className: "iwp-form__row"
+    }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_5__["default"], {
+      id: "exporter",
+      field: "exporter",
+      label: "Choose exiting Exporter",
+      display: "inline-block"
+    }), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_SelectField_SelectField__WEBPACK_IMPORTED_MODULE_8__["default"], {
+      id: "exporter",
+      name: "exporter",
+      placeholder: "Choose Exporter",
+      onChange: value => this.onChange('exporter', value),
+      value: exporter,
+      options: (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+        value: ""
+      }, "Choose Exporter"), exporters.map(row => (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+        key: row.value,
+        value: row.value
+      }, `#${row.value} - ${row.label}`)))
+    }))), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputRadioAccordionPanel_InputRadioAccordionPanel__WEBPACK_IMPORTED_MODULE_7__["default"], {
+      value: "upload",
+      label: "Upload importer config file from an exporter"
+    }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+      className: "iwp-form__row"
+    }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+      className: "iwp-field__left"
+    }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_5__["default"], {
+      field: "upload_file",
+      id: "upload_file",
+      label: "Upload File",
+      tooltip: "Select the file you wish to import via the file upload input."
+    })), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+      className: "iwp-field__right"
+    }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+      className: "iwp-form__input",
+      id: "upload_file",
+      name: "file",
+      type: "file",
+      onChange: event => {
+        this.setState({
+          exporter_config_file: event.target.files[0]
+        }, this.isDisabled);
+      }
+    })))), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputRadioAccordionPanel_InputRadioAccordionPanel__WEBPACK_IMPORTED_MODULE_7__["default"], {
+      value: "manual",
+      label: "Manually configure the importer."
     })), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
       className: "iwp-form__row"
     }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_5__["default"], {
@@ -13273,51 +13530,58 @@ class SetupForm extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
       label: "What are you wanting to import?",
       tooltip: "Select from the dropdown what import template you want to use for your import file.",
       display: "inline-block"
-    }), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
+    }), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_SelectField_SelectField__WEBPACK_IMPORTED_MODULE_8__["default"], {
       id: "template",
       name: "template",
-      className: "iwp-form__input",
-      onChange: this.onChange,
-      value: template
-    }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: ""
-    }, "Choose Template"), this.templates.map(row => (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      key: row.value,
-      value: row.value
-    }, row.label)))), template && template_options.map(template_data => (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      key: template_data.id,
-      className: "iwp-form__row"
-    }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      className: "iwp-form__label"
-    }, template_data.label), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
-      name: 'option_' + template_data.id,
-      className: "iwp-form__input",
-      onChange: this.onChange,
-      value: this.state['option_' + template_data.id]
-    }, template_data.options.map((row, i) => (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      key: row.value === 'iwp_pro' ? i : row.value,
-      value: row.value
-    }, row.label))))), window.iwp.hooks.applyFilters('iwp_after_template_select', (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_upgrade_message_UpgradeMessage__WEBPACK_IMPORTED_MODULE_2__["default"], {
+      placeholder: "Choose Template",
+      onChange: value => this.onChange('template', value),
+      value: template,
+      options: (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+        value: ""
+      }, "Choose Template"), this.templates.map(row => (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+        key: row.value,
+        value: row.value
+      }, row.label)))
+    })), template && template_options.map(template_data => {
+      const field_id = `option_${template_data.id}`;
+      return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        key: template_data.id,
+        className: "iwp-form__row"
+      }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_5__["default"], {
+        id: field_id,
+        field: field_id,
+        label: template_data.label
+      }), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_SelectField_SelectField__WEBPACK_IMPORTED_MODULE_8__["default"], {
+        id: field_id,
+        name: field_id,
+        className: "iwp-form__input",
+        onChange: value => this.onChange(field_id, value),
+        value: this.state['option_' + template_data.id],
+        options: (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, template_data.options.map((row, i) => (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+          key: row.value === 'iwp_pro' ? i : row.value,
+          value: row.value
+        }, row.label)))
+      }));
+    }), window.iwp.hooks.applyFilters('iwp_after_template_select', (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_upgrade_message_UpgradeMessage__WEBPACK_IMPORTED_MODULE_2__["default"], {
       message: "Please upgrade to Import WP Pro into import Custom Post Types."
     })))), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
       className: "iwp-form__actions"
     }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
       className: "iwp-buttons"
-    }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-primary",
+    }, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputButton_InputButton__WEBPACK_IMPORTED_MODULE_10__["default"], {
+      theme: "primary",
       type: "button",
       onClick: this.onSubmit,
-      disabled: disabled
-    }, saving && (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : 'Create Importer'))));
+      disabled: disabled,
+      loading: saving
+    }, saving ? 'Saving' : 'Create Importer'))));
   }
 }
 SetupForm.propTypes = {
-  template: (prop_types__WEBPACK_IMPORTED_MODULE_6___default().string),
-  complete: (prop_types__WEBPACK_IMPORTED_MODULE_6___default().func),
-  onError: (prop_types__WEBPACK_IMPORTED_MODULE_6___default().func),
-  templates: (prop_types__WEBPACK_IMPORTED_MODULE_6___default().array)
+  template: (prop_types__WEBPACK_IMPORTED_MODULE_11___default().string),
+  complete: (prop_types__WEBPACK_IMPORTED_MODULE_11___default().func),
+  onError: (prop_types__WEBPACK_IMPORTED_MODULE_11___default().func),
+  templates: (prop_types__WEBPACK_IMPORTED_MODULE_11___default().array)
 };
 SetupForm.defaultProps = {
   onError: () => {},
@@ -14444,7 +14708,9 @@ const exporter = {
   remove,
   init,
   run,
-  status
+  status,
+  abort,
+  exportConfig
 };
 function abort(id = null) {
   if (id !== null) {
@@ -14744,6 +15010,16 @@ function status(ids = []) {
     })
   };
 }
+function exportConfig(id) {
+  const sep = AJAX_BASE.includes('?') ? '&' : '?';
+  const url = AJAX_BASE + '/exporter/' + id + '/download-config' + sep + '_wpnonce=' + window.iwp.nonce;
+  let a = document.createElement('a');
+  a.href = url;
+  a.download = url.split('/').pop();
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
 
 /***/ }),
 
@@ -14796,7 +15072,8 @@ const importer = {
   template,
   templateUniqueIdentifiers,
   toolExport,
-  toolImport
+  toolImport,
+  readExporterConfig
 };
 function abort(id = null) {
   if (id !== null) {
@@ -15140,7 +15417,7 @@ function save(data) {
           importerSubject.next(response.data);
           resolve(response.data);
         } else {
-          importerSubject.error(response.data);
+          // importerSubject.error(response.data);
           reject(response.data);
         }
       },
@@ -15763,6 +16040,35 @@ function toolImport(form_data) {
         if (!aborted(abortToken)) {
           importerSubject.error(response);
           reject(response.statusText);
+        }
+      }
+    });
+  });
+}
+function readExporterConfig(data) {
+  const abortToken = abort('readExporterConfig');
+  return new Promise((resolve, reject) => {
+    const url = AJAX_BASE + '/importer/read-config/';
+    service_xhr.readExporterConfig = window.jQuery.ajax({
+      url: url,
+      dataType: 'json',
+      contentType: false,
+      processData: false,
+      method: 'POST',
+      data: data,
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader('X-WP-Nonce', window.iwp.nonce);
+      },
+      success: function (response) {
+        if (response.status === 'S') {
+          resolve(response.data);
+        } else {
+          reject(response.data);
+        }
+      },
+      error: function (response) {
+        if (!aborted(abortToken)) {
+          reject(response);
         }
       }
     });
@@ -18292,6 +18598,45 @@ __webpack_require__.r(__webpack_exports__);
 /*!***************************************************!*\
   !*** ./src/components/InputField/InputField.scss ***!
   \***************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ }),
+
+/***/ "./src/components/InputRadioAccordionPanel/InputRadioAccordionPanel.scss":
+/*!*******************************************************************************!*\
+  !*** ./src/components/InputRadioAccordionPanel/InputRadioAccordionPanel.scss ***!
+  \*******************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ }),
+
+/***/ "./src/components/InputRadioAccordion/InputRadioAccordion.scss":
+/*!*********************************************************************!*\
+  !*** ./src/components/InputRadioAccordion/InputRadioAccordion.scss ***!
+  \*********************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ }),
+
+/***/ "./src/components/SelectField/SelectField.scss":
+/*!*****************************************************!*\
+  !*** ./src/components/SelectField/SelectField.scss ***!
+  \*****************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";

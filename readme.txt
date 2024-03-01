@@ -4,7 +4,7 @@ Tags: import, csv, xml, importer, woocommerce, product import, post import, expo
 Requires at least: 4.0  
 Tested up to: 6.4  
 Requires PHP: 5.6  
-Stable tag: 2.12.1-dev4  
+Stable tag: 2.13.0-rc1  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -129,6 +129,19 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.13.0 =
+
+* ADD - Add option on importer create screen to create from existing exporter.
+* ADD - Add option on importer create screem to create from exporter config.
+* ADD - Display unique identifier on importer log messages.
+* ADD - Add csv file settings to exporter (escape, delimiter, and seperator).
+* ADD - Add csv escape character field to importer.
+* ADD - Option when importing taxonomy terms onto a post type, to search via custom field.
+* ADD - Add `iwp/importer/template/post_create_term` filter to disable creation of terms when importing taxonomies onto a post type.
+* FIX - Update importer / exporter temp path to use wp_upload_dir instead of WP_CONTENT_DIR.
+* FIX - Fix enable field dropdown from overflowing screen.
+* FIX - Page Header and Footer responsiveness.
 
 = 2.12.0 =
 

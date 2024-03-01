@@ -362,7 +362,7 @@ class AttachmentTemplate extends Template implements TemplateInterface
                     $author['map'] = [];
                 }
 
-                $author['map'][$matches[1]] = sprintf('{%d}', $index);
+                $author['map'][$matches[1]] = sprintf('{%s}', $index);
             } elseif (preg_match('/^parent\.(.*?)$/', $field, $matches) === 1) {
 
                 // Capture parent
@@ -371,12 +371,12 @@ class AttachmentTemplate extends Template implements TemplateInterface
                     $parent['map'] = [];
                 }
 
-                $parent['map'][$matches[1]] = sprintf('{%d}', $index);
+                $parent['map'][$matches[1]] = sprintf('{%s}', $index);
             } elseif (isset($this->field_map[$field])) {
 
                 // Handle core fields
                 $field_key = $this->field_map[$field];
-                $map[$field_key] = sprintf('{%d}', $index);
+                $map[$field_key] = sprintf('{%s}', $index);
 
                 if (in_array($field, $this->optional_fields)) {
                     $enabled[] = $field_key;
@@ -389,7 +389,7 @@ class AttachmentTemplate extends Template implements TemplateInterface
 
 
                 $field_key = $this->field_map[$field];
-                $map[$field_key] = sprintf('{%d}', $index);
+                $map[$field_key] = sprintf('{%s}', $index);
                 $enabled[] = $field_key;
 
                 add_filter('iwp/importer/generate_field_map/custom_fields', function ($custom_fields) {
@@ -403,7 +403,7 @@ class AttachmentTemplate extends Template implements TemplateInterface
             } elseif ($field === 'url') {
 
 
-                $map['post.file.location'] = sprintf('{%d}', $index);
+                $map['post.file.location'] = sprintf('{%s}', $index);
                 $enabled[] = 'post.file';
             }
         }
