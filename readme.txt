@@ -130,6 +130,19 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.13.0 =
+
+* ADD - Add option on importer create screen to create from existing exporter.
+* ADD - Add option on importer create screem to create from exporter config.
+* ADD - Display unique identifier on importer log messages.
+* ADD - Add csv file settings to exporter (escape, delimiter, and seperator).
+* ADD - Add csv escape character field to importer.
+* ADD - Option when importing taxonomy terms onto a post type, to search via custom field.
+* ADD - Add `iwp/importer/template/post_create_term` filter to disable creation of terms when importing taxonomies onto a post type.
+* FIX - Update importer / exporter temp path to use wp_upload_dir instead of WP_CONTENT_DIR.
+* FIX - Fix enable field dropdown from overflowing screen.
+* FIX - Page Header and Footer responsiveness.
+
 = 2.12.0 =
 
 * ADD - New unique identifier UI, allowing you to select from template fields or create a custom identifier. 
