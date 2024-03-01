@@ -241,7 +241,7 @@ class Field extends React.PureComponent {
                     loadOptions={this.selectOptions}
                     value={
                       options === 'callback'
-                        ? this.state.options.find(
+                        ? this.state.options?.find(
                           (item) => item.value === value
                         )
                         : options.find((item) => item.value === value)

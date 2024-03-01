@@ -38,6 +38,7 @@ export const importer = {
   templateUniqueIdentifiers,
   toolExport,
   toolImport,
+  readExporterConfig
 };
 
 function abort(id = null) {
@@ -413,7 +414,7 @@ function save(data) {
           importerSubject.next(response.data);
           resolve(response.data);
         } else {
-          importerSubject.error(response.data);
+          // importerSubject.error(response.data);
           reject(response.data);
         }
       },
@@ -1082,6 +1083,37 @@ function toolImport(form_data) {
         if (!aborted(abortToken)) {
           importerSubject.error(response);
           reject(response.statusText);
+        }
+      },
+    });
+  });
+}
+
+function readExporterConfig(data) {
+  const abortToken = abort('readExporterConfig');
+
+  return new Promise((resolve, reject) => {
+    const url = AJAX_BASE + '/importer/read-config/';
+    service_xhr.readExporterConfig = window.jQuery.ajax({
+      url: url,
+      dataType: 'json',
+      contentType: false,
+      processData: false,
+      method: 'POST',
+      data: data,
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader('X-WP-Nonce', window.iwp.nonce);
+      },
+      success: function (response) {
+        if (response.status === 'S') {
+          resolve(response.data);
+        } else {
+          reject(response.data);
+        }
+      },
+      error: function (response) {
+        if (!aborted(abortToken)) {
+          reject(response);
         }
       },
     });

@@ -886,7 +886,7 @@ class PostTemplate extends Template implements TemplateInterface
                     ];
                 }
 
-                $attachments['image']['map'][$matches[1]] = sprintf('{%d}', $index);
+                $attachments['image']['map'][$matches[1]] = sprintf('{%s}', $index);
                 $attachments['image']['map']['featured'] = 'yes';
             } elseif (preg_match('/^tax_([a-zA-Z0-9_]+)\.(.*?)$/', $field, $matches) === 1) {
 
@@ -900,7 +900,7 @@ class PostTemplate extends Template implements TemplateInterface
                     ];
                 }
 
-                $taxonomies[$taxonomy]['map'][$matches[2]] = sprintf('{%d}', $index);
+                $taxonomies[$taxonomy]['map'][$matches[2]] = sprintf('{%s}', $index);
             } elseif (preg_match('/^author\.(.*?)$/', $field, $matches) === 1) {
 
                 // Capture author.
@@ -909,7 +909,7 @@ class PostTemplate extends Template implements TemplateInterface
                     $author['map'] = [];
                 }
 
-                $author['map'][$matches[1]] = sprintf('{%d}', $index);
+                $author['map'][$matches[1]] = sprintf('{%s}', $index);
             } elseif (preg_match('/^parent\.(.*?)$/', $field, $matches) === 1) {
 
                 // Capture parent
@@ -918,12 +918,12 @@ class PostTemplate extends Template implements TemplateInterface
                     $parent['map'] = [];
                 }
 
-                $parent['map'][$matches[1]] = sprintf('{%d}', $index);
+                $parent['map'][$matches[1]] = sprintf('{%s}', $index);
             } elseif (isset($this->field_map[$field])) {
 
                 // Handle core fields
                 $field_key = $this->field_map[$field];
-                $map[$field_key] = sprintf('{%d}', $index);
+                $map[$field_key] = sprintf('{%s}', $index);
 
                 if (in_array($field, $this->optional_fields)) {
                     $enabled[] = $field_key;
