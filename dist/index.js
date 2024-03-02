@@ -13395,6 +13395,7 @@ class SetupForm extends react__WEBPACK_IMPORTED_MODULE_1__.Component {
     new Promise((resolve, reject) => {
       if (this.state.setup_type !== 'upload') {
         resolve();
+        return;
       }
       let form_data = new FormData();
       form_data.append('file', this.state.exporter_config_file);
