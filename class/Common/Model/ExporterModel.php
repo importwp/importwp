@@ -150,7 +150,7 @@ class ExporterModel
 
         $postarr = array(
             'post_title' => $this->name,
-            'post_content' => serialize(array(
+            'post_content' => wp_slash(serialize(array(
                 'type'      => $this->type,
                 'fields'    => (array) $this->fields,
                 'file_type' => $this->file_type,
@@ -159,7 +159,7 @@ class ExporterModel
                 'unique_identifier' => '' . $this->unique_identifier,
                 'export_method' => '' . $this->export_method,
                 'cron' => $this->cron
-            )),
+            ))),
         );
 
         if (is_null($this->id)) {

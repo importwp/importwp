@@ -301,7 +301,7 @@ class ImporterModel
 
         $postarr = array(
             'post_title' => $this->name,
-            'post_content' => serialize($post_content),
+            'post_content' => wp_slash(serialize($post_content)),
         );
 
         if (is_null($this->id)) {
