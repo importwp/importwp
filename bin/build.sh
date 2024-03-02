@@ -27,7 +27,7 @@ if [ -d "$FOLDER" ]; then rm -Rf $FOLDER; fi
 git clone --branch $BRANCH git@github.com:importwp/importwp.git $FOLDER
 cd $FOLDER
 git rm -rf .
-rsync -av .. . --exclude '.git' --exclude 'bin' --exclude "$FOLDER" --exclude 'node_modules' --exclude 'src' --exclude 'tests' --exclude 'vendor' --exclude '.babelrc' --exclude '.gitignore' --exclude '.phpcs.xml.dist' --exclude '.phpunit.result.cache' --exclude '.travis.yml' --exclude 'composer.json' --exclude 'composer.lock' --exclude 'package-lock.json' --exclude 'package.json' --exclude 'phpunit.xml.dist' --exclude 'webpack.config.js' --exclude 'dev-webpack.config.js'
+rsync -av .. . --exclude '.git' --exclude 'bin' --exclude "$FOLDER" --exclude 'node_modules' --exclude 'src' --exclude 'tests' --exclude 'vendor' --exclude '.babelrc' --exclude '.gitignore' --exclude '.phpcs.xml.dist' --exclude '.phpunit.result.cache' --exclude '.travis.yml' --exclude 'composer.json' --exclude 'composer.lock' --exclude 'package-lock.json' --exclude 'package.json' --exclude 'phpunit.xml.dist' --exclude 'webpack.config.js' --exclude 'dev-webpack.config.js' --exclude 'pnpm-lock.yaml' --exclude '.gitattributes'
 
 # Set version numbers
 sed -i -e "s/__STABLE_TAG__/$TAG/g" readme.txt
@@ -50,6 +50,10 @@ case $yn in
 esac
 
 done
+
+if [ -f "$SCRIPTPATH/pre_commit.sh" ]; then
+	bash $SCRIPTPATH/pre_commit.sh
+fi
 
 # Commit and push
 git add -A

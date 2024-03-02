@@ -147,6 +147,7 @@ class SetupForm extends Component {
 
       if (this.state.setup_type !== 'upload') {
         resolve();
+        return;
       }
 
       let form_data = new FormData();
