@@ -388,6 +388,7 @@ class ImporterModel
                 return [
                     'enclosure' => '"',
                     'delimiter' => ',',
+                    'escape' => '\\',
                     'show_headings' => true,
                     'setup' => false
                 ];
