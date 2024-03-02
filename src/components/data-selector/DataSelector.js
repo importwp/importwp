@@ -86,6 +86,7 @@ class DataSelector extends Component {
                 show_headings={settings.show_headings}
                 enclosure={settings.enclosure}
                 delimiter={settings.delimiter}
+                escape={settings.escape}
                 file_encoding={settings.file_encoding}
               />
             </React.Fragment>
