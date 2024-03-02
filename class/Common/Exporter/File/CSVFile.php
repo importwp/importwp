@@ -9,6 +9,10 @@ class CSVFile extends File
     private $columns;
     private $setup = false;
 
+    protected $default_delimiter = ",";
+    protected $default_enclosure = "\"";
+    protected $default_escape = "\\";
+
     public function start()
     {
         $fields = $this->exporter->getFields();
@@ -19,7 +23,7 @@ class CSVFile extends File
         }, []);
 
         // write headers
-        fputcsv($this->fh, array_keys($this->columns), $this->exporter->getFileSetting('delimiter', ","), $this->exporter->getFileSetting('enclosure', ","), $this->exporter->getFileSetting('escape', ","));
+        fputcsv($this->fh, array_keys($this->columns), $this->exporter->getFileSetting('delimiter', $this->default_delimiter), $this->exporter->getFileSetting('enclosure', $this->default_enclosure), $this->exporter->getFileSetting('escape', $this->default_escape));
 
         update_site_option('iwp_exporter_csv_config', [
             'columns' => $this->columns
@@ -56,7 +60,7 @@ class CSVFile extends File
                 return is_array($tmp) ? implode(',', $tmp) : $tmp;
             }, $this->columns);
 
-            fputcsv($this->fh, $data, $this->exporter->getFileSetting('delimiter', ","), $this->exporter->getFileSetting('enclosure', ","), $this->exporter->getFileSetting('escape', ","));
+            fputcsv($this->fh, $data, $this->exporter->getFileSetting('delimiter', $this->default_delimiter), $this->exporter->getFileSetting('enclosure', $this->default_enclosure), $this->exporter->getFileSetting('escape', $this->default_escape));
         }
     }
 
