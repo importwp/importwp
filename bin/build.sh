@@ -17,8 +17,8 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 cd "$SCRIPTPATH/.."
 
 # Build plugin
-npm i --include=dev
-npm run build
+pnpm i
+pnpm run build
 
 FOLDER=build
 

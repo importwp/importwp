@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "main": "index.js",
     "scripts": {
-        "build": "wp-scripts build",
+        "build": "NODE_ENV=production wp-scripts build",
         "start": "wp-scripts start --config=dev-webpack.config.js"
     },
     "dependencies": {
