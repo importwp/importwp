@@ -9,6 +9,10 @@ class CSVFile extends File
     private $columns;
     private $setup = false;
 
+    protected $default_delimiter = ",";
+    protected $default_enclosure = "\"";
+    protected $default_escape = "\\";
+
     public function start()
     {
         $fields = $this->exporter->getFields();
@@ -18,8 +22,10 @@ class CSVFile extends File
             return $carry;
         }, []);
 
+        list($delimiter, $enclosure, $escape) = $this->get_csv_settings();
+
         // write headers
-        fputcsv($this->fh, array_keys($this->columns));
+        fputcsv($this->fh, array_keys($this->columns), $delimiter, $enclosure, $escape);
 
         update_site_option('iwp_exporter_csv_config', [
             'columns' => $this->columns
@@ -44,6 +50,8 @@ class CSVFile extends File
         $this->loadConfig();
         $data = [];
 
+        list($delimiter, $enclosure, $escape) = $this->get_csv_settings();
+
         $max = $mapper->get_total_records();
         if ($max <= 0) {
             $max = 1;
@@ -56,8 +64,21 @@ class CSVFile extends File
                 return is_array($tmp) ? implode(',', $tmp) : $tmp;
             }, $this->columns);
 
-            fputcsv($this->fh, $data);
+            fputcsv($this->fh, $data, $delimiter, $enclosure, $escape);
         }
+    }
+
+    public function get_csv_settings()
+    {
+        $delimiter = $this->exporter->getFileSetting('delimiter', $this->default_delimiter);
+        $enclosure = $this->exporter->getFileSetting('enclosure', $this->default_enclosure);
+        $escape = $this->exporter->getFileSetting('escape', $this->default_escape);
+
+        if ($enclosure === $escape) {
+            $escape = '';
+        }
+
+        return [$delimiter, $enclosure, $escape];
     }
 
     public function end()

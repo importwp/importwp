@@ -370,7 +370,7 @@ class Template extends AbstractTemplate
         return $this->register_group(__('Settings', 'jc-importer'), 'settings', array_merge($extra_fields, $fields), ['type' => 'settings', 'condition' => $display_conditions]);
     }
 
-    public function register_attachment_fields($label = 'Attachments', $name = 'attachments', $field_label = 'Location', $group_args = null, $attachment_args = [])
+    public function register_attachment_fields($label = 'Images & Attachments', $name = 'attachments', $field_label = 'Location', $group_args = null, $attachment_args = [])
     {
         if (is_null($group_args)) {
             $group_args = ['type' => 'repeatable', 'row_base' => true, 'link' => 'https://www.importwp.com/docs/how-to-import-wordpress-attachments-onto-a-post-type/'];

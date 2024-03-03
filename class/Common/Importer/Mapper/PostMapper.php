@@ -101,6 +101,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
                         );
                     }
                     $unique_field_found = $field;
+                    $this->set_unique_identifier_settings($unique_field_found, $unique_value);
                     break;
                 }
             }
@@ -118,6 +119,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
             }
 
             $query_args['title'] = $unique_value;
+            $this->set_unique_identifier_settings('title', $unique_value);
         }
 
         if (!empty($meta_args)) {

@@ -60,8 +60,6 @@ class UserMapper extends AbstractMapper implements MapperInterface
 
         $fields['fields'] = $this->get_core_fields();
         $fields['fields'][] = 'role';
-        $fields['fields'][] = 'first_name';
-        $fields['fields'][] = 'last_name';
         $fields['fields'][] = 'description';
 
         // user meta

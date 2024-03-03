@@ -238,7 +238,7 @@ class UserTemplate extends Template implements TemplateInterface
 
                 // Handle core fields
                 $field_key = $this->field_map[$field];
-                $map[$field_key] = sprintf('{%d}', $index);
+                $map[$field_key] = sprintf('{%s}', $index);
 
                 if (in_array($field, $this->optional_fields)) {
                     $enabled[] = $field_key;

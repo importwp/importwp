@@ -44,7 +44,10 @@ foreach ($importers as $importer) {
 // 2. Delete /wp-content/importwp folder
 require_once ABSPATH . '/wp-admin/includes/class-wp-filesystem-direct.php';
 $fileSystemDirect = new \WP_Filesystem_Direct(false);
-$fileSystemDirect->rmdir(WP_CONTENT_DIR . '/uploads/importwp', true);
+$upload_dir = wp_upload_dir();
+
+$fileSystemDirect->rmdir($upload_dir['basedir'] . DIRECTORY_SEPARATOR  . 'importwp', true);
+$fileSystemDirect->rmdir($upload_dir['basedir'] . DIRECTORY_SEPARATOR  . 'exportwp', true);
 
 
 // 3. Uninstall DB

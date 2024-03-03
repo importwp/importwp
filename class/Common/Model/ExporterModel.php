@@ -27,6 +27,11 @@ class ExporterModel
     protected $file_type;
 
     /**
+     * @var string $file_settings
+     */
+    protected $file_settings;
+
+    /**
      * @var string $unique_identifier
      */
     protected $unique_identifier;
@@ -72,6 +77,7 @@ class ExporterModel
             $this->name = $data['name'];
             $this->type      = $data['type'];
             $this->file_type = $data['file_type'];
+            $this->file_settings = isset($data['file_settings']) ? $data['file_settings'] : [];
             $this->fields    = $data['fields'];
             $this->filters    = $data['filters'];
             $this->unique_identifier = $data['unique_identifier'];
@@ -100,6 +106,7 @@ class ExporterModel
                 $this->type      = $json['type'];
                 $this->fields    = (array) $json['fields'];
                 $this->file_type = $json['file_type'];
+                $this->file_settings = isset($json['file_settings']) ? $json['file_settings'] : [];
                 $this->filters = $json['filters'];
                 $this->unique_identifier = $json['unique_identifier'];
                 $this->export_method = isset($json['export_method']) ? $json['export_method'] : 'run';
@@ -117,6 +124,7 @@ class ExporterModel
             'name' => '' . $this->getName(),
             'type'      => '' . $this->type,
             'file_type' => '' . $this->file_type,
+            'file_settings' => $this->file_settings,
             'fields'    => $this->fields,
             'filters'    => $this->filters,
             'unique_identifier' => '' . $this->unique_identifier,
@@ -142,15 +150,16 @@ class ExporterModel
 
         $postarr = array(
             'post_title' => $this->name,
-            'post_content' => serialize(array(
+            'post_content' => wp_slash(serialize(array(
                 'type'      => $this->type,
                 'fields'    => (array) $this->fields,
                 'file_type' => $this->file_type,
+                'file_settings' => $this->file_settings,
                 'filters' => (array)$this->filters,
                 'unique_identifier' => '' . $this->unique_identifier,
                 'export_method' => '' . $this->export_method,
                 'cron' => $this->cron
-            )),
+            ))),
         );
 
         if (is_null($this->id)) {
@@ -409,5 +418,25 @@ class ExporterModel
     public function getCron()
     {
         return $this->cron;
+    }
+
+    public function getFileSettings()
+    {
+        return $this->file_settings;
+    }
+
+    public function setFileSettings($settings)
+    {
+        $this->file_settings = $settings;
+    }
+
+    public function setFileSetting($name, $value)
+    {
+        $this->file_settings[$name] = $value;
+    }
+
+    public function getFileSetting($name, $default = null)
+    {
+        return isset($this->file_settings[$name]) ? $this->file_settings[$name] : $default;
     }
 }

@@ -244,16 +244,14 @@ class Filesystem
      *
      * @return string
      */
-    public function get_temp_directory($url = false)
-    {
-        $base = $url ? WP_CONTENT_URL : WP_CONTENT_DIR;
-        $ds = $url ? '/' : DIRECTORY_SEPARATOR;
-        $path = $base . $ds . 'uploads';
-        if (!is_dir($path)) {
-            mkdir($path);
-        }
 
-        $path .= $ds . 'importwp';
+    public function get_temp_directory($url = false, $folder = 'importwp')
+    {
+        $dir = wp_upload_dir();
+
+        $base = $url ? $dir['baseurl'] : $dir['basedir'];
+        $ds = $url ? '/' : DIRECTORY_SEPARATOR;
+        $path = $base . $ds . $folder;
         if (!is_dir($path)) {
             mkdir($path);
         }

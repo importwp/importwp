@@ -301,7 +301,7 @@ class ImporterModel
 
         $postarr = array(
             'post_title' => $this->name,
-            'post_content' => serialize($post_content),
+            'post_content' => wp_slash(serialize($post_content)),
         );
 
         if (is_null($this->id)) {
@@ -388,6 +388,7 @@ class ImporterModel
                 return [
                     'enclosure' => '"',
                     'delimiter' => ',',
+                    'escape' => '\\',
                     'show_headings' => true,
                     'setup' => false
                 ];
@@ -576,9 +577,9 @@ class ImporterModel
         return $this->file_settings;
     }
 
-    public function getFileSetting($key)
+    public function getFileSetting($key, $default = null)
     {
-        return isset($this->file_settings[$key]) ? $this->file_settings[$key] : null;
+        return isset($this->file_settings[$key]) ? $this->file_settings[$key] : $default;
     }
 
     public function setFileSetting($key, $value)

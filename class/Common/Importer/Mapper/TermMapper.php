@@ -68,6 +68,7 @@ class TermMapper extends AbstractMapper implements MapperInterface
                     );
                 }
                 $unique_field_found = $field;
+                $this->set_unique_identifier_settings($unique_field_found, $unique_value);
                 break;
             }
         }

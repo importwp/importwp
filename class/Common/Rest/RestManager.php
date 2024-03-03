@@ -331,6 +331,22 @@ class RestManager extends \WP_REST_Controller
             )
         ));
 
+        register_rest_route($namespace, '/exporter/(?P<id>\d+)/download-config', array(
+            array(
+                'methods'             => \WP_REST_Server::READABLE,
+                'callback'            => array($this, 'download_exporter_config'),
+                'permission_callback' => array($this, 'get_permission')
+            )
+        ));
+
+        register_rest_route($namespace, '/importer/read-config', array(
+            array(
+                'methods'             => \WP_REST_Server::CREATABLE,
+                'callback'            => array($this, 'read_exporter_config'),
+                'permission_callback' => array($this, 'get_permission')
+            )
+        ));
+
         register_rest_route($namespace, '/exporter/(?P<id>\d+)/run', array(
             array(
                 'methods'             => \WP_REST_Server::CREATABLE,
@@ -490,10 +506,7 @@ class RestManager extends \WP_REST_Controller
             }
         }
 
-
-
         $importer = new ImporterModel($id, $this->importer_manager->is_debug());
-
         if (isset($post_data['datasource'])) {
             $importer->setDatasource($post_data['datasource']);
         }
@@ -541,6 +554,136 @@ class RestManager extends \WP_REST_Controller
             $importer->setName($post_data['name']);
         }
 
+        if (is_null($id)) {
+
+            // NOTE: New importer, should we generate field map from exporter.
+            if (isset($post_data['setup_type']) && in_array($post_data['setup_type'], ['upload', 'generate'])) {
+
+                $setup_type = $post_data['setup_type'] === 'upload' ? 'upload' : 'generate';
+                $file_type = null;
+
+                if ($setup_type === 'upload') {
+                    $config = json_decode($post_data['exporter_config_file'], true);
+                    $file_type = $config['data']['file_type'];
+                    $fields = $config['fields'];
+                    $formatted_fields = $config['formatted_fields'];
+                    $file_settings = $config['data']['file_settings'];
+                } else {
+
+                    /**
+                     * @var \ImportWP\Common\Model\ExporterModel $exporter_data
+                     */
+                    $exporter_data = $this->exporter_manager->get_exporter($post_data['exporter']);
+                    $fields = $this->exporter_manager->get_importer_map_fields($exporter_data);
+                    $mapper = $this->exporter_manager->get_exporter_mapper($exporter_data);
+                    $formatted_fields = $mapper->get_fields();
+                    $file_type = $exporter_data->getFileType();
+                    $file_settings = $exporter_data->getFileSettings();
+                }
+
+                if (is_null($file_type) || !in_array($file_type, ['xml', 'csv'])) {
+                    return $this->http->end_rest_error('Invalid exporter file type');
+                }
+
+                $importer->setParser($file_type);
+
+                $headings = [];
+                switch ($file_type) {
+                    case 'csv':
+                        $headings = array_reduce($fields, function ($carry, $item) {
+                            $carry[] = $item['selection'];
+                            return $carry;
+                        }, []);
+                        $headings = array_map('trim', $headings);
+
+                        if (isset($file_settings['delimiter']) && !empty($file_settings['delimiter']) && strlen($file_settings['delimiter']) === 1) {
+                            $importer->setFileSetting('delimiter', $file_settings['delimiter']);
+                        }
+                        if (isset($file_settings['enclosure']) && !empty($file_settings['enclosure']) && strlen($file_settings['enclosure']) === 1) {
+                            $importer->setFileSetting('enclosure', $file_settings['enclosure']);
+                        }
+                        if (isset($file_settings['escape']) && !empty($file_settings['escape']) && strlen($file_settings['escape']) === 1) {
+                            $importer->setFileSetting('escape', $file_settings['escape']);
+                        }
+
+                        break;
+                    case 'xml':
+
+                        $main = false;
+                        foreach ($fields as $field) {
+                            if ($field['selection'] === 'main' && ($field['loop'] === true || $field['loop'] === "true")) {
+                                $main = $field;
+                                break;
+                            }
+                        }
+
+                        if (!$main) {
+                            return $this->http->end_rest_error("XML exporter is missing main loop.");
+                        }
+
+                        // generate base_path
+                        $post_data['file_settings_base_path'] = '/' . implode('/', array_reverse(array_filter($this->generate_base_path($main, $fields))));
+
+                        $allowed = [$main['id']];
+
+                        $current_section = null;
+                        $current_section_ancestors = [];
+                        $current_section_map = [];
+
+                        foreach ($fields as $field) {
+
+                            if (in_array($field['parent'], $allowed)) {
+
+                                $field_map = '/' . implode('/', array_reverse(array_filter($this->generate_base_path($field, $fields, [], $main['id']))));
+                                $headings[$field_map] = $field['selection'];
+
+                                if ($field['loop'] === true || $field['loop'] === 'true') {
+
+                                    // we need to convert all sub fields to tax_category.id ....
+                                    $current_section = $field['selection'];
+                                    $current_section_ancestors = [$field['id']];
+                                } else {
+
+                                    if (!is_null($current_section) && in_array($field['parent'], $current_section_ancestors)) {
+
+                                        $current_section_ancestors[] = $field['id'];
+                                        $current_section_map[$field_map] = $current_section . '.' . $field['selection'];
+                                    } else {
+                                        $headings = $this->complete_section_map($headings, $current_section_map, $current_section, $formatted_fields);
+                                        $current_section = null;
+                                        $current_section_ancestors = [];
+                                        $current_section_map = [];
+                                    }
+                                }
+
+                                if (!in_array($field['id'], $allowed)) {
+                                    $allowed[] = $field['id'];
+                                }
+                            }
+                        }
+
+                        $headings = $this->complete_section_map($headings, $current_section_map, $current_section, $formatted_fields);
+
+                        $tmp = [];
+                        foreach ($headings as $map => $heading) {
+                            $tmp[$map] = $heading;
+                        }
+
+                        $headings = $tmp;
+                        break;
+                }
+
+                if (!empty($headings)) {
+                    $template = $this->importer_manager->get_importer_template($importer);
+                    $field_map = $template->generate_field_map($headings, $importer);
+                    $field_map = apply_filters('iwp/importer/generate_field_map', $field_map, $headings, $importer);
+
+                    $post_data['map'] = $field_map['map'];
+                    $post_data['enabled'] = $field_map['enabled'];
+                }
+            }
+        }
+
         if (isset($post_data['setting_start_row'])) {
             $importer->setStartRow($post_data['setting_start_row']);
         }
@@ -582,6 +725,16 @@ class RestManager extends \WP_REST_Controller
                 }
                 $importer->setFileSetting('enclosure', $post_data['file_settings_enclosure']);
             }
+
+            if (isset($post_data['file_settings_escape'])) {
+                $old_escape = $importer->getFileSetting('escape');
+                if ($old_escape !== $post_data['file_settings_escape']) {
+                    $clear_config = true;
+                }
+                $importer->setFileSetting('escape', $post_data['file_settings_escape']);
+            }
+
+
             if (isset($post_data['file_settings_show_headings'])) {
                 $importer->setFileSetting('show_headings', $post_data['file_settings_show_headings'] === 'true' || $post_data['file_settings_show_headings'] === true ? true : false);
             }
@@ -656,6 +809,86 @@ class RestManager extends \WP_REST_Controller
             return $this->http->end_rest_error($result->get_error_message());
         }
         return $this->http->end_rest_success($importer->data());
+    }
+
+    public function generate_base_path($field, $fields, $output = [], $stop = 0)
+    {
+        $output[] = isset($field['label']) && !empty($field['label']) ? $field['label'] : $field['selection'];
+
+        if ($field['parent'] !== $stop) {
+
+            foreach ($fields as $sub_field) {
+                if ($sub_field['id'] == $field['parent']) {
+
+                    return $this->generate_base_path($sub_field, $fields, $output, $stop);
+                }
+            }
+        }
+        return $output;
+    }
+
+    public function complete_section_map($headings, $current_section_map, $current_section, $fields)
+    {
+        if (is_null($current_section)) {
+            return $headings;
+        }
+
+        if ($current_section === 'custom_fields') {
+            // $headings['/test/@value'] = 'custom_fields.{/test/@key}';
+
+            $meta_key = false;
+            $meta_val = false;
+
+            if (count($current_section_map) == 2) {
+                foreach ($current_section_map as $row_map => $row_value) {
+                    if ($row_value == 'custom_fields.meta_key') {
+                        $meta_key = $row_map;
+                    } elseif ($row_value == 'custom_fields.meta_value') {
+                        $meta_val = $row_map;
+                    }
+                }
+
+                if ($meta_key && $meta_val) {
+
+                    // Get full list of custom fields, that can be then be used to generate a full list
+                    // /custom_fields_wrapper/custom_fields[meta_key="_edit_lock"]/meta_key
+                    // /custom_fields_wrapper/custom_fields[meta_key="_edit_lock"]/meta_value
+
+                    // Compare the two strings and get the matching parts
+                    $meta_key_parts = array_values(array_filter(explode('/', $meta_key)));
+                    $meta_val_parts = array_values(array_filter(explode('/', $meta_val)));
+
+                    for ($i = 0; $i < count($meta_key_parts); $i++) {
+                        if ($meta_key_parts[$i] !== $meta_val_parts[$i]) {
+                            break;
+                        }
+                    }
+
+                    $start = array_slice($meta_key_parts, 0, $i);
+                    $end_key = array_slice($meta_key_parts, $i);
+                    $end_val = array_slice($meta_val_parts, $i);
+
+                    $start_path = implode('/', $start);
+                    $end_key_path = implode('/', $end_key);
+                    $end_val_path = implode('/', $end_val);
+
+                    $custom_field_key_list = $fields['children']['custom_fields']['fields'];
+                    foreach ($custom_field_key_list as $custom_field_key) {
+
+                        // $tmp_field_key = '{/' . $start_path . sprintf('[%s="%s"]', $end_key_path, $custom_field_key) . '/' . $end_key_path . '}';
+                        $tmp_field_val = '/' . $start_path . sprintf('[%s="%s"]', $end_key_path, $custom_field_key) . '/' . $end_val_path;
+
+                        $headings[$tmp_field_val] = sprintf('custom_fields.%s', $custom_field_key);
+                    }
+
+                    return $headings;
+                }
+            }
+
+            return array_merge($headings, $current_section_map);
+        }
+
+        return array_merge($headings, $current_section_map);
     }
 
     private function sanitize_setting($value)
@@ -865,12 +1098,17 @@ class RestManager extends \WP_REST_Controller
 
                 $delimiter = isset($post_data['delimiter']) ? $post_data['delimiter'] : null;
                 if (is_null($delimiter)) {
-                    $delimiter = ',';
+                    $delimiter = $importer->getFileSetting('delimiter', ',');
                 }
 
                 $enclosure = isset($post_data['enclosure']) ? $post_data['enclosure'] : null;
                 if (is_null($enclosure)) {
-                    $enclosure = '"';
+                    $enclosure = $importer->getFileSetting('enclosure', '"');
+                }
+
+                $escape = isset($post_data['escape']) ? $post_data['escape'] : null;
+                if (is_null($escape)) {
+                    $escape = $importer->getFileSetting('escape', '\\');
                 }
 
                 $count = $this->importer_manager->process_csv_file($id, $delimiter, $enclosure, true);
@@ -941,6 +1179,8 @@ class RestManager extends \WP_REST_Controller
                     $clear_config = true;
                 } elseif (!is_null($post_data['enclosure']) && $post_data['enclosure'] !== $file->getEnclosure()) {
                     $clear_config = true;
+                } elseif (!is_null($post_data['escape']) && $post_data['escape'] !== $file->getEscape()) {
+                    $clear_config = true;
                 }
 
                 if ($clear_config) {
@@ -957,6 +1197,11 @@ class RestManager extends \WP_REST_Controller
                 $enclosure = $post_data['enclosure'];
                 if (!is_null($enclosure)) {
                     $file->setEnclosure($enclosure);
+                }
+
+                $escape = $post_data['escape'];
+                if (!is_null($escape)) {
+                    $file->setEscape($escape);
                 }
 
                 // parse bool param from string
@@ -1111,13 +1356,18 @@ class RestManager extends \WP_REST_Controller
      */
     public function get_template_field_options(\WP_REST_Request $request)
     {
-        $id = intval($request->get_param('id'));
-        $field = $this->sanitize($request->get_param('field'), 'field');
+        try {
 
-        $importer_data = $this->importer_manager->get_importer($id);
-        $template = $this->importer_manager->get_importer_template($id);
+            $id = intval($request->get_param('id'));
+            $field = $this->sanitize($request->get_param('field'), 'field');
 
-        return $this->http->end_rest_success($template->get_field_options($field, $importer_data));
+            $importer_data = $this->importer_manager->get_importer($id);
+            $template = $this->importer_manager->get_importer_template($id);
+
+            return $this->http->end_rest_success($template->get_field_options($field, $importer_data));
+        } catch (\Exception $e) {
+            return $this->http->end_rest_error($e->getMessage());
+        }
     }
 
     public function get_logs(\WP_REST_Request $request)
@@ -1220,7 +1470,7 @@ class RestManager extends \WP_REST_Controller
             'map' => $template_class->get_fields($importer_model),
             'settings' => $template_class->register_settings(),
             'options' => $template_class->register_options(),
-            'permission_fields' => apply_filters('iwp/template/permission_fields', $template_class->get_permission_fields($importer_model))
+            'permission_fields' => apply_filters('iwp/template/permission_fields', $template_class->get_permission_fields($importer_model), $template_class)
         ];
         return $this->http->end_rest_success($output);
     }
@@ -1275,6 +1525,72 @@ class RestManager extends \WP_REST_Controller
 
         echo $json;
         die();
+    }
+
+    /**
+     * Download exporter config json file.
+     * 
+     * File is used when creating an importer to auto generate field mapping.
+     * 
+     * @param WP_REST_Request|null $request 
+     * @return never 
+     */
+    public function download_exporter_config(\WP_REST_Request $request = null)
+    {
+        $exporter_id = $request->get_param('id');
+        $exporter_data = $this->exporter_manager->get_exporter($exporter_id);
+        $mapper = $this->exporter_manager->get_exporter_mapper($exporter_data);
+        $fields = $mapper->get_fields();
+
+
+
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+        $result = $wpdb->get_row("SELECT post_title, post_content from {$wpdb->posts} WHERE post_type='" . EWP_POST_TYPE . "' AND ID=" . intval($exporter_id), ARRAY_A);
+
+        $output = [
+            'name' => $result['post_title'],
+            'data' => unserialize($result['post_content']),
+            'fields' => $this->exporter_manager->get_importer_map_fields($exporter_data),
+            'formatted_fields' =>  $fields
+        ];
+
+        $json = json_encode($output);
+
+        header('Content-disposition: attachment; filename="ImportWP-exporter-' . $exporter_id . '-' . date('Y-m-d') . '.json"');
+        header('Content-type: "application/json"; charset="utf8"');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . strlen($json));
+
+        echo $json;
+        die();
+    }
+
+    public function read_exporter_config(\WP_REST_Request $request = null)
+    {
+        $upload = $this->filesystem->upload_file($_FILES['file']);
+        if (is_wp_error($upload)) {
+            return $this->http->end_rest_error($upload->get_error_message());
+        }
+
+        $json_contents = file_get_contents($upload['dest']);
+        @unlink($upload['dest']);
+
+        $contents = json_decode($json_contents, true);
+
+        if (!isset($contents['name'], $contents['fields'], $contents['data'], $contents['data']['file_type'])) {
+            return $this->http->end_rest_error("Invalid exporter config file.");
+        }
+
+        if (!in_array($contents['data']['file_type'], ['xml', 'csv'])) {
+            return $this->http->end_rest_error("Exporter file type is not supported.");
+        }
+
+        return $this->http->end_rest_success(['exporter' => $contents]);
     }
 
     public function get_compatibility_settings()
@@ -1408,6 +1724,10 @@ class RestManager extends \WP_REST_Controller
 
         if (isset($post_data['file_type'])) {
             $exporter->setFileType($post_data['file_type']);
+        }
+
+        if (isset($post_data['file_settings'])) {
+            $exporter->setFileSettings($post_data['file_settings']);
         }
 
         if (isset($post_data['fields']) || $id > 0) {
@@ -1604,6 +1924,10 @@ class RestManager extends \WP_REST_Controller
 
         // Get default template options
         $template = $this->importer_manager->get_template($importer_model->getTemplate());
+        if (is_wp_error($template)) {
+            return $this->http->end_rest_error($template->get_error_message());
+        }
+
         $template_class = $this->template_manager->load_template($template);
         $unique_fields = $this->template_manager->get_template_unique_fields($template_class);
         $options = $template_class->get_unique_identifier_options($importer_model, $unique_fields);
