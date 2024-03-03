@@ -202,7 +202,7 @@ class PreviewCsvForm extends Component {
                   label="Escape Character"
                   id="escape"
                   field="escape"
-                  tooltip="The escape used to escape enclosure characters within a cells content."
+                  tooltip="Allow for the use of an extra escape character, alongside the escaping of the enclosure character by doubling it, leave empty to disable."
                   display="inline-block"
                 />
                 <InputField

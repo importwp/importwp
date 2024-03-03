@@ -479,6 +479,7 @@ const ExporterEdit = ({ id, pro = false }) => {
                           id="delimiter"
                           field="delimiter"
                           label="Delimiter Character"
+                          tooltip="The delimiter parameter sets the field delimiter"
                         />
                         <InputField
                           type="text"
@@ -493,6 +494,7 @@ const ExporterEdit = ({ id, pro = false }) => {
                           id="enclosure"
                           field="enclosure"
                           label="Enclosure Character"
+                          tooltip="The enclosure parameter sets the field enclosure, If an enclosure character is contained in a field, it will be escaped by doubling it, unless it is immediately preceded by an escape."
                         />
                         <InputField
                           type="text"
@@ -507,6 +509,7 @@ const ExporterEdit = ({ id, pro = false }) => {
                           id="escape"
                           field="escape"
                           label="Escape Character"
+                          tooltip="The enclosure character is escaped by doubling it, the escape character can be used as an alternativeSets an alternative escape character to be used with the , leave empty to disable the extra escape character."
                         />
                         <InputField
                           type="text"
