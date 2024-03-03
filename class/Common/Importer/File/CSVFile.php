@@ -60,7 +60,7 @@ class CSVFile extends AbstractIndexedFile implements FileInterface
 
 	public function getEscape()
 	{
-		return $this->escape;
+		return $this->enclosure === $this->escape ? '' : $this->escape;
 	}
 
 	/**

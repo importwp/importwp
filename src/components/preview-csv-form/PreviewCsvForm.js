@@ -18,7 +18,7 @@ class PreviewCsvForm extends Component {
     this.state = {
       delimiter: props.settings.delimiter,
       enclosure: props.settings.enclosure,
-      escape: props.settings.escape || '\\',
+      escape: props.settings.escape ?? '\\',
       show_headings: props.settings.show_headings,
       file_encoding: props.settings.file_encoding,
       processing: false,
@@ -84,7 +84,7 @@ class PreviewCsvForm extends Component {
   }
 
   isDisabled() {
-    if (this.state.delimiter !== '' && this.state.enclosure !== '' && this.state.escape !== '') {
+    if (this.state.delimiter !== '' && this.state.enclosure !== '') {
       this.setState({ disabled: false });
     } else {
       this.setState({ disabled: true });

@@ -62,7 +62,7 @@ class RecordCsv extends Component {
   }
 
   getPreview() {
-    if (this.props.id && this.props.delimiter && this.props.enclosure && this.props.escape) {
+    if (this.props.id && this.props.delimiter && this.props.enclosure) {
       const { id } = this.props;
       const data = {
         delimiter: this.props.delimiter,
@@ -120,8 +120,7 @@ class RecordCsv extends Component {
     }
 
     if (
-      prevProps.escape !== this.props.escape &&
-      this.props.escape !== ''
+      prevProps.escape !== this.props.escape
     ) {
       reload = true;
     }
