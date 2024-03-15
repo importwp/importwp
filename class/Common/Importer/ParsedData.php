@@ -2,6 +2,8 @@
 
 namespace ImportWP\Common\Importer;
 
+use ImportWP\Common\Importer\Exception\RecordUpdatedSkippedException;
+
 class ParsedData
 {
     private $id;
@@ -125,11 +127,26 @@ class ParsedData
 
         if (false === $this->id) {
             do_action('iwp/importer/mapper/before_insert', $this);
+            $hash_check = $this->get_hash();
             $this->id = $this->mapper->insert($this);
+            $this->mapper->update_custom_field($this->id, '_iwp_hash', $hash_check);
         } else {
+
             do_action('iwp/importer/mapper/before_update', $this);
-            $this->id = $this->mapper->update($this);
+            $hash = $this->mapper->get_custom_field($this->id, '_iwp_hash', true);
+            $hash_check = $this->get_hash();
+            if ($hash !== $hash_check) {
+                $this->id = $this->mapper->update($this);
+                $this->mapper->update_custom_field($this->id, '_iwp_hash', $hash_check);
+            } else {
+                // we need to log this result
+                $this->mapper->add_version_tag();
+                $this->mapper->update_custom_field($this->id, '_iwp_hash', $hash_check);
+                throw new RecordUpdatedSkippedException("Data matches previous import");
+                return;
+            }
         }
+
 
         do_action('iwp/importer/mapper/after', $this);
     }
@@ -163,4 +180,41 @@ class ParsedData
     {
         return $this->method === 'UPDATE';
     }
+
+    public function check_hash($hash = '')
+    {
+        return $hash == $this->get_hash();
+    }
+
+    public function get_hash()
+    {
+        return $this->array_md5($this->data);
+        // $data = (array)$this->data;
+
+        // $original = (array)$this->data;
+
+        // array_multisort($array);
+
+        // return md5(json_encode($data));
+    }
+
+    function array_md5($array)
+    {
+        //since we're inside a function (which uses a copied array, not 
+        //a referenced array), you shouldn't need to copy the array
+        array_multisort($array);
+
+        // update_site_option('hash_' . time(), json_encode($array));
+
+        return md5(json_encode(apply_filters('iwp/hash_compare', $array)));
+    }
+
+    // function recur_ksort(&$array)
+    // {
+    //     foreach ($array as &$value) {
+    //         if (is_array($value))
+    //             $this->recur_ksort($value);
+    //     }
+    //     ksort($array);
+    // }
 }

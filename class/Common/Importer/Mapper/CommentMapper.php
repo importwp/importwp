@@ -282,6 +282,11 @@ class CommentMapper extends AbstractMapper implements MapperInterface
         add_comment_meta($id, $key, $value);
     }
 
+    public function get_custom_field($id, $key = '', $single = false)
+    {
+        return get_comment_meta($id, $key, $single);
+    }
+
     public function update_custom_field($id, $key, $value, $unique = false, $skip_permissions = false)
     {
 

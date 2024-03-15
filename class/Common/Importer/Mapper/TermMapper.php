@@ -299,6 +299,11 @@ class TermMapper extends AbstractMapper implements MapperInterface
         add_term_meta($term_id, $key, $value);
     }
 
+    public function get_custom_field($id, $key = '', $single = false)
+    {
+        return get_term_meta($id, $key, $single);
+    }
+
     public function update_custom_field($id, $key, $value, $unique = false, $skip_permissions = false)
     {
         // Stop double serialization

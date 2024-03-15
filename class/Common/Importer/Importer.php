@@ -6,6 +6,7 @@ use ImportWP\Common\Importer\ConfigInterface;
 use ImportWP\Common\Importer\Exception\FileException;
 use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\Exception\ParserException;
+use ImportWP\Common\Importer\Exception\RecordUpdatedSkippedException;
 use ImportWP\Common\Importer\File\CSVFile;
 use ImportWP\Common\Importer\File\XMLFile;
 use ImportWP\Common\Importer\MapperInterface;
@@ -383,6 +384,14 @@ class Importer
                             Util::write_status_log_file_message($id, $session, $message . $unique_identifier_str, 'S', $progress['current_row']);
                         }
                     }
+                } catch (RecordUpdatedSkippedException $e) {
+
+                    Logger::write('import:' . $i . ' -success -update -skipped="hash"');
+                    $stats['updates']++;
+                    $message = 'Record Update Skipped: #' . $data->getId() . ' ' . $e->getMessage();
+                    $unique_identifier_str = $this->get_unique_identifier_log_text();
+
+                    Util::write_status_log_file_message($id, $session, $message . $unique_identifier_str, 'S', $progress['current_row']);
                 } catch (ParserException $e) {
 
                     $stats['errors']++;
