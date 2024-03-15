@@ -270,6 +270,10 @@ class AbstractMapper
     {
     }
 
+    public function get_custom_field($id, $key = '', $single = false)
+    {
+    }
+
     public function add_reference_tag($data)
     {
         if (!$this->importer->has_custom_unique_identifier()) {
