@@ -123,6 +123,8 @@ class ParsedData
             $this->replace($allowed_fields);
         }
 
+        $hash_check_enabled = apply_filters('iwp/importer/mapper/hash_check_enabled', false);
+
         do_action('iwp/importer/mapper/before', $this);
 
         if (false === $this->id) {
@@ -135,7 +137,7 @@ class ParsedData
             do_action('iwp/importer/mapper/before_update', $this);
             $hash = $this->mapper->get_custom_field($this->id, '_iwp_hash', true);
             $hash_check = $this->get_hash();
-            if ($hash !== $hash_check) {
+            if (!$hash_check_enabled || ($hash_check_enabled && $hash !== $hash_check)) {
                 $this->id = $this->mapper->update($this);
                 $this->mapper->update_custom_field($this->id, '_iwp_hash', $hash_check);
             } else {
@@ -146,7 +148,6 @@ class ParsedData
                 return;
             }
         }
-
 
         do_action('iwp/importer/mapper/after', $this);
     }
@@ -189,32 +190,11 @@ class ParsedData
     public function get_hash()
     {
         return $this->array_md5($this->data);
-        // $data = (array)$this->data;
-
-        // $original = (array)$this->data;
-
-        // array_multisort($array);
-
-        // return md5(json_encode($data));
     }
 
     function array_md5($array)
     {
-        //since we're inside a function (which uses a copied array, not 
-        //a referenced array), you shouldn't need to copy the array
         array_multisort($array);
-
-        // update_site_option('hash_' . time(), json_encode($array));
-
         return md5(json_encode(apply_filters('iwp/hash_compare', $array)));
     }
-
-    // function recur_ksort(&$array)
-    // {
-    //     foreach ($array as &$value) {
-    //         if (is_array($value))
-    //             $this->recur_ksort($value);
-    //     }
-    //     ksort($array);
-    // }
 }

@@ -73,6 +73,7 @@ class ImporterForm extends Component {
           : [default_schedule],
       setting_filters:
         props.settings && props.settings.filters ? props.settings.filters : [],
+      setting_hash_check: props.settings && props.settings.hash_check ? props.settings.hash_check : false,
       disabled:
         props.pro === false &&
         props.settings &&
@@ -237,7 +238,8 @@ class ImporterForm extends Component {
       setting_max_row,
       setting_cron,
       setting_filters,
-      setting_run_fetch
+      setting_run_fetch,
+      setting_hash_check
     } = this.state;
     return (
       <React.Fragment>
@@ -284,6 +286,29 @@ class ImporterForm extends Component {
                   onChange={this.onChange}
                   value={setting_max_row}
                 />
+              </div>
+
+              <div className="iwp-form__row iwp-form__row--right">
+                <label className="iwp-form__label iwp-form__label--switch">
+                  <span>Update records only when data has changed.</span>
+                  <Switch
+                    checked={setting_hash_check}
+                    name='setting_hash_check'
+                    height={20}
+                    width={40}
+                    onColor="#22c48f"
+                    onChange={checked => {
+
+                      this.onChange({
+                        target: {
+                          name: 'setting_hash_check',
+                          type: 'checkbox',
+                          checked
+                        }
+                      });
+                    }}
+                  />
+                </label>
               </div>
             </div>
 
