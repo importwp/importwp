@@ -272,6 +272,7 @@ class AbstractMapper
 
     public function get_custom_field($id, $key = '', $single = false)
     {
+        return false;
     }
 
     public function add_reference_tag($data)

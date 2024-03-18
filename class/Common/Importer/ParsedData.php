@@ -6,14 +6,14 @@ use ImportWP\Common\Importer\Exception\RecordUpdatedSkippedException;
 
 class ParsedData
 {
-    private $id;
-    private $method;
-    private $data;
+    protected $id;
+    protected $method;
+    protected $data;
 
     /**
      * @var MapperInterface $mapper
      */
-    private $mapper;
+    protected $mapper;
 
     public function __construct(MapperInterface $mapper)
     {
@@ -123,27 +123,33 @@ class ParsedData
             $this->replace($allowed_fields);
         }
 
-        $hash_check_enabled = apply_filters('iwp/importer/mapper/hash_check_enabled', false);
-
         do_action('iwp/importer/mapper/before', $this);
 
         if (false === $this->id) {
+
             do_action('iwp/importer/mapper/before_insert', $this);
-            $hash_check = $this->get_hash();
+
+            // NOTE: has should be fetched before insert
+            $data_hash = $this->generate_hash();
+
             $this->id = $this->mapper->insert($this);
-            $this->mapper->update_custom_field($this->id, '_iwp_hash', $hash_check);
+            $this->update_hash($data_hash);
         } else {
 
             do_action('iwp/importer/mapper/before_update', $this);
-            $hash = $this->mapper->get_custom_field($this->id, '_iwp_hash', true);
-            $hash_check = $this->get_hash();
-            if (!$hash_check_enabled || ($hash_check_enabled && $hash !== $hash_check)) {
+
+            // NOTE: has should be fetched before update
+            $hash_check = $this->generate_hash();
+
+            if (!$this->hash_compare($hash_check)) {
+
                 $this->id = $this->mapper->update($this);
-                $this->mapper->update_custom_field($this->id, '_iwp_hash', $hash_check);
+                $this->update_hash($hash_check);
             } else {
+
                 // we need to log this result
                 $this->mapper->add_version_tag();
-                $this->mapper->update_custom_field($this->id, '_iwp_hash', $hash_check);
+                $this->update_hash($hash_check);
                 throw new RecordUpdatedSkippedException("Data matches previous import");
                 return;
             }
@@ -182,12 +188,7 @@ class ParsedData
         return $this->method === 'UPDATE';
     }
 
-    public function check_hash($hash = '')
-    {
-        return $hash == $this->get_hash();
-    }
-
-    public function get_hash()
+    public function generate_hash()
     {
         return $this->array_md5($this->data);
     }
@@ -196,5 +197,27 @@ class ParsedData
     {
         array_multisort($array);
         return md5(json_encode(apply_filters('iwp/hash_compare', $array)));
+    }
+
+    public function hash_compare($hash_b)
+    {
+        $hash_a = $this->get_last_hash();
+        $hash_check_enabled = apply_filters('iwp/importer/mapper/hash_check_enabled', false);
+
+        if ($hash_check_enabled && !empty($hash_a) && $hash_a === $hash_b) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function get_last_hash()
+    {
+        return $this->mapper->get_custom_field($this->id, '_iwp_hash', true);
+    }
+
+    public function update_hash($hash)
+    {
+        $this->mapper->update_custom_field($this->id, '_iwp_hash', $hash);
     }
 }
