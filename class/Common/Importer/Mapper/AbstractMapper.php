@@ -272,6 +272,7 @@ class AbstractMapper
 
     public function get_custom_field($id, $key = '', $single = false)
     {
+        return false;
     }
 
     public function add_reference_tag($data)
@@ -282,5 +283,9 @@ class AbstractMapper
 
         $key = $this->importer->get_iwp_reference_meta_key();
         $this->update_custom_field($this->ID, $key, $data->getValue($key, 'iwp'));
+    }
+
+    public function add_version_tag()
+    {
     }
 }
