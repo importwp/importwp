@@ -1,17 +1,25 @@
 === Import WP – Export and Import CSV and XML files to WordPress ===
 Contributors: jcollings,importwp  
-Tags: import, csv, xml, importer, woocommerce, product import, post import, export, datafeed, bulk import, bulk export, schedule
+Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed, import
 Requires at least: 4.0  
-Tested up to: 6.4  
+Tested up to: 6.5  
 Requires PHP: 5.6  
 Stable tag: __STABLE_TAG__  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
 
-Easily Import / Export CSV and xml files with our WordPress csv importer. Import posts, pages, users, categories, tags, and attachments.
+Import WP, a simple, fast and powerful XML and CSV import solution, Making it easy to import posts, pages, categories, tags, users and attachments.
 
 == Description ==
+
+Import and Export WordPress data with ease using Import WP, a WordPress import export plugin that  works with any XML or CSV file, there are no special requirements for how your csv file is laid out, or the structure of your xml file. Import WP’s xml and csv import process can handle it all.
+
+XML and CSV import files can be fetched from a remote URL, datafeed or FTP server, downloaded from Google Sheets, or manually uploaded to the importer.
+
+Import WP comes with an intuitive data selection tool that makes it simple to select and map any WordPress field to any part of your xml or csv file.
+
+Import WP allows you to import into all core WordPress data types from WordPress posts, pages, categories, tags, users and attachments, we offer many free addons that allow integration for third party plugins, and a premium upgrade to import into any custom post type, custom taxonomy, or custom fields.
 
 Our optimised **WordPress importer** makes it easy to **export and import CSV and XML files** into WordPress posts, pages, categories, and tags. We have simplified the process to **Import attachments, images, and any WordPress data** using our custom visual data selection tools that make it straightforward to import XML or CSV files from any **data feed**.
 
@@ -129,6 +137,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.13.1 =
+
+* ADD - Added option to skip importing of data when records have not changed.
+* FIX - Fixed SSRF vulnerability issue that was only exploitable by administrators.
 
 = 2.13.0 =
 
