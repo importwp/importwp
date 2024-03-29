@@ -36,7 +36,7 @@ class Http
 
     public function download_file($source, $destination, $headers = [])
     {
-        $response = wp_remote_get($source, array('timeout' => 30, 'sslverify' => false, 'headers' => $headers));
+        $response = wp_safe_remote_get($source, array('timeout' => 30, 'sslverify' => false, 'headers' => $headers));
         $result = true;
         if (!is_wp_error($response)) {
             $response_code = wp_remote_retrieve_response_code($response);
@@ -66,7 +66,7 @@ class Http
 
     public function download_file_stream($source, $destination, $headers = [])
     {
-        $response = wp_remote_get($source, ['stream' => true, 'filename' => $destination, 'timeout' => 30, 'sslverify' => false, 'headers' => $headers]);
+        $response = wp_safe_remote_get($source, ['stream' => true, 'filename' => $destination, 'timeout' => 30, 'sslverify' => false, 'headers' => $headers]);
         if (is_wp_error($response)) {
             return $response;
         }
