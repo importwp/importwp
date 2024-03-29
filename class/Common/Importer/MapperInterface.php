@@ -22,4 +22,10 @@ interface MapperInterface
     public function get_objects_for_removal();
 
     public function delete($id);
+
+    public function get_custom_field($id, $key = '', $single = false);
+
+    public function update_custom_field($id, $key, $value, $unique = false, $skip_permissions = false);
+
+    public function add_version_tag();
 }

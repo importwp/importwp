@@ -270,7 +270,7 @@ class UserMapper extends AbstractMapper implements MapperInterface
         $this->remove_session_tag($id, 'user');
     }
 
-    public function get_custom_field($id, $key, $single = true)
+    public function get_custom_field($id, $key = '', $single = false)
     {
         return get_user_meta($id, $key, $single);
     }
