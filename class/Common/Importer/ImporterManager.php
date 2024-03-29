@@ -658,6 +658,11 @@ class ImporterManager
                 do_action('iwp/importer/init', $importer_data);
             }
 
+
+            add_filter('iwp/importer/mapper/hash_check_enabled', function ($enabled) use ($importer_data) {
+                return $importer_data->getSetting('hash_check');
+            });
+
             Logger::debug('IM -import');
             $importer = new \ImportWP\Common\Importer\Importer($config);
             $importer->parser($parser);

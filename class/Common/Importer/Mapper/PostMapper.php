@@ -407,6 +407,11 @@ class PostMapper extends AbstractMapper implements MapperInterface
         add_post_meta($post_id, $key, $value);
     }
 
+    public function get_custom_field($id, $key = '', $single = false)
+    {
+        return get_post_meta($id, $key, $single);
+    }
+
     public function update_custom_field($post_id, $key, $value, $unique = false, $skip_permissions = false)
     {
 

@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the Import WP plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Import WP 2.13.0\n"
+"Project-Id-Version: Import WP 2.13.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/build\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-03-03T22:08:09+00:00\n"
+"POT-Creation-Date: 2024-03-29T17:03:06+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.9.0\n"
 "X-Domain: jc-importer\n"
@@ -160,11 +160,11 @@ msgstr ""
 msgid "File Not Found: %s"
 msgstr ""
 
-#: class/Common/Importer/Importer.php:225
+#: class/Common/Importer/Importer.php:226
 msgid "Parser Not Loaded."
 msgstr ""
 
-#: class/Common/Importer/Importer.php:229
+#: class/Common/Importer/Importer.php:230
 msgid "Mapper Not Loaded."
 msgstr ""
 
@@ -194,15 +194,15 @@ msgstr ""
 msgid "Importer Datasource: %s"
 msgstr ""
 
-#: class/Common/Importer/ImporterManager.php:760
+#: class/Common/Importer/ImporterManager.php:765
 msgid "Unable to locate importer template: %s"
 msgstr ""
 
-#: class/Common/Importer/ImporterManager.php:802
+#: class/Common/Importer/ImporterManager.php:807
 msgid "Unable to locate mapper: %s"
 msgstr ""
 
-#: class/Common/Importer/ImporterManager.php:827
+#: class/Common/Importer/ImporterManager.php:832
 msgid "Unable to locate template: %s"
 msgstr ""
 
