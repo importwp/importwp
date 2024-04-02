@@ -1685,7 +1685,7 @@ class RestManager extends \WP_REST_Controller
                     'post_title' => $importer['name'],
                     'post_status'   => 'publish',
                     'post_author' => get_current_user_id(),
-                    'post_content' => serialize($importer['data'])
+                    'post_content' => wp_slash(serialize($importer['data']))
                 ], true);
 
                 if (is_wp_error($result)) {
