@@ -138,6 +138,10 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.13.2 =
+
+* FIX -  Add extra data sanitization to imported importer configs via Settings / Tools > Import / Export.
+
 = 2.13.1 =
 
 * ADD - Added option to skip importing of data when records have not changed.
