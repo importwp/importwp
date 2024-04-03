@@ -138,9 +138,13 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.13.3 =
+
+* FIX - Undefined file type error when importing XML/CSV from local zip file.
+
 = 2.13.2 =
 
-* FIX -  Add extra data sanitization to imported importer configs via Settings / Tools > Import / Export.
+* FIX - Add extra data sanitization to imported importer configs via Settings / Tools > Import / Export.
 
 = 2.13.1 =
 

@@ -356,14 +356,14 @@ class ImporterManager
         return $attachment_id;
     }
 
-    public function local_file($id, $source)
+    public function local_file($id, $source, $filetype = null)
     {
         $importer = $this->get_importer($id);
         Logger::setId($importer->getId());
 
         $allowed_file_types = $this->event_handler->run('importer.allowed_file_types', [$importer->getAllowedFileTypes()]);
         $prefix = $this->get_importer_file_prefix($importer);
-        $result = $this->filesystem->copy_file($source, $allowed_file_types, null, $prefix);
+        $result = $this->filesystem->copy_file($source, $allowed_file_types, null, $prefix, $filetype);
 
         if (is_wp_error($result)) {
             return $result;
@@ -589,7 +589,7 @@ class ImporterManager
                             $raw_source = $importer_data->getDatasourceSetting('local_url');
                             $source = apply_filters('iwp/importer/datasource', $raw_source, $raw_source, $importer_data);
                             $source = apply_filters('iwp/importer/datasource/local', $source, $raw_source, $importer_data);
-                            $attachment_id = $this->local_file($importer_data, $source);
+                            $attachment_id = $this->local_file($importer_data, $source, $importer_data->getParser());
                             break;
                         default:
                             // TODO: record error 

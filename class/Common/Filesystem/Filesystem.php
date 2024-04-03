@@ -28,7 +28,7 @@ class Filesystem
         $this->container = Container::getInstance();
     }
 
-    public function copy($source, $destination, $allowed_mimes = null)
+    public function copy($source, $destination, $allowed_mimes = null, $filetype = null)
     {
 
         if (!file_exists($source)) {
@@ -36,7 +36,9 @@ class Filesystem
             return new \WP_Error('IWP_FS_7', __('File doesn`t exist on local filesystem.', 'jc-importer'));
         }
 
-        $filetype = $this->get_filetype($source);
+        if (is_null($filetype)) {
+            $filetype = $this->get_filetype($source);
+        }
 
         if (!is_null($allowed_mimes)) {
 
@@ -198,7 +200,7 @@ class Filesystem
         return true;
     }
 
-    public function copy_file($remote_url, $allowed_mimes = null, $override_filename = null, $prefix = '')
+    public function copy_file($remote_url, $allowed_mimes = null, $override_filename = null, $prefix = '', $filetype = null)
     {
         $remote_url = strtok($remote_url, '?');
 
@@ -208,14 +210,14 @@ class Filesystem
         $dest    = wp_unique_filename($wp_upload_dir['path'], $filename);
         $wp_dest = $wp_upload_dir['path'] . '/' . $dest;
 
-        $result = $this->copy($remote_url, $wp_dest, $allowed_mimes);
+        $result = $this->copy($remote_url, $wp_dest, $allowed_mimes, $filetype);
         if (is_wp_error($result)) {
             return $result;
         }
 
         return array(
             'dest' => $wp_dest,
-            'type' => $this->get_filetype($wp_dest),
+            'type' => is_null($filetype) ? $this->get_filetype($wp_dest) : $filetype,
             'mime' => $this->get_file_mime($wp_dest)
         );
     }
