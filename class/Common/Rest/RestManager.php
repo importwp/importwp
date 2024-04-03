@@ -1062,7 +1062,13 @@ class RestManager extends \WP_REST_Controller
                 $raw_source = $post_data['local_url'];
                 $source = apply_filters('iwp/importer/datasource', $raw_source, $raw_source, $importer);
                 $source = apply_filters('iwp/importer/datasource/local', $source, $raw_source, $importer);
-                $attachment_id = $this->importer_manager->local_file($importer, $source);
+
+                $filetype = $importer->getParser();
+                if (is_null($filetype)) {
+                    $filetype = $post_data['filetype'];
+                }
+
+                $attachment_id = $this->importer_manager->local_file($importer, $source, $filetype);
                 break;
             default:
                 $attachment_id = new \WP_Error('IWP_RM_1', __('Invalid form action', 'jc-importer'));
