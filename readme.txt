@@ -138,6 +138,10 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.13.4 =
+
+* ADD - Include the phpseclib to reduce the server requirements of sftp transfers
+
 = 2.13.3 =
 
 * FIX - Undefined file type error when importing XML/CSV from local zip file.
