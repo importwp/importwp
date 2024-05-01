@@ -701,6 +701,11 @@ class RestManager extends \WP_REST_Controller
             }
         }
 
+        if (isset($post_data['setting_import_method']) && $post_data['setting_import_method'] === 'background') {
+            delete_post_meta($importer->getId(), '_iwp_cron_scheduled');
+            delete_post_meta($importer->getId(), '_iwp_cron_last_ran');
+        }
+
         $parser = $importer->getParser();
 
         if (isset($post_data['file_settings_encoding'])) {
@@ -1305,6 +1310,11 @@ class RestManager extends \WP_REST_Controller
         // This is used for storing version on imported records
         $session_id = md5($importer_data->getId() . time());
         update_post_meta($importer_data->getId(), '_iwp_session', $session_id);
+
+        if ('background' === $importer_data->getSetting('import_method')) {
+            update_post_meta($importer_data->getId(), '_iwp_cron_scheduled', current_time('timestamp'));
+            delete_post_meta($importer_data->getId(), '_iwp_cron_last_ran');
+        }
 
         Logger::clearRequestType();
 
