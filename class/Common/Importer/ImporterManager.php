@@ -303,6 +303,7 @@ class ImporterManager
                     return new \WP_Error("IM_RM_FTP_PARSE", __("Unable to parse FTP connection string", 'jc-importer'));
                 }
 
+                $protocol = isset($matches['protocol']) ? $matches['protocol'] : 'ftp';
                 $user = isset($matches['user']) ? urldecode($matches['user']) : '';
                 $pass = isset($matches['pass']) ? urldecode($matches['pass']) : '';
                 $host = isset($matches['host']) ? $matches['host'] : false;
@@ -335,7 +336,33 @@ class ImporterManager
                 $path = apply_filters(sprintf('iwp/importer/remote_file/source=%s', 'ftp'), $path, $importer, $filter_connection_args);
                 $path = apply_filters(sprintf('iwp/importer=%d/remote_file/source=ftp', $importer->getId(), 'ftp'), $path, $importer, $filter_connection_args);
 
-                $result = $ftp->download_file($path, $host, $user, $pass, false, $port);
+                if ($protocol == 'sftp') {
+
+                    // require sftp package
+                    require_once  __DIR__ . '/../../../libs/autoload.php';
+
+                    $sftp = new \phpseclib3\Net\SFTP($host, $port);
+                    if (!$sftp->login($user, $pass)) {
+                        return new \WP_Error('IWP_FTP_0', __("Unable to login to ftp server", 'jc-importer'));
+                    }
+
+                    $wp_upload_dir = wp_upload_dir();
+
+                    $dest    = wp_unique_filename($wp_upload_dir['path'], basename($path));
+                    $wp_dest = $wp_upload_dir['path'] . '/' . $dest;
+
+                    if (!$sftp->get($path, $wp_dest)) {
+                        return new \WP_Error('IWP_FTP_2', sprintf(__('Unable to download: %s file via sftp.', 'jc-importer'), $path));
+                    }
+
+                    $result = array(
+                        'dest' => $wp_dest,
+                        'type' => $this->filesystem->get_filetype($wp_dest),
+                        'mime' => $this->filesystem->get_file_mime($wp_dest)
+                    );
+                } else {
+                    $result = $ftp->download_file($path, $host, $user, $pass, false, $port);
+                }
             } else {
 
                 $result = $this->filesystem->download_file($source, $filetype, $allowed_file_types, null, $prefix);
@@ -356,14 +383,14 @@ class ImporterManager
         return $attachment_id;
     }
 
-    public function local_file($id, $source)
+    public function local_file($id, $source, $filetype = null)
     {
         $importer = $this->get_importer($id);
         Logger::setId($importer->getId());
 
         $allowed_file_types = $this->event_handler->run('importer.allowed_file_types', [$importer->getAllowedFileTypes()]);
         $prefix = $this->get_importer_file_prefix($importer);
-        $result = $this->filesystem->copy_file($source, $allowed_file_types, null, $prefix);
+        $result = $this->filesystem->copy_file($source, $allowed_file_types, null, $prefix, $filetype);
 
         if (is_wp_error($result)) {
             return $result;
@@ -589,7 +616,7 @@ class ImporterManager
                             $raw_source = $importer_data->getDatasourceSetting('local_url');
                             $source = apply_filters('iwp/importer/datasource', $raw_source, $raw_source, $importer_data);
                             $source = apply_filters('iwp/importer/datasource/local', $source, $raw_source, $importer_data);
-                            $attachment_id = $this->local_file($importer_data, $source);
+                            $attachment_id = $this->local_file($importer_data, $source, $importer_data->getParser());
                             break;
                         default:
                             // TODO: record error 

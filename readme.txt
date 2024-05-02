@@ -4,7 +4,7 @@ Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed, import
 Requires at least: 4.0  
 Tested up to: 6.5  
 Requires PHP: 5.6  
-Stable tag: 2.13.1  
+Stable tag: 2.13.5-rc1  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -137,6 +137,22 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.13.5 =
+
+* ADD - Switch attachment to extend post template, allowing for importing related taxonomies.
+
+= 2.13.4 =
+
+* ADD - Include the phpseclib to reduce the server requirements of sftp transfers
+
+= 2.13.3 =
+
+* FIX - Undefined file type error when importing XML/CSV from local zip file.
+
+= 2.13.2 =
+
+* FIX - Add extra data sanitization to imported importer configs via Settings / Tools > Import / Export.
 
 = 2.13.1 =
 
