@@ -141,6 +141,7 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 = 2.13.5 =
 
 * ADD - Switch attachment to extend post template, allowing for importing related taxonomies.
+* FIX - Rename comment parent field type label.
 
 = 2.13.4 =
 
