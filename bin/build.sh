@@ -55,6 +55,10 @@ if [ -f "$SCRIPTPATH/pre_commit.sh" ]; then
 	bash $SCRIPTPATH/pre_commit.sh
 fi
 
+if [ -f "$SCRIPTPATH/../../bin/pre_commit.sh" ]; then
+	bash $SCRIPTPATH/../../bin/pre_commit.sh
+fi
+
 # Commit and push
 git add -A
 git commit -m "Build v$TAG"
