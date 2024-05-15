@@ -49,7 +49,7 @@ class CommentTemplate extends Template implements TemplateInterface
                         'options' => 'callback',
                         'tooltip' => __('ID of this comment\'s parent, if any.', 'jc-importer')
                     ]),
-                    $this->register_field(__('Comment Post Field Type', 'jc-importer'), '_id_type', [
+                    $this->register_field(__('Comment Parent Field Type', 'jc-importer'), '_id_type', [
                         'default' => 'id',
                         'options' => [
                             ['value' => 'id', 'label' => __('ID', 'jc-importer')],

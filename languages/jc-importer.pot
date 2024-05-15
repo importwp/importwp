@@ -2,32 +2,36 @@
 # This file is distributed under the same license as the Import WP plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Import WP 2.13.4\n"
+"Project-Id-Version: Import WP 2.13.5\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/build\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-04-13T15:43:08+00:00\n"
+"POT-Creation-Date: 2024-05-15T07:19:49+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.9.0\n"
+"X-Generator: WP-CLI 2.10.0\n"
 "X-Domain: jc-importer\n"
 
 #. Plugin Name of the plugin
+#: jc-importer.php
 msgid "Import WP"
 msgstr ""
 
 #. Plugin URI of the plugin
 #. Author URI of the plugin
+#: jc-importer.php
 msgid "https://www.importwp.com"
 msgstr ""
 
 #. Description of the plugin
+#: jc-importer.php
 msgid "Import WP is a powerful Importer & Exporter with a visual data selection tool that makes it easy to Export or Import any XML or CSV file to WordPress."
 msgstr ""
 
 #. Author of the plugin
+#: jc-importer.php
 msgid "James Collings <james@jclabs.co.uk>"
 msgstr ""
 
@@ -52,8 +56,7 @@ msgid "Post"
 msgstr ""
 
 #: class/Common/Exporter/Mapper/PostMapper.php:75
-#: class/Common/Importer/Template/AttachmentTemplate.php:100
-#: class/Common/Importer/Template/AttachmentTemplate.php:485
+#: class/Common/Importer/Template/AttachmentTemplate.php:95
 #: class/Common/Importer/Template/CommentTemplate.php:384
 #: class/Common/Importer/Template/PostTemplate.php:151
 #: class/Common/Importer/Template/PostTemplate.php:1127
@@ -66,8 +69,7 @@ msgstr ""
 
 #: class/Common/Exporter/Mapper/PostMapper.php:89
 #: class/Common/Exporter/Mapper/TaxMapper.php:49
-#: class/Common/Importer/Template/AttachmentTemplate.php:75
-#: class/Common/Importer/Template/AttachmentTemplate.php:484
+#: class/Common/Importer/Template/AttachmentTemplate.php:70
 #: class/Common/Importer/Template/CommentTemplate.php:392
 #: class/Common/Importer/Template/PostTemplate.php:126
 #: class/Common/Importer/Template/PostTemplate.php:1126
@@ -252,14 +254,13 @@ msgstr ""
 msgid "Not enough permissions to %s record."
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:51
+#: class/Common/Importer/Template/AttachmentTemplate.php:46
 msgid "Attachment"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:52
-#: class/Common/Importer/Template/AttachmentTemplate.php:83
-#: class/Common/Importer/Template/AttachmentTemplate.php:106
-#: class/Common/Importer/Template/AttachmentTemplate.php:472
+#: class/Common/Importer/Template/AttachmentTemplate.php:47
+#: class/Common/Importer/Template/AttachmentTemplate.php:78
+#: class/Common/Importer/Template/AttachmentTemplate.php:101
 #: class/Common/Importer/Template/CommentTemplate.php:39
 #: class/Common/Importer/Template/CommentTemplate.php:55
 #: class/Common/Importer/Template/CommentTemplate.php:76
@@ -277,7 +278,7 @@ msgstr ""
 msgid "ID"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:53
+#: class/Common/Importer/Template/AttachmentTemplate.php:48
 #: class/Common/Importer/Template/CommentTemplate.php:40
 #: class/Common/Importer/Template/PostTemplate.php:99
 #: class/Common/Importer/Template/TermTemplate.php:61
@@ -285,20 +286,18 @@ msgstr ""
 msgid "ID is only used to reference existing records"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:55
-#: class/Common/Importer/Template/AttachmentTemplate.php:473
+#: class/Common/Importer/Template/AttachmentTemplate.php:50
 #: class/Common/Importer/Template/PostTemplate.php:101
 #: class/Common/Importer/Template/PostTemplate.php:1116
 msgid "Title"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:56
+#: class/Common/Importer/Template/AttachmentTemplate.php:51
 #: class/Common/Importer/Template/PostTemplate.php:102
 msgid "Title of the post."
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:58
-#: class/Common/Importer/Template/AttachmentTemplate.php:475
+#: class/Common/Importer/Template/AttachmentTemplate.php:53
 #: class/Common/Importer/Template/TermTemplate.php:66
 #: class/Common/Importer/Template/TermTemplate.php:367
 #: class/Common/Importer/Template/UserTemplate.php:83
@@ -306,36 +305,34 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:59
+#: class/Common/Importer/Template/AttachmentTemplate.php:54
 #: class/Common/Importer/Template/PostTemplate.php:105
 msgid "Main WYSIWYG editor content of the post."
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:61
-#: class/Common/Importer/Template/AttachmentTemplate.php:476
+#: class/Common/Importer/Template/AttachmentTemplate.php:56
 msgid "Caption"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:62
+#: class/Common/Importer/Template/AttachmentTemplate.php:57
 #: class/Common/Importer/Template/PostTemplate.php:108
 msgid "A custom short extract for the post."
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:64
-#: class/Common/Importer/Template/AttachmentTemplate.php:486
+#: class/Common/Importer/Template/AttachmentTemplate.php:59
+#: class/Common/Importer/Template/AttachmentTemplate.php:214
 #: class/Common/Importer/Template/Template.php:351
 msgid "Alt Text"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:65
-#: class/Common/Importer/Template/AttachmentTemplate.php:68
+#: class/Common/Importer/Template/AttachmentTemplate.php:60
+#: class/Common/Importer/Template/AttachmentTemplate.php:63
 #: class/Common/Importer/Template/PostTemplate.php:111
 msgid "The slug is the user friendly and URL valid name of the post."
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:67
-#: class/Common/Importer/Template/AttachmentTemplate.php:84
-#: class/Common/Importer/Template/AttachmentTemplate.php:477
+#: class/Common/Importer/Template/AttachmentTemplate.php:62
+#: class/Common/Importer/Template/AttachmentTemplate.php:79
 #: class/Common/Importer/Template/CommentTemplate.php:77
 #: class/Common/Importer/Template/PostTemplate.php:110
 #: class/Common/Importer/Template/PostTemplate.php:135
@@ -347,45 +344,44 @@ msgstr ""
 msgid "Slug"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:70
+#: class/Common/Importer/Template/AttachmentTemplate.php:65
 msgid "File"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:70
+#: class/Common/Importer/Template/AttachmentTemplate.php:65
 msgid "Media File"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:71
-#: class/Common/Importer/Template/AttachmentTemplate.php:481
+#: class/Common/Importer/Template/AttachmentTemplate.php:66
 #: class/Common/Importer/Template/CommentTemplate.php:389
 #: class/Common/Importer/Template/PostTemplate.php:167
 #: class/Common/Importer/Template/PostTemplate.php:1123
 msgid "Date"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:72
+#: class/Common/Importer/Template/AttachmentTemplate.php:67
 #: class/Common/Importer/Template/PostTemplate.php:168
 msgid "The date of the post , enter in the format \"YYYY-MM-DD HH:ii:ss\""
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:74
+#: class/Common/Importer/Template/AttachmentTemplate.php:69
 #: class/Common/Importer/Template/PostTemplate.php:125
 #: class/Common/Importer/Template/TermTemplate.php:72
 msgid "Parent Settings"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:78
+#: class/Common/Importer/Template/AttachmentTemplate.php:73
 #: class/Common/Importer/Template/PostTemplate.php:129
 msgid "Set this for the post it belongs to"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:80
+#: class/Common/Importer/Template/AttachmentTemplate.php:75
 #: class/Common/Importer/Template/PostTemplate.php:131
 #: class/Common/Importer/Template/TermTemplate.php:78
 msgid "Parent Field Type"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:85
+#: class/Common/Importer/Template/AttachmentTemplate.php:80
 #: class/Common/Importer/Template/CommentTemplate.php:78
 #: class/Common/Importer/Template/PostTemplate.php:136
 #: class/Common/Importer/Template/PostTemplate.php:217
@@ -395,76 +391,74 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:86
+#: class/Common/Importer/Template/AttachmentTemplate.php:81
 #: class/Common/Importer/Template/PostTemplate.php:137
 #: class/Common/Importer/Template/TermTemplate.php:84
 msgid "Reference Column"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:89
+#: class/Common/Importer/Template/AttachmentTemplate.php:84
 #: class/Common/Importer/Template/PostTemplate.php:140
 #: class/Common/Importer/Template/TermTemplate.php:88
 msgid "Select how the parent field should be handled"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:91
+#: class/Common/Importer/Template/AttachmentTemplate.php:86
 #: class/Common/Importer/Template/PostTemplate.php:142
 #: class/Common/Importer/Template/TermTemplate.php:90
 msgid "Parent Reference Column"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:93
+#: class/Common/Importer/Template/AttachmentTemplate.php:88
 #: class/Common/Importer/Template/PostTemplate.php:144
 #: class/Common/Importer/Template/TermTemplate.php:92
 msgid "Select the column/node that the parent field is referencing"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:96
-#: class/Common/Importer/Template/AttachmentTemplate.php:479
+#: class/Common/Importer/Template/AttachmentTemplate.php:91
 #: class/Common/Importer/Template/PostTemplate.php:147
 msgid "Order"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:97
+#: class/Common/Importer/Template/AttachmentTemplate.php:92
 #: class/Common/Importer/Template/PostTemplate.php:148
 msgid "The order the post should be displayed in"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:99
+#: class/Common/Importer/Template/AttachmentTemplate.php:94
 #: class/Common/Importer/Template/PostTemplate.php:150
 msgid "Author Settings"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:101
+#: class/Common/Importer/Template/AttachmentTemplate.php:96
 #: class/Common/Importer/Template/PostTemplate.php:152
 msgid "The user of who added this post"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:103
+#: class/Common/Importer/Template/AttachmentTemplate.php:98
 #: class/Common/Importer/Template/PostTemplate.php:154
 msgid "Author Field Type"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:107
+#: class/Common/Importer/Template/AttachmentTemplate.php:102
 #: class/Common/Importer/Template/PostTemplate.php:158
 #: class/Common/Importer/Template/UserTemplate.php:266
 msgid "Login"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:108
+#: class/Common/Importer/Template/AttachmentTemplate.php:103
 #: class/Common/Importer/Template/PostTemplate.php:159
 #: class/Common/Importer/Template/UserTemplate.php:61
 #: class/Common/Importer/Template/UserTemplate.php:269
 msgid "Email"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:110
+#: class/Common/Importer/Template/AttachmentTemplate.php:105
 #: class/Common/Importer/Template/PostTemplate.php:161
 msgid "Select how the author field should be handled"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:113
-#: class/Common/Importer/Template/AttachmentTemplate.php:480
+#: class/Common/Importer/Template/AttachmentTemplate.php:108
 #: class/Common/Importer/Template/PostTemplate.php:164
 #: class/Common/Importer/Template/Template.php:307
 #: class/Common/Importer/Template/UserTemplate.php:78
@@ -472,60 +466,53 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:114
+#: class/Common/Importer/Template/AttachmentTemplate.php:109
 #: class/Common/Importer/Template/PostTemplate.php:165
 msgid "The password to access the post"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:116
-#: class/Common/Importer/Template/AttachmentTemplate.php:482
+#: class/Common/Importer/Template/AttachmentTemplate.php:111
 #: class/Common/Importer/Template/PostTemplate.php:170
 msgid "Allow Comments"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:118
+#: class/Common/Importer/Template/AttachmentTemplate.php:113
 #: class/Common/Importer/Template/PostTemplate.php:172
 msgid "Disabled"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:119
+#: class/Common/Importer/Template/AttachmentTemplate.php:114
 #: class/Common/Importer/Template/PostTemplate.php:173
 msgid "Enabled"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:122
+#: class/Common/Importer/Template/AttachmentTemplate.php:117
 #: class/Common/Importer/Template/PostTemplate.php:176
 msgid "Whether the post can accept comments"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:124
-#: class/Common/Importer/Template/AttachmentTemplate.php:483
+#: class/Common/Importer/Template/AttachmentTemplate.php:119
 #: class/Common/Importer/Template/PostTemplate.php:178
 msgid "Allow Pingbacks"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:126
+#: class/Common/Importer/Template/AttachmentTemplate.php:121
 #: class/Common/Importer/Template/PostTemplate.php:180
 msgid "Closed"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:127
+#: class/Common/Importer/Template/AttachmentTemplate.php:122
 #: class/Common/Importer/Template/PostTemplate.php:181
 msgid "Open"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:130
+#: class/Common/Importer/Template/AttachmentTemplate.php:125
 #: class/Common/Importer/Template/PostTemplate.php:184
 msgid "Whether the post can accept pings"
 msgstr ""
 
-#: class/Common/Importer/Template/AttachmentTemplate.php:474
+#: class/Common/Importer/Template/AttachmentTemplate.php:215
 msgid "Attachment File"
-msgstr ""
-
-#: class/Common/Importer/Template/AttachmentTemplate.php:478
-#: class/Common/Importer/Template/PostTemplate.php:1120
-msgid "Post Status"
 msgstr ""
 
 #: class/Common/Importer/Template/CommentTemplate.php:29
@@ -553,8 +540,7 @@ msgid "ID of this comment's parent, if any."
 msgstr ""
 
 #: class/Common/Importer/Template/CommentTemplate.php:52
-#: class/Common/Importer/Template/CommentTemplate.php:73
-msgid "Comment Post Field Type"
+msgid "Comment Parent Field Type"
 msgstr ""
 
 #: class/Common/Importer/Template/CommentTemplate.php:56
@@ -592,6 +578,10 @@ msgstr ""
 
 #: class/Common/Importer/Template/CommentTemplate.php:71
 msgid "ID of the post that relates to the comment, if any."
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:73
+msgid "Comment Post Field Type"
 msgstr ""
 
 #: class/Common/Importer/Template/CommentTemplate.php:89
@@ -872,6 +862,10 @@ msgstr ""
 
 #: class/Common/Importer/Template/PostTemplate.php:250
 msgid "Append Terms"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:1120
+msgid "Post Status"
 msgstr ""
 
 #: class/Common/Importer/Template/PostTemplate.php:1121
