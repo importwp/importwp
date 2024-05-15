@@ -7,7 +7,7 @@ fi
 
 TAG=${1-latest}
 BRANCH=${2-release}
-
+TYPE=${3-local}
 # Absolute path to this script, e.g. /home/user/bin/foo.sh
 SCRIPT=$(readlink -f "$0")
 
@@ -34,7 +34,15 @@ sed -i -e "s/__STABLE_TAG__/$TAG/g" readme.txt
 sed -i -e "s/__STABLE_TAG__/$TAG/g" jc-importer.php
 
 # Generate POT
-wp i18n make-pot . languages/jc-importer.pot --skip-js
+
+if [ "$TYPE" == "wp-env" ]; then
+	cd "../.."
+	pnpm wp-env run cli --env-cwd=wp-content/plugins/jc-importer/build wp i18n make-pot . languages/jc-importer.pot --skip-js
+	cd "$SCRIPTPATH/../$FOLDER"
+else
+	wp i18n make-pot . languages/jc-importer.pot --skip-js
+fi
+
 
 # Confirm pushing of build.
 while true; do
