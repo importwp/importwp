@@ -703,7 +703,9 @@ class ImporterManager
 
             // TODO: Missing template errors are currently not being logged to history, possibly others?
             Logger::error('import -error=' . $e->getMessage(), $importer_id);
-            return $state->error($e)->get_raw();
+            $state->error($e);
+            Util::write_status_session_to_file($id, $state);
+            return $state->get_raw();
         }
 
         /**
