@@ -387,14 +387,14 @@ class EditPage extends React.Component {
         {id > 0 &&
           status &&
           status?.version === 2 &&
-          (status.status === 'running' || status.status === 'processing' || status?.cron) && (
+          (status.status === 'running' || status.status === 'processing' || status.status === 'timeout' || status?.cron) && (
             <NoticeList
               notices={[
                 {
                   message: (
                     <React.Fragment>
                       <StatusMessage status={status} />
-                      {(status?.status === 'running' || status?.status === 'processing') && (
+                      {(status?.status === 'running' || status?.status === 'processing' || status.status === 'timeout') && (
                         <div className="iwp-notice__actions">
                           {!status.hasOwnProperty('cron') && (
                             <button
