@@ -215,7 +215,7 @@ class _FieldSet extends React.PureComponent {
       switch (operator) {
         case '*=': // Contains
           if (
-            true ===
+            groupData[condition[0]] && true ===
             groupData[condition[0]].includes(condition[2])
           ) {
             return true;
@@ -223,7 +223,7 @@ class _FieldSet extends React.PureComponent {
           break;
         case '!*': // Not Contains
           if (
-            false ===
+            groupData[condition[0]] && false ===
             groupData[condition[0]].includes(condition[2])
           ) {
             return true;
