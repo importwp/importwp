@@ -67,6 +67,12 @@ abstract class AbstractMapper
             foreach ($group as $row) {
 
                 $left = $this->get_value($row['left']);
+
+                // left should always be a string
+                if (is_array($left)) {
+                    $left = implode(',', $left);
+                }
+
                 $right = $row['right'];
                 $right_parts = array_map('trim', explode(',', $right));
 
