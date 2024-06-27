@@ -24,6 +24,16 @@ class Template
         $this->_fields[] = new Field($name, $args);
     }
 
+    public function get_group_ids()
+    {
+        $output = [];
+        foreach ($this->_groups as $group) {
+            $output[] = $group->get_id();
+        }
+
+        return $output;
+    }
+
     public function get_groups()
     {
         return $this->_groups;

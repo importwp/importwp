@@ -151,6 +151,16 @@ class Addon
         $this->_addon_template = new Template();
         $this->register($this->_addon_template);
 
+        $this->event_handler->listen('template.pre_process_groups', function ($groups, $data, $template) {
+
+            $new_groups = $this->_addon_template->get_group_ids();
+            if (!empty($new_groups)) {
+                return array_merge((array) $groups, $new_groups);
+            }
+
+            return $groups;
+        });
+
         return true;
     }
 
