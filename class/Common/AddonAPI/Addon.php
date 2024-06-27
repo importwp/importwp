@@ -34,7 +34,8 @@ class Addon
 
     public function __construct()
     {
-        // error_log('IWPAddon_Base::__construct');
+        // Register addon
+        \ImportWP\Common\AddonAPI\AddonManager::instance()->register($this);
 
         // capture for template registration
         add_action('iwp/register_events', function ($event_handler) {
