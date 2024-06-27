@@ -165,8 +165,8 @@ class Addon
     }
 
     /**
-     * @param IWPAddon_Template $template_data 
-     * @return IWPAddon_Template 
+     * @param Template $template_data 
+     * @return Template 
      */
     public function register($template_data)
     {
@@ -215,7 +215,7 @@ class Addon
              * @var \ImportWP\Common\Importer\Template\Template $template
              */
 
-            $this->save(new AddonData($id, []));
+            $this->save(new AddonData($id, $data, $this->_addon_template));
 
             return $id;
         });
@@ -241,7 +241,7 @@ class Addon
     }
 
     /**
-     * @param IWPAddon_Data $data 
+     * @param AddonData $data 
      * @return void 
      */
     public function save($data)

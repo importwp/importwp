@@ -16,7 +16,9 @@ class Template
 
     public function register_group($name, $args = [])
     {
-        $this->_groups[] = new Panel($name, $args);
+        $panel = new Panel($name, $args);
+        $this->_groups[] = $panel;
+        return $panel;
     }
 
     public function register_field($name, $args = [])
