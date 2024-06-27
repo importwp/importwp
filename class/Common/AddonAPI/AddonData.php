@@ -18,17 +18,24 @@ class AddonData
     private $_template;
 
     /**
+     * @var \ImportWP\Common\Importer\Importer
+     */
+    private $_importer;
+
+    /**
      * 
      * @param int $id 
      * @param \ImportWP\Common\Importer\ParsedData $data
      * @param \ImportWP\Common\AddonAPI\Template\Template $template
+     * @param \ImportWP\Common\Importer\Importer $importer
      * @return void 
      */
-    public function __construct($id, $data, $template)
+    public function __construct($id, $data, $template, $importer)
     {
         $this->_id = $id;
         $this->_data = $data;
         $this->_template = $template;
+        $this->_importer = $importer;
     }
 
     public function get_id()
@@ -64,5 +71,15 @@ class AddonData
         }
 
         return false;
+    }
+
+    public function update_meta($key, $value, $prev_value = '', $skip_permissions = false)
+    {
+        $this->_importer->getMapper()->update_custom_field($this->get_id(), $key, $value, $prev_value, $skip_permissions);
+    }
+
+    public function delete_meta($key, $meta_value = '')
+    {
+        $this->_importer->getMapper()->clear_custom_field($this->get_id(), $key);
     }
 }

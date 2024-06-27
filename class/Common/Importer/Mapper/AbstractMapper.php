@@ -270,6 +270,13 @@ class AbstractMapper
     {
     }
 
+    /**
+     * Clear all meta before adding custom field
+     */
+    public function clear_custom_field($id, $key)
+    {
+    }
+
     public function get_custom_field($id, $key = '', $single = false)
     {
         return false;

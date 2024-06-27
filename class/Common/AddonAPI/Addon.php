@@ -215,7 +215,7 @@ class Addon
              * @var \ImportWP\Common\Importer\Template\Template $template
              */
 
-            $this->save(new AddonData($id, $data, $this->_addon_template));
+            $this->save(new AddonData($id, $data, $this->_addon_template, $this->_importer));
 
             return $id;
         });
