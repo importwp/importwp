@@ -8,6 +8,7 @@ class Field
     private $_name;
     private $_type = 'text';
     private $_group;
+    private $_args = [];
 
     public function __construct($name, $args = [])
     {
@@ -21,6 +22,8 @@ class Field
         if (isset($args['group'])) {
             $this->_group = $args['group'];
         }
+
+        $this->_args = $args;
     }
 
     public function get_id()
@@ -45,9 +48,6 @@ class Field
 
     public function get_args()
     {
-        return [
-            'core' => true,
-            'type' => $this->get_type()
-        ];
+        return $this->_args;
     }
 }

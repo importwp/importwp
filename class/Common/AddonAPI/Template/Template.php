@@ -26,6 +26,14 @@ class Template
         $this->_fields[] = new Field($name, $args);
     }
 
+    public function register_attachment_field($name, $field_label = '', $args = [])
+    {
+        $this->_fields[] = new Field($name, array_merge($args, [
+            'type' => 'attachment',
+            'field_label' => $field_label,
+        ]));
+    }
+
     public function get_group_ids()
     {
         $output = [];

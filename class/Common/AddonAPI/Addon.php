@@ -120,15 +120,35 @@ class Addon
                 }
 
                 foreach ($group_fields as $g_field) {
+
+                    switch ($g_field->get_type()) {
+                        case 'attachment':
+
+                            $args = $g_field->get_args();
+
+                            $tmp = [
+                                $this->_template->register_attachment_fields(
+                                    $g_field->get_name(),
+                                    $g_field->get_id(),
+                                    $args['field_label'],
+                                    $g_field->get_args()
+                                )
+                            ];
+                            break;
+                        default:
+                            $tmp = [
+                                $this->_template->register_field(
+                                    $g_field->get_name(),
+                                    $g_field->get_id(),
+                                    $g_field->get_args()
+                                )
+                            ];
+                            break;
+                    }
+
                     $field['fields'] = array_merge(
                         $field['fields'],
-                        [
-                            $this->_template->register_field(
-                                $g_field->get_name(),
-                                $g_field->get_id(),
-                                $g_field->get_args()
-                            )
-                        ]
+                        $tmp
                     );
                 }
             }
