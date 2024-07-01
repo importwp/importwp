@@ -90,16 +90,16 @@ class Addon
 
     private function merge_fields($field_data)
     {
-        // register groups
-        $groups = $this->_addon_template->get_groups();
-        if (!empty($groups)) {
-            foreach ($groups as $group) {
+        // register panels
+        $panels = $this->_addon_template->get_panels();
+        if (!empty($panels)) {
+            foreach ($panels as $panel) {
                 $field_data = array_merge($field_data, [
                     $this->_template->register_group(
-                        $group->get_name(),
-                        $group->get_id(),
+                        $panel->get_name(),
+                        $panel->get_id(),
                         [],
-                        $group->get_args()
+                        $panel->get_args()
                     )
                 ]);
             }
@@ -110,16 +110,16 @@ class Addon
         if (!empty($fields)) {
             foreach ($field_data as &$field) {
 
-                $group = $field['id'];
-                $group_fields = array_filter($fields, function (Field $item) use ($group) {
-                    return $item->get_group() == $group;
+                $panel = $field['id'];
+                $panel_fields = array_filter($fields, function (Field $item) use ($panel) {
+                    return $item->get_group() == $panel;
                 });
 
-                if (empty($group_fields)) {
+                if (empty($panel_fields)) {
                     continue;
                 }
 
-                foreach ($group_fields as $g_field) {
+                foreach ($panel_fields as $g_field) {
 
                     switch ($g_field->get_type()) {
                         case 'attachment':
@@ -173,7 +173,7 @@ class Addon
 
         $this->event_handler->listen('template.pre_process_groups', function ($groups, $data, $template) {
 
-            $new_groups = $this->_addon_template->get_group_ids();
+            $new_groups = $this->_addon_template->get_panel_ids();
             if (!empty($new_groups)) {
                 return array_merge((array) $groups, $new_groups);
             }

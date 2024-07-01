@@ -82,4 +82,9 @@ class AddonData
     {
         $this->_importer->getMapper()->clear_custom_field($this->get_id(), $key);
     }
+
+    public function process_attachment($key)
+    {
+        // TODO: access template to process attachments
+    }
 }

@@ -12,12 +12,12 @@ class Template
     /**
      * @var Panel[]
      */
-    private $_groups = [];
+    private $_panels = [];
 
-    public function register_group($name, $args = [])
+    public function register_panel($name, $args = [])
     {
         $panel = new Panel($name, $args);
-        $this->_groups[] = $panel;
+        $this->_panels[] = $panel;
         return $panel;
     }
 
@@ -34,19 +34,19 @@ class Template
         ]));
     }
 
-    public function get_group_ids()
+    public function get_panel_ids()
     {
         $output = [];
-        foreach ($this->_groups as $group) {
-            $output[] = $group->get_id();
+        foreach ($this->_panels as $panel) {
+            $output[] = $panel->get_id();
         }
 
         return $output;
     }
 
-    public function get_groups()
+    public function get_panels()
     {
-        return $this->_groups;
+        return $this->_panels;
     }
 
     public function get_fields()
