@@ -94,63 +94,15 @@ class Addon
         $panels = $this->_addon_template->get_panels();
         if (!empty($panels)) {
             foreach ($panels as $panel) {
+
                 $field_data = array_merge($field_data, [
                     $this->_template->register_group(
                         $panel->get_name(),
                         $panel->get_id(),
-                        [],
+                        $panel->get_template_data($this->_template),
                         $panel->get_args()
                     )
                 ]);
-            }
-        }
-
-        // register fields
-        $fields = $this->_addon_template->get_fields();
-        if (!empty($fields)) {
-            foreach ($field_data as &$field) {
-
-                $panel = $field['id'];
-                $panel_fields = array_filter($fields, function (Field $item) use ($panel) {
-                    return $item->get_group() == $panel;
-                });
-
-                if (empty($panel_fields)) {
-                    continue;
-                }
-
-                foreach ($panel_fields as $g_field) {
-
-                    switch ($g_field->get_type()) {
-                        case 'attachment':
-
-                            $args = $g_field->get_args();
-
-                            $tmp = [
-                                $this->_template->register_attachment_fields(
-                                    $g_field->get_name(),
-                                    $g_field->get_id(),
-                                    $args['field_label'],
-                                    $g_field->get_args()
-                                )
-                            ];
-                            break;
-                        default:
-                            $tmp = [
-                                $this->_template->register_field(
-                                    $g_field->get_name(),
-                                    $g_field->get_id(),
-                                    $g_field->get_args()
-                                )
-                            ];
-                            break;
-                    }
-
-                    $field['fields'] = array_merge(
-                        $field['fields'],
-                        $tmp
-                    );
-                }
             }
         }
 
@@ -235,7 +187,7 @@ class Addon
              * @var \ImportWP\Common\Importer\Template\Template $template
              */
 
-            $this->save(new AddonData($id, $data, $this->_addon_template, $this->_importer));
+            $this->save(new AddonData($id, $data, $this->_addon_template, $this->_importer, $template));
 
             return $id;
         });

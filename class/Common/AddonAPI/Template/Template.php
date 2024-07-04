@@ -2,13 +2,8 @@
 
 namespace ImportWP\Common\AddonAPI\Template;
 
-class Template
+class Template extends Group
 {
-    /**
-     * @var Field[]
-     */
-    private $_fields = [];
-
     /**
      * @var Panel[]
      */
@@ -19,19 +14,6 @@ class Template
         $panel = new Panel($name, $args);
         $this->_panels[] = $panel;
         return $panel;
-    }
-
-    public function register_field($name, $args = [])
-    {
-        $this->_fields[] = new Field($name, $args);
-    }
-
-    public function register_attachment_field($name, $field_label = '', $args = [])
-    {
-        $this->_fields[] = new Field($name, array_merge($args, [
-            'type' => 'attachment',
-            'field_label' => $field_label,
-        ]));
     }
 
     public function get_panel_ids()
@@ -49,8 +31,14 @@ class Template
         return $this->_panels;
     }
 
-    public function get_fields()
+    public function get_panel($panel_id)
     {
-        return $this->_fields;
+        foreach ($this->_panels as $panel) {
+            if ($panel->get_id() == $panel_id) {
+                return $panel;
+            }
+        }
+
+        return false;
     }
 }
