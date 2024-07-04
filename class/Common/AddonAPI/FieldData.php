@@ -48,6 +48,14 @@ class FieldData
 
     public function get_value()
     {
+        // Handle permssions
+        $permission_key = $this->_field_prefix . '.' . $this->_field->get_id();
+        $allowed = $this->_addon_data->get_data()->permission()->validate([$permission_key => ''], $this->_addon_data->get_data()->getMethod(), $this->_data_group);
+        $is_allowed = isset($allowed[$permission_key]) ? true : false;
+        if (!$is_allowed) {
+            return false;
+        }
+
         $field_type = $this->_field->get_type();
         if ($field_type === 'text') {
 

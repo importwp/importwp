@@ -44,6 +44,14 @@ class PanelData
         $field_prefix = $this->get_field_prefix();
         $group_id = $this->get_data_group_id();
 
+        // Check group permission
+        $permission_key = $group_id;
+        $allowed = $this->_addon_data->get_data()->permission()->validate([$permission_key => ''], $this->_addon_data->get_data()->getMethod(), $group_id);
+        $is_allowed = isset($allowed[$permission_key]) ? true : false;
+        if (!$is_allowed) {
+            return false;
+        }
+
         if ($this->_panel->is_repeater()) {
 
             $max_rows = intval($this->_addon_data->get_data()->getValue($field_prefix . '._index', $group_id));
