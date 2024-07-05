@@ -2,6 +2,8 @@
 
 namespace ImportWP\Common\AddonAPI;
 
+use ImportWP\Common\AddonAPI\Template\Field;
+use ImportWP\Common\AddonAPI\Template\FieldGroup;
 use ImportWP\Common\AddonAPI\Template\Panel;
 
 class PanelData
@@ -60,13 +62,19 @@ class PanelData
                 $row = [];
                 foreach ($this->_panel->get_fields() as $field) {
 
-                    // TODO: let FieldData handle this
-                    $field_data = new FieldData($field, $this->_addon_data, [
+                    $args = [
                         'data_group' => $this->get_data_group_id(),
                         'field_prefix' => $this->get_field_prefix() . '.' . $i,
-                    ]);
+                    ];
 
-                    $row[$field->get_id()] = $field_data->get_value();
+                    if (is_a($field, \ImportWP\Common\AddonAPI\Template\Field::class)) {
+
+                        $field_data = new FieldData($field, $this->_addon_data, $args);
+                        $row[$field->get_id()] = $field_data->get_value();
+                    } elseif (is_a($field, \ImportWP\Common\AddonAPI\Template\FieldGroup::class)) {
+                        $field_group_data = new FieldGroupData($field, $this->_addon_data, $args);
+                        $row[$field->get_id()] = $field_group_data->get_value();
+                    }
                 }
                 $output[] = $row;
             }
@@ -74,29 +82,43 @@ class PanelData
             return $output;
         } else {
 
-            if (!is_null($field_id)) {
-                foreach ($this->_panel->get_fields() as $field) {
+            $output = [];
+            foreach ($this->_panel->get_fields() as $field) {
 
-                    if ($field->get_id() !== $field_id) {
-                        continue;
-                    }
+                // dont fetch data if we are only requesting a single element
+                if (!is_null($field_id) && $field->get_id() !== $field_id) {
+                    continue;
+                }
 
-                    $field_data = new FieldData($field, $this->_addon_data, [
-                        'data_group' => $this->get_data_group_id(),
-                        'field_prefix' => $this->get_field_prefix(),
-                    ]);
+                $args = [
+                    'data_group' => $this->get_data_group_id(),
+                    'field_prefix' => $this->get_field_prefix(),
+                ];
 
-                    return $field_data->get_value();
+                if (is_a($field, \ImportWP\Common\AddonAPI\Template\Field::class)) {
+
+                    $field_data = new FieldData($field, $this->_addon_data, $args);
+                    $output[$field->get_id()] = $field_data->get_value();
+                } elseif (is_a($field, \ImportWP\Common\AddonAPI\Template\FieldGroup::class)) {
+
+                    $field_group = new FieldGroupData($field, $this->_addon_data, $args);
+                    $output[$field->get_id()] = $field_group->get_value();
+                }
+
+                if (!is_null($field_id)) {
+                    return isset($output[$field_id]) ? $output[$field_id] : false;
                 }
             }
+
+            return $output;
         }
 
         return false;
     }
 
     /**
-     * @param Field $field 
-     * @return FieldData 
+     * @param Field|FieldGroup $field 
+     * @return FieldData|FieldGroupData 
      */
     private function get_field_data($field)
     {
@@ -105,10 +127,18 @@ class PanelData
             return $this->_fields[$field_id];
         }
 
-        $this->_fields[$field_id] = new FieldData($field, $this->_addon_data, [
-            'data_group' => $this->get_data_group_id(),
-            'field_prefix' => $this->get_field_prefix(),
-        ]);
+        if (is_a($field, Field::class)) {
+            $this->_fields[$field_id] = new FieldData($field, $this->_addon_data, [
+                'data_group' => $this->get_data_group_id(),
+                'field_prefix' => $this->get_field_prefix(),
+            ]);
+        } elseif (is_a($field, FieldGroup::class)) {
+            $this->_fields[$field_id] = new FieldGroupData($field, $this->_addon_data, [
+                'data_group' => $this->get_data_group_id(),
+                'field_prefix' => $this->get_field_prefix(),
+            ]);
+        }
+
         return $this->_fields[$field_id];
     }
 

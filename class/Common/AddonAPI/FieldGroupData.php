@@ -48,6 +48,26 @@ class FieldGroupData
 
     public function get_value()
     {
-        return false;
+        $output = [];
+        foreach ($this->_field_group->get_fields() as $field) {
+
+            $args = [
+                'data_group' => $this->_data_group,
+                'field_prefix' => $this->_field_prefix . '.' . $this->_field_group->get_id(),
+            ];
+
+            if (is_a($field, \ImportWP\Common\AddonAPI\Template\Field::class)) {
+
+                $field_data = new FieldData($field, $this->_addon_data, $args);
+
+                $output[$field->get_id()] = $field_data->get_value();
+            } elseif (is_a($field, \ImportWP\Common\AddonAPI\Template\FieldGroup::class)) {
+
+                $field_group = new FieldGroupData($field, $this->_addon_data, $args);
+
+                $output[$field->get_id()] = $field_group->get_value();
+            }
+        }
+        return $output;
     }
 }
