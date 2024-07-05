@@ -5,9 +5,16 @@ namespace ImportWP\Common\AddonAPI\Template;
 class Group
 {
     /**
-     * @var Field[]
+     * @var Field[]|FieldGroup[]
      */
     private $_fields = [];
+
+    public function register_group($name, $args = [])
+    {
+        $field_group = new FieldGroup($name, $args);
+        $this->_fields[] = $field_group;
+        return $field_group;
+    }
 
     public function register_field($name, $args = [])
     {
@@ -38,8 +45,18 @@ class Group
     public function get_template_data($template)
     {
         $output = [];
-        foreach ($this->_fields as $field) {
-            $output[] = $field->get_template_data($template);
+
+        foreach ($this->get_fields() as $field) {
+            if (is_a($field, FieldGroup::class)) {
+                $output[] = $template->register_group(
+                    $field->get_name(),
+                    $field->get_id(),
+                    $field->get_template_data($template),
+                    $field->get_args()
+                );
+            } elseif (is_a($field, Field::class)) {
+                $output[] = $field->get_template_data($template);
+            }
         }
 
         return $output;
