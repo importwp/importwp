@@ -112,4 +112,9 @@ class CustomFieldsData
 
         return false;
     }
+
+    public function log($field_id)
+    {
+        $this->_addon_data->log($field_id, $this->_custom_fields->get_prefix());
+    }
 }

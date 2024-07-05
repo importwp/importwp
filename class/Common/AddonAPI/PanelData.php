@@ -128,4 +128,9 @@ class PanelData
 
         return $this->get_field_data($field);
     }
+
+    public function log($field_id)
+    {
+        $this->_addon_data->log($field_id, $this->_panel->get_id());
+    }
 }

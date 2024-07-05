@@ -28,6 +28,8 @@ class AddonData
      */
     private $_importer_template;
 
+    private $_logs = [];
+
     /**
      * 
      * @param int $id 
@@ -101,5 +103,19 @@ class AddonData
     public function get_data()
     {
         return $this->_data;
+    }
+
+    public function log($field_id, $group_id)
+    {
+        if (!isset($this->_logs[$group_id])) {
+            $this->_logs[$group_id] = [];
+        }
+
+        $this->_logs[$group_id][] = $field_id;
+    }
+
+    public function get_logs()
+    {
+        return $this->_logs;
     }
 }

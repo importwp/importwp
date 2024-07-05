@@ -167,6 +167,26 @@ class Addon
             return $groups;
         });
 
+        /**
+         * Change custom field key to acf field key
+         */
+        add_filter('iwp/custom_field_key', function ($key) {
+
+            foreach ($this->_addon_template->get_custom_fields() as $custom_fields) {
+
+                if (strpos($key, $custom_fields->get_prefix() . "::") === 0) {
+
+                    $field_key = substr($key, strrpos($key, '::') + strlen('::'));
+                    if ($field = $custom_fields->get_field($field_key)) {
+                        return $field['id'];
+                    }
+
+                    break;
+                }
+            }
+            return $key;
+        }, 10);
+
         return true;
     }
 
@@ -221,7 +241,18 @@ class Addon
              * @var \ImportWP\Common\Importer\Template\Template $template
              */
 
-            $this->save(new AddonData($id, $data, $this->_addon_template, $this->_importer, $template));
+            $addon_data = new AddonData($id, $data, $this->_addon_template, $this->_importer, $template);
+            $this->save($addon_data);
+
+            add_filter('iwp/custom_fields/log_message', function ($message) use ($addon_data) {
+
+                $logs = $addon_data->get_logs();
+                foreach ($logs as $group_id => $field_ids) {
+                    $message .= ', ' . $group_id . ' (' . implode(', ', $field_ids) . ')';
+                }
+
+                return $message;
+            });
 
             return $id;
         });

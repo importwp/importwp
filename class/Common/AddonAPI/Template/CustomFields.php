@@ -48,4 +48,9 @@ class CustomFields
     {
         return $this->_fields;
     }
+
+    public function get_field($field_id)
+    {
+        return isset($this->_fields[$field_id]) ? $this->_fields[$field_id] : false;
+    }
 }
