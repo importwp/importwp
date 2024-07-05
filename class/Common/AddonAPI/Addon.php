@@ -2,7 +2,6 @@
 
 namespace ImportWP\Common\AddonAPI;
 
-use ImportWP\Common\AddonAPI\Template\Field;
 use ImportWP\Common\AddonAPI\Template\Template;
 
 class Addon
@@ -59,6 +58,22 @@ class Addon
 
                 if ($this->init()) {
                     $fields = $this->merge_fields($fields);
+                }
+
+                return $fields;
+            });
+
+            // Register custom fields for display
+            $this->event_handler->listen('importer.custom_fields.get_fields', function ($fields, $importer_model) {
+
+                $this->_template_importer_model = $importer_model;
+                if (!$this->init()) {
+                    return $fields;
+                }
+
+                $custom_fields = $this->_addon_template->get_custom_fields();
+                foreach ($custom_fields as $custom_fields) {
+                    $fields = array_merge($custom_fields->get_dropdown_fields(), $fields);
                 }
 
                 return $fields;

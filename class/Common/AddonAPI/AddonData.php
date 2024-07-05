@@ -57,74 +57,12 @@ class AddonData
         return $panel ? new PanelData($panel, $this) : false;
     }
 
-    public function get_value($field_id, $group = null)
+    public function get_custom_fields($custom_fields_id)
     {
-        $fields = $this->_template->get_fields();
-
-        $current_field = null;
-        foreach ($fields as $field) {
-            if ($field->get_id() === $field_id) {
-                $current_field = $field;
-                break;
+        foreach ($this->_template->get_custom_fields() as $custom_fields) {
+            if ($custom_fields_id == $custom_fields->get_prefix()) {
+                return new CustomFieldsData($custom_fields, $this, $this->_importer_template);
             }
-        }
-
-        if (!$current_field) {
-            throw new \Exception("Missing field: " . $field_id . ", group: " . $group);
-        }
-
-        if (is_null($group)) {
-            $group = $current_field->get_group();
-        }
-
-        $panel = $this->_template->get_panel($group);
-        if ($panel->is_repeater()) {
-
-            $max_rows = intval($this->_data->getValue($panel->get_id() . '._index', $panel->get_id()));
-            for ($i = 0; $i < $max_rows; $i++) {
-                // TODO: We need to get data from group fields recursivly
-            }
-        }
-
-        if ($current_field->get_type() === 'text') {
-            return $this->_data->getValue($group . '.' . $field->get_id(), $group);
-        } elseif ($current_field->get_type() === 'attachment') {
-            // TODO: how do we handle attachment fields
-
-            $data = $this->_data->getData($group);
-            $attachment_prefix = $group . '.' . $field->get_id();
-
-            $attachment_keys = [
-                '_meta._title',
-                '_meta._alt',
-                '_meta._caption',
-                '_meta._description',
-                '_enable_image_hash',
-                '_download',
-                '_featured',
-                '_remote_url',
-                '_ftp_user',
-                '_ftp_host',
-                '_ftp_pass',
-                '_ftp_path',
-                '_local_url',
-                '_meta._enabled'
-            ];
-            $attachment_data = [
-                'location' => $data[$attachment_prefix . '.location'],
-            ];
-
-            foreach ($attachment_keys as $k) {
-                if (isset($data[$attachment_prefix . '.settings.' . $k])) {
-                    $attachment_data[$k] = $data[$attachment_prefix . '.settings.' . $k];
-                } elseif (isset($data[$attachment_prefix . '.' . $k])) {
-                    $attachment_data[$k] = $data[$attachment_prefix . '.' . $k];
-                } else {
-                    $attachment_data[$k] = '';
-                }
-            }
-
-            return $this->process_attachment($this->get_id(), $attachment_data);
         }
 
         return false;

@@ -9,6 +9,11 @@ class Template extends Group
      */
     private $_panels = [];
 
+    /**
+     * @var CustomFields[]
+     */
+    private $_custom_fields = [];
+
     public function register_panel($name, $args = [])
     {
         $panel = new Panel($name, $args);
@@ -40,5 +45,17 @@ class Template extends Group
         }
 
         return false;
+    }
+
+    public function register_custom_fields($name, $prefix)
+    {
+        $tmp = new CustomFields($name, $prefix);
+        $this->_custom_fields[] = $tmp;
+        return $tmp;
+    }
+
+    public function get_custom_fields()
+    {
+        return $this->_custom_fields;
     }
 }
