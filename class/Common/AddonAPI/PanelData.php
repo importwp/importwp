@@ -39,7 +39,7 @@ class PanelData
         return $this->_panel->get_id();
     }
 
-    public function get_value()
+    public function get_value($field_id = null)
     {
         $field_prefix = $this->get_field_prefix();
         $group_id = $this->get_data_group_id();
@@ -67,13 +67,28 @@ class PanelData
                     ]);
 
                     $row[$field->get_id()] = $field_data->get_value();
-
-                    // $row[$field->get_id()] = $this->_addon_data->get_data()->getValue($field_prefix . '.' . $i . '.' . $field->get_id(), $group_id);
                 }
                 $output[] = $row;
             }
 
             return $output;
+        } else {
+
+            if (!is_null($field_id)) {
+                foreach ($this->_panel->get_fields() as $field) {
+
+                    if ($field->get_id() !== $field_id) {
+                        continue;
+                    }
+
+                    $field_data = new FieldData($field, $this->_addon_data, [
+                        'data_group' => $this->get_data_group_id(),
+                        'field_prefix' => $this->get_field_prefix(),
+                    ]);
+
+                    return $field_data->get_value();
+                }
+            }
         }
 
         return false;

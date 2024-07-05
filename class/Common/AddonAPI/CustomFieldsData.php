@@ -90,6 +90,14 @@ class CustomFieldsData
         $custom_field = $this->_data_cache[$field_id]['field'];
         $settings = $this->_data_cache[$field_id]['settings'];
 
+        // check permissions
+        $permission_key = 'custom_fields' . '.' . apply_filters('iwp/custom_field_key', $settings['key']);
+        $allowed = $this->_addon_data->get_data()->permission()->validate([$permission_key => ''], $this->_addon_data->get_data()->getMethod(), 'custom_fields');
+        $is_allowed = isset($allowed[$permission_key]) ? true : false;
+        if (!$is_allowed) {
+            return false;
+        }
+
         $value = $settings['value'];
         $value = apply_filters('iwp/template/process_field', $value, $field_id, iwp()->importer);
 
