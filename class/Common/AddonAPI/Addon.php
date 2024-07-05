@@ -123,6 +123,25 @@ class Addon
         $this->_addon_template = new Template();
         $this->register($this->_addon_template);
 
+        // register permission fields for ui
+        add_filter('iwp/template/permission_fields', function ($permission_fields) {
+
+            $panels = $this->_addon_template->get_panels();
+            foreach ($panels as $panel) {
+
+                $section = $panel->get_name();
+                if (!isset($permission_fields[$section])) {
+                    $permission_fields[$section] = [];
+                }
+
+                foreach ($panel->get_fields() as $field) {
+                    $permission_fields[$section][$panel->get_id() . '.' . $field->get_id()] = $field->get_name();
+                }
+            }
+
+            return $permission_fields;
+        });
+
         $this->event_handler->listen('template.pre_process_groups', function ($groups, $data, $template) {
 
             $new_groups = $this->_addon_template->get_panel_ids();
