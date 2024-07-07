@@ -19,9 +19,11 @@ class CustomFields
         return $this->_prefix;
     }
 
-    public function register_field($name, $type = 'text')
+    public function register_field($name, $args = [])
     {
-        $id = sanitize_title($name);
+        $id = isset($args['id']) ? $args['id'] : sanitize_title($name);
+        $type = isset($args['type']) ? $args['type'] : 'text';
+
         $this->_fields[$id] = [
             'id' => $id,
             'name' => $name,

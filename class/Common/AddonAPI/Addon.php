@@ -33,6 +33,12 @@ class Addon
 
     public function __construct()
     {
+        $this->setup_importer();
+        $this->setup_exporter();
+    }
+
+    private function setup_importer()
+    {
         // Register addon
         \ImportWP\Common\AddonAPI\AddonManager::instance()->register($this);
 
@@ -101,6 +107,48 @@ class Addon
         }, 10);
 
         // capture for import registration
+    }
+
+    public function setup_exporter()
+    {
+        $allowed_types = $this->export_types();
+        foreach ($allowed_types as $allowed_type) {
+
+            // pass template type to exporter
+            add_filter('iwp/exporter/' . $allowed_type . '/fields', function ($fields, $template_args) use ($allowed_type) {
+                return $this->exporter_modify_fields($fields, $template_args, $allowed_type);
+            }, 10, 2);
+
+            add_filter('iwp/exporter/' . $allowed_type . '/setup_data', function ($record, $template_args) use ($allowed_type) {
+                return $this->exporter_load_data($record, $template_args, $allowed_type);
+            }, 10, 2);
+        }
+    }
+
+    public function exporter_modify_fields($fields, $template_args, $template_type)
+    {
+        // capture schema setup
+        $schema = new ExporterSchema($template_type, $template_args);
+        $this->export_schema($schema);
+
+        foreach ($schema->get_groups() as $group) {
+
+            $fields['children'][$group->get_id()] = [
+                'key' => $group->get_id(),
+                'label' => $group->get_name(),
+                'loop' => false,
+                'fields' => $group->get_fields(),
+                'children' => []
+            ];
+        }
+
+        return $fields;
+    }
+
+    public function exporter_load_data($record, $template_args, $template_type)
+    {
+        // NOTE: Should we load data when needed? iwp/exporter_record/{type}
+        return $record;
     }
 
     private function merge_fields($field_data)
@@ -366,5 +414,26 @@ class Addon
     protected function can_run()
     {
         return true;
+    }
+
+    public function export_types()
+    {
+        return [];
+    }
+
+    /**
+     * @param ExporterSchema $exporter 
+     * @return void 
+     */
+    public function export_schema($exporter)
+    {
+    }
+
+    /**
+     * @param ExporterData $exporter 
+     * @return void 
+     */
+    public function export_data($exporter)
+    {
     }
 }
