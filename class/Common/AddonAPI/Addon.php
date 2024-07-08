@@ -31,17 +31,22 @@ class Addon
      */
     private $_addon_template;
 
+    /**
+     * @var ExporterData
+     */
+    private $_exporter_data;
+
     public function __construct()
     {
+        // Register addon
+        \ImportWP\Common\AddonAPI\AddonManager::instance()->register($this);
+
         $this->setup_importer();
         $this->setup_exporter();
     }
 
     private function setup_importer()
     {
-        // Register addon
-        \ImportWP\Common\AddonAPI\AddonManager::instance()->register($this);
-
         // capture for template registration
         add_action('iwp/register_events', function ($event_handler) {
 
@@ -119,6 +124,7 @@ class Addon
                 return $this->exporter_modify_fields($fields, $template_args, $allowed_type);
             }, 10, 2);
 
+            // get user custom code at this point before 'iwp/exporter_record/{type} is triggered. 
             add_filter('iwp/exporter/' . $allowed_type . '/setup_data', function ($record, $template_args) use ($allowed_type) {
                 return $this->exporter_load_data($record, $template_args, $allowed_type);
             }, 10, 2);
@@ -147,7 +153,28 @@ class Addon
 
     public function exporter_load_data($record, $template_args, $template_type)
     {
-        // NOTE: Should we load data when needed? iwp/exporter_record/{type}
+        // setup exporter data
+        if (is_null($this->_exporter_data)) {
+            $this->_exporter_data = new ExporterData($template_type, $template_args);
+        }
+
+        $this->_exporter_data->load_record($record);
+        $this->export_data($this->_exporter_data);
+
+        foreach ($this->_exporter_data->get_groups() as $group_id => $group_data) {
+
+            if (!isset($record[$group_id])) {
+                $record[$group_id] = [];
+            }
+
+            $data = [];
+            foreach ($group_data->get_fields() as $field_id => $field) {
+                $data[$field_id] = $field->get_value();
+            }
+
+            $record[$group_id] = $data;
+        }
+
         return $record;
     }
 
