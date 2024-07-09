@@ -24,6 +24,11 @@ class ExporterData
         return $this->_template_type;
     }
 
+    public function get_args()
+    {
+        return $this->_args;
+    }
+
     public function get_record()
     {
         return $this->_record;

@@ -16,7 +16,7 @@ class AddonData
     /**
      * @var \ImportWP\Common\AddonAPI\Template\Template
      */
-    private $_template;
+    private $_addon_template;
 
     /**
      * @var \ImportWP\Common\Importer\Importer
@@ -26,7 +26,7 @@ class AddonData
     /**
      * @var \ImportWP\Common\Importer\Template\Template
      */
-    private $_importer_template;
+    private $_template;
 
     private $_logs = [];
 
@@ -34,18 +34,18 @@ class AddonData
      * 
      * @param int $id 
      * @param \ImportWP\Common\Importer\ParsedData $data
-     * @param \ImportWP\Common\AddonAPI\Template\Template $template
+     * @param \ImportWP\Common\AddonAPI\Template\Template $addon_template
      * @param \ImportWP\Common\Importer\Importer $importer
-     * @param \ImportWP\Common\Importer\Template\Template $importer_template
+     * @param \ImportWP\Common\Importer\Template\Template $template
      * @return void 
      */
-    public function __construct($id, $data, $template, $importer, $importer_template)
+    public function __construct($id, $data, $addon_template, $importer, $template)
     {
         $this->_id = $id;
         $this->_data = $data;
-        $this->_template = $template;
+        $this->_addon_template = $addon_template;
         $this->_importer = $importer;
-        $this->_importer_template = $importer_template;
+        $this->_template = $template;
     }
 
     public function get_id()
@@ -55,15 +55,15 @@ class AddonData
 
     public function get_panel($panel_id)
     {
-        $panel = $this->_template->get_panel($panel_id);
+        $panel = $this->_addon_template->get_panel($panel_id);
         return $panel ? new PanelData($panel, $this) : false;
     }
 
     public function get_custom_fields($custom_fields_id)
     {
-        foreach ($this->_template->get_custom_fields() as $custom_fields) {
+        foreach ($this->_addon_template->get_custom_fields() as $custom_fields) {
             if ($custom_fields_id == $custom_fields->get_prefix()) {
-                return new CustomFieldsData($custom_fields, $this, $this->_importer_template);
+                return new CustomFieldsData($custom_fields, $this, $this->_template);
             }
         }
 
@@ -87,17 +87,58 @@ class AddonData
          */
         $attachment = \ImportWP\Container::getInstance()->get('attachment');
 
-        return $this->_importer_template->process_attachment($this->get_id(), $attachment_data, '', $filesystem, $ftp, $attachment);
+        return $this->_template->process_attachment($this->get_id(), $attachment_data, '', $filesystem, $ftp, $attachment);
     }
 
-    public function update_meta($key, $value, $prev_value = '', $skip_permissions = false)
+    public function add_meta($key, $value, $unique = false)
     {
-        $this->_importer->getMapper()->update_custom_field($this->get_id(), $key, $value, $prev_value, $skip_permissions);
+        switch ($this->_template->get_mapper()) {
+            case 'user':
+                $result = add_user_meta($this->get_id(), $key, $value, $unique);
+                break;
+            case 'term':
+                $result = add_term_meta($this->get_id(), $key, $value, $unique);
+                break;
+            default:
+                $result = add_post_meta($this->get_id(), $key, $value, $unique);
+                break;
+        }
+
+        return $result;
     }
 
-    public function delete_meta($key, $meta_value = '')
+    public function update_meta($key, $value, $prev_value = '')
     {
-        $this->_importer->getMapper()->clear_custom_field($this->get_id(), $key);
+        switch ($this->_template->get_mapper()) {
+            case 'user':
+                $result = update_user_meta($this->get_id(), $key, $value, $prev_value);
+                break;
+            case 'term':
+                $result = update_term_meta($this->get_id(), $key, $value, $prev_value);
+                break;
+            default:
+                $result = update_post_meta($this->get_id(), $key, $value, $prev_value);
+                break;
+        }
+
+        return $result;
+    }
+
+    public function delete_meta($key, $value = '')
+    {
+        switch ($this->_template->get_mapper()) {
+            case 'user':
+                $result = delete_user_meta($this->get_id(), $key, $value, $value);
+                break;
+            case 'term':
+                $result = delete_term_meta($this->get_id(), $key, $value, $value);
+                break;
+            default:
+                $result = delete_post_meta($this->get_id(), $key, $value, $value);
+                break;
+        }
+
+        return $result;
     }
 
     public function get_data()

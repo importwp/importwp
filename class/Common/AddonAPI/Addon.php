@@ -168,8 +168,11 @@ class Addon
             }
 
             $data = [];
-            foreach ($group_data->get_fields() as $field_id => $field) {
-                $data[$field_id] = $field->get_value();
+            foreach ($group_data->get_fields() as $field) {
+
+                foreach ($field->get_values() as $sub_field_id => $sub_field_value) {
+                    $data[$sub_field_id] = $sub_field_value;
+                }
             }
 
             $record[$group_id] = $data;
