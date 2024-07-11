@@ -1,11 +1,11 @@
 <?php
 
-namespace ImportWP\Common\AddonAPI;
+namespace ImportWP\Common\AddonAPI\Importer;
 
 class CustomFieldsData
 {
     /**
-     * @var \ImportWP\Common\AddonAPI\Template\CustomFields
+     * @var \ImportWP\Common\AddonAPI\Importer\Template\CustomFields
      */
     private $_custom_fields;
 
@@ -22,7 +22,7 @@ class CustomFieldsData
     private $_data_cache = null;
 
     /**
-     * @param \ImportWP\Common\AddonAPI\Template\CustomFields $panel 
+     * @param \ImportWP\Common\AddonAPI\Importer\Template\CustomFields $panel 
      * @param \ImportWP\Common\AddonAPI\AddonData $addon_data
      * @param \ImportWP\Common\Importer\Template\Template $template
      * @return void 

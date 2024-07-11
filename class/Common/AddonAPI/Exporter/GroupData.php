@@ -1,13 +1,13 @@
 <?php
 
-namespace ImportWP\Common\AddonAPI;
+namespace ImportWP\Common\AddonAPI\Exporter;
 
-class ExporterGroupData
+class GroupData
 {
     private $_id;
 
     /**
-     * @var ExporterFieldData[]
+     * @var FieldData[]
      */
     private $_fields = [];
 
@@ -17,14 +17,14 @@ class ExporterGroupData
 
 
         foreach ($fields as $field_id => $value) {
-            $this->_fields[$field_id] = new ExporterFieldData($field_id, $value);
+            $this->_fields[$field_id] = new FieldData($field_id, $value);
         }
     }
 
     public function get_field($field_id)
     {
         if (!isset($this->_fields[$field_id])) {
-            $this->_fields[$field_id] = new ExporterFieldData($field_id);
+            $this->_fields[$field_id] = new FieldData($field_id);
         }
 
         return $this->_fields[$field_id];

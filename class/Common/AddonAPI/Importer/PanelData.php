@@ -1,15 +1,14 @@
 <?php
 
-namespace ImportWP\Common\AddonAPI;
+namespace ImportWP\Common\AddonAPI\Importer;
 
-use ImportWP\Common\AddonAPI\Template\Field;
-use ImportWP\Common\AddonAPI\Template\FieldGroup;
-use ImportWP\Common\AddonAPI\Template\Panel;
+use ImportWP\Common\AddonAPI\Importer\Template\Field;
+use ImportWP\Common\AddonAPI\Importer\Template\FieldGroup;
 
 class PanelData
 {
     /**
-     * @var \ImportWP\Common\AddonAPI\Template\Panel
+     * @var \ImportWP\Common\AddonAPI\Importer\Template\Panel
      */
     private $_panel;
 
@@ -21,7 +20,7 @@ class PanelData
     private $_fields = [];
 
     /**
-     * @param \ImportWP\Common\AddonAPI\Template\Panel $panel 
+     * @param \ImportWP\Common\AddonAPI\Importer\Template\Panel $panel 
      * @param \ImportWP\Common\AddonAPI\AddonData $addon_data
      * @return void 
      */
@@ -67,11 +66,11 @@ class PanelData
                         'field_prefix' => $this->get_field_prefix() . '.' . $i,
                     ];
 
-                    if (is_a($field, \ImportWP\Common\AddonAPI\Template\Field::class)) {
+                    if (is_a($field, \ImportWP\Common\AddonAPI\Importer\Template\Field::class)) {
 
                         $field_data = new FieldData($field, $this->_addon_data, $args);
                         $row[$field->get_id()] = $field_data->get_value();
-                    } elseif (is_a($field, \ImportWP\Common\AddonAPI\Template\FieldGroup::class)) {
+                    } elseif (is_a($field, \ImportWP\Common\AddonAPI\Importer\Template\FieldGroup::class)) {
                         $field_group_data = new FieldGroupData($field, $this->_addon_data, $args);
                         $row[$field->get_id()] = $field_group_data->get_value();
                     }
@@ -95,11 +94,11 @@ class PanelData
                     'field_prefix' => $this->get_field_prefix(),
                 ];
 
-                if (is_a($field, \ImportWP\Common\AddonAPI\Template\Field::class)) {
+                if (is_a($field, \ImportWP\Common\AddonAPI\Importer\Template\Field::class)) {
 
                     $field_data = new FieldData($field, $this->_addon_data, $args);
                     $output[$field->get_id()] = $field_data->get_value();
-                } elseif (is_a($field, \ImportWP\Common\AddonAPI\Template\FieldGroup::class)) {
+                } elseif (is_a($field, \ImportWP\Common\AddonAPI\Importer\Template\FieldGroup::class)) {
 
                     $field_group = new FieldGroupData($field, $this->_addon_data, $args);
                     $output[$field->get_id()] = $field_group->get_value();

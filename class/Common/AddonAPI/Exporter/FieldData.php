@@ -1,8 +1,8 @@
 <?php
 
-namespace ImportWP\Common\AddonAPI;
+namespace ImportWP\Common\AddonAPI\Exporter;
 
-class ExporterFieldData
+class FieldData
 {
     private $_id;
 

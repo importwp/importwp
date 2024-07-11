@@ -2,6 +2,9 @@
 
 namespace ImportWP\Common\AddonAPI;
 
+use ImportWP\Common\AddonAPI\Exporter\ExporterData;
+use ImportWP\Common\AddonAPI\Exporter\ExporterSchema;
+
 class ExporterAddon extends Addon
 {
     /**

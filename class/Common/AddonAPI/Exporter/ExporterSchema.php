@@ -1,11 +1,11 @@
 <?php
 
-namespace ImportWP\Common\AddonAPI;
+namespace ImportWP\Common\AddonAPI\Exporter;
 
 class ExporterSchema
 {
     /**
-     * @var ExporterGroupSchema[]
+     * @var GroupSchema[]
      */
     private $_groups = [];
 
@@ -31,7 +31,7 @@ class ExporterSchema
 
     public function register_group($name, $id)
     {
-        $group = new ExporterGroupSchema($name, $id);
+        $group = new GroupSchema($name, $id);
         $this->_groups[] = $group;
         return $group;
     }

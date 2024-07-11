@@ -1,6 +1,6 @@
 <?php
 
-namespace ImportWP\Common\AddonAPI\Template;
+namespace ImportWP\Common\AddonAPI\Importer\Template;
 
 class Field
 {
@@ -21,7 +21,7 @@ class Field
 
         if (isset($args['group'])) {
 
-            if (is_a($args['group'], \ImportWP\Common\AddonAPI\Template\Panel::class)) {
+            if (is_a($args['group'], \ImportWP\Common\AddonAPI\Importer\Template\Panel::class)) {
                 $this->_group = $args['group']->get_id();
             } elseif (is_string($args['group'])) {
                 $this->_group = $args['group'];

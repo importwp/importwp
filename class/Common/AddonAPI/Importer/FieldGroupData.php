@@ -1,13 +1,13 @@
 <?php
 
-namespace ImportWP\Common\AddonAPI;
+namespace ImportWP\Common\AddonAPI\Importer;
 
-use ImportWP\Common\AddonAPI\Template\FieldGroup;
+use ImportWP\Common\AddonAPI\Importer\Template\FieldGroup;
 
 class FieldGroupData
 {
     /**
-     * @var \ImportWP\Common\AddonAPI\Template\FieldGroup
+     * @var \ImportWP\Common\AddonAPI\Importer\Template\FieldGroup
      */
     private $_field_group;
 
@@ -27,7 +27,7 @@ class FieldGroupData
     private $_field_prefix;
 
     /**
-     * @param \ImportWP\Common\AddonAPI\Template\FieldGroup $field 
+     * @param \ImportWP\Common\AddonAPI\Importer\Template\FieldGroup $field 
      * @param \ImportWP\Common\AddonAPI\AddonData $addon_data
      * @param array $args
      * @return void 
@@ -56,12 +56,12 @@ class FieldGroupData
                 'field_prefix' => $this->_field_prefix . '.' . $this->_field_group->get_id(),
             ];
 
-            if (is_a($field, \ImportWP\Common\AddonAPI\Template\Field::class)) {
+            if (is_a($field, \ImportWP\Common\AddonAPI\Importer\Template\Field::class)) {
 
                 $field_data = new FieldData($field, $this->_addon_data, $args);
 
                 $output[$field->get_id()] = $field_data->get_value();
-            } elseif (is_a($field, \ImportWP\Common\AddonAPI\Template\FieldGroup::class)) {
+            } elseif (is_a($field, \ImportWP\Common\AddonAPI\Importer\Template\FieldGroup::class)) {
 
                 $field_group = new FieldGroupData($field, $this->_addon_data, $args);
 

@@ -2,7 +2,8 @@
 
 namespace ImportWP\Common\AddonAPI;
 
-use ImportWP\Common\AddonAPI\Template\Template;
+use ImportWP\Common\AddonAPI\Importer\ImporterData;
+use ImportWP\Common\AddonAPI\Importer\Template\Template;
 
 class ImporterAddon extends Addon
 {
@@ -240,7 +241,7 @@ class ImporterAddon extends Addon
              * @var \ImportWP\Common\Importer\Template\Template $template
              */
 
-            $addon_data = new AddonData($id, $data, $this->_addon_template, $this->_importer, $template);
+            $addon_data = new ImporterData($id, $data, $this->_addon_template, $this->_importer, $template);
             $this->save($addon_data);
 
             add_filter('iwp/custom_fields/log_message', function ($message) use ($addon_data) {

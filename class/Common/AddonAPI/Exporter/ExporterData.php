@@ -1,6 +1,6 @@
 <?php
 
-namespace ImportWP\Common\AddonAPI;
+namespace ImportWP\Common\AddonAPI\Exporter;
 
 class ExporterData
 {
@@ -9,7 +9,7 @@ class ExporterData
     private $_record = [];
 
     /**
-     * @var ExporterGroupData[]
+     * @var GroupData[]
      */
     private $_groups = [];
 
@@ -37,7 +37,7 @@ class ExporterData
     public function get_group($group_id)
     {
         if (!isset($this->_groups[$group_id])) {
-            $this->_groups[$group_id]  = new ExporterGroupData($group_id, []);
+            $this->_groups[$group_id]  = new GroupData($group_id, []);
         }
         return $this->_groups[$group_id];
     }

@@ -1,11 +1,10 @@
 <?php
 
-namespace ImportWP\Common\AddonAPI;
+namespace ImportWP\Common\AddonAPI\Importer;
 
 use ImportWP\Common\Importer\ParsedData;
-use ImportWP\Common\Importer\Template\Template;
 
-class AddonData
+class ImporterData
 {
     private $_id;
     /**
@@ -14,7 +13,7 @@ class AddonData
     private $_data;
 
     /**
-     * @var \ImportWP\Common\AddonAPI\Template\Template
+     * @var \ImportWP\Common\AddonAPI\Importer\Template\Template
      */
     private $_addon_template;
 
@@ -34,7 +33,7 @@ class AddonData
      * 
      * @param int $id 
      * @param \ImportWP\Common\Importer\ParsedData $data
-     * @param \ImportWP\Common\AddonAPI\Template\Template $addon_template
+     * @param \ImportWP\Common\AddonAPI\Importer\Template\Template $addon_template
      * @param \ImportWP\Common\Importer\Importer $importer
      * @param \ImportWP\Common\Importer\Template\Template $template
      * @return void 

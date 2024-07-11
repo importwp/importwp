@@ -1,8 +1,8 @@
 <?php
 
-namespace ImportWP\Common\AddonAPI;
+namespace ImportWP\Common\AddonAPI\Exporter;
 
-class ExporterGroupSchema
+class GroupSchema
 {
     private $_id;
 

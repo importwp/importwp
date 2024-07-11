@@ -1,6 +1,6 @@
 <?php
 
-namespace ImportWP\Common\AddonAPI\Template;
+namespace ImportWP\Common\AddonAPI\Importer\Template;
 
 class CustomFields
 {

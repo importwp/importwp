@@ -1,12 +1,11 @@
 <?php
 
-namespace ImportWP\Common\AddonAPI\Template;
+namespace ImportWP\Common\AddonAPI\Importer\Template;
 
-class Panel extends Group
+class FieldGroup extends Group
 {
     private $_id;
     private $_name;
-    private $_repeater = false;
 
     public function __construct($name, $args = [])
     {
@@ -27,22 +26,6 @@ class Panel extends Group
     public function get_args()
     {
         $args = [];
-
-        if ($this->is_repeater()) {
-            $args['type'] = 'repeatable';
-        }
-
         return $args;
-    }
-
-    public function repeater($bool = true)
-    {
-        $this->_repeater = $bool;
-        return $this;
-    }
-
-    public function is_repeater()
-    {
-        return $this->_repeater;
     }
 }

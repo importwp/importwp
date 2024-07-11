@@ -1,13 +1,13 @@
 <?php
 
-namespace ImportWP\Common\AddonAPI;
+namespace ImportWP\Common\AddonAPI\Importer;
 
-use ImportWP\Common\AddonAPI\Template\Field;
+use ImportWP\Common\AddonAPI\Importer\Template\Field;
 
 class FieldData
 {
     /**
-     * @var \ImportWP\Common\AddonAPI\Template\Field
+     * @var \ImportWP\Common\AddonAPI\Importer\Template\Field
      */
     private $_field;
 
@@ -27,7 +27,7 @@ class FieldData
     private $_field_prefix;
 
     /**
-     * @param \ImportWP\Common\AddonAPI\Template\Field $field 
+     * @param \ImportWP\Common\AddonAPI\Importer\Template\Field $field 
      * @param \ImportWP\Common\AddonAPI\AddonData $addon_data
      * @param array $args
      * @return void 
