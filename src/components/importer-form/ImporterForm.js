@@ -409,7 +409,7 @@ class ImporterForm extends Component {
                   {React.cloneElement(
                     window.iwp.hooks.applyFilters(
                       'iwp_background_import_method',
-                      <UpgradeMessage message="Please upgrade to Import WP Pro to run imports in the background." />
+                      <UpgradeMessage message="Please upgrade to Import WP Pro v2.11+ to run imports in the background." />
                     ),
                     {
                     },
