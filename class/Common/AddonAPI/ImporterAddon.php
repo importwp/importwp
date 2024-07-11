@@ -41,11 +41,7 @@ class ImporterAddon extends Addon
 
             $this->event_handler = $event_handler;
 
-            // error_log('iwp/register_events');
-
             $this->event_handler->listen('template.fields', function ($fields, $template, $importer_model) {
-
-                error_log('IWPAddon_Base::template.fields');
 
                 /**
                  * @var array $fields
@@ -80,8 +76,6 @@ class ImporterAddon extends Addon
             });
 
             $this->event_handler->listen('importer_manager.import', function ($importer_model) {
-
-                error_log('IWPAddon_Base::importer_manager.import');
 
                 /**
                  * @var \ImportWP\Common\Model\ImporterModel $importer_model
@@ -128,11 +122,9 @@ class ImporterAddon extends Addon
     {
         // should we continue
         if (!$this->can_run()) {
-            error_log('IWPAddon_Base::init - cant run');
             return false;
         }
 
-        error_log('IWPAddon_Base::init - running');
         $this->install_hooks();
 
         $this->_addon_template = new Template();
