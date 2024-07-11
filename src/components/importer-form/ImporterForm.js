@@ -202,6 +202,25 @@ class ImporterForm extends Component {
   onSubmit() {
     const { id } = this.props;
     this.save(() => {
+
+      // background
+      if (this.state.setting_import_method == 'background') {
+        importer.init(id).then(
+          (init_response) => {
+            this.setState({
+              saving: false,
+            });
+          },
+          (error) => {
+            this.props.onError(error);
+            this.setState({
+              saving: false,
+            });
+          }
+        );
+        return;
+      }
+
       // don't run if its a schedule
       if (this.state.setting_import_method !== 'run') {
         this.setState({
@@ -378,6 +397,52 @@ class ImporterForm extends Component {
                   <input
                     type="radio"
                     name="setting_import_method"
+                    value="background"
+                    checked={setting_import_method === 'background'}
+                    onChange={this.onChange}
+                  />{' '}
+                  Run in the background - <em>Start the import and let it run in the background.</em>
+                </label>
+              </div>
+              {setting_import_method === 'background' && (
+                <div className="iwp-block__content">
+                  {React.cloneElement(
+                    window.iwp.hooks.applyFilters(
+                      'iwp_background_import_method',
+                      <UpgradeMessage message="Please upgrade to Import WP Pro to run imports in the background." />
+                    ),
+                    {
+                    },
+                    <label className="iwp-form__label iwp-form__label--switch">
+                      <span>Download new file before import.</span>
+                      <Switch
+                        checked={setting_run_fetch}
+                        name='setting_run_fetch'
+                        height={20}
+                        width={40}
+                        onColor="#22c48f"
+                        onChange={checked => {
+
+                          this.onChange({
+                            target: {
+                              name: 'setting_run_fetch',
+                              type: 'checkbox',
+                              checked
+                            }
+                          });
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="iwp-accordion__block">
+              <div className="iwp-block__handle">
+                <label>
+                  <input
+                    type="radio"
+                    name="setting_import_method"
                     value="schedule"
                     checked={setting_import_method === 'schedule'}
                     onChange={this.onChange}
@@ -425,7 +490,7 @@ class ImporterForm extends Component {
               {saving && <span className="spinner is-active"></span>}
               {saving
                 ? 'Saving'
-                : setting_import_method === 'run'
+                : (setting_import_method === 'run' || setting_import_method === 'background')
                   ? 'Save & Run'
                   : 'Save & Schedule'}
             </button>{' '}
