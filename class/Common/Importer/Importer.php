@@ -332,6 +332,9 @@ class Importer
             $record_time = microtime(true);
 
             if ($importer_state->get_section() === 'import') {
+
+                do_action('iwp/importer/before_row');
+
                 /**
                  * @var ParsedData $data
                  */
@@ -353,7 +356,8 @@ class Importer
                         $stats['skips']++;
 
                         // set data to null, to flag chunk as skipped
-                        Util::write_status_log_file_message($id, $session, "Skipped Record", 'S', $progress['current_row']);
+                        $message = apply_filters('iwp/status/record_skipped', "Skipped Record");
+                        Util::write_status_log_file_message($id, $session, $message, 'S', $progress['current_row']);
 
                         $data = null;
                     } else {
@@ -408,6 +412,8 @@ class Importer
                     Logger::error('import:' . $i . ' -file-error=' . $e->getMessage());
                     Util::write_status_log_file_message($id, $session, $e->getMessage(), 'E', $progress['current_row']);
                 }
+
+                do_action('iwp/importer/after_row');
             } elseif ($importer_state->get_section() === 'delete') {
 
                 if ($this->getMapper()->permission() && $this->getMapper()->permission()->allowed_method('remove')) {

@@ -35,6 +35,10 @@ class Ftp
             $this->disconnect();
         }
 
+        if (!function_exists('\ftp_connect')) {
+            return new \WP_Error('IWP_FTP_3', __("To download via FTP please enable the php ftp extension.", 'jc-importer'));
+        }
+
         if (!$this->_conn) {
             if (!$this->login($host, $user, $pass, $port)) {
                 return new \WP_Error('IWP_FTP_0', __("Unable to login to ftp server", 'jc-importer'));
