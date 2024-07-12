@@ -548,6 +548,8 @@ class ImporterManager
 
             // if this is a new session, clear config files
             if ($state->has_status('init')) {
+                // rest importer log.
+                Logger::clear($importer_id);
                 Logger::debug('IM -clear_config_files');
                 $this->clear_config_files($importer_id, false, true);
                 $config_data['features'] = [
