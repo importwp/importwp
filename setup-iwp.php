@@ -151,6 +151,7 @@ add_action('plugins_loaded', 'iwp_loaded');
  * @param string $name
  * @param string $id
  * @param callable(AddonInterface) $callback
+ * @deprecated 2.14.0
  * 
  * @return ImportWP\Common\Addon\AddonInterface
  */

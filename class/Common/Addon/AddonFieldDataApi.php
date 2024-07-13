@@ -4,6 +4,9 @@ namespace ImportWP\Common\Addon;
 
 use ImportWP\Container;
 
+/**
+ * @deprecated 2.14.0
+ */
 class AddonFieldDataApi extends AddonDataApi
 {
     /**

@@ -5,6 +5,9 @@ namespace ImportWP\Common\Addon;
 use ImportWP\Common\Importer\Template\Template;
 use ImportWP\Common\Model\ImporterModel;
 
+/**
+ * @deprecated 2.14.0
+ */
 interface AddonInterface
 {
     function get_meta($panel_id);

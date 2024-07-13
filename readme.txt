@@ -138,7 +138,7 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
-= 2.13.6 =
+= 2.14.0 =
 
 * FIX - PHP Deprecated notice: Implicit conversion from float to int loses precision
 * ADD - Add new hooks to trigger before and after a record has been imported.
@@ -147,6 +147,7 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 * FIX - Fix UI error cause when an empty condition is set in the importer template.
 * FIX - Update continue banner to display when the importer has the status: timeout.
 * FIX - Capture previously missing errors in status file.
+* ADD - Add new addon api via ImporterAddon or ExporterAddon.
 
 = 2.13.5 =
 

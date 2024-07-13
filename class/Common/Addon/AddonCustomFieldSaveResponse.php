@@ -5,6 +5,9 @@ namespace ImportWP\Common\Addon;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Pro\Importer\Template\CustomFields;
 
+/**
+ * @deprecated 2.14.0
+ */
 class AddonCustomFieldSaveResponse
 {
     protected $_raw_records = [];
