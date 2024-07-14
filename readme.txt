@@ -2,9 +2,9 @@
 Contributors: jcollings,importwp  
 Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed, import
 Requires at least: 4.0  
-Tested up to: 6.5  
+Tested up to: 6.6  
 Requires PHP: 5.6  
-Stable tag: 2.13.5  
+Stable tag: 2.14.0  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -138,6 +138,17 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.14.0 =
+
+* FIX - PHP Deprecated notice: Implicit conversion from float to int loses precision
+* ADD - Add new hooks to trigger before and after a record has been imported.
+* FIX - Update export filter, to force the selected field to return a string.
+* FIX - Display message when trying to download via ftp without the ftp PHP extension enabled.
+* FIX - Fix UI error cause when an empty condition is set in the importer template.
+* FIX - Update continue banner to display when the importer has the status: timeout.
+* FIX - Capture previously missing errors in status file.
+* ADD - Add new addon api via ImporterAddon or ExporterAddon.
+
 = 2.13.5 =
 
 * ADD - Switch attachment to extend post template, allowing for importing related taxonomies.
@@ -163,9 +174,9 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 = 2.13.0 =
 
 * ADD - Add option on importer create screen to create from existing exporter.
-* ADD - Add option on importer create screem to create from exporter config.
+* ADD - Add option on importer create screen to create from exporter config.
 * ADD - Display unique identifier on importer log messages.
-* ADD - Add csv file settings to exporter (escape, delimiter, and seperator).
+* ADD - Add csv file settings to exporter (escape, delimiter, and separator).
 * ADD - Add csv escape character field to importer.
 * ADD - Option when importing taxonomy terms onto a post type, to search via custom field.
 * ADD - Add `iwp/importer/template/post_create_term` filter to disable creation of terms when importing taxonomies onto a post type.
@@ -177,7 +188,7 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 * ADD - New unique identifier UI, allowing you to select from template fields or create a custom identifier. 
 * ADD - Add filter to enable custom delete actions
-* ADD - Add action to override default delete behaviour with custom code.
+* ADD - Add action to override default delete behavior with custom code.
 * ADD - Add post taxonomy field labelled Hierarchy relationship, allowing you to choose from connecting all to just last term.
 
 = 2.11.8 =
@@ -222,7 +233,7 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 = 2.11.0 =
 
-* ADD - Add compatability panel do attempt to disable plugins during import process.
+* ADD - Add compatibility panel do attempt to disable plugins during import process.
 * FIX - Reduce plugin header size.
 
 = 2.10.1 =

@@ -4,6 +4,9 @@ namespace ImportWP\Common\Addon;
 
 use ImportWP\Common\Model\ImporterModel;
 
+/**
+ * @deprecated 2.14.0
+ */
 class AddonPanelDataApi extends AddonDataApi
 {
     protected $_panel;

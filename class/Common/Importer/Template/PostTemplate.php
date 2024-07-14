@@ -473,7 +473,6 @@ class PostTemplate extends Template implements TemplateInterface
          */
         $attachment = Container::getInstance()->get('attachment');
 
-        $this->featured_set = false;
         $this->process_taxonomies($post_id, $data);
         $this->process_attachments($post_id, $data, $filesystem, $ftp, $attachment);
 

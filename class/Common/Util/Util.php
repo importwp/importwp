@@ -32,7 +32,7 @@ class Util
         $t = round($seconds);
 
         $hours = ($t / 3600);
-        $minutes = ($t / 60 % 60);
+        $minutes = (floor($t / 60) % 60);
         $seconds = $t % 60;
 
         return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
