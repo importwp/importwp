@@ -91,6 +91,8 @@ class ImporterAddon extends Addon
                 $this->_template = $importer_manager->get_template($importer_model->getTemplate());
 
                 $this->init();
+
+                return $importer_model;
             });
         }, 10);
 
@@ -211,10 +213,12 @@ class ImporterAddon extends Addon
         $this->event_handler->listen('importer_manager.import_shutdown', function ($importer_model) {
             $state = \ImportWP\Common\Importer\State\ImporterState::get_state($importer_model->getId());
             if ($state['status'] != 'complete') {
-                return;
+                return $importer_model;
             }
 
             $this->after_import();
+
+            return $importer_model;
         });
 
         // before row
@@ -270,7 +274,7 @@ class ImporterAddon extends Addon
     }
 
     /**
-     * @param AddonData $data 
+     * @param ImporterData $data 
      * @return void 
      */
     public function save($data)
