@@ -62,7 +62,7 @@ class ImporterData
     {
         foreach ($this->_addon_template->get_custom_fields() as $custom_fields) {
             if ($custom_fields_id == $custom_fields->get_prefix()) {
-                return new CustomFieldsData($custom_fields, $this, $this->_template);
+                return new CustomFieldsData($custom_fields, $this);
             }
         }
 
