@@ -1,0 +1,9 @@
+{
+    "core": null,
+    "plugins": [
+        "."
+    ],
+    "config": {
+        "IWP_VERSION": "9.9.9"
+    }
+}
