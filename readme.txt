@@ -138,6 +138,12 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.14.1 =
+
+* ADD - AddonAPI before_row receives new $data argument.
+* ADD - Expand something went wrong screen to show js error.
+* FIX - Update some class references in comments.
+
 = 2.14.0 =
 
 * FIX - PHP Deprecated notice: Implicit conversion from float to int loses precision
