@@ -3,6 +3,7 @@
 namespace ImportWP\Common\AddonAPI;
 
 use ImportWP\Common\AddonAPI\Importer\ImporterData;
+use ImportWP\Common\AddonAPI\Importer\ImporterRecordData;
 use ImportWP\Common\AddonAPI\Importer\Template\Template;
 
 class ImporterAddon extends Addon
@@ -31,6 +32,11 @@ class ImporterAddon extends Addon
      * @var Template
      */
     private $_addon_template;
+
+    /**
+     * @var \ImportWP\Common\AddonAPI\Importer\ImporterRecordData
+     */
+    private $_record_data;
 
     public function __construct()
     {
@@ -222,7 +228,15 @@ class ImporterAddon extends Addon
         });
 
         // before row
-        add_action('iwp/importer/before_row', [$this, 'before_row']);
+        add_action('iwp/importer/before_row', function ($data) {
+
+            /**
+             * @var \ImportWP\Common\Importer\ParsedData $data
+             */
+            $record_data = new ImporterRecordData($data, $this->_addon_template, $this->_importer);
+
+            $this->before_row($record_data);
+        });
 
         // after row
         add_action('iwp/importer/after_row', [$this, 'after_row']);
@@ -269,7 +283,11 @@ class ImporterAddon extends Addon
         return $result;
     }
 
-    public function before_row()
+    /**
+     * @param \ImportWP\Common\AddonAPI\Importer\ImporterRecordData $record 
+     * @return void 
+     */
+    public function before_row($record)
     {
     }
 
