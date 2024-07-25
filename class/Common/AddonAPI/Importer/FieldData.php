@@ -12,7 +12,7 @@ class FieldData
     private $_field;
 
     /**
-     * @var \ImportWP\Common\AddonAPI\AddonData
+     * @var \ImportWP\Common\AddonAPI\Importer\ImporterData
      */
     private $_addon_data;
 
@@ -28,7 +28,7 @@ class FieldData
 
     /**
      * @param \ImportWP\Common\AddonAPI\Importer\Template\Field $field 
-     * @param \ImportWP\Common\AddonAPI\AddonData $addon_data
+     * @param \ImportWP\Common\AddonAPI\Importer\ImporterData $addon_data
      * @param array $args
      * @return void 
      */

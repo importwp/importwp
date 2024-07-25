@@ -333,8 +333,6 @@ class Importer
 
             if ($importer_state->get_section() === 'import') {
 
-                do_action('iwp/importer/before_row');
-
                 /**
                  * @var ParsedData $data
                  */
@@ -345,6 +343,7 @@ class Importer
                 try {
 
                     $data = $data_parser->get($i);
+                    do_action('iwp/importer/before_row', $data);
 
                     $skip_record = $this->filterRecords();
                     $skip_record = apply_filters('iwp/importer/skip_record', $skip_record, $data, $this);

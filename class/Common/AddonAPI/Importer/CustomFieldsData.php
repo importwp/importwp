@@ -10,28 +10,21 @@ class CustomFieldsData
     private $_custom_fields;
 
     /**
-     * @var \ImportWP\Common\AddonAPI\AddonData
+     * @var \ImportWP\Common\AddonAPI\Importer\ImporterData
      */
     private $_addon_data;
-
-    /**
-     * @var mixed
-     */
-    private $_template;
 
     private $_data_cache = null;
 
     /**
      * @param \ImportWP\Common\AddonAPI\Importer\Template\CustomFields $panel 
-     * @param \ImportWP\Common\AddonAPI\AddonData $addon_data
-     * @param \ImportWP\Common\Importer\Template\Template $template
+     * @param \ImportWP\Common\AddonAPI\Importer\ImporterData $addon_data
      * @return void 
      */
-    public function __construct($custom_fields, $addon_data, $template)
+    public function __construct($custom_fields, $addon_data)
     {
         $this->_custom_fields = $custom_fields;
         $this->_addon_data = $addon_data;
-        $this->_template = $template;
     }
 
     public function get_value($field_id)

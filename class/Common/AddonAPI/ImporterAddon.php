@@ -3,6 +3,7 @@
 namespace ImportWP\Common\AddonAPI;
 
 use ImportWP\Common\AddonAPI\Importer\ImporterData;
+use ImportWP\Common\AddonAPI\Importer\ImporterRecordData;
 use ImportWP\Common\AddonAPI\Importer\Template\Template;
 
 class ImporterAddon extends Addon
@@ -31,6 +32,11 @@ class ImporterAddon extends Addon
      * @var Template
      */
     private $_addon_template;
+
+    /**
+     * @var \ImportWP\Common\AddonAPI\Importer\ImporterRecordData
+     */
+    private $_record_data;
 
     public function __construct()
     {
@@ -91,6 +97,8 @@ class ImporterAddon extends Addon
                 $this->_template = $importer_manager->get_template($importer_model->getTemplate());
 
                 $this->init();
+
+                return $importer_model;
             });
         }, 10);
 
@@ -211,14 +219,24 @@ class ImporterAddon extends Addon
         $this->event_handler->listen('importer_manager.import_shutdown', function ($importer_model) {
             $state = \ImportWP\Common\Importer\State\ImporterState::get_state($importer_model->getId());
             if ($state['status'] != 'complete') {
-                return;
+                return $importer_model;
             }
 
             $this->after_import();
+
+            return $importer_model;
         });
 
         // before row
-        add_action('iwp/importer/before_row', [$this, 'before_row']);
+        add_action('iwp/importer/before_row', function ($data) {
+
+            /**
+             * @var \ImportWP\Common\Importer\ParsedData $data
+             */
+            $record_data = new ImporterRecordData($data, $this->_addon_template, $this->_importer);
+
+            $this->before_row($record_data);
+        });
 
         // after row
         add_action('iwp/importer/after_row', [$this, 'after_row']);
@@ -265,12 +283,16 @@ class ImporterAddon extends Addon
         return $result;
     }
 
-    public function before_row()
+    /**
+     * @param \ImportWP\Common\AddonAPI\Importer\ImporterRecordData $record 
+     * @return void 
+     */
+    public function before_row($record)
     {
     }
 
     /**
-     * @param AddonData $data 
+     * @param ImporterData $data 
      * @return void 
      */
     public function save($data)

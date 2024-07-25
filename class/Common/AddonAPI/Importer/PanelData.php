@@ -13,7 +13,7 @@ class PanelData
     private $_panel;
 
     /**
-     * @var \ImportWP\Common\AddonAPI\AddonData
+     * @var \ImportWP\Common\AddonAPI\Importer\ImporterData
      */
     private $_addon_data;
 
@@ -21,7 +21,7 @@ class PanelData
 
     /**
      * @param \ImportWP\Common\AddonAPI\Importer\Template\Panel $panel 
-     * @param \ImportWP\Common\AddonAPI\AddonData $addon_data
+     * @param \ImportWP\Common\AddonAPI\Importer\ImporterData $addon_data
      * @return void 
      */
     public function __construct($panel, $addon_data)
