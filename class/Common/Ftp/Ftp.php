@@ -49,14 +49,19 @@ class Ftp
             return new \WP_Error('IWP_FTP_0', __("Unable to connect to ftp server", 'jc-importer'));
         }
 
-        $size = ftp_size($this->_conn, $url);
-        if ($size === -1) {
-            return new \WP_Error('IWP_FTP_1', __('File doesn\'t exist on ftp server.', 'jc-importer'));
-        }
 
+        // Note: Not all ftp servers support SIZE checks.
+        $disable_filesize = apply_filters('iwp/ftp/disable_size_check', false);
+        if(false === $disable_filesize){
+            
+            $size = ftp_size($this->_conn, $url);
+            if ($size === -1) {
+                return new \WP_Error('IWP_FTP_1', __('File doesn\'t exist on ftp server.', 'jc-importer'));
+            }
 
-        if ($size === 0) {
-            return false;
+            if ($size === 0) {
+                return false;
+            }
         }
 
         if (!empty($override_filename)) {
