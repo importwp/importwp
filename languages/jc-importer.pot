@@ -1,0 +1,1342 @@
+# Copyright (C) 2024 James Collings <james@jclabs.co.uk>
+# This file is distributed under the same license as the Import WP plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Import WP 2.14.2\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/build\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2024-08-12T21:36:00+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.11.0\n"
+"X-Domain: jc-importer\n"
+
+#. Plugin Name of the plugin
+#: jc-importer.php
+msgid "Import WP"
+msgstr ""
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: jc-importer.php
+msgid "https://www.importwp.com"
+msgstr ""
+
+#. Description of the plugin
+#: jc-importer.php
+msgid "Import WP is a powerful Importer & Exporter with a visual data selection tool that makes it easy to Export or Import any XML or CSV file to WordPress."
+msgstr ""
+
+#. Author of the plugin
+#: jc-importer.php
+msgid "James Collings <james@jclabs.co.uk>"
+msgstr ""
+
+#: class/Common/Exporter/ExporterManager.php:220
+msgid "No records found to export"
+msgstr ""
+
+#: class/Common/Exporter/Mapper/CommentMapper.php:56
+#: class/Common/Importer/Template/CommentTemplate.php:36
+msgid "Comment"
+msgstr ""
+
+#: class/Common/Exporter/Mapper/CommentMapper.php:62
+#: class/Common/Exporter/Mapper/PostMapper.php:96
+#: class/Common/Exporter/Mapper/TaxMapper.php:63
+#: class/Common/Exporter/Mapper/UserMapper.php:51
+msgid "Custom Fields"
+msgstr ""
+
+#: class/Common/Exporter/Mapper/PostMapper.php:69
+msgid "Post"
+msgstr ""
+
+#: class/Common/Exporter/Mapper/PostMapper.php:75
+#: class/Common/Importer/Template/AttachmentTemplate.php:95
+#: class/Common/Importer/Template/CommentTemplate.php:384
+#: class/Common/Importer/Template/PostTemplate.php:151
+#: class/Common/Importer/Template/PostTemplate.php:1126
+msgid "Author"
+msgstr ""
+
+#: class/Common/Exporter/Mapper/PostMapper.php:82
+msgid "Featured Image"
+msgstr ""
+
+#: class/Common/Exporter/Mapper/PostMapper.php:89
+#: class/Common/Exporter/Mapper/TaxMapper.php:49
+#: class/Common/Importer/Template/AttachmentTemplate.php:70
+#: class/Common/Importer/Template/CommentTemplate.php:392
+#: class/Common/Importer/Template/PostTemplate.php:126
+#: class/Common/Importer/Template/PostTemplate.php:1125
+#: class/Common/Importer/Template/TermTemplate.php:73
+#: class/Common/Importer/Template/TermTemplate.php:370
+msgid "Parent"
+msgstr ""
+
+#: class/Common/Exporter/Mapper/TaxMapper.php:56
+msgid "Anscestors"
+msgstr ""
+
+#: class/Common/Exporter/Mapper/UserMapper.php:45
+msgid "User"
+msgstr ""
+
+#: class/Common/Exporter/State/ExporterState.php:48
+#: class/Common/Importer/State/ImporterState.php:53
+#: class/Common/Runner/RunnerState.php:47
+msgid "Invalid state"
+msgstr ""
+
+#: class/Common/Exporter/State/ExporterState.php:54
+#: class/Common/Importer/State/ImporterState.php:59
+#: class/Common/Runner/RunnerState.php:53
+msgid "Session has changed"
+msgstr ""
+
+#: class/Common/Filesystem/Filesystem.php:36
+msgid "File doesn`t exist on local filesystem."
+msgstr ""
+
+#: class/Common/Filesystem/Filesystem.php:47
+msgid "Unable to determine filetype."
+msgstr ""
+
+#: class/Common/Filesystem/Filesystem.php:52
+#: class/Common/Filesystem/Filesystem.php:92
+#: class/Common/Filesystem/Filesystem.php:114
+msgid "Invalid filetype."
+msgstr ""
+
+#: class/Common/Filesystem/Filesystem.php:57
+msgid "Unable to copy file: %s."
+msgstr ""
+
+#: class/Common/Filesystem/Filesystem.php:188
+#: class/Common/Importer/File/AbstractFile.php:94
+msgid "File not found: %s"
+msgstr ""
+
+#: class/Common/Filesystem/Filesystem.php:194
+msgid "File not found or empty: %s"
+msgstr ""
+
+#: class/Common/Filesystem/Filesystem.php:232
+msgid "Unable to write string to file"
+msgstr ""
+
+#: class/Common/Ftp/Ftp.php:39
+msgid "To download via FTP please enable the php ftp extension."
+msgstr ""
+
+#: class/Common/Ftp/Ftp.php:44
+#: class/Common/Importer/ImporterManager.php:346
+msgid "Unable to login to ftp server"
+msgstr ""
+
+#: class/Common/Ftp/Ftp.php:49
+msgid "Unable to connect to ftp server"
+msgstr ""
+
+#: class/Common/Ftp/Ftp.php:59
+msgid "File doesn't exist on ftp server."
+msgstr ""
+
+#: class/Common/Ftp/Ftp.php:83
+msgid "Unable to download: %s file via ftp."
+msgstr ""
+
+#: class/Common/Http/Http.php:45
+#: class/Common/Http/Http.php:78
+msgid "Unable to download: %s, Response Code: %s"
+msgstr ""
+
+#: class/Common/Importer/Config/Config.php:94
+msgid "Config Index File Not Found: %s"
+msgstr ""
+
+#: class/Common/Importer/Config/Config.php:161
+msgid "Unable to located record: %s."
+msgstr ""
+
+#: class/Common/Importer/File/AbstractFile.php:37
+msgid "File Not Found: %s"
+msgstr ""
+
+#: class/Common/Importer/Importer.php:226
+msgid "Parser Not Loaded."
+msgstr ""
+
+#: class/Common/Importer/Importer.php:230
+msgid "Mapper Not Loaded."
+msgstr ""
+
+#: class/Common/Importer/ImporterManager.php:303
+msgid "Unable to parse FTP connection string"
+msgstr ""
+
+#: class/Common/Importer/ImporterManager.php:314
+#: class/Common/Importer/ImporterManager.php:318
+msgid "Unable to parse ftp host from connection string"
+msgstr ""
+
+#: class/Common/Importer/ImporterManager.php:355
+msgid "Unable to download: %s file via sftp."
+msgstr ""
+
+#: class/Common/Importer/ImporterManager.php:429
+msgid "Unable to link importer file"
+msgstr ""
+
+#: class/Common/Importer/ImporterManager.php:492
+#: class/Common/Importer/ImporterManager.php:501
+msgid "Unable to create directory: %s"
+msgstr ""
+
+#: class/Common/Importer/ImporterManager.php:625
+msgid "Unable to get new file using datasource: %s"
+msgstr ""
+
+#: class/Common/Importer/ImporterManager.php:630
+msgid "Importer Datasource: %s"
+msgstr ""
+
+#: class/Common/Importer/ImporterManager.php:796
+msgid "Unable to locate importer template: %s"
+msgstr ""
+
+#: class/Common/Importer/ImporterManager.php:838
+msgid "Unable to locate mapper: %s"
+msgstr ""
+
+#: class/Common/Importer/ImporterManager.php:863
+msgid "Unable to locate template: %s"
+msgstr ""
+
+#: class/Common/Importer/Mapper/AttachmentMapper.php:118
+#: class/Common/Importer/Mapper/CommentMapper.php:81
+#: class/Common/Importer/Mapper/PostMapper.php:118
+#: class/Common/Importer/Mapper/TermMapper.php:77
+#: class/Common/Importer/Mapper/UserMapper.php:86
+msgid "No Unique fields present."
+msgstr ""
+
+#: class/Common/Importer/Mapper/AttachmentMapper.php:129
+#: class/Common/Importer/Mapper/CommentMapper.php:94
+#: class/Common/Importer/Mapper/PostMapper.php:134
+#: class/Common/Importer/Mapper/TermMapper.php:92
+#: class/Common/Importer/Mapper/UserMapper.php:102
+msgid "Record is not unique: %s, Matching Ids: (%s)."
+msgstr ""
+
+#: class/Common/Importer/Mapper/AttachmentMapper.php:194
+msgid "Unable to download and insert attachment"
+msgstr ""
+
+#: class/Common/Importer/Mapper/CommentMapper.php:148
+msgid "Unable to insert comment"
+msgstr ""
+
+#: class/Common/Importer/Mapper/UserMapper.php:133
+msgid "No username present"
+msgstr ""
+
+#: class/Common/Importer/Mapper/UserMapper.php:137
+msgid "No password present"
+msgstr ""
+
+#: class/Common/Importer/Mapper/UserMapper.php:141
+msgid "%s is not a valid email address"
+msgstr ""
+
+#: class/Common/Importer/Permission/Permission.php:27
+#: class/Common/Importer/Permission/Permission.php:31
+msgid "Not enough permissions to %s record."
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:46
+msgid "Attachment"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:47
+#: class/Common/Importer/Template/AttachmentTemplate.php:78
+#: class/Common/Importer/Template/AttachmentTemplate.php:101
+#: class/Common/Importer/Template/CommentTemplate.php:39
+#: class/Common/Importer/Template/CommentTemplate.php:55
+#: class/Common/Importer/Template/CommentTemplate.php:76
+#: class/Common/Importer/Template/CommentTemplate.php:381
+#: class/Common/Importer/Template/PostTemplate.php:98
+#: class/Common/Importer/Template/PostTemplate.php:134
+#: class/Common/Importer/Template/PostTemplate.php:157
+#: class/Common/Importer/Template/PostTemplate.php:219
+#: class/Common/Importer/Template/PostTemplate.php:1114
+#: class/Common/Importer/Template/TermTemplate.php:60
+#: class/Common/Importer/Template/TermTemplate.php:81
+#: class/Common/Importer/Template/TermTemplate.php:365
+#: class/Common/Importer/Template/UserTemplate.php:55
+#: class/Common/Importer/Template/UserTemplate.php:264
+msgid "ID"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:48
+#: class/Common/Importer/Template/CommentTemplate.php:40
+#: class/Common/Importer/Template/PostTemplate.php:99
+#: class/Common/Importer/Template/TermTemplate.php:61
+#: class/Common/Importer/Template/UserTemplate.php:56
+msgid "ID is only used to reference existing records"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:50
+#: class/Common/Importer/Template/PostTemplate.php:101
+#: class/Common/Importer/Template/PostTemplate.php:1115
+msgid "Title"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:51
+#: class/Common/Importer/Template/PostTemplate.php:102
+msgid "Title of the post."
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:53
+#: class/Common/Importer/Template/TermTemplate.php:66
+#: class/Common/Importer/Template/TermTemplate.php:367
+#: class/Common/Importer/Template/UserTemplate.php:83
+#: class/Common/Importer/Template/UserTemplate.php:274
+msgid "Description"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:54
+#: class/Common/Importer/Template/PostTemplate.php:105
+msgid "Main WYSIWYG editor content of the post."
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:56
+msgid "Caption"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:57
+#: class/Common/Importer/Template/PostTemplate.php:108
+msgid "A custom short extract for the post."
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:59
+#: class/Common/Importer/Template/AttachmentTemplate.php:214
+#: class/Common/Importer/Template/Template.php:351
+msgid "Alt Text"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:60
+#: class/Common/Importer/Template/AttachmentTemplate.php:63
+#: class/Common/Importer/Template/PostTemplate.php:111
+msgid "The slug is the user friendly and URL valid name of the post."
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:62
+#: class/Common/Importer/Template/AttachmentTemplate.php:79
+#: class/Common/Importer/Template/CommentTemplate.php:77
+#: class/Common/Importer/Template/PostTemplate.php:110
+#: class/Common/Importer/Template/PostTemplate.php:135
+#: class/Common/Importer/Template/PostTemplate.php:218
+#: class/Common/Importer/Template/PostTemplate.php:1118
+#: class/Common/Importer/Template/TermTemplate.php:69
+#: class/Common/Importer/Template/TermTemplate.php:82
+#: class/Common/Importer/Template/TermTemplate.php:368
+msgid "Slug"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:65
+msgid "File"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:65
+msgid "Media File"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:66
+#: class/Common/Importer/Template/CommentTemplate.php:389
+#: class/Common/Importer/Template/PostTemplate.php:167
+#: class/Common/Importer/Template/PostTemplate.php:1122
+msgid "Date"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:67
+#: class/Common/Importer/Template/PostTemplate.php:168
+msgid "The date of the post , enter in the format \"YYYY-MM-DD HH:ii:ss\""
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:69
+#: class/Common/Importer/Template/PostTemplate.php:125
+#: class/Common/Importer/Template/TermTemplate.php:72
+msgid "Parent Settings"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:73
+#: class/Common/Importer/Template/PostTemplate.php:129
+msgid "Set this for the post it belongs to"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:75
+#: class/Common/Importer/Template/PostTemplate.php:131
+#: class/Common/Importer/Template/TermTemplate.php:78
+msgid "Parent Field Type"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:80
+#: class/Common/Importer/Template/CommentTemplate.php:78
+#: class/Common/Importer/Template/PostTemplate.php:136
+#: class/Common/Importer/Template/PostTemplate.php:217
+#: class/Common/Importer/Template/TermTemplate.php:63
+#: class/Common/Importer/Template/TermTemplate.php:83
+#: class/Common/Importer/Template/TermTemplate.php:366
+msgid "Name"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:81
+#: class/Common/Importer/Template/PostTemplate.php:137
+#: class/Common/Importer/Template/TermTemplate.php:84
+msgid "Reference Column"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:84
+#: class/Common/Importer/Template/PostTemplate.php:140
+#: class/Common/Importer/Template/TermTemplate.php:88
+msgid "Select how the parent field should be handled"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:86
+#: class/Common/Importer/Template/PostTemplate.php:142
+#: class/Common/Importer/Template/TermTemplate.php:90
+msgid "Parent Reference Column"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:88
+#: class/Common/Importer/Template/PostTemplate.php:144
+#: class/Common/Importer/Template/TermTemplate.php:92
+msgid "Select the column/node that the parent field is referencing"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:91
+#: class/Common/Importer/Template/PostTemplate.php:147
+msgid "Order"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:92
+#: class/Common/Importer/Template/PostTemplate.php:148
+msgid "The order the post should be displayed in"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:94
+#: class/Common/Importer/Template/PostTemplate.php:150
+msgid "Author Settings"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:96
+#: class/Common/Importer/Template/PostTemplate.php:152
+msgid "The user of who added this post"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:98
+#: class/Common/Importer/Template/PostTemplate.php:154
+msgid "Author Field Type"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:102
+#: class/Common/Importer/Template/PostTemplate.php:158
+#: class/Common/Importer/Template/UserTemplate.php:266
+msgid "Login"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:103
+#: class/Common/Importer/Template/PostTemplate.php:159
+#: class/Common/Importer/Template/UserTemplate.php:61
+#: class/Common/Importer/Template/UserTemplate.php:269
+msgid "Email"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:105
+#: class/Common/Importer/Template/PostTemplate.php:161
+msgid "Select how the author field should be handled"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:108
+#: class/Common/Importer/Template/PostTemplate.php:164
+#: class/Common/Importer/Template/Template.php:307
+#: class/Common/Importer/Template/UserTemplate.php:78
+#: class/Common/Importer/Template/UserTemplate.php:265
+msgid "Password"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:109
+#: class/Common/Importer/Template/PostTemplate.php:165
+msgid "The password to access the post"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:111
+#: class/Common/Importer/Template/PostTemplate.php:170
+msgid "Allow Comments"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:113
+#: class/Common/Importer/Template/PostTemplate.php:172
+msgid "Disabled"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:114
+#: class/Common/Importer/Template/PostTemplate.php:173
+msgid "Enabled"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:117
+#: class/Common/Importer/Template/PostTemplate.php:176
+msgid "Whether the post can accept comments"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:119
+#: class/Common/Importer/Template/PostTemplate.php:178
+msgid "Allow Pingbacks"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:121
+#: class/Common/Importer/Template/PostTemplate.php:180
+msgid "Closed"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:122
+#: class/Common/Importer/Template/PostTemplate.php:181
+msgid "Open"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:125
+#: class/Common/Importer/Template/PostTemplate.php:184
+msgid "Whether the post can accept pings"
+msgstr ""
+
+#: class/Common/Importer/Template/AttachmentTemplate.php:215
+msgid "Attachment File"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:29
+msgid "Any"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:42
+#: class/Common/Importer/Template/CommentTemplate.php:388
+#: class/Common/Importer/Template/PostTemplate.php:104
+#: class/Common/Importer/Template/PostTemplate.php:1116
+msgid "Content"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:43
+msgid "The content of the comment."
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:45
+#: class/Common/Importer/Template/CommentTemplate.php:47
+msgid "Comment Parent"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:50
+msgid "ID of this comment's parent, if any."
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:52
+msgid "Comment Parent Field Type"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:56
+msgid "Comment Ref Field"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:57
+#: class/Common/Importer/Template/CommentTemplate.php:79
+#: class/Common/Importer/Template/PostTemplate.php:220
+#: class/Common/Importer/Template/PostTemplate.php:224
+#: class/Common/Importer/Template/TermTemplate.php:85
+msgid "Custom Field"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:60
+#: class/Common/Importer/Template/CommentTemplate.php:82
+msgid "Select how the post ID field should be handled"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:62
+#: class/Common/Importer/Template/CommentTemplate.php:84
+#: class/Common/Importer/Template/TermTemplate.php:94
+msgid "Custom Field Key"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:64
+#: class/Common/Importer/Template/CommentTemplate.php:86
+msgid "Enter the name of the post's custom field."
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:68
+#: class/Common/Importer/Template/CommentTemplate.php:69
+msgid "Comment Post"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:71
+msgid "ID of the post that relates to the comment, if any."
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:73
+msgid "Comment Post Field Type"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:89
+#: class/Common/Importer/Template/CommentTemplate.php:394
+msgid "Comment Type"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:91
+msgid "Comment type."
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:95
+msgid "Author ID"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:96
+msgid "Author user id."
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:98
+msgid "Author Name"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:99
+msgid "The name of the author of the comment."
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:101
+#: class/Common/Importer/Template/CommentTemplate.php:385
+msgid "Author Email"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:102
+msgid "The email address of the Comment Author"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:104
+#: class/Common/Importer/Template/CommentTemplate.php:387
+msgid "Author Url"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:105
+msgid "The URL address of the Comment Author."
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:107
+msgid "Comment Author IP"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:108
+msgid "The IP address of the Comment Author."
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:112
+msgid "Ref"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:113
+msgid "A custom field to uniquely identify the comment."
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:115
+#: class/Common/Importer/Template/CustomPostTypeTemplate.php:30
+msgid "Post Type"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:118
+msgid "The post type the comment belongs to."
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:120
+msgid "Comment Approved"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:122
+msgid "Disapproved"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:123
+#: class/Common/Importer/Template/CommentTemplate.php:383
+msgid "Approved"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:126
+msgid "Whether the comment has been approved. 1 = Approved, 0 = Disapproved"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:128
+msgid "Comment Karma"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:130
+msgid "The karma of the comment."
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:132
+msgid "Comment Agent"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:133
+msgid "The HTTP user agent of the Comment Author when the comment was submitted."
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:135
+msgid "Comment Date"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:136
+msgid "The date the comment was submitted."
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:172
+msgid "Comment #%s"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:382
+msgid "User Agent"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:386
+msgid "Ip Address"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:390
+msgid "Date GMT"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:391
+msgid "Karma"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:393
+msgid "Post ID"
+msgstr ""
+
+#: class/Common/Importer/Template/CommentTemplate.php:395
+msgid "User ID"
+msgstr ""
+
+#: class/Common/Importer/Template/CustomPostTypeTemplate.php:27
+msgid "Choose a Post Type"
+msgstr ""
+
+#: class/Common/Importer/Template/PageTemplate.php:23
+msgid "Default Template"
+msgstr ""
+
+#: class/Common/Importer/Template/PageTemplate.php:31
+#: class/Common/Importer/Template/PageTemplate.php:91
+msgid "Page Template"
+msgstr ""
+
+#: class/Common/Importer/Template/PageTemplate.php:34
+msgid "Select a page template from your active theme"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:86
+msgid ", Attachments: (%s)"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:97
+msgid "Post Fields"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:107
+#: class/Common/Importer/Template/PostTemplate.php:1117
+msgid "Excerpt"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:113
+msgid "Status"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:116
+msgid "Draft"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:117
+msgid "Published"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:118
+msgid "Pending"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:119
+msgid "Future"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:120
+msgid "Private"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:121
+msgid "Trash"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:123
+msgid "The status of a given post determines how WordPress handles that post"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:199
+msgid "Taxonomies"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:200
+msgid "Taxonomy"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:203
+msgid "Select the type of taxonomy you are importing to."
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:205
+msgid "Terms"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:206
+msgid "Name of the taxonomy term or terms (entered as a comma seperated list)."
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:208
+#: class/Common/Importer/Template/Template.php:370
+#: class/Common/Plugin/Menu.php:91
+msgid "Settings"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:209
+#: class/Common/Importer/Template/Template.php:333
+msgid "Delimiter"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:211
+msgid "A single character used to seperate terms when listing multiple, Leave empty to use default: %s"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:213
+msgid "Term Type"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:214
+msgid "Select what type the term values are (e.g. Name, Slug, or ID)"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:229
+msgid "Enable Hierarchy"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:232
+#: class/Common/Importer/Template/PostTemplate.php:253
+#: class/Common/Importer/Template/Template.php:281
+#: class/Common/Importer/Template/Template.php:345
+msgid "No"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:233
+#: class/Common/Importer/Template/PostTemplate.php:254
+#: class/Common/Importer/Template/Template.php:282
+#: class/Common/Importer/Template/Template.php:346
+msgid "Yes"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:237
+msgid "Hierarchy Character"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:241
+msgid "Hierarchy Relationship"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:244
+msgid "Connect all terms"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:245
+msgid "Connect last term"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:250
+msgid "Append Terms"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:1119
+msgid "Post Status"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:1120
+msgid "Menu order"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:1121
+msgid "password"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:1123
+msgid "Comment Status"
+msgstr ""
+
+#: class/Common/Importer/Template/PostTemplate.php:1124
+msgid "Ping Status"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:208
+msgid "Repeater Node"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:211
+msgid "Select the path to the parent node containing values for this record, The preview when selecting data for each record should show a single record. Please note changing this will require updating references in this record."
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:278
+msgid "Is Featured?"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:284
+msgid "Is the attachment the featured image for the current post."
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:289
+msgid "Download"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:292
+msgid "Remote URL"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:293
+msgid "FTP"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:294
+msgid "Local Filesystem"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:295
+msgid "Media Library"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:297
+msgid "Select how the attachment is being downloaded."
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:299
+msgid "Host"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:301
+msgid "Enter the FTP hostname"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:303
+#: class/Common/Importer/Template/UserTemplate.php:58
+msgid "Username"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:305
+msgid "Enter the FTP username"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:309
+msgid "Enter the FTP password"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:311
+msgid "Path"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:313
+msgid "Enter the FTP base path, this is prefixed onto the Location field, leave empty to be ignore"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:315
+#: class/Common/Importer/Template/Template.php:319
+msgid "Base URL"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:317
+msgid "Enter the base url, this is prefixed onto the Location field, leave empty to be ignore"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:321
+msgid "Enter the base path from this servers root file system, this is prefixed onto the Location field, leave empty to be ignore"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:324
+msgid "Permissions"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:328
+msgid "Always download new files"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:329
+msgid "Search media library before downloading new files"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:331
+msgid "Enable to stop duplicate images by searching the media library before downloading new files."
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:335
+msgid "A single character used to seperate attachments when listing multiple, Leave empty to use the default: %s"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:341
+msgid "Attachment Meta"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:342
+msgid "Enable Meta"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:349
+msgid "Enable/Disable the fields to import attachment meta data."
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:353
+msgid "Image attachment alt text."
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:355
+msgid "Title Text"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:357
+msgid "Attachments title text."
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:359
+msgid "Caption Text"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:361
+msgid "Image attachments caption text."
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:363
+msgid "Description Text"
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:365
+msgid "Attachments description text."
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:385
+msgid "The source location of the file being attached."
+msgstr ""
+
+#: class/Common/Importer/Template/Template.php:727
+msgid "Error downloading zip file"
+msgstr ""
+
+#: class/Common/Importer/Template/TermTemplate.php:59
+msgid "Term"
+msgstr ""
+
+#: class/Common/Importer/Template/TermTemplate.php:64
+msgid "The term name"
+msgstr ""
+
+#: class/Common/Importer/Template/TermTemplate.php:67
+msgid "The term description"
+msgstr ""
+
+#: class/Common/Importer/Template/TermTemplate.php:70
+msgid "The term slug to use"
+msgstr ""
+
+#: class/Common/Importer/Template/TermTemplate.php:76
+msgid "The id of the parent term"
+msgstr ""
+
+#: class/Common/Importer/Template/TermTemplate.php:96
+msgid "Enter the name of the custom field."
+msgstr ""
+
+#: class/Common/Importer/Template/TermTemplate.php:99
+msgid "Alias of"
+msgstr ""
+
+#: class/Common/Importer/Template/TermTemplate.php:100
+msgid "Slug of the term to make this term an alias of"
+msgstr ""
+
+#: class/Common/Importer/Template/TermTemplate.php:369
+msgid "Alias Of"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:54
+msgid "User Fields"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:59
+msgid "The user's login username"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:62
+msgid "The user email address"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:64
+msgid "First Name"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:65
+msgid "The user's first name"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:67
+msgid "Last Name"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:68
+msgid "The user's last name"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:70
+#: class/Common/Importer/Template/UserTemplate.php:277
+msgid "Role"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:71
+#: class/Common/Importer/Template/UserTemplate.php:79
+msgid "The plain-text user password"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:75
+msgid "Website"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:76
+msgid "The user's website address"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:81
+msgid "Nicename"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:82
+#: class/Common/Importer/Template/UserTemplate.php:270
+msgid "Display Name"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:94
+msgid "Enable user notifications."
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:96
+msgid "Trigger the action to send WordPress notification emails"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:98
+msgid "Generate user password."
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:100
+msgid "Enable the generation of user passwords"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:267
+msgid "Nice name"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:268
+msgid "Url"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:271
+msgid "Nick name"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:272
+msgid "First name"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:273
+msgid "Last name"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:275
+msgid "Rich Editing"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:276
+msgid "User Registered"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:278
+msgid "Jabber"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:279
+msgid "Aim"
+msgstr ""
+
+#: class/Common/Importer/Template/UserTemplate.php:280
+msgid "Yim"
+msgstr ""
+
+#: class/Common/Plugin/Menu.php:88
+msgid "Dashboard"
+msgstr ""
+
+#: class/Common/Plugin/Menu.php:217
+msgid "ImportWP allows you to import any XML or CSV file into WordPress posts, pages, users, categories and tags."
+msgstr ""
+
+#: class/Common/Plugin/Menu.php:222
+msgid "Plugin Support"
+msgstr ""
+
+#: class/Common/Plugin/Menu.php:223
+msgid "Import WP  has the following support:"
+msgstr ""
+
+#: class/Common/Plugin/Menu.php:224
+msgid "documentation — Online documentation can be found at %s"
+msgstr ""
+
+#: class/Common/Plugin/Menu.php:225
+msgid "Support Tickets — Support requests are handled on our support system at %s"
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:371
+msgid "You do not have permissions."
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:418
+msgid "WordPress is unable to write to directory: %s, make sure this directory is writable."
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:452
+msgid "Migration Complete."
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:973
+msgid "Import cancelled"
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:976
+msgid "Import complete"
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:990
+msgid "Importing: %s"
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:990
+msgid "Deleting: %s"
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:997
+msgid ", Inserts: %d"
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:1000
+msgid ", Updates: %d"
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:1003
+msgid ", Deletes: %d"
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:1006
+msgid ", Skips: %d"
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:1009
+msgid ", Errors: %d"
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:1018
+#: class/Common/Rest/RestManager.php:1024
+msgid ", Run Time: %s"
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:1079
+msgid "Invalid form action"
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:1098
+msgid "Invalid importer"
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:1153
+#: class/Common/Rest/RestManager.php:1257
+msgid "Unable to load preview, %s"
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:1477
+msgid "Invalid template \"%s\""
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:1717
+msgid "No Importers found."
+msgstr ""
+
+#: class/Common/Rest/RestManager.php:1720
+msgid "Import Complete, %d Importer"
+msgid_plural "Import Complete, %d Importers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: class/Common/Runner/ExporterRunner.php:35
+msgid "Exporter session has changed"
+msgstr ""
+
+#: class/Common/Runner/ImporterRunner.php:36
+msgid "Importer session has changed"
+msgstr ""
+
+#: class/Common/Runner/RunnerState.php:182
+msgid "Unable to get lock"
+msgstr ""
+
+#: class/Common/Util/Util.php:88
+msgid "Importer status file is not writable: %s."
+msgstr ""
+
+#: class/Common/Util/Util.php:92
+msgid "Unable to open Importer status file: %s."
+msgstr ""
+
+#: class/Common/Util/Util.php:172
+msgid "Unable to create status file: %s"
+msgstr ""
+
+#: class/Common/Util/Util.php:176
+msgid "Unable to write status file: %s"
+msgstr ""
+
+#: setup-iwp.php:43
+msgid "ImportWP v%s requires ImportWP PRO v%s or greater, Download the lastest version of Import WP Pro or Rollback Import WP to a compatable version."
+msgstr ""
+
+#: setup-iwp.php:107
+msgid "Import WP - Zip Archive Importer Addon is now included in ImportWP, please deactivate and remove this plugin."
+msgstr ""
+
+#: views/admin.php:2
+msgid "An error has occured."
+msgstr ""
+
+#: views/admin.php:7
+msgid "Import WP v%s is incompatable with Import WP PRO v%s and below."
+msgstr ""
+
+#: views/tools-card.php:2
+msgid "ImportWP - WordPress Importer"
+msgstr ""
+
+#: views/tools-card.php:3
+msgid "Import all wordpress post types, users, and taxonomies from XML or CSV files, use <a href=\"%s\">ImportWP</a> available from the Tools Submenu."
+msgstr ""
