@@ -2,3 +2,4 @@
 !.gitignore
 !build.sh
 !install-wp-tests.sh
+!version.sh

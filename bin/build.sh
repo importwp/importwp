@@ -30,8 +30,9 @@ git rm -rf .
 rsync -av .. . --exclude '.git' --exclude 'bin' --exclude "$FOLDER" --exclude 'node_modules' --exclude 'src' --exclude 'tests' --exclude 'vendor' --exclude '.babelrc' --exclude '.gitignore' --exclude '.phpcs.xml.dist' --exclude '.phpunit.result.cache' --exclude '.travis.yml' --exclude 'composer.json' --exclude 'composer.lock' --exclude 'package-lock.json' --exclude 'package.json' --exclude 'phpunit.xml.dist' --exclude 'webpack.config.js' --exclude 'dev-webpack.config.js' --exclude 'pnpm-lock.yaml' --exclude '.gitattributes' --exclude '.npmrc' --exclude '.wp-env.json'
 
 # Set version numbers
-sed -i -e "s/__STABLE_TAG__/$TAG/g" readme.txt
-sed -i -e "s/__STABLE_TAG__/$TAG/g" jc-importer.php
+sed -i -r "s/^Stable tag: (.+)  $/Stable tag: $TAG  /g" readme.txt
+sed -i -r "s/^ \* Version: (.+) $/ \* Version: $TAG /g" jc-importer.php
+sed -i -r "s/^	define\('IWP_VERSION', '(.+)'\);$/	define('IWP_VERSION', '$TAG');/g" jc-importer.php
 
 # Generate POT
 
