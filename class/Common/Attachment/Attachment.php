@@ -86,16 +86,20 @@ class Attachment
         $results = $wpdb->get_results($sql);
         $post_id = null;
 
-        if ($results) {
-            // Use the first available result, but prefer a case-sensitive match, if exists.
-            $post_id = reset($results)->post_id;
+        if (count($results) > 0) {
+            $contains_slash = strpos($path, '/');
 
-            if (count($results) > 1) {
-                foreach ($results as $result) {
-                    if ($path === $result->meta_value) {
-                        $post_id = $result->post_id;
-                        break;
-                    }
+            foreach ($results as $result) {
+                if ($path === $result->meta_value) {
+
+                    // escape if we have a direct match, if not return 
+                    $post_id = $result->post_id;
+                    break;
+                } elseif (!$contains_slash && $path === basename($result->meta_value)) {
+
+                    // escape if we are only matching the filename
+                    $post_id = $result->post_id;
+                    break;
                 }
             }
         }
