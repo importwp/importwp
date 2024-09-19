@@ -19,10 +19,11 @@ use ImportWP\Common\Runner\ImporterRunnerState;
 use ImportWP\Common\Util\Logger;
 use ImportWP\Common\Util\Util;
 use ImportWP\Container;
-use ImportWP\Queue\Queue;
-use ImportWP\Queue\QueueTaskResult;
+use ImportWP\Common\Queue\Queue;
+use ImportWP\Common\Queue\QueueTaskResult;
+use ImportWP\Common\Util\DB;
 
-class TMP_Queue_Task implements \ImportWP\Queue\QueueTaskInterface
+class TMP_Queue_Task implements \ImportWP\Common\Queue\QueueTaskInterface
 {
     public $data_parser;
 
@@ -32,6 +33,16 @@ class TMP_Queue_Task implements \ImportWP\Queue\QueueTaskInterface
     }
 
     public function process($import_id, $chunk)
+    {
+        switch ($chunk['status']) {
+            case 'P':
+                return $this->process_complete($import_id, $chunk);
+            default:
+                return $this->process_import($import_id, $chunk);
+        }
+    }
+
+    public function process_import($import_id, $chunk)
     {
         $i = $chunk['pos'];
 
@@ -102,6 +113,19 @@ class TMP_Queue_Task implements \ImportWP\Queue\QueueTaskInterface
         do_action('iwp/importer/after_row');
 
         return new QueueTaskResult($record_id, $import_type, $message);
+    }
+
+    public function process_complete($import_id, $chunk)
+    {
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+
+        if ($table = DB::get_table_name('import')) {
+            $wpdb->update($table, ['status' => 'P'], ['id' => $import_id]);
+        }
+        return new QueueTaskResult(0, 'Y');
     }
 }
 
@@ -331,8 +355,12 @@ class Importer
         // $runner = new ImporterRunner($properties, $this);
         // $runner->process($id, $user, $importer_state);
 
-        // $this->process_chunk($id, $user, $importer_state);
-        $this->process_chunk_queue($id, $importer_state->get_session());
+        if (Queue::is_enabled($id)) {
+            $this->process_chunk_queue($id, $importer_state->get_session());
+        } else {
+            $this->process_chunk($id, $user, $importer_state);
+        }
+
 
         $this->mapper->teardown();
         $this->unregister_shutdown();
@@ -354,13 +382,6 @@ class Importer
         $queue->process($session_id, new TMP_Queue_Task(
             new DataParser($this->getParser(), $this->getMapper(), $this->config->getData())
         ));
-
-
-        $status = $queue->get_status($session_id);
-        $stats = $queue->get_stats($session_id);
-
-        error_log($status);
-        error_log(print_r($stats, true));
     }
 
     protected function process_chunk($id, $user, $importer_state)

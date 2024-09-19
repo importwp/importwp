@@ -21,7 +21,8 @@ use ImportWP\Common\Util\Logger;
 use ImportWP\Common\Util\Util;
 use ImportWP\Container;
 use ImportWP\EventHandler;
-use ImportWP\Queue\Queue;
+use ImportWP\Common\Queue\Queue;
+use ImportWP\Common\Util\DB;
 
 class RestManager extends \WP_REST_Controller
 {
@@ -938,6 +939,11 @@ class RestManager extends \WP_REST_Controller
 
         $query  = new \WP_Query($query_data);
 
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+
         foreach ($query->posts as $importer_id) {
 
             $importer_model = $this->importer_manager->get_importer($importer_id);
@@ -948,6 +954,24 @@ class RestManager extends \WP_REST_Controller
             $output['message'] = $this->generate_status_message($output);
             $output['importer'] = $importer_id;
             $output['process'] = intval($config->get('process'));
+
+            // conver to queue runner status
+            if (Queue::is_enabled($importer_id) && $table_name = DB::get_table_name('import')) {
+                $session = $wpdb->get_var("SELECT `id` FROM {$table_name} WHERE `file`={$importer_id} ORDER BY id DESC LIMIT 1");
+                $queue = new Queue();
+                $output['status'] = $queue->get_status($session);
+
+                $stats = $queue->get_stats($session);
+                $current = $stats['total'] - $stats['Q'];
+
+                if ($output['status'] == 'complete') {
+                    $output['message'] = "Import complete";
+                } else {
+                    $output['message'] = "Importing";
+                }
+
+                $output['message'] .=  " {$current}/{$stats['total']}.";
+            }
 
             $result[] = $this->event_handler->run('iwp/importer/status/output', [$output, $importer_model]);
         }
@@ -1309,7 +1333,7 @@ class RestManager extends \WP_REST_Controller
         ImporterState::clear_options($importer_data->getId());
 
         // This is used for storing version on imported records
-        $session_id = md5($importer_data->getId() . time());
+        // $session_id = md5($importer_data->getId() . time());
 
         // generate new queue
         $queue = new Queue();
@@ -1347,6 +1371,21 @@ class RestManager extends \WP_REST_Controller
         $state['message'] = $this->generate_status_message($state);
 
         Logger::clearRequestType();
+
+        if (Queue::is_enabled($id)) {
+
+            // get status from queue
+            $queue = new Queue();
+            $state['status'] = $queue->get_status($session);
+
+            $stats = $queue->get_stats($session);
+
+            $current = $stats['total'] - $stats['Q'];
+            $state['message'] = "Importing {$current}/{$stats['total']}.";
+            $state['progress']['import']['start'] = 1;
+            $state['progress']['import']['end'] = $stats['total'];
+            $state['progress']['import']['current_row'] = $stats['total'] - $stats['Q'];
+        }
 
         return $this->http->end_rest_success($state);
     }

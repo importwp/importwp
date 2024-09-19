@@ -31,12 +31,12 @@ use ImportWP\Common\Util\Logger;
 use ImportWP\Common\Util\Util;
 use ImportWP\Container;
 use ImportWP\EventHandler;
-use ImportWP\Queue\Queue;
+use ImportWP\Common\Queue\Queue;
 
 /**
  * Hack to get the file index from the importer config
  */
-class TMP_Config_Queue implements \ImportWP\Queue\QueueTasksInterface
+class TMP_Config_Queue implements \ImportWP\Common\Queue\QueueTasksInterface
 {
 
     public $start;
@@ -593,7 +593,8 @@ class ImporterManager
                 Logger::debug('IM -clear_config_files');
                 $this->clear_config_files($importer_id, false, true);
                 $config_data['features'] = [
-                    'session_table' => true
+                    'session_table' => true,
+                    'queue' => 1
                 ];
             }
 
