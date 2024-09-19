@@ -19,6 +19,91 @@ use ImportWP\Common\Runner\ImporterRunnerState;
 use ImportWP\Common\Util\Logger;
 use ImportWP\Common\Util\Util;
 use ImportWP\Container;
+use ImportWP\Queue\Queue;
+use ImportWP\Queue\QueueTaskResult;
+
+class TMP_Queue_Task implements \ImportWP\Queue\QueueTaskInterface
+{
+    public $data_parser;
+
+    public function __construct($data_parser)
+    {
+        $this->data_parser = $data_parser;
+    }
+
+    public function process($import_id, $chunk)
+    {
+        $i = $chunk['pos'];
+
+        /**
+         * @var ParsedData $data
+         */
+        $data = null;
+
+        $record_id = 0;
+        $import_type = '';
+        $message = '';
+
+        try {
+
+            $data = $this->data_parser->get($i);
+            do_action('iwp/importer/before_row', $data);
+
+            $skip_record = false; //$this->filterRecords();
+            $skip_record = apply_filters('iwp/importer/skip_record', $skip_record, $data, $this);
+
+            if ($skip_record) {
+
+                Logger::write('import -skip-record=' . $i);
+                $message = apply_filters('iwp/status/record_skipped', "Skipped Record");
+                $data = null;
+            } else {
+
+                // import
+                $data = apply_filters('iwp/importer/before_mapper', $data, $this);
+                $data->map();
+
+                if ($data->isInsert()) {
+                    Logger::write('import:' . $i . ' -success -insert');
+                    $import_type = 'I';
+                    $record_id = $data->getId();
+                    $message = apply_filters('iwp/status/record_inserted', 'Record Inserted: #' . $data->getId(), $data->getId(), $data);
+                }
+
+                if ($data->isUpdate()) {
+                    Logger::write('import:' . $i . ' -success -update');
+                    $import_type = 'U';
+                    $record_id = $data->getId();
+                    $message = apply_filters('iwp/status/record_updated', 'Record Updated: #' . $data->getId(), $data->getId(), $data);
+                }
+            }
+        } catch (RecordUpdatedSkippedException $e) {
+
+            Logger::write('import:' . $i . ' -success -update -skipped="hash"');
+            $import_type = 'S';
+            $message = 'Record Update Skipped: #' . $data->getId() . ' ' . $e->getMessage();
+        } catch (ParserException $e) {
+
+            $import_type = 'E';
+
+            Logger::error('import:' . $i . ' -parser-error=' . $e->getMessage());
+        } catch (MapperException $e) {
+
+            $import_type = 'E';
+
+            Logger::error('import:' . $i . ' -mapper-error=' . $e->getMessage());
+        } catch (FileException $e) {
+
+            $import_type = 'E';
+
+            Logger::error('import:' . $i . ' -file-error=' . $e->getMessage());
+        }
+
+        do_action('iwp/importer/after_row');
+
+        return new QueueTaskResult($record_id, $import_type, $message);
+    }
+}
 
 class Importer
 {
@@ -245,7 +330,9 @@ class Importer
         // TODO: 
         // $runner = new ImporterRunner($properties, $this);
         // $runner->process($id, $user, $importer_state);
-        $this->process_chunk($id, $user, $importer_state);
+
+        // $this->process_chunk($id, $user, $importer_state);
+        $this->process_chunk_queue($id, $importer_state->get_session());
 
         $this->mapper->teardown();
         $this->unregister_shutdown();
@@ -259,6 +346,21 @@ class Importer
 
         // WP Rocket Integration
         add_filter('rocket_is_importing', '__return_true');
+    }
+
+    protected function process_chunk_queue($id, $session_id)
+    {
+        $queue = new Queue();
+        $queue->process($session_id, new TMP_Queue_Task(
+            new DataParser($this->getParser(), $this->getMapper(), $this->config->getData())
+        ));
+
+
+        $status = $queue->get_status($session_id);
+        $stats = $queue->get_stats($session_id);
+
+        error_log($status);
+        error_log(print_r($stats, true));
     }
 
     protected function process_chunk($id, $user, $importer_state)

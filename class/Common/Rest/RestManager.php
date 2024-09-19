@@ -21,6 +21,7 @@ use ImportWP\Common\Util\Logger;
 use ImportWP\Common\Util\Util;
 use ImportWP\Container;
 use ImportWP\EventHandler;
+use ImportWP\Queue\Queue;
 
 class RestManager extends \WP_REST_Controller
 {
@@ -1309,6 +1310,11 @@ class RestManager extends \WP_REST_Controller
 
         // This is used for storing version on imported records
         $session_id = md5($importer_data->getId() . time());
+
+        // generate new queue
+        $queue = new Queue();
+        $session_id = $queue->create($id);
+
         update_post_meta($importer_data->getId(), '_iwp_session', $session_id);
 
         if ('background' === $importer_data->getSetting('import_method')) {

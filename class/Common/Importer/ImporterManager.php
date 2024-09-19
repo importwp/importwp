@@ -31,6 +31,46 @@ use ImportWP\Common\Util\Logger;
 use ImportWP\Common\Util\Util;
 use ImportWP\Container;
 use ImportWP\EventHandler;
+use ImportWP\Queue\Queue;
+
+/**
+ * Hack to get the file index from the importer config
+ */
+class TMP_Config_Queue implements \ImportWP\Queue\QueueTasksInterface
+{
+
+    public $start;
+    public $end;
+    public $config;
+    public function __construct($config, $start, $end)
+    {
+        $this->config = $config;
+        $this->start = $start;
+        $this->end = $end;
+    }
+
+    public function getFileIndex()
+    {
+        $index_data = [];
+
+        for ($i = $this->start; $i < $this->end; $i++) {
+            // $test = $this->config->getIndex('file_index', $i);
+            // $index_data[] = [
+            //     'start' => $test[0],
+            //     'length' => $test[1],
+            // ];
+
+            // dont store the file position, store the row number,
+            // use the old index saved position.
+            $index_data[] = [
+                'start' => $i,
+                'length' => 0,
+            ];
+        }
+
+        return $index_data;
+    }
+}
 
 class ImporterManager
 {
@@ -666,6 +706,13 @@ class ImporterManager
 
                 $config_data['start'] = $this->get_start($importer_data, $start);
                 $config_data['end'] = $this->get_end($importer_data, $config_data['start'], $end);
+
+                $queue = new Queue;
+                $queue->generate($session, new TMP_Config_Queue(
+                    $config,
+                    $config_data['start'],
+                    $config_data['end']
+                ));
 
                 update_site_option('iwp_importer_config_' . $importer_id, $config_data);
 
