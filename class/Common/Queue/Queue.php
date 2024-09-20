@@ -26,7 +26,7 @@ class Queue
         global $wpdb;
 
         if ($table = DB::get_table_name('import')) {
-            $wpdb->query("INSERT INTO `{$table}` (`file`,`status`) VALUES ('{$config}', 'I')");
+            $wpdb->query("INSERT INTO `{$table}` (`file`,`status`,`step`) VALUES ('{$config}', 'I', 'I')");
             return $wpdb->insert_id;
         }
 
@@ -47,14 +47,14 @@ class Queue
         global $wpdb;
 
         $table_name = DB::get_table_name('queue');
-        $base_query = "INSERT INTO {$table_name} (`import_id`,`pos`,`len`) VALUES ";
+        $base_query = "INSERT INTO {$table_name} (`import_id`,`pos`,`len`,`type`) VALUES ";
         $query_values = [];
         $rollback = false;
 
         $wpdb->query('START TRANSACTION');
 
         foreach ($tasks->getFileIndex() as $row) {
-            $query_values[] = "('{$queue_id}','{$row['start']}','{$row['length']}')";
+            $query_values[] = "('{$queue_id}','{$row['start']}','{$row['length']}', 'I')";
 
             if (count($query_values) > 1000) {
 
@@ -79,7 +79,8 @@ class Queue
         } else {
             $wpdb->query('COMMIT');
 
-            $wpdb->insert($table_name, ['import_id' => $queue_id, 'status' => 'P']);
+            $wpdb->insert($table_name, ['import_id' => $queue_id, 'type' => 'P']);
+            $wpdb->insert($table_name, ['import_id' => $queue_id, 'type' => 'D']);
 
             // change status to ready
             if ($table = DB::get_table_name('import')) {
@@ -114,7 +115,7 @@ class Queue
             $chunk = null;
 
             try {
-                $chunk = $this->claim_chunk($claim_id, $import_id);
+                $chunk = $this->claim_chunk($claim_id, $import_id, ['Q', 'E']);
                 if (!$chunk) {
                     break;
                 }
@@ -128,7 +129,7 @@ class Queue
                  */
                 global $wpdb;
                 $table_name = DB::get_table_name('queue');
-                $wpdb->update($table_name, ['status' => $import_type, 'claim_id' => 0, 'record' => $record_id], ['id' => $chunk['id']]);
+                $wpdb->update($table_name, ['status' => 'Y', 'data' => $import_type, 'claim_id' => 0, 'record' => $record_id], ['id' => $chunk['id']]);
             } catch (\Error $e) {
 
                 $this->log_error($chunk, $e);
@@ -140,10 +141,49 @@ class Queue
 
         $this->release_claim($claim_id);
 
+        $this->cleanup($import_id);
+
         restore_error_handler();
     }
 
-    protected function claim_chunk($claim_id, $import_id, $status_list = ['Q', 'E', 'P'])
+    /**
+     * Check to see there are any more actions in the queue 
+     * with the current import status, if not move to the next step
+     * 
+     * @param int $import_id
+     * @return void 
+     */
+    protected function cleanup($import_id)
+    {
+
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+
+        $import_table_name = DB::get_table_name('import');
+        $queue_table_name = DB::get_table_name('queue');
+
+
+        // progress to next queue step
+        $results = $wpdb->query("UPDATE {$import_table_name} AS `i`
+SET `i`.`step` = CASE
+	WHEN `i`.`step` = 'I' THEN 'D'
+	WHEN `i`.`step` = 'D' THEN 'R'
+    WHEN `i`.`step` = 'R' THEN 'P'
+END
+WHERE 
+	`i`.`id` = {$import_id} 
+	AND NOT EXISTS (
+		SELECT * FROM {$queue_table_name} as `q` WHERE `q`.`import_id` = `i`.`id` AND `q`.`type` = `i`.`step` AND (`q`.`status` = 'Q' || (`q`.`status` = 'E' AND `q`.`attempts` < 3) )
+	);");
+
+        if ($results > 0) {
+            error_log('Changing Importer step');
+        }
+    }
+
+    protected function claim_chunk($claim_id, $import_id, $status_list = ['Q', 'E'])
     {
         /**
          * @var \WPDB $wpdb
@@ -161,8 +201,6 @@ class Queue
             foreach ($status_list as $status) {
 
                 switch ($status) {
-                        // case 'P':
-                        //     $status_queries[] = "(q.`status` = 'P' AND 1 = ( SELECT COUNT(*) FROM {$table_name} WHERE import_id={$import_id} AND status NOT IN ('I','U') ) )";
                     case 'E':
                         $status_queries[] = "(q.`status` = 'E' AND q.`attempts` < 3)";
                         break;
@@ -177,13 +215,8 @@ class Queue
             }
         }
 
-
-
         // make sure importer has not been paused / cancelled
-        $join = "INNER JOIN `{$import_table_name}` as i ON q.import_id = i.id AND i.status='R'";
-
-
-        error_log("UPDATE `{$table_name}` as q {$join} SET q.`claim_id`={$claim_id}, q.`attempted_at`= NOW() WHERE q.`claim_id`=0 AND q.`import_id`={$import_id} {$status_where} LIMIT 1");
+        $join = "INNER JOIN `{$import_table_name}` as i ON q.`import_id` = i.`id` AND i.`status`='R' AND i.`step` = q.`type`";
 
         $updated = $wpdb->query("UPDATE `{$table_name}` as q {$join} SET q.`claim_id`={$claim_id}, q.`attempted_at`= NOW() WHERE q.`claim_id`=0 AND q.`import_id`={$import_id} {$status_where} LIMIT 1");
 
@@ -242,6 +275,32 @@ class Queue
         }
     }
 
+    public function get_section($import_id, $raw = false)
+    {
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+
+        if ($table_name = DB::get_table_name('import')) {
+            $status = $wpdb->get_var("SELECT `step` FROM {$table_name} WHERE id={$import_id}");
+
+            if ($raw) {
+                return $status;
+            }
+
+            switch ($status) {
+                case 'D':
+                case 'R':
+                    return 'delete';
+                case 'I':
+                    return 'import';
+            }
+        }
+
+        return false;
+    }
+
     public function get_status($import_id, $raw = false)
     {
         /**
@@ -257,15 +316,15 @@ class Queue
             }
 
             switch ($status) {
+                case 'D':
                 case 'R':
-                    return 'running';
                 case 'I':
-                    return 'init';
+                    return 'running';
                 case 'C':
                     return 'cancelled';
                 case 'E':
                     return 'error';
-                case 'P':
+                case 'Y':
                     return 'complete';
             }
         }
@@ -299,18 +358,71 @@ class Queue
         global $wpdb;
 
         $stats = [
-            'total' => 0,
+            'import_total' => 0,
+            'delete_total' => 0,
+            'import' => 0,
+            'delete' => 0,
         ];
 
         if ($table_name = DB::get_table_name('queue')) {
-            $rows = $wpdb->get_results("SELECT `status`, COUNT(*) as `count` FROM {$table_name} WHERE import_id={$import_id} AND `status` IN ('Q','I','E','U') GROUP BY `status`", ARRAY_A);
+            $rows = $wpdb->get_results("SELECT `data`, `type`, COUNT(*) as `count` FROM {$table_name} WHERE import_id={$import_id} AND `type` IN ('I', 'R') GROUP BY `data`, `type`", ARRAY_A);
 
             foreach ($rows as $row) {
-                $stats['total'] += $row['count'];
-                $stats[$row['status']] = $row['count'];
+
+                if ($row['type'] == 'I') {
+                    $stats['import_total'] += $row['count'];
+                } elseif ($row['type'] == 'R') {
+                    $stats['delete_total'] += $row['count'];
+                }
+
+                if (!empty($row['data'])) {
+
+                    if (in_array($row['data'], ['I', 'U'])) {
+                        $stats['import'] += $row['count'];
+                    } else {
+                        $stats['delete'] += $row['count'];
+                    }
+
+                    $stats[$row['data']] = $row['count'];
+                }
             }
         }
 
         return $stats;
+    }
+
+    public function get_status_message($import_id, $output = [])
+    {
+        $output['section'] = $this->get_section($import_id);
+        $section = $output['section'] == 'import' ? 'import' : 'delete';
+        $output['status'] = $this->get_status($import_id);
+
+        $stats = $this->get_stats($import_id);
+
+        if ($section == 'import') {
+            $current = $stats['import'];
+            $output['message'] = "Importing ";
+            $total = $stats['import_total'];
+        } else {
+            $current = $stats['delete'];
+            $output['message'] = "Deleting ";
+            $total = $stats['delete_total'];
+        }
+
+        $output['message'] .= "{$current}/{$total}.";
+
+        if ($output['status'] == 'complete') {
+            $output['message'] = 'Import complete.';
+        }
+
+        $output['progress']['import']['start'] = 1;
+        $output['progress']['import']['end'] = $stats['import_total'];
+        $output['progress']['import']['current_row'] = $stats['import'];
+
+        $output['progress']['delete']['start'] = 1;
+        $output['progress']['delete']['end'] = $stats['delete_total'];
+        $output['progress']['delete']['current_row'] = $stats['delete'];
+
+        return $output;
     }
 }

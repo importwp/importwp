@@ -4,6 +4,7 @@ namespace ImportWP\Common\Migration;
 
 use ImportWP\Common\Importer\ImporterManager;
 use ImportWP\Common\Model\ImporterModel;
+use ImportWP\Common\Util\DB;
 use ImportWP\Common\Util\Logger;
 use ImportWP\Container;
 
@@ -36,6 +37,7 @@ class Migrations
         $this->_migrations[] = array($this, 'migration_07_add_session_table');
         $this->_migrations[] = array($this, 'migration_08_migrate_taxonomy_settings');
         $this->_migrations[] = array($this, 'migration_09_migrate_attachment_settings');
+        $this->_migrations[] = array($this, 'migration_10_migrate_queue');
 
         $this->_version = count($this->_migrations);
     }
@@ -939,5 +941,10 @@ class Migrations
             wp_update_post(['ID' => $importer['ID'], 'post_content' => serialize($data)]);
             add_filter('content_save_pre', 'wp_filter_post_kses');
         }
+    }
+
+    public function migration_10_migrate_queue($migrate_data = true)
+    {
+        DB::migrate();
     }
 }

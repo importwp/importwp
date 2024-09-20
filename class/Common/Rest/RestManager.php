@@ -958,19 +958,9 @@ class RestManager extends \WP_REST_Controller
             // conver to queue runner status
             if (Queue::is_enabled($importer_id) && $table_name = DB::get_table_name('import')) {
                 $session = $wpdb->get_var("SELECT `id` FROM {$table_name} WHERE `file`={$importer_id} ORDER BY id DESC LIMIT 1");
+
                 $queue = new Queue();
-                $output['status'] = $queue->get_status($session);
-
-                $stats = $queue->get_stats($session);
-                $current = $stats['total'] - $stats['Q'];
-
-                if ($output['status'] == 'complete') {
-                    $output['message'] = "Import complete";
-                } else {
-                    $output['message'] = "Importing";
-                }
-
-                $output['message'] .=  " {$current}/{$stats['total']}.";
+                $output = $queue->get_status_message($session, $output);
             }
 
             $result[] = $this->event_handler->run('iwp/importer/status/output', [$output, $importer_model]);
@@ -1376,15 +1366,7 @@ class RestManager extends \WP_REST_Controller
 
             // get status from queue
             $queue = new Queue();
-            $state['status'] = $queue->get_status($session);
-
-            $stats = $queue->get_stats($session);
-
-            $current = $stats['total'] - $stats['Q'];
-            $state['message'] = "Importing {$current}/{$stats['total']}.";
-            $state['progress']['import']['start'] = 1;
-            $state['progress']['import']['end'] = $stats['total'];
-            $state['progress']['import']['current_row'] = $stats['total'] - $stats['Q'];
+            $state = $queue->get_status_message($session, $state);
         }
 
         return $this->http->end_rest_success($state);
@@ -1450,6 +1432,11 @@ class RestManager extends \WP_REST_Controller
         $importer_data = $this->importer_manager->get_importer($id);
         $log = $this->importer_manager->get_importer_log($importer_data, $session, $page, 500);
         $status = $this->importer_manager->get_importer_status_report($importer_data, $session);
+
+        if (Queue::is_enabled($id)) {
+            $queue = new Queue();
+            $status = $queue->get_status_message($session, $status);
+        }
         return $this->http->end_rest_success(['logs' => $log, 'status' => $status]);
     }
 

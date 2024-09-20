@@ -708,12 +708,15 @@ class ImporterManager
                 $config_data['start'] = $this->get_start($importer_data, $start);
                 $config_data['end'] = $this->get_end($importer_data, $config_data['start'], $end);
 
-                $queue = new Queue;
-                $queue->generate($session, new TMP_Config_Queue(
-                    $config,
-                    $config_data['start'],
-                    $config_data['end']
-                ));
+                // if queue is enabled
+                if (isset($config_data['features'], $config_data['features']['queue']) && $config_data['features']['queue'] === 1) {
+                    $queue = new Queue;
+                    $queue->generate($session, new TMP_Config_Queue(
+                        $config,
+                        $config_data['start'],
+                        $config_data['end']
+                    ));
+                }
 
                 update_site_option('iwp_importer_config_' . $importer_id, $config_data);
 

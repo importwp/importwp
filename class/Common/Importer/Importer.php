@@ -26,15 +26,21 @@ use ImportWP\Common\Util\DB;
 class TMP_Queue_Task implements \ImportWP\Common\Queue\QueueTaskInterface
 {
     public $data_parser;
+    public $mapper;
 
-    public function __construct($data_parser)
+    public function __construct($data_parser, $mapper)
     {
         $this->data_parser = $data_parser;
+        $this->mapper = $mapper;
     }
 
     public function process($import_id, $chunk)
     {
-        switch ($chunk['status']) {
+        switch ($chunk['type']) {
+            case 'D':
+                return $this->process_delete($import_id, $chunk);
+            case 'R':
+                return $this->process_remove($import_id, $chunk);
             case 'P':
                 return $this->process_complete($import_id, $chunk);
             default:
@@ -115,6 +121,88 @@ class TMP_Queue_Task implements \ImportWP\Common\Queue\QueueTaskInterface
         return new QueueTaskResult($record_id, $import_type, $message);
     }
 
+    public function process_remove($import_id, $chunk)
+    {
+        $i = $chunk['pos'];
+        $object_id = $chunk['record'];
+
+        if ($this->mapper->permission() && $this->mapper->permission()->allowed_method('remove')) {
+
+            try {
+
+                if (apply_filters('iwp/importer/enable_custom_delete_action', false, $import_id)) {
+
+                    Logger::write('custom_delete_action:' . $i . ' -object=' . $object_id);
+                    do_action('iwp/importer/custom_delete_action', $import_id, $object_id);
+                } else {
+
+                    Logger::write('delete:' . $i . ' -object=' . $object_id);
+                    $this->mapper->delete($object_id);
+                }
+
+                $message = apply_filters('iwp/status/record_deleted', 'Record Deleted: #' . $object_id, $object_id);
+            } catch (MapperException $e) {
+
+                Logger::error('delete:' . $i . ' -mapper-error=' . $e->getMessage());
+            }
+        }
+
+        return new QueueTaskResult($object_id, 'R');
+    }
+
+    public function process_delete($import_id, $chunk)
+    {
+        if ($this->mapper->permission() && $this->mapper->permission()->allowed_method('remove')) {
+
+            // generate list of items to be deleted
+            $object_ids = $this->mapper->get_objects_for_removal();
+            $object_ids = array_values(array_unique($object_ids));
+            if (!empty($object_ids)) {
+
+                /**
+                 * @var \WPDB $wpdb
+                 */
+                global $wpdb;
+
+                $table_name = DB::get_table_name('queue');
+                $base_query = "INSERT INTO {$table_name} (`import_id`,`record`, `pos`,`type`) VALUES ";
+                $query_values = [];
+                $rollback = false;
+
+                $wpdb->query('START TRANSACTION');
+
+                foreach ($object_ids as $i => $row) {
+                    $query_values[] = "('{$chunk['import_id']}','{$row}', {$i}, 'R')";
+
+                    if (count($query_values) > 1000) {
+
+                        if (!$wpdb->query($base_query . implode(',', $query_values))) {
+                            $rollback = true;
+                            break;
+                        }
+
+                        $query_values = [];
+                    }
+                }
+
+                if (!$rollback && !empty($query_values)) {
+                    if (!$wpdb->query($base_query . implode(',', $query_values))) {
+                        $rollback = true;
+                    }
+                }
+
+                if ($rollback) {
+                    $wpdb->query('ROLLBACK');
+                } else {
+                    $wpdb->query('COMMIT');
+                }
+            }
+        }
+
+        // TODO: process which items need to be queued for deleting records.
+        return new QueueTaskResult(0, 'Y');
+    }
+
     public function process_complete($import_id, $chunk)
     {
         /**
@@ -122,9 +210,10 @@ class TMP_Queue_Task implements \ImportWP\Common\Queue\QueueTaskInterface
          */
         global $wpdb;
 
-        if ($table = DB::get_table_name('import')) {
-            $wpdb->update($table, ['status' => 'P'], ['id' => $import_id]);
+        if ($table_name = DB::get_table_name('import')) {
+            $wpdb->update($table_name, ['status' => 'Y'], ['id' => $import_id]);
         }
+
         return new QueueTaskResult(0, 'Y');
     }
 }
@@ -380,7 +469,8 @@ class Importer
     {
         $queue = new Queue();
         $queue->process($session_id, new TMP_Queue_Task(
-            new DataParser($this->getParser(), $this->getMapper(), $this->config->getData())
+            new DataParser($this->getParser(), $this->getMapper(), $this->config->getData()),
+            $this->getMapper()
         ));
     }
 
