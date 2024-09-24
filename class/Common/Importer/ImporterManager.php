@@ -32,45 +32,9 @@ use ImportWP\Common\Util\Util;
 use ImportWP\Container;
 use ImportWP\EventHandler;
 use ImportWP\Common\Queue\Queue;
-
-/**
- * Hack to get the file index from the importer config
- */
-class TMP_Config_Queue implements \ImportWP\Common\Queue\QueueTasksInterface
-{
-
-    public $start;
-    public $end;
-    public $config;
-    public function __construct($config, $start, $end)
-    {
-        $this->config = $config;
-        $this->start = $start;
-        $this->end = $end;
-    }
-
-    public function getFileIndex()
-    {
-        $index_data = [];
-
-        for ($i = $this->start; $i < $this->end; $i++) {
-            // $test = $this->config->getIndex('file_index', $i);
-            // $index_data[] = [
-            //     'start' => $test[0],
-            //     'length' => $test[1],
-            // ];
-
-            // dont store the file position, store the row number,
-            // use the old index saved position.
-            $index_data[] = [
-                'start' => $i,
-                'length' => 0,
-            ];
-        }
-
-        return $index_data;
-    }
-}
+use ImportWP\Common\Queue\TMP_Config_Queue;
+use ImportWP\Common\Queue\TMP_Queue_Task;
+use ImportWP\Common\Util\DB;
 
 class ImporterManager
 {
@@ -575,6 +539,30 @@ class ImporterManager
 
         $config_data = get_site_option('iwp_importer_config_' . $importer_id, []);
 
+        // import v2
+
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+
+        $table_name = DB::get_table_name('import');
+        $found = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM `{$table_name}` WHERE id=%d",
+                [$session]
+            )
+        );
+        if ($found) {
+            $queue = new Queue();
+            $queue->process($session, new TMP_Queue_Task(
+                $this
+            ));
+
+            return $queue->get_status_message($session);
+        }
+
+
         $this->event_handler->run('importer_manager.import', [$importer_data]);
 
         $state = new ImporterState($importer_id, $user);
@@ -593,8 +581,7 @@ class ImporterManager
                 Logger::debug('IM -clear_config_files');
                 $this->clear_config_files($importer_id, false, true);
                 $config_data['features'] = [
-                    'session_table' => true,
-                    'queue' => 1
+                    'session_table' => true
                 ];
             }
 

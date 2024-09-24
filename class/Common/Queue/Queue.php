@@ -26,8 +26,14 @@ class Queue
         global $wpdb;
 
         if ($table = DB::get_table_name('import')) {
-            $wpdb->query("INSERT INTO `{$table}` (`file`,`status`,`step`) VALUES ('{$config}', 'I', 'I')");
-            return $wpdb->insert_id;
+
+            $wpdb->query("INSERT INTO `{$table}` (`importer_id`,`status`,`step`) VALUES ('{$config}', 'R', 'S')");
+            $import_session_id =  $wpdb->insert_id;
+
+            $queue_table_name = DB::get_table_name('queue');
+            $wpdb->insert($queue_table_name, ['import_id' => $import_session_id, 'type' => 'S']);
+
+            return $import_session_id;
         }
 
         return false;
@@ -124,12 +130,17 @@ class Queue
                 $import_type = $result->type; // 'I' | 'U' | 'D'
                 $record_id = $result->id;
 
-                /**
-                 * @var \WPDB $wpdb
-                 */
-                global $wpdb;
-                $table_name = DB::get_table_name('queue');
-                $wpdb->update($table_name, ['status' => 'Y', 'data' => $import_type, 'claim_id' => 0, 'record' => $record_id], ['id' => $chunk['id']]);
+                if ($import_type != 'E') {
+
+                    /**
+                     * @var \WPDB $wpdb
+                     */
+                    global $wpdb;
+                    $table_name = DB::get_table_name('queue');
+                    $wpdb->update($table_name, ['status' => 'Y', 'data' => $import_type, 'claim_id' => 0, 'record' => $record_id], ['id' => $chunk['id']]);
+                } else {
+                    $this->log_error($chunk, $result->message);
+                }
             } catch (\Error $e) {
 
                 $this->log_error($chunk, $e);
@@ -168,7 +179,8 @@ class Queue
         // progress to next queue step
         $results = $wpdb->query("UPDATE {$import_table_name} AS `i`
 SET `i`.`step` = CASE
-	WHEN `i`.`step` = 'I' THEN 'D'
+	WHEN `i`.`step` = 'S' THEN 'I'
+    WHEN `i`.`step` = 'I' THEN 'D'
 	WHEN `i`.`step` = 'D' THEN 'R'
     WHEN `i`.`step` = 'R' THEN 'P'
 END
@@ -179,8 +191,10 @@ WHERE
 	);");
 
         if ($results > 0) {
-            error_log('Changing Importer step');
+            return true;
         }
+
+        return false;
     }
 
     protected function claim_chunk($claim_id, $import_id, $status_list = ['Q', 'E'])
@@ -268,9 +282,16 @@ WHERE
         }
 
         if ($table_name = DB::get_table_name('queue_error')) {
+
+            if (is_string($error)) {
+                $message = $error;
+            } else {
+                $message = $error->getMessage() . " - " . $error->getTraceAsString();
+            }
+
             $wpdb->insert($table_name, [
                 'queue_id' => $chunk['id'],
-                'message' => $error->getMessage() . " - " . $error->getTraceAsString()
+                'message' => $message
             ]);
         }
     }
@@ -393,6 +414,8 @@ WHERE
 
     public function get_status_message($import_id, $output = [])
     {
+        $output['id'] = $import_id;
+        $output['version'] = 2;
         $output['section'] = $this->get_section($import_id);
         $section = $output['section'] == 'import' ? 'import' : 'delete';
         $output['status'] = $this->get_status($import_id);

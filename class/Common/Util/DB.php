@@ -28,8 +28,6 @@ class DB
 
     public static function migrate()
     {
-
-
         /**
          * @var \WPDB $wpdb
          */
@@ -45,8 +43,8 @@ class DB
             $sql =
                 "CREATE TABLE `{$table_name}` (
                 `id` bigint(20) unsigned NOT NULL auto_increment ,
-                `file` LONGTEXT NULL,
-                `size` bigint(20) unsigned NULL,
+                `importer_id` bigint(20) unsigned NULL,
+                `config` LONGTEXT NULL,
                 `step` varchar(10) DEFAULT 'draft',
                 `status` char(1)  DEFAULT 'R',
                 `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,

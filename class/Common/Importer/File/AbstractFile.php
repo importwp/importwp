@@ -28,7 +28,9 @@ abstract class AbstractFile
      */
     public function __construct($file_path)
     {
-        @ini_set('auto_detect_line_endings', TRUE);
+        if (version_compare(PHP_VERSION, '8.1', '<')) {
+            @ini_set('auto_detect_line_endings', TRUE);
+        }
 
         $this->file_path = $file_path;
         if (file_exists($this->file_path)) {
@@ -44,7 +46,9 @@ abstract class AbstractFile
             fclose($this->file_handle);
         }
 
-        @ini_set('auto_detect_line_endings', FALSE);
+        if (version_compare(PHP_VERSION, '8.1', '<')) {
+            @ini_set('auto_detect_line_endings', FALSE);
+        }
     }
 
     /**
