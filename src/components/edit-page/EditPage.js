@@ -364,6 +364,7 @@ class EditPage extends React.Component {
             id={id}
             session={run_importer}
             status={status}
+            threads={general_settings?.max_threads ?? 1}
             onComplete={() => {
               this.setState({ run_importer: null, status: null });
 

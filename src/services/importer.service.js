@@ -103,7 +103,12 @@ function init(id) {
   });
 }
 
-function run(id, session) {
+function run(id, session, connections = 1) {
+
+  if (+connections <= 0) {
+    connections = 1;
+  }
+
   let abort = false;
   let xhr_requests = [];
 
@@ -197,7 +202,9 @@ function run(id, session) {
     },
     request: new Observable((subscriber) => {
       abort = false;
-      newConnection(subscriber);
+      for (var i = 0; i < connections; i++) {
+        newConnection(subscriber);
+      }
     }),
   };
 }

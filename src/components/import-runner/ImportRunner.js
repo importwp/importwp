@@ -82,8 +82,8 @@ class ImportRunner extends Component {
   }
 
   run() {
-    const { id, session } = this.props;
-    this.runner = importer.run(id, session);
+    const { id, session, threads = 1 } = this.props;
+    this.runner = importer.run(id, session, threads);
 
     this.document_title = document.title;
 
