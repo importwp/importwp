@@ -137,7 +137,9 @@ class Queue
                     break;
                 }
 
-                $result = $task->process($import_id, $chunk);
+                $action = $task->process($import_id, $chunk);
+                $result = $action->handle();
+
                 $import_type = $result->type; // 'I' | 'U' | 'D'
                 $record_id = $result->id;
 
