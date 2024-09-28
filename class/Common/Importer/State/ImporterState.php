@@ -3,6 +3,7 @@
 namespace ImportWP\Common\Importer\State;
 
 use ImportWP\Common\Queue\Queue;
+use ImportWP\Common\Util\DB;
 use ImportWP\Common\Util\Logger;
 
 class ImporterState
@@ -354,11 +355,41 @@ class ImporterState
 
     static function set_paused($id)
     {
+        if (Queue::is_enabled($id)) {
+            /**
+             * @var \WPDB $wpdb
+             */
+            global $wpdb;
+
+            if ($table = DB::get_table_name('import')) {
+
+                // cancel previous imports
+                $wpdb->query("UPDATE {$table} SET `status`='C' WHERE `status`='R' AND `importer_id`='{$id}'");
+            }
+
+            return;
+        }
+
         self::update_option('iwp_' . static::$object_type . '_flag_' . $id, 'paused');
     }
 
     static function set_cancelled($id)
     {
+        if (Queue::is_enabled($id)) {
+            /**
+             * @var \WPDB $wpdb
+             */
+            global $wpdb;
+
+            if ($table = DB::get_table_name('import')) {
+
+                // cancel previous imports
+                $wpdb->query("UPDATE {$table} SET `status`='C' WHERE `status`='R' AND `importer_id`='{$id}'");
+            }
+
+            return;
+        }
+
         self::update_option('iwp_' . static::$object_type . '_flag_' . $id, 'cancelled');
     }
 

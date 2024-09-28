@@ -1045,7 +1045,7 @@ class ImporterManager
             global $wpdb;
             $table_name = DB::get_table_name('queue');
 
-            $query = "SELECT `data`,`message` FROM {$table_name} WHERE `import_id`={$session_id} AND `type` IN ('I','R')";
+            $query = "SELECT `data`,`message` FROM {$table_name} WHERE `import_id`={$session_id} AND `type` IN ('I','R') AND `status` != 'Q'";
             if ($per_page > 0) {
                 $query .= ' LIMIT ' . $per_page . ' OFFSET ' . (($page - 1) * $per_page);
             }

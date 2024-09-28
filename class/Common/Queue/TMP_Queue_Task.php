@@ -4,6 +4,7 @@ namespace ImportWP\Common\Queue;
 
 use ImportWP\Common\Importer\DataParser;
 use ImportWP\Common\Importer\Parser\CSVParser;
+use ImportWP\Common\Importer\Parser\XMLParser;
 use ImportWP\Common\Queue\Action\CompleteAction;
 use ImportWP\Common\Queue\Action\DeleteAction;
 use ImportWP\Common\Queue\Action\ImportAction;
@@ -12,7 +13,6 @@ use ImportWP\Common\Queue\Action\SetupImportAction;
 use ImportWP\Common\Util\DB;
 use ImportWP\Common\Util\Logger;
 use ImportWP\Container;
-use XMLParser;
 
 class TMP_Queue_Task implements QueueTaskInterface
 {

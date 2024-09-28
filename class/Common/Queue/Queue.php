@@ -26,10 +26,10 @@ class Queue
 
     /**
      * Create new Import queue
-     * @param string $config Importer config
+     * @param int $importer_id Importer id
      * @return int 
      */
-    public static function create($config)
+    public static function create($importer_id)
     {
         /**
          * @var \WPDB $wpdb
@@ -38,7 +38,10 @@ class Queue
 
         if ($table = DB::get_table_name('import')) {
 
-            $wpdb->query("INSERT INTO `{$table}` (`importer_id`,`status`,`step`) VALUES ('{$config}', 'R', 'S')");
+            // cancel previous imports
+            $wpdb->query("UPDATE {$table} SET `status`='C' WHERE `status`='R' AND `importer_id`='{$importer_id}'");
+
+            $wpdb->query("INSERT INTO `{$table}` (`importer_id`,`status`,`step`) VALUES ('{$importer_id}', 'R', 'S')");
             $import_session_id =  $wpdb->insert_id;
 
             $queue_table_name = DB::get_table_name('queue');
