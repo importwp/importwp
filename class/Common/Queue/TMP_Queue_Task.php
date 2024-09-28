@@ -11,6 +11,7 @@ use ImportWP\Common\Queue\Action\SetupDeleteAction;
 use ImportWP\Common\Queue\Action\SetupImportAction;
 use ImportWP\Common\Util\DB;
 use ImportWP\Common\Util\Logger;
+use ImportWP\Container;
 use XMLParser;
 
 class TMP_Queue_Task implements QueueTaskInterface
@@ -20,6 +21,8 @@ class TMP_Queue_Task implements QueueTaskInterface
     public $importer_manager;
     public $importer;
     public $is_setup = false;
+    public $template;
+    public $importer_data;
 
     public function __construct($importer_manager)
     {
@@ -71,7 +74,7 @@ class TMP_Queue_Task implements QueueTaskInterface
 
         $import_table = DB::get_table_name('import');
         $importer_id = $wpdb->get_var("SELECT `importer_id` FROM {$import_table}");
-        $importer_data = $this->importer_manager->get_importer($importer_id);
+        $this->importer_data = $importer_data = $this->importer_manager->get_importer($importer_id);
 
         // TODO: cant run this from here.
         $this->importer_manager->event_handler->run('importer_manager.import', [$importer_data]);
@@ -81,7 +84,7 @@ class TMP_Queue_Task implements QueueTaskInterface
 
         // template
         Logger::debug('IM -get_importer_template');
-        $template = $this->importer_manager->get_importer_template($importer_data);
+        $this->template = $template = $this->importer_manager->get_importer_template($importer_data);
 
         Logger::debug('IM -register_hooks');
         $template->register_hooks($importer_data);
@@ -124,5 +127,28 @@ class TMP_Queue_Task implements QueueTaskInterface
         $this->importer->disable_caching();
 
         $this->is_setup = true;
+    }
+
+    public function teardown()
+    {
+        /**
+         * @var Properties $properties
+         */
+        $properties = Container::getInstance()->get('properties');
+
+        // rotate files to not fill up server
+        $this->importer_data->limit_importer_files($properties->file_rotation);
+        $this->importer_manager->prune_importer_logs($this->importer_data, $properties->log_rotation);
+
+        $this->template->unregister_hooks();
+
+        $this->importer_manager->event_handler->run('importer_manager.import_shutdown', [$this->importer_data]);
+    }
+
+    public function __destruct()
+    {
+        if ($this->is_setup) {
+            $this->teardown();
+        }
     }
 }
