@@ -29,7 +29,7 @@ class Queue
      * @param string $config Importer config
      * @return int 
      */
-    public function create($config)
+    public static function create($config)
     {
         /**
          * @var \WPDB $wpdb

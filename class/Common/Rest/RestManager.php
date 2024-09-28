@@ -1325,8 +1325,7 @@ class RestManager extends \WP_REST_Controller
         // $session_id = md5($importer_data->getId() . time());
 
         // generate new queue
-        $queue = new Queue();
-        $session_id = $queue->create($id);
+        $session_id = Queue::create($id);
 
         update_post_meta($importer_data->getId(), '_iwp_session', $session_id);
 
