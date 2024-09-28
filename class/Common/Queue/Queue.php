@@ -6,11 +6,22 @@ use ImportWP\Common\Util\DB;
 
 class Queue
 {
-
     public static function is_enabled($importer_id)
     {
-        $config_data = get_site_option('iwp_importer_config_' . $importer_id, []);
-        return isset($config_data['features'], $config_data['features']['queue']) && $config_data['features']['queue'] === 1;
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+
+        $table_name = DB::get_table_name('import');
+        $found = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM `{$table_name}` WHERE importer_id=%d",
+                [$importer_id]
+            )
+        );
+
+        return $found > 0;
     }
 
     /**
@@ -137,7 +148,7 @@ class Queue
                      */
                     global $wpdb;
                     $table_name = DB::get_table_name('queue');
-                    $wpdb->update($table_name, ['status' => 'Y', 'data' => $import_type, 'claim_id' => 0, 'record' => $record_id], ['id' => $chunk['id']]);
+                    $wpdb->update($table_name, ['status' => 'Y', 'data' => $import_type, 'message' => $result->message, 'claim_id' => 0, 'record' => $record_id], ['id' => $chunk['id']]);
                 } else {
                     $this->log_error($chunk, $result->message);
                 }
@@ -296,7 +307,7 @@ WHERE
         }
     }
 
-    public function get_section($import_id, $raw = false)
+    public static function get_section($import_id, $raw = false)
     {
         /**
          * @var \WPDB $wpdb
@@ -322,7 +333,7 @@ WHERE
         return false;
     }
 
-    public function get_status($import_id, $raw = false)
+    public static function get_status($import_id, $raw = false)
     {
         /**
          * @var \WPDB $wpdb
@@ -371,7 +382,7 @@ WHERE
         return false;
     }
 
-    public function get_stats($import_id)
+    public static function get_stats($import_id)
     {
         /**
          * @var \WPDB $wpdb
@@ -412,15 +423,15 @@ WHERE
         return $stats;
     }
 
-    public function get_status_message($import_id, $output = [])
+    public static function get_status_message($import_id, $output = [])
     {
         $output['id'] = $import_id;
         $output['version'] = 2;
-        $output['section'] = $this->get_section($import_id);
+        $output['section'] = self::get_section($import_id);
         $section = $output['section'] == 'import' ? 'import' : 'delete';
-        $output['status'] = $this->get_status($import_id);
+        $output['status'] = self::get_status($import_id);
 
-        $stats = $this->get_stats($import_id);
+        $stats = self::get_stats($import_id);
 
         if ($section == 'import') {
             $current = $stats['import'];
@@ -445,6 +456,24 @@ WHERE
         $output['progress']['delete']['start'] = 1;
         $output['progress']['delete']['end'] = $stats['delete_total'];
         $output['progress']['delete']['current_row'] = $stats['delete'];
+
+        $output['stats'] = [
+            'inserts' => $stats['I'] ?? 0,
+            'updates' => $stats['U'] ?? 0,
+            'deletes' => $stats['R'] ?? 0,
+            'skips' => 0,
+            'errors' => 0,
+        ];
+
+        if ($table_name = DB::get_table_name('import')) {
+            /**
+             * @var \WPDB $wpdb
+             */
+            global $wpdb;
+            if ($value = $wpdb->get_var("SELECT `created_at` FROM {$table_name} WHERE id={$import_id}")) {
+                $output['timestamp'] = strtotime($value);
+            }
+        }
 
         return $output;
     }

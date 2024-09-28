@@ -52,7 +52,7 @@ class ImporterManager
     /**
      * @var EventHandler $event_handler
      */
-    protected $event_handler;
+    public $event_handler;
 
     public function __construct(Filesystem $filesystem, TemplateManager $template_manager, EventHandler $event_handler)
     {
@@ -539,27 +539,14 @@ class ImporterManager
 
         $config_data = get_site_option('iwp_importer_config_' . $importer_id, []);
 
-        // import v2
+        if (Queue::is_enabled($importer_id)) {
 
-        /**
-         * @var \WPDB $wpdb
-         */
-        global $wpdb;
-
-        $table_name = DB::get_table_name('import');
-        $found = $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT COUNT(*) FROM `{$table_name}` WHERE id=%d",
-                [$session]
-            )
-        );
-        if ($found) {
             $queue = new Queue();
             $queue->process($session, new TMP_Queue_Task(
                 $this
             ));
 
-            return $queue->get_status_message($session);
+            return Queue::get_status_message($session);
         }
 
 
@@ -996,6 +983,19 @@ class ImporterManager
             $end =  $start + $per_page;
         }
 
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+        $table_name = DB::get_table_name('import');
+
+        if (Queue::is_enabled($importer_data->getId())) {
+            if ($per_page > 0) {
+                $queue_count = intval($wpdb->get_var("SELECT COUNT(*) FROM {$table_name} WHERE importer_id={$importer_data->getId()}"));
+                $end += $queue_count;
+            }
+        }
+
         if (file_exists($file_path)) {
             $fh = fopen($file_path, 'r');
             if ($fh !== false) {
@@ -1015,13 +1015,19 @@ class ImporterManager
                 fclose($fh);
             }
         }
+
+        if (Queue::is_enabled($importer_data->getId())) {
+            $import_ids = $wpdb->get_col("SELECT `id` FROM {$table_name} WHERE importer_id={$importer_data->getId()}");
+            foreach ($import_ids as $import_id) {
+                $lines[] = Queue::get_status_message($import_id);
+            }
+        }
+
         return $lines;
     }
 
     public function get_importer_log(ImporterModel $importer_data, $session_id, $page = 0, $per_page = -1)
     {
-        $file_path = Util::get_importer_log_file_path($importer_data->getId(), $session_id);
-
         $line_counter = 0;
         $lines = [];
         $start = $end = -1;
@@ -1030,6 +1036,34 @@ class ImporterManager
             $start = ($page - 1) * $per_page;
             $end =  $start + $per_page;
         }
+
+        if (Queue::is_enabled($importer_data->getId())) {
+
+            /**
+             * @var \WPDB $wpdb
+             */
+            global $wpdb;
+            $table_name = DB::get_table_name('queue');
+
+            $query = "SELECT `data`,`message` FROM {$table_name} WHERE `import_id`={$session_id} AND `type` IN ('I','R')";
+            if ($per_page > 0) {
+                $query .= ' LIMIT ' . $per_page . ' OFFSET ' . (($page - 1) * $per_page);
+            }
+
+            $rows = $wpdb->get_results($query, ARRAY_A);
+            foreach ($rows as $i => $row) {
+
+                $lines[] = [
+                    $i + 1,
+                    $row['data'],
+                    $row['message']
+                ];
+            }
+
+            return $lines;
+        }
+
+        $file_path = Util::get_importer_log_file_path($importer_data->getId(), $session_id);
 
         if (file_exists($file_path)) {
             $fh = fopen($file_path, 'r');

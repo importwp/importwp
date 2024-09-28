@@ -2,6 +2,7 @@
 
 namespace ImportWP\Common\Importer\State;
 
+use ImportWP\Common\Queue\Queue;
 use ImportWP\Common\Util\Logger;
 
 class ImporterState
@@ -9,10 +10,12 @@ class ImporterState
     private $data = [];
     private $importer_id;
     protected static $object_type = 'importer';
+    private static $is_queue = false;
 
     public function __construct($importer_id, $user = '')
     {
         $this->importer_id = $importer_id;
+        self::$is_queue = Queue::is_enabled($this->importer_id);
     }
 
     protected function default($session_id)
@@ -155,7 +158,10 @@ class ImporterState
     {
         $state['updated'] = time();
         do_action('iwp/' . static::$object_type . '/status/save', $state);
-        self::update_option('iwp_' . static::$object_type . '_state_' . $id, maybe_serialize($state));
+
+        if (!self::$is_queue) {
+            self::update_option('iwp_' . static::$object_type . '_state_' . $id, maybe_serialize($state));
+        }
     }
 
     /**
@@ -165,7 +171,12 @@ class ImporterState
      */
     public static function get_state($id, $default = false)
     {
-        $state = self::get_option('iwp_' . static::$object_type . '_state_' . $id);
+        if (self::$is_queue) {
+            $state = Queue::get_status_message($id, $default);
+        } else {
+            $state = self::get_option('iwp_' . static::$object_type . '_state_' . $id);
+        }
+
         if (!$state) {
             $state = $default;
             if ($state !== false) {
@@ -178,6 +189,10 @@ class ImporterState
 
     public static function get_option($key, $default = false)
     {
+        if (self::$is_queue) {
+            return $default;
+        }
+
         /**
          * @var \WPDB $wpdb
          */
@@ -203,6 +218,10 @@ class ImporterState
 
     public static function update_option($key, $value = '')
     {
+        if (self::$is_queue) {
+            return;
+        }
+
         /**
          * @var \WPDB $wpdb
          */
@@ -266,6 +285,10 @@ class ImporterState
 
     function update_importer_stats($stats)
     {
+        if (self::$is_queue) {
+            return;
+        }
+
         if (!isset($this->data['stats'])) {
             $this->data['stats'] = [
                 'inserts' => 0,
@@ -285,6 +308,10 @@ class ImporterState
 
     function get_stats()
     {
+        if (self::$is_queue) {
+            return;
+        }
+
         if (!isset($this->data['stats'])) {
             $this->data['stats'] = [
                 'inserts' => 0,
@@ -300,6 +327,10 @@ class ImporterState
 
     function increment_current_row($section = null)
     {
+        if (self::$is_queue) {
+            return;
+        }
+
         if (is_null($section)) {
             $section = $this->get_section();
         }

@@ -61,6 +61,9 @@ class TMP_Queue_Task implements QueueTaskInterface
         $importer_id = $wpdb->get_var("SELECT `importer_id` FROM {$import_table}");
         $importer_data = $this->importer_manager->get_importer($importer_id);
 
+        // TODO: cant run this from here.
+        $this->importer_manager->event_handler->run('importer_manager.import', [$importer_data]);
+
         Logger::debug('IM -get_config');
         $config = $this->importer_manager->get_config($importer_data);
 
@@ -359,10 +362,11 @@ class TMP_Queue_Task implements QueueTaskInterface
             } catch (MapperException $e) {
 
                 Logger::error('delete:' . $i . ' -mapper-error=' . $e->getMessage());
+                $message = 'Record Error: #' . $i . ' ' . $e->getMessage();
             }
         }
 
-        return new QueueTaskResult($object_id, 'R');
+        return new QueueTaskResult($object_id, 'R', $message);
     }
 
     public function process_delete($import_id, $chunk)
