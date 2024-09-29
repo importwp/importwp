@@ -39,7 +39,7 @@ class ZipArchive
                     $filename = $zip->getNameIndex($i);
 
                     // TODO: we should be able to get file based on desired extension
-                    if (preg_match('/\.(xml|csv)$/', $filename) === 0 && $zip->numFiles > 1) {
+                    if (preg_match('/\.(xml|csv|blm)$/', $filename) === 0 && $zip->numFiles > 1) {
                         continue;
                     }
 
