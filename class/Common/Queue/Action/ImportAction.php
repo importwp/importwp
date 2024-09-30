@@ -59,6 +59,7 @@ class ImportAction implements ActionInterface
                     $import_type = 'I';
                     $record_id = $data->getId();
                     $message = apply_filters('iwp/status/record_inserted', 'Record Inserted: #' . $data->getId(), $data->getId(), $data);
+                    $message .= $this->importer->get_unique_identifier_log_text();
                 }
 
                 if ($data->isUpdate()) {
@@ -66,6 +67,7 @@ class ImportAction implements ActionInterface
                     $import_type = 'U';
                     $record_id = $data->getId();
                     $message = apply_filters('iwp/status/record_updated', 'Record Updated: #' . $data->getId(), $data->getId(), $data);
+                    $message .= $this->importer->get_unique_identifier_log_text();
                 }
             }
         } catch (RecordUpdatedSkippedException $e) {
@@ -73,6 +75,7 @@ class ImportAction implements ActionInterface
             Logger::write('import:' . $i . ' -success -update -skipped="hash"');
             $import_type = 'S';
             $message = 'Record Update Skipped: #' . $data->getId() . ' ' . $e->getMessage();
+            $message .= $this->importer->get_unique_identifier_log_text();
         } catch (ParserException $e) {
 
             $import_type = 'E';
