@@ -81,7 +81,7 @@ class SetupImportAction implements ActionInterface
 
         $config_data['id'] = $this->import_session_id;
 
-        // This is used for storing version on imported records
+        // This is used for storing version on imported records        
         update_post_meta($importer_id, '_iwp_session', $config_data['id']);
 
         // Increase Version

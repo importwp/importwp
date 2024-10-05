@@ -120,6 +120,10 @@ class Queue
      */
     public function process($import_id, $task)
     {
+        if (!$import_id) {
+            exit;
+        }
+
         $claim_id = $this->make_claim();
 
         set_error_handler(
@@ -164,7 +168,7 @@ class Queue
                 $this->log_error($chunk, $e);
             }
             $i++;
-        } while ($chunk && $i < 20);
+        } while ($chunk); // && $i < 20);
 
         $this->release_claim($claim_id);
 
@@ -193,7 +197,7 @@ class Queue
 
 
         // progress to next queue step
-        $results = $wpdb->query("UPDATE {$import_table_name} AS `i`
+        $query = "UPDATE {$import_table_name} AS `i`
 SET `i`.`step` = CASE
 	WHEN `i`.`step` = 'S' THEN 'I'
     WHEN `i`.`step` = 'I' THEN 'D'
@@ -204,7 +208,8 @@ WHERE
 	`i`.`id` = {$import_id} 
 	AND NOT EXISTS (
 		SELECT * FROM {$queue_table_name} as `q` WHERE `q`.`import_id` = `i`.`id` AND `q`.`type` = `i`.`step` AND (`q`.`status` = 'Q' || (`q`.`status` = 'E' AND `q`.`attempts` < 3) )
-	);");
+	);";
+        $results = $wpdb->query($query);
 
         if ($results > 0) {
             return true;
@@ -352,7 +357,10 @@ WHERE
                 return $status;
             }
 
+            // processing
             switch ($status) {
+                case 'S':
+                    return 'processing';
                 case 'D':
                 case 'R':
                 case 'I':
@@ -430,6 +438,10 @@ WHERE
 
     public static function get_status_message($import_id, $output = [])
     {
+        if (!$output) {
+            $output = [];
+        }
+
         $output['id'] = $import_id;
         $output['version'] = 2;
         $output['section'] = self::get_section($import_id);

@@ -529,6 +529,12 @@ class ImporterManager
 
     public function import($id, $user, $session = null)
     {
+
+        // remove polyfill
+        if (has_action('update_postmeta', 'iwp_cron_polyfill')) {
+            remove_action('update_postmeta', 'iwp_cron_polyfill');
+        }
+
         Logger::timer();
 
         $importer_data = $this->get_importer($id);
@@ -539,8 +545,55 @@ class ImporterManager
 
         $config_data = get_site_option('iwp_importer_config_' . $importer_id, []);
 
+        // If session is string then it has just been created,
+        // or we are running an old style import.
+
+        $session_map = false;
+
+        if (intval($session) != $session) {
+
+            // TODO: use session map getting status
+            $session_map = get_option('iwp_legacy_session');
+            if ($session_map && $session_map['session'] == $session) {
+                $session = $session_map['id'];
+            } else {
+
+                /**
+                 * @var \WPDB $wpdb
+                 */
+                global $wpdb;
+
+                $key = 'iwp_importer_state_' . $importer_id;
+
+                if (is_multisite()) {
+                    $query = $wpdb->prepare("SELECT meta_value as `data` FROM {$wpdb->sitemeta} WHERE site_id=%s AND meta_key=%s LIMIT 1", [$wpdb->siteid, $key]);
+                } else {
+                    $query = $wpdb->prepare("SELECT option_value as `data` FROM {$wpdb->options} WHERE option_name=%s LIMIT 1", [$key]);
+                }
+
+                $result = $wpdb->get_row($query, ARRAY_A);
+                $pre_queue = false;
+                if ($result) {
+                    $result = maybe_unserialize($result['data']);
+                    if ($result['id'] == $session && in_array($result['status'], ['running', 'timeout'])) {
+                        $pre_queue = true;
+                    }
+                }
+
+                if (!$pre_queue) {
+                    $session_map = [
+                        'session' => $session,
+                        'id' => Queue::create($importer_id)
+                    ];
+                    update_option('iwp_legacy_session', $session_map);
+                    $session = $session_map['id'];
+                }
+            }
+        }
+
         if (Queue::is_enabled($importer_id)) {
 
+            //TODO: if session matches _iwp_session, and we havent added teh record into the importer, then we do it now.
             $queue = new Queue();
             $queue->process($session, new TMP_Queue_Task(
                 $this
@@ -564,7 +617,7 @@ class ImporterManager
             // if this is a new session, clear config files
             if ($state->has_status('init')) {
                 // rest importer log.
-                Logger::clear($importer_id);
+                // Logger::clear($importer_id);
                 Logger::debug('IM -clear_config_files');
                 $this->clear_config_files($importer_id, false, true);
                 $config_data['features'] = [

@@ -1322,11 +1322,7 @@ class RestManager extends \WP_REST_Controller
         ImporterState::clear_options($importer_data->getId());
 
         // This is used for storing version on imported records
-        // $session_id = md5($importer_data->getId() . time());
-
-        // generate new queue
-        $session_id = Queue::create($id);
-
+        $session_id = md5($importer_data->getId() . time());
         update_post_meta($importer_data->getId(), '_iwp_session', $session_id);
 
         if ('background' === $importer_data->getSetting('import_method')) {
@@ -1359,12 +1355,6 @@ class RestManager extends \WP_REST_Controller
         $state['message'] = $this->generate_status_message($state);
 
         Logger::clearRequestType();
-
-        if (Queue::is_enabled($id)) {
-
-            // get status from queue
-            $state = Queue::get_status_message($session, $state);
-        }
 
         return $this->http->end_rest_success($state);
     }

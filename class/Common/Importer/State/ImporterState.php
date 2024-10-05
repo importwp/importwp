@@ -172,8 +172,17 @@ class ImporterState
      */
     public static function get_state($id, $default = false)
     {
+        self::$is_queue = Queue::is_enabled($id);
         if (self::$is_queue) {
-            $state = Queue::get_status_message($id, $default);
+
+            /**
+             * @var \WPDB $wpdb
+             */
+            global $wpdb;
+
+            $table_name = DB::get_table_name('import');
+            $session_id = $wpdb->get_var("SELECT id FROM {$table_name} WHERE importer_id={$id} ORDER BY created_at DESC LIMIT 1");
+            $state = Queue::get_status_message($session_id, $default);
         } else {
             $state = self::get_option('iwp_' . static::$object_type . '_state_' . $id);
         }
