@@ -1322,12 +1322,14 @@ class RestManager extends \WP_REST_Controller
         ImporterState::clear_options($importer_data->getId());
 
         // This is used for storing version on imported records
-        $session_id = md5($importer_data->getId() . time());
-        update_post_meta($importer_data->getId(), '_iwp_session', $session_id);
-
         if ('background' === $importer_data->getSetting('import_method')) {
+            $session_id = md5($importer_data->getId() . time());
+            update_post_meta($importer_data->getId(), '_iwp_session', $session_id);
             update_post_meta($importer_data->getId(), '_iwp_cron_scheduled', current_time('timestamp'));
             delete_post_meta($importer_data->getId(), '_iwp_cron_last_ran');
+        } else {
+            $session_id = Queue::create($importer_data->getId());
+            update_post_meta($importer_data->getId(), '_iwp_session', $session_id);
         }
 
         Logger::clearRequestType();

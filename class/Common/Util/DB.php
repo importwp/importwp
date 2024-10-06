@@ -121,7 +121,8 @@ class DB
             $sql =
                 "CREATE TABLE `{$table_name}` (
                 `id` bigint(20) unsigned NOT NULL auto_increment ,
-                `queue_id` bigint(20) unsigned NOT NULL,
+                `import_id` bigint(20) unsigned NULL DEFAULT NULL,
+                `queue_id` bigint(20) unsigned NULL DEFAULT NULL,
                 `message` LONGTEXT NULL,
                 `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
                 PRIMARY KEY  (`id`)

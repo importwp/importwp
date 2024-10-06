@@ -595,9 +595,8 @@ class ImporterManager
 
             //TODO: if session matches _iwp_session, and we havent added teh record into the importer, then we do it now.
             $queue = new Queue();
-            $queue->process($session, new TMP_Queue_Task(
-                $this
-            ));
+            $queue_task = new TMP_Queue_Task($this);
+            $result = $queue->process($session, $queue_task);
 
             return Queue::get_status_message($session);
         }

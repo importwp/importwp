@@ -540,8 +540,51 @@ WHERE
 
         $output['message'] .= "{$current}/{$total}.";
 
+        $output['stats'] = [
+            'inserts' => $stats['I'] ?? 0,
+            'updates' => $stats['U'] ?? 0,
+            'deletes' => $stats['R'] ?? 0,
+            'skips' => 0,
+            'errors' => 0,
+        ];
+
         if ($output['status'] == 'complete') {
             $output['message'] = 'Import complete.';
+        } else {
+
+            $message_stats = [];
+            if (!empty($output['stats']['inserts'])) {
+                $message_stats[] = $output['stats']['inserts'] . ' Inserts';
+            }
+            if (!empty($output['stats']['updates'])) {
+                $message_stats[] = $output['stats']['updates'] . ' Updates';
+            }
+            if (!empty($output['stats']['deletes'])) {
+                $message_stats[] = $output['stats']['deletes'] . ' Deletes';
+            }
+            if (!empty($output['stats']['skips'])) {
+                $message_stats[] = $output['stats']['skips'] . ' Skips';
+            }
+            if (!empty($output['stats']['errors'])) {
+                $message_stats[] = $output['stats']['errors'] . ' Errors';
+            }
+
+            if (!empty($message_stats)) {
+                $output['message'] .= ' (' . implode(', ', $message_stats) . ')';
+
+                $total = array_sum($output['stats']);
+                if ($total > 0) {
+                    /**
+                     * @var \WPDB $wpdb
+                     */
+                    global $wpdb;
+
+                    if ($table_name = DB::get_table_name('import')) {
+                        $seconds = $wpdb->get_var("SELECT TIME_TO_SEC(TIMEDIFF(NOW(), `created_at`)) FROM {$table_name} WHERE id={$import_id}");
+                        $output['message'] .= ' @ ' . floor($total / $seconds) . ' records per second';
+                    }
+                }
+            }
         }
 
         $output['progress']['import']['start'] = 1;
@@ -552,13 +595,6 @@ WHERE
         $output['progress']['delete']['end'] = $stats['delete_total'];
         $output['progress']['delete']['current_row'] = $stats['delete'];
 
-        $output['stats'] = [
-            'inserts' => $stats['I'] ?? 0,
-            'updates' => $stats['U'] ?? 0,
-            'deletes' => $stats['R'] ?? 0,
-            'skips' => 0,
-            'errors' => 0,
-        ];
 
         if ($table_name = DB::get_table_name('import')) {
             /**
