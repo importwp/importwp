@@ -42,6 +42,7 @@ if (version_compare(PHP_VERSION, IWP_MINIMUM_PHP_VERSION, '>=')) {
 	require_once $iwp_base_path . '/class/autoload.php';
 	require_once $iwp_base_path . '/setup-iwp.php';
 	require_once $iwp_base_path . '/functions.php';
+	require_once $iwp_base_path . '/legacy.php';
 }
 
 register_deactivation_hook(__FILE__, 'iwp_register_muplugin_uninstall');

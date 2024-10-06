@@ -142,8 +142,6 @@ function iwp_loaded()
     if (function_exists('import_wp')) {
         import_wp();
     }
-
-    require_once __DIR__ . '/legacy.php';
 }
 add_action('plugins_loaded', 'iwp_loaded');
 

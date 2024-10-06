@@ -3,9 +3,16 @@
 namespace ImportWP\Common\Queue;
 
 use ImportWP\Common\Util\DB;
+use ImportWP\Common\Util\Logger;
+use ImportWP\Container;
 
 class Queue
 {
+    /**
+     * @var int
+     */
+    protected $memory_limit;
+
     public static function is_enabled($importer_id)
     {
         /**
@@ -124,6 +131,17 @@ class Queue
             exit;
         }
 
+        /**
+         * @var Properties $properties
+         */
+        $properties = Container::getInstance()->get('properties');
+        $time_limit = $properties->get_setting('timeout');
+        Logger::info('time_limit ' . $time_limit . 's');
+
+        $start = microtime(true);
+        $max_record_time = 0;
+        $memory_max_usage = 0;
+
         $claim_id = $this->make_claim();
 
         set_error_handler(
@@ -135,7 +153,7 @@ class Queue
         $i = 0;
 
         do {
-
+            $record_time = microtime(true);
             $chunk = null;
 
             try {
@@ -168,13 +186,73 @@ class Queue
                 $this->log_error($chunk, $e);
             }
             $i++;
-        } while ($chunk); // && $i < 20);
+            $max_record_time = max($max_record_time, microtime(true) - $record_time);
+        } while (
+            $chunk && (
+                $time_limit === 0 || $this->has_enough_time($start, $time_limit, $max_record_time)
+            )
+            && $this->has_enough_memory($memory_max_usage)
+        ); // && $i < 20);
 
         $this->release_claim($claim_id);
 
         $this->cleanup($import_id);
 
         restore_error_handler();
+    }
+
+    function has_enough_time($start, $time_limit, $max_record_time)
+    {
+        return (microtime(true) - $start) < $time_limit - $max_record_time;
+    }
+
+    function has_enough_memory($memory_max_usage)
+    {
+        $limit = $this->get_memory_limit();
+
+        // Has unlimited memory
+        if ($limit == '-1') {
+            return true;
+        }
+
+        $limit *= 0.9;
+        $current_usage = $this->get_memory_usage();
+
+        if ($current_usage + $memory_max_usage < $limit) {
+            return true;
+        }
+
+        Logger::error(sprintf("Not Enough Memory left to use %s,  %s/%s", Logger::formatBytes($memory_max_usage, 2), Logger::formatBytes($current_usage, 2), Logger::formatBytes($limit, 2)));
+
+        return false;
+    }
+
+    function get_memory_usage()
+    {
+        return memory_get_usage(true);
+    }
+
+    function get_memory_limit($force = false)
+    {
+        if ($force || is_null($this->memory_limit)) {
+
+            $memory_limit = ini_get('memory_limit');
+            if (preg_match('/^(\d+)(.)$/', $memory_limit, $matches)) {
+                if ($matches[2] == 'G') {
+                    $memory_limit = $matches[1] * 1024 * 1024 * 1024; // nnnM -> nnn MB
+                } elseif ($matches[2] == 'M') {
+                    $memory_limit = $matches[1] * 1024 * 1024; // nnnM -> nnn MB
+                } else if ($matches[2] == 'K') {
+                    $memory_limit = $matches[1] * 1024; // nnnK -> nnn KB
+                }
+            }
+
+            $this->memory_limit = $memory_limit;
+
+            Logger::info('memory_limit ' . $this->memory_limit . ' bytes');
+        }
+
+        return $this->memory_limit;
     }
 
     /**
