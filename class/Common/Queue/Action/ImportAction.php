@@ -49,7 +49,6 @@ class ImportAction implements ActionInterface
                 $import_type = 'S';
                 $message = 'Record Skipped';
                 $message = apply_filters('iwp/status/record_skipped', $message);
-                $message .= $this->importer->get_unique_identifier_log_text();
                 $data = null;
             } else {
 
@@ -79,7 +78,6 @@ class ImportAction implements ActionInterface
             $import_type = 'S';
             $message = 'Record Update Skipped: #' . $data->getId() . ' ' . $e->getMessage();
             $message = apply_filters('iwp/status/record_skipped', $message);
-            $message .= $this->importer->get_unique_identifier_log_text();
         } catch (ParserException $e) {
 
             $import_type = 'N';
