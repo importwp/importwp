@@ -165,7 +165,16 @@ class Queue
                 $action = $task->process($import_id, $chunk);
                 $result = $action->handle();
 
-                $import_type = $result->type; // 'I' | 'U' | 'D'
+                /**
+                 * Importer action result type
+                 * 
+                 * I = Insert
+                 * U = Update
+                 * D = Delete
+                 * N = Importer Error
+                 * E = Retry Fatal Error
+                 */
+                $import_type = $result->type;
                 $record_id = $result->id;
 
                 if ($import_type != 'E') {
@@ -485,6 +494,8 @@ WHERE
             'delete_total' => 0,
             'import' => 0,
             'delete' => 0,
+            'error' => 0,
+            'skips' => 0
         ];
 
         if ($table_name = DB::get_table_name('queue')) {
@@ -502,6 +513,10 @@ WHERE
 
                     if (in_array($row['data'], ['I', 'U'])) {
                         $stats['import'] += $row['count'];
+                    } elseif (in_array($row['data'], ['N', 'E'])) {
+                        $stats['error'] += $row['count'];
+                    } elseif ($row['data'] == 'S') {
+                        $stats['skips'] += $row['count'];
                     } else {
                         $stats['delete'] += $row['count'];
                     }
@@ -544,8 +559,8 @@ WHERE
             'inserts' => $stats['I'] ?? 0,
             'updates' => $stats['U'] ?? 0,
             'deletes' => $stats['R'] ?? 0,
-            'skips' => 0,
-            'errors' => 0,
+            'skips' => $stats['S'] ?? 0,
+            'errors' => $stats['N'] ?? 0,
         ];
 
         if ($output['status'] == 'complete') {

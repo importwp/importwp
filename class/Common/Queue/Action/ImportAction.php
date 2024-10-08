@@ -46,7 +46,10 @@ class ImportAction implements ActionInterface
             if ($skip_record) {
 
                 Logger::write('import -skip-record=' . $i);
-                $message = apply_filters('iwp/status/record_skipped', "Skipped Record");
+                $import_type = 'S';
+                $message = 'Record Skipped';
+                $message = apply_filters('iwp/status/record_skipped', $message);
+                $message .= $this->importer->get_unique_identifier_log_text();
                 $data = null;
             } else {
 
@@ -75,22 +78,23 @@ class ImportAction implements ActionInterface
             Logger::write('import:' . $i . ' -success -update -skipped="hash"');
             $import_type = 'S';
             $message = 'Record Update Skipped: #' . $data->getId() . ' ' . $e->getMessage();
+            $message = apply_filters('iwp/status/record_skipped', $message);
             $message .= $this->importer->get_unique_identifier_log_text();
         } catch (ParserException $e) {
 
-            $import_type = 'E';
+            $import_type = 'N';
 
             Logger::error('import:' . $i . ' -parser-error=' . $e->getMessage());
             $message = 'Record Error: #' . $data->getId() . ' ' . $e->getMessage();
         } catch (MapperException $e) {
 
-            $import_type = 'E';
+            $import_type = 'N';
 
             Logger::error('import:' . $i . ' -mapper-error=' . $e->getMessage());
             $message = 'Record Error: #' . $data->getId() . ' ' . $e->getMessage();
         } catch (FileException $e) {
 
-            $import_type = 'E';
+            $import_type = 'N';
 
             Logger::error('import:' . $i . ' -file-error=' . $e->getMessage());
             $message = 'Record Error: #' . $data->getId() . ' ' . $e->getMessage();
