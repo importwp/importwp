@@ -157,7 +157,15 @@ class Queue
             $chunk = null;
 
             try {
-                $chunk = $this->claim_chunk($claim_id, $import_id, ['Q', 'E']);
+
+                do {
+                    $cleanup = false;
+                    $chunk = $this->claim_chunk($claim_id, $import_id, ['Q', 'E']);
+                    if (!$chunk) {
+                        $cleanup = $this->cleanup($import_id);
+                    }
+                } while (!$chunk && $cleanup);
+
                 if (!$chunk) {
                     break;
                 }
@@ -269,7 +277,7 @@ class Queue
      * with the current import status, if not move to the next step
      * 
      * @param int $import_id
-     * @return void 
+     * @return bool 
      */
     protected function cleanup($import_id)
     {
