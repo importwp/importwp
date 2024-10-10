@@ -16,6 +16,7 @@ import FormRow from '../FormRow/FormRow';
 import FormField from '../FormField/FormField';
 import InputField from '../InputField/InputField';
 import InputButton from '../InputButton/InputButton';
+import Switch from 'react-switch';
 
 const AJAX_BASE = window.iwp.admin_base;
 const AJAX_URL_BASE = window.iwp.ajax_base;
@@ -519,6 +520,22 @@ const ExporterEdit = ({ id, pro = false }) => {
                           value={fileSettings?.escape ?? '\\'}
                         />
                       </FormField>
+                    </FormRow>
+                    <FormRow>
+                    <div className="iwp-form__row iwp-form__row--small">
+                      <label className="iwp-form__label iwp-form__label--switch">
+                        <span>Add UTF-8 BOM header.</span>
+                        <Switch
+                          checked={fileSettings?.utf8_bom ?? false}
+                          height={20}
+                          width={40}
+                          onColor="#22c48f"
+                          onChange={(checked) =>
+                            setFileSettings({...fileSettings, utf8_bom: checked })
+                          }
+                        />
+                      </label>
+                    </div>
                     </FormRow>
                   </>}
 
