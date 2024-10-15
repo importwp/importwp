@@ -76,7 +76,7 @@ class TMP_Queue_Task implements QueueTaskInterface
         global $wpdb;
 
         $import_table = DB::get_table_name('import');
-        $importer_id = $wpdb->get_var("SELECT `importer_id` FROM {$import_table}");
+        $importer_id = $wpdb->get_var("SELECT `importer_id` FROM {$import_table} WHERE `id`={$init}");
         $this->importer_data = $importer_data = $this->importer_manager->get_importer($importer_id);
 
         // TODO: cant run this from here.
