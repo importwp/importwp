@@ -31,14 +31,25 @@ function iwp_cron_polyfill($meta_id, $object_id, $meta_key, $meta_value)
 
     $current_time = time();
     $timestamp = $current_time + 5;
+    $meta_key = '_iwp_session_cron_timestamp';
 
     // if there is no timestamp add one.
-    $count = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE post_id={$object_id} AND meta_key='_iwp_session_cron_timestamp'");
+    $count = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE post_id=%d AND meta_key=%s",
+            [$object_id, $meta_key]
+        )
+    );
     if (empty($count)) {
-        update_post_meta($object_id, '_iwp_session_cron_timestamp', 0);
+        update_post_meta($object_id, $meta_key, 0);
     }
 
-    $result = $wpdb->query("UPDATE {$wpdb->postmeta} SET meta_value={$timestamp} WHERE post_id={$object_id} AND meta_value < {$current_time} AND meta_key='_iwp_session_cron_timestamp'");
+    $result = $wpdb->query(
+        $wpdb->prepare(
+            "UPDATE {$wpdb->postmeta} SET meta_value=%s WHERE post_id=%d AND meta_value < %s AND meta_key=%s",
+            [$timestamp, $object_id, $current_time, $meta_key]
+        )
+    );
     if ($result <= 0) {
         // make sure the same importer is not triggered within the same 5 second period
         exit;

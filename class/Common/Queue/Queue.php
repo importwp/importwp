@@ -46,9 +46,19 @@ class Queue
         if ($table = DB::get_table_name('import')) {
 
             // cancel previous imports
-            $wpdb->query("UPDATE {$table} SET `status`='C' WHERE `status`='R' AND `importer_id`='{$importer_id}'");
+            $wpdb->query(
+                $wpdb->prepare(
+                    "UPDATE {$table} SET `status`='C' WHERE `status`='R' AND `importer_id`=%d",
+                    [$importer_id]
+                )
+            );
 
-            $wpdb->query("INSERT INTO `{$table}` (`importer_id`,`status`,`step`) VALUES ('{$importer_id}', 'R', 'S')");
+            $wpdb->query(
+                $wpdb->prepare(
+                    "INSERT INTO `{$table}` (`importer_id`,`status`,`step`) VALUES (%d, 'R', 'S')",
+                    [$importer_id]
+                )
+            );
             $import_session_id =  $wpdb->insert_id;
 
             $queue_table_name = DB::get_table_name('queue');
@@ -75,27 +85,43 @@ class Queue
 
         $table_name = DB::get_table_name('queue');
         $base_query = "INSERT INTO {$table_name} (`import_id`,`pos`,`len`,`type`) VALUES ";
+        $query_placeholders = [];
         $query_values = [];
         $rollback = false;
 
         $wpdb->query('START TRANSACTION');
 
         foreach ($tasks->getFileIndex() as $row) {
-            $query_values[] = "('{$queue_id}','{$row['start']}','{$row['length']}', 'I')";
+            $query_placeholders[] = "(%d,%d,%d,%s)";
+            $query_values[] = $queue_id;
+            $query_values[] = $row['start'];
+            $query_values[] = $row['length'];
+            $query_values[] = 'I';
 
-            if (count($query_values) > 1000) {
+            if (count($query_placeholders) > 1000) {
 
-                if (!$wpdb->query($base_query . implode(',', $query_values))) {
+                if (!$wpdb->query(
+                    $wpdb->prepare(
+                        $base_query . implode(',', $query_placeholders),
+                        $query_values
+                    )
+                )) {
                     $rollback = true;
                     break;
                 }
 
+                $query_placeholders = [];
                 $query_values = [];
             }
         }
 
-        if (!$rollback && !empty($query_values)) {
-            if (!$wpdb->query($base_query . implode(',', $query_values))) {
+        if (!$rollback && !empty($query_placeholders)) {
+            if (!$wpdb->query(
+                $wpdb->prepare(
+                    $base_query . implode(',', $query_placeholders),
+                    $query_values
+                )
+            )) {
                 $rollback = true;
             }
         }
@@ -292,7 +318,8 @@ class Queue
 
 
         // progress to next queue step
-        $query = "UPDATE {$import_table_name} AS `i`
+        $results = $wpdb->query($wpdb->prepare(
+            "UPDATE {$import_table_name} AS `i`
 SET `i`.`step` = CASE
 	WHEN `i`.`step` = 'S' THEN 'I'
     WHEN `i`.`step` = 'I' THEN 'D'
@@ -300,11 +327,12 @@ SET `i`.`step` = CASE
     WHEN `i`.`step` = 'R' THEN 'P'
 END
 WHERE 
-	`i`.`id` = {$import_id} 
+	`i`.`id` = %d 
 	AND NOT EXISTS (
 		SELECT * FROM {$queue_table_name} as `q` WHERE `q`.`import_id` = `i`.`id` AND `q`.`type` = `i`.`step` AND (`q`.`status` = 'Q' || (`q`.`status` = 'E' AND `q`.`attempts` < 3) )
-	);";
-        $results = $wpdb->query($query);
+	);",
+            [$import_id]
+        ));
 
         if ($results > 0) {
             return true;
@@ -324,6 +352,7 @@ WHERE
         $import_table_name = DB::get_table_name('import');
 
         $status_where = "";
+        $where_values = [];
         if (!empty($status_list)) {
 
             $status_queries = [];
@@ -335,7 +364,8 @@ WHERE
                         $status_queries[] = "(q.`status` = 'E' AND q.`attempts` < 3)";
                         break;
                     default:
-                        $status_queries[] = "(q.`status`='{$status}')";
+                        $status_queries[] = "(q.`status`=%s)";
+                        $where_values[] = $status;
                         break;
                 }
             }
@@ -348,13 +378,24 @@ WHERE
         // make sure importer has not been paused / cancelled
         $join = "INNER JOIN `{$import_table_name}` as i ON q.`import_id` = i.`id` AND i.`status`='R' AND i.`step` = q.`type`";
 
-        $updated = $wpdb->query("UPDATE `{$table_name}` as q {$join} SET q.`claim_id`={$claim_id}, q.`attempted_at`= NOW() WHERE q.`claim_id`=0 AND q.`import_id`={$import_id} {$status_where} LIMIT 1");
+        $updated = $wpdb->query(
+            $wpdb->prepare(
+                "UPDATE `{$table_name}` as q {$join} SET q.`claim_id`=%d, q.`attempted_at`= NOW() WHERE q.`claim_id`=0 AND q.`import_id`=%d {$status_where} LIMIT 1",
+                array_merge([$claim_id, $import_id], $where_values)
+            )
+        );
 
         if (intval($updated) <= 0) {
             return false;
         }
 
-        $queue_item = $wpdb->get_row("SELECT q.* FROM {$table_name} as q {$join} WHERE q.`claim_id`={$claim_id} AND q.`import_id`={$import_id} {$status_where} LIMIT 1", ARRAY_A);
+        $queue_item = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT q.* FROM {$table_name} as q {$join} WHERE q.`claim_id`=%d AND q.`import_id`=%d {$status_where} LIMIT 1",
+                array_merge([$claim_id, $import_id], $where_values)
+            ),
+            ARRAY_A
+        );
         return $queue_item;
     }
 
@@ -394,7 +435,12 @@ WHERE
 
         $attempts = intval($chunk['attempts']) + 1;
         if ($table_name = DB::get_table_name('queue')) {
-            $wpdb->query("UPDATE {$table_name} SET `claim_id`=0, `attempted_at`= NOW(), `status`='E', `attempts`={$attempts}  WHERE `id`= {$chunk['id']} ");
+            $wpdb->query(
+                $wpdb->prepare(
+                    "UPDATE {$table_name} SET `claim_id`=0, `attempted_at`= NOW(), `status`='E', `attempts`=%d  WHERE `id`= %d ",
+                    [$attempts, $chunk['id']]
+                )
+            );
         }
 
         if ($table_name = DB::get_table_name('queue_error')) {
@@ -420,7 +466,12 @@ WHERE
         global $wpdb;
 
         if ($table_name = DB::get_table_name('import')) {
-            $status = $wpdb->get_var("SELECT `step` FROM {$table_name} WHERE id={$import_id}");
+            $status = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT `step` FROM {$table_name} WHERE id=%d",
+                    [$import_id]
+                )
+            );
 
             if ($raw) {
                 return $status;
@@ -446,7 +497,12 @@ WHERE
         global $wpdb;
 
         if ($table_name = DB::get_table_name('import')) {
-            $status = $wpdb->get_var("SELECT `status` FROM {$table_name} WHERE id={$import_id}");
+            $status = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT `status` FROM {$table_name} WHERE id=%d",
+                    [$import_id]
+                )
+            );
 
             if ($raw) {
                 return $status;
@@ -507,7 +563,13 @@ WHERE
         ];
 
         if ($table_name = DB::get_table_name('queue')) {
-            $rows = $wpdb->get_results("SELECT `data`, `type`, COUNT(*) as `count` FROM {$table_name} WHERE import_id={$import_id} AND `type` IN ('I', 'R') GROUP BY `data`, `type`", ARRAY_A);
+            $rows = $wpdb->get_results(
+                $wpdb->prepare(
+                    "SELECT `data`, `type`, COUNT(*) as `count` FROM {$table_name} WHERE import_id=%d AND `type` IN ('I', 'R') GROUP BY `data`, `type`",
+                    [$import_id]
+                ),
+                ARRAY_A
+            );
 
             foreach ($rows as $row) {
 
@@ -603,7 +665,12 @@ WHERE
                     global $wpdb;
 
                     if ($table_name = DB::get_table_name('import')) {
-                        $seconds = $wpdb->get_var("SELECT TIME_TO_SEC(TIMEDIFF(NOW(), `created_at`)) FROM {$table_name} WHERE id={$import_id}");
+                        $seconds = $wpdb->get_var(
+                            $wpdb->prepare(
+                                "SELECT TIME_TO_SEC(TIMEDIFF(NOW(), `created_at`)) FROM {$table_name} WHERE id=%d",
+                                [$import_id]
+                            )
+                        );
                         $output['message'] .= ' @ ' . floor($total / $seconds) . ' records per second';
                     }
                 }
