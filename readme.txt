@@ -4,7 +4,7 @@ Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed, import
 Requires at least: 4.0  
 Tested up to: 6.6  
 Requires PHP: 5.6  
-Stable tag: 2.14.2  
+Stable tag: 2.14.3  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -137,6 +137,13 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.14.3 =
+
+* FIX - searching for files in media library returns the best matched filename instead of the first matched.
+* FIX - Add blm file to allowed of files contained in zip archives.
+* FIX - update term export template to export parent fields, instead of relying on the ancestor column.
+* ADD - Add option to prepend UTF-8 BOM to csv exports.
 
 = 2.14.2 =
 

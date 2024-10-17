@@ -12,6 +12,7 @@ class CSVFile extends File
     protected $default_delimiter = ",";
     protected $default_enclosure = "\"";
     protected $default_escape = "\\";
+    protected $default_utf8_bom = false;
 
     public function start()
     {
@@ -22,7 +23,12 @@ class CSVFile extends File
             return $carry;
         }, []);
 
-        list($delimiter, $enclosure, $escape) = $this->get_csv_settings();
+        list($delimiter, $enclosure, $escape, $utf8_bom) = $this->get_csv_settings();
+
+        // output uft8 BOM
+        if($utf8_bom){
+            fwrite($this->fh, "\xEF\xBB\xBF");
+        }
 
         // write headers
         fputcsv($this->fh, array_keys($this->columns), $delimiter, $enclosure, $escape);
@@ -73,12 +79,13 @@ class CSVFile extends File
         $delimiter = $this->exporter->getFileSetting('delimiter', $this->default_delimiter);
         $enclosure = $this->exporter->getFileSetting('enclosure', $this->default_enclosure);
         $escape = $this->exporter->getFileSetting('escape', $this->default_escape);
+        $utf8_bom = $this->exporter->getFileSetting('utf8_bom', $this->default_utf8_bom);
 
         if ($enclosure === $escape) {
             $escape = '';
         }
 
-        return [$delimiter, $enclosure, $escape];
+        return [$delimiter, $enclosure, $escape, $utf8_bom];
     }
 
     public function end()
