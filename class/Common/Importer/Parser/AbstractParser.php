@@ -148,7 +148,16 @@ abstract class AbstractParser
     public function query_matches($matches)
     {
         if (isset($matches[0]) && isset($matches[1])) {
-            return $this->query($matches[1]);
+            try {
+                $result = $this->query($matches[1]);
+                if ($result) {
+                    return $result;
+                }
+            } catch (\Exception $e) {
+                // capture SimpleXMLElement::xpath(): Invalid expression
+            }
+
+            return $matches[0];
         }
 
         return '';

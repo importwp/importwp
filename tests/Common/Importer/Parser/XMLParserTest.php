@@ -116,6 +116,27 @@ class XMLParserTest extends \WP_UnitTestCase
         $this->assertEquals(strtoupper('Post One'), $result['one']);
     }
 
+    public function testSerializedData()
+    {
+
+        $config_file = tempnam(sys_get_temp_dir(), 'config');
+        $config      = new Config($config_file);
+
+        $file = new XMLFile(IWP_TEST_ROOT . '/data/xml/wp-export.xml', $config);
+        $file->setRecordPath('rss/channel/item');
+
+        $parser = new XMLParser($file);
+
+        $serialized_str = 'a:6:{i:1729718256;a:2:{s:32:"recovery_mode_clean_expired_keys";a:1:{s:32:"40cd750bba9870f18aada2478b24840a";a:3:{s:8:"schedule";s:5:"daily";s:4:"args";a:0:{}s:8:"interval";i:86400;}}s:34:"wp_privacy_delete_old_export_files";a:1:{s:32:"40cd750bba9870f18aada2478b24840a";a:3:{s:8:"schedule";s:6:"hourly";s:4:"args";a:0:{}s:8:"interval";i:3600;}}}i:1729721855;a:1:{s:16:"wp_version_check";a:1:{s:32:"40cd750bba9870f18aada2478b24840a";a:3:{s:8:"schedule";s:10:"twicedaily";s:4:"args";a:0:{}s:8:"interval";i:43200;}}}i:1729723655;a:1:{s:17:"wp_update_plugins";a:1:{s:32:"40cd750bba9870f18aada2478b24840a";a:3:{s:8:"schedule";s:10:"twicedaily";s:4:"args";a:0:{}s:8:"interval";i:43200;}}}i:1729725455;a:1:{s:16:"wp_update_themes";a:1:{s:32:"40cd750bba9870f18aada2478b24840a";a:3:{s:8:"schedule";s:10:"twicedaily";s:4:"args";a:0:{}s:8:"interval";i:43200;}}}i:1729804656;a:1:{s:30:"wp_site_health_scheduled_check";a:1:{s:32:"40cd750bba9870f18aada2478b24840a";a:3:{s:8:"schedule";s:6:"weekly";s:4:"args";a:0:{}s:8:"interval";i:604800;}}}s:7:"version";i:2;}';
+
+        $result = $parser->getRecord(0)->queryGroup([
+            'fields' => [
+                'one' => $serialized_str,
+            ]
+        ]);
+        $this->assertEquals($serialized_str, $result['one']);
+    }
+
     public function testA10FetchingNamespaces()
     {
         $config_file = tempnam(sys_get_temp_dir(), 'config');
