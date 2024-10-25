@@ -57,7 +57,7 @@ class TMP_Queue_Task implements QueueTaskInterface
                 if (!$this->is_setup) {
                     $this->setup($import_id);
                 }
-                return new CompleteAction($import_id);
+                return new CompleteAction($import_id, $this->importer_data, $this->importer_manager);
 
             default:
 
@@ -235,15 +235,6 @@ class TMP_Queue_Task implements QueueTaskInterface
 
     public function teardown()
     {
-        /**
-         * @var Properties $properties
-         */
-        $properties = Container::getInstance()->get('properties');
-
-        // rotate files to not fill up server
-        $this->importer_data->limit_importer_files($properties->file_rotation);
-        $this->importer_manager->prune_importer_logs($this->importer_data, $properties->log_rotation);
-
         $this->template->unregister_hooks();
 
         $this->importer_manager->event_handler->run('importer_manager.import_shutdown', [$this->importer_data]);
