@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the Import WP plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Import WP 2.14.3\n"
+"Project-Id-Version: Import WP 2.14.4\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/build\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-10-17T21:50:49+00:00\n"
+"POT-Creation-Date: 2024-10-25T10:56:52+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: jc-importer\n"
@@ -59,7 +59,7 @@ msgstr ""
 #: class/Common/Importer/Template/AttachmentTemplate.php:95
 #: class/Common/Importer/Template/CommentTemplate.php:384
 #: class/Common/Importer/Template/PostTemplate.php:151
-#: class/Common/Importer/Template/PostTemplate.php:1126
+#: class/Common/Importer/Template/PostTemplate.php:1131
 msgid "Author"
 msgstr ""
 
@@ -72,7 +72,7 @@ msgstr ""
 #: class/Common/Importer/Template/AttachmentTemplate.php:70
 #: class/Common/Importer/Template/CommentTemplate.php:392
 #: class/Common/Importer/Template/PostTemplate.php:126
-#: class/Common/Importer/Template/PostTemplate.php:1125
+#: class/Common/Importer/Template/PostTemplate.php:1130
 #: class/Common/Importer/Template/TermTemplate.php:73
 #: class/Common/Importer/Template/TermTemplate.php:370
 msgid "Parent"
@@ -273,7 +273,7 @@ msgstr ""
 #: class/Common/Importer/Template/PostTemplate.php:134
 #: class/Common/Importer/Template/PostTemplate.php:157
 #: class/Common/Importer/Template/PostTemplate.php:219
-#: class/Common/Importer/Template/PostTemplate.php:1114
+#: class/Common/Importer/Template/PostTemplate.php:1119
 #: class/Common/Importer/Template/TermTemplate.php:60
 #: class/Common/Importer/Template/TermTemplate.php:81
 #: class/Common/Importer/Template/TermTemplate.php:365
@@ -292,7 +292,7 @@ msgstr ""
 
 #: class/Common/Importer/Template/AttachmentTemplate.php:50
 #: class/Common/Importer/Template/PostTemplate.php:101
-#: class/Common/Importer/Template/PostTemplate.php:1115
+#: class/Common/Importer/Template/PostTemplate.php:1120
 msgid "Title"
 msgstr ""
 
@@ -341,7 +341,7 @@ msgstr ""
 #: class/Common/Importer/Template/PostTemplate.php:110
 #: class/Common/Importer/Template/PostTemplate.php:135
 #: class/Common/Importer/Template/PostTemplate.php:218
-#: class/Common/Importer/Template/PostTemplate.php:1118
+#: class/Common/Importer/Template/PostTemplate.php:1123
 #: class/Common/Importer/Template/TermTemplate.php:69
 #: class/Common/Importer/Template/TermTemplate.php:82
 #: class/Common/Importer/Template/TermTemplate.php:368
@@ -359,7 +359,7 @@ msgstr ""
 #: class/Common/Importer/Template/AttachmentTemplate.php:66
 #: class/Common/Importer/Template/CommentTemplate.php:389
 #: class/Common/Importer/Template/PostTemplate.php:167
-#: class/Common/Importer/Template/PostTemplate.php:1122
+#: class/Common/Importer/Template/PostTemplate.php:1127
 msgid "Date"
 msgstr ""
 
@@ -526,7 +526,7 @@ msgstr ""
 #: class/Common/Importer/Template/CommentTemplate.php:42
 #: class/Common/Importer/Template/CommentTemplate.php:388
 #: class/Common/Importer/Template/PostTemplate.php:104
-#: class/Common/Importer/Template/PostTemplate.php:1116
+#: class/Common/Importer/Template/PostTemplate.php:1121
 msgid "Content"
 msgstr ""
 
@@ -751,7 +751,7 @@ msgid "Post Fields"
 msgstr ""
 
 #: class/Common/Importer/Template/PostTemplate.php:107
-#: class/Common/Importer/Template/PostTemplate.php:1117
+#: class/Common/Importer/Template/PostTemplate.php:1122
 msgid "Excerpt"
 msgstr ""
 
@@ -868,23 +868,23 @@ msgstr ""
 msgid "Append Terms"
 msgstr ""
 
-#: class/Common/Importer/Template/PostTemplate.php:1119
+#: class/Common/Importer/Template/PostTemplate.php:1124
 msgid "Post Status"
 msgstr ""
 
-#: class/Common/Importer/Template/PostTemplate.php:1120
+#: class/Common/Importer/Template/PostTemplate.php:1125
 msgid "Menu order"
 msgstr ""
 
-#: class/Common/Importer/Template/PostTemplate.php:1121
+#: class/Common/Importer/Template/PostTemplate.php:1126
 msgid "password"
 msgstr ""
 
-#: class/Common/Importer/Template/PostTemplate.php:1123
+#: class/Common/Importer/Template/PostTemplate.php:1128
 msgid "Comment Status"
 msgstr ""
 
-#: class/Common/Importer/Template/PostTemplate.php:1124
+#: class/Common/Importer/Template/PostTemplate.php:1129
 msgid "Ping Status"
 msgstr ""
 

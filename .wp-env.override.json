@@ -1,0 +1,10 @@
+{
+    "core": null,
+    "plugins": [
+        ".",
+        "../importwp-pro"
+    ],
+    "config": {
+        "IWP_VERSION": "9.9.9"
+    }
+}

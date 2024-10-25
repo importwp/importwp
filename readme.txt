@@ -4,7 +4,7 @@ Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed, import
 Requires at least: 4.0  
 Tested up to: 6.6  
 Requires PHP: 5.6  
-Stable tag: 2.14.3  
+Stable tag: 2.14.4  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -137,6 +137,10 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.14.4 =
+
+* FIX - bulk update post taxonomy terms, instead of individual wp_set_object_terms calls.
 
 = 2.14.3 =
 

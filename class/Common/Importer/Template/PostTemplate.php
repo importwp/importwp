@@ -259,9 +259,7 @@ class PostTemplate extends Template implements TemplateInterface
         ], ['type' => 'repeatable', 'row_base' => true, 'link' => 'https://www.importwp.com/docs/how-to-import-wordpress-taxonomies-onto-a-post-type/']);
     }
 
-    public function register_settings()
-    {
-    }
+    public function register_settings() {}
 
     public function register_options()
     {
@@ -585,13 +583,13 @@ class PostTemplate extends Template implements TemplateInterface
         foreach ($term_hierarchy as $processed_tax => $term_hierarchy_list) {
 
             // clear existing taxonomies
-            if (!isset($term_append[$processed_tax]) || !$term_append[$processed_tax]) {
-                wp_set_object_terms($post_id, null, $processed_tax);
-            }
+            $clear_existing_terms = !isset($term_append[$processed_tax]) || !$term_append[$processed_tax];
 
             if (empty($term_hierarchy_list)) {
                 continue;
             }
+
+            $new_terms = [];
 
             foreach ($term_hierarchy_list as $hierarchy_list) {
 
@@ -616,13 +614,20 @@ class PostTemplate extends Template implements TemplateInterface
                         ];
                     }
 
-                    $term_result = $this->create_or_get_taxonomy_term($post_id, $processed_tax, $search_term, $prev_term, $type, $connect_terms);
+                    $term_result = $this->create_or_get_taxonomy_term($post_id, $processed_tax, $search_term, $prev_term, $type, false);
                     if ($term_result) {
                         $prev_term = $term_result->term_id;
                         $this->_taxonomies[$processed_tax][] = $term_result->name;
                     }
+
+                    if ($connect_terms && $term_result) {
+                        $new_terms[] = $term_result->term_id;
+                    }
                 }
             }
+
+            // Connect all terms in one go.
+            wp_set_object_terms($post_id, $new_terms, $processed_tax, !$clear_existing_terms);
         }
     }
 
