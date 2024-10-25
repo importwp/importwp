@@ -32,27 +32,43 @@ class SetupDeleteAction implements ActionInterface
 
                 $table_name = DB::get_table_name('queue');
                 $base_query = "INSERT INTO {$table_name} (`import_id`,`record`, `pos`,`type`) VALUES ";
+                $query_placeholders = [];
                 $query_values = [];
                 $rollback = false;
 
                 $wpdb->query('START TRANSACTION');
 
                 foreach ($object_ids as $i => $row) {
-                    $query_values[] = "('{$this->chunk['import_id']}','{$row}', {$i}, 'R')";
+                    $query_placeholders[] = "(%d,%d,%d,%s)";
+                    $query_values[] = $this->chunk['import_id'];
+                    $query_values[] = $row;
+                    $query_values[] = $i;
+                    $query_values[] = 'R';
 
                     if (count($query_values) > 1000) {
 
-                        if (!$wpdb->query($base_query . implode(',', $query_values))) {
+                        if (!$wpdb->query(
+                            $wpdb->prepare(
+                                $base_query . implode(',', $query_placeholders),
+                                $query_values
+                            )
+                        )) {
                             $rollback = true;
                             break;
                         }
 
+                        $query_placeholders = [];
                         $query_values = [];
                     }
                 }
 
                 if (!$rollback && !empty($query_values)) {
-                    if (!$wpdb->query($base_query . implode(',', $query_values))) {
+                    if (!$wpdb->query(
+                        $wpdb->prepare(
+                            $base_query . implode(',', $query_placeholders),
+                            $query_values
+                        )
+                    )) {
                         $rollback = true;
                     }
                 }
