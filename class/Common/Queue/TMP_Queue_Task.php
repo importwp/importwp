@@ -34,41 +34,41 @@ class TMP_Queue_Task implements QueueTaskInterface
         switch ($chunk['type']) {
             case 'S':
                 if (!$this->is_setup) {
-                    $this->setup($import_id);
+                    $this->setup($import_id, true);
                 }
                 return new SetupImportAction($import_id);
 
             case 'D':
 
                 if (!$this->is_setup) {
-                    $this->setup();
+                    $this->setup($import_id);
                 }
                 return new SetupDeleteAction($chunk, $this->mapper);
 
             case 'R':
 
                 if (!$this->is_setup) {
-                    $this->setup();
+                    $this->setup($import_id);
                 }
                 return new DeleteAction($import_id, $chunk, $this->mapper);
 
             case 'P':
 
                 if (!$this->is_setup) {
-                    $this->setup();
+                    $this->setup($import_id);
                 }
                 return new CompleteAction($import_id);
 
             default:
 
                 if (!$this->is_setup) {
-                    $this->setup();
+                    $this->setup($import_id);
                 }
                 return new ImportAction($chunk, $this->data_parser, $this->importer);
         }
     }
 
-    protected function setup($init = null)
+    protected function setup($import_id = null, $init = false)
     {
         /**
          * @var \WPDB
@@ -76,7 +76,13 @@ class TMP_Queue_Task implements QueueTaskInterface
         global $wpdb;
 
         $import_table = DB::get_table_name('import');
-        $importer_id = $wpdb->get_var("SELECT `importer_id` FROM {$import_table} WHERE `id`={$init}");
+
+        $importer_id = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT `importer_id` FROM {$import_table} WHERE `id`=%d",
+                [$import_id]
+            )
+        );
         $this->importer_data = $importer_data = $this->importer_manager->get_importer($importer_id);
 
         // TODO: cant run this from here.
@@ -124,7 +130,7 @@ class TMP_Queue_Task implements QueueTaskInterface
             $config_data['data'] = $template->config_field_map($importer_data->getMap());
             $config->set('data', $config_data['data']);
 
-            $config_data['id'] = $init;
+            $config_data['id'] = $import_id;
 
             // This is used for storing version on imported records        
             update_post_meta($importer_id, '_iwp_session', $config_data['id']);
@@ -202,7 +208,7 @@ class TMP_Queue_Task implements QueueTaskInterface
 
             // if queue is enabled
             $queue = new Queue;
-            $queue->generate($init, new TMP_Config_Queue(
+            $queue->generate($import_id, new TMP_Config_Queue(
                 $config,
                 $config_data['start'],
                 $config_data['end']
