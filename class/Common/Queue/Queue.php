@@ -338,6 +338,17 @@ WHERE
             return true;
         }
 
+        // Set importer (E) Error status if an error happens on (S) Importer Setup or (D) Delete Setup
+        $wpdb->query(
+            $wpdb->prepare(
+                "UPDATE `{$import_table_name}` AS `i`
+INNER JOIN `{$queue_table_name}` AS `q` ON `i`.id = `q`.import_id
+SET `i`.`status` = 'E' 
+WHERE `i`.id = %d AND `i`.`status` = 'R' AND (`q`.`type` IN ('S','D') AND `q`.`status` = 'E' AND `q`.`attempts` >= 3)",
+                [$import_id]
+            )
+        );
+
         return false;
     }
 
