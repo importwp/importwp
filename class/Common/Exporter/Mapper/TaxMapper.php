@@ -143,6 +143,10 @@ class TaxMapper extends AbstractMapper implements MapperInterface
     {
         $term = get_term($this->items[$i], '', ARRAY_A);
 
+        // Remove WP_Term attribute name conflict
+        $term['_parent'] = $term['parent'];
+        unset($term['parent']);
+
         $this->record = new ExporterRecord($term, 'tax');
         $this->record = apply_filters('iwp/exporter/taxonomy/setup_data', $this->record, $this->taxonomy);
         return true;
@@ -225,7 +229,7 @@ class TaxMapper extends AbstractMapper implements MapperInterface
                 $value = $this->modify_custom_field_data($value, 'taxonomy');
                 break;
             case 'parent':
-                $parent = get_term($record['parent'], $this->taxonomy);
+                $parent = get_term($record['_parent'], $this->taxonomy);
                 if (!is_wp_error($parent)) {
                     $value = [
                         'term_id' => $parent->term_id,

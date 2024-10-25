@@ -117,6 +117,10 @@ class TaxMapperTest extends \WP_UnitTestCase
         ]);
 
         $actual = $mock_tax_mapper->record();
+
+        // remove parent key
+        unset($expected['parent']);
+
         foreach ($expected as $k => $v) {
             $this->assertEquals($v, $actual[$k]);
         }

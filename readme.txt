@@ -138,6 +138,17 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.14.4 =
+
+* FIX - bulk update post taxonomy terms, instead of individual wp_set_object_terms calls.
+
+= 2.14.3 =
+
+* FIX - searching for files in media library returns the best matched filename instead of the first matched.
+* FIX - Add blm file to allowed of files contained in zip archives.
+* FIX - update term export template to export parent fields, instead of relying on the ancestor column.
+* ADD - Add option to prepend UTF-8 BOM to csv exports.
+
 = 2.14.2 =
 
 * ADD - Add `iwp/ftp/disable_size_check` filter to allow compatibility with FTP servers returning file size of -1.
