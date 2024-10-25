@@ -4,6 +4,12 @@
         "."
     ],
     "config": {
-        "IWP_VERSION": "9.9.9"
+        "WP_DEBUG": true,
+        "WP_DEBUG_LOG": true,
+        "WP_DEBUG_DISPLAY": false,
+        "DISABLE_WP_CRON": true
+    },
+    "lifecycleScripts": {
+        "afterStart": "bash ./bin/install-php-ext.sh"
     }
 }

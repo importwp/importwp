@@ -3,3 +3,4 @@
 !build.sh
 !install-wp-tests.sh
 !version.sh
+!install-php-ext.sh
