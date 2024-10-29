@@ -4,7 +4,6 @@ namespace ImportWP\Common\Http;
 
 use ImportWP\Common\Properties\Properties;
 use ImportWP\Common\Util\Logger;
-use ImportWP\Container;
 
 class Http
 {
@@ -36,7 +35,14 @@ class Http
 
     public function download_file($source, $destination, $headers = [])
     {
-        $response = wp_safe_remote_get($source, array('timeout' => 30, 'sslverify' => false, 'headers' => $headers));
+        $args = apply_filters('iwp/http/remote_get_args', [
+            'timeout' => 30,
+            'sslverify' => false,
+            'headers' => $headers,
+            'reject_unsafe_urls' => true
+        ]);
+
+        $response = wp_safe_remote_get($source, $args);
         $result = true;
         if (!is_wp_error($response)) {
             $response_code = wp_remote_retrieve_response_code($response);
@@ -66,7 +72,19 @@ class Http
 
     public function download_file_stream($source, $destination, $headers = [])
     {
-        $response = wp_safe_remote_get($source, ['stream' => true, 'filename' => $destination, 'timeout' => 30, 'sslverify' => false, 'headers' => $headers]);
+        $args = apply_filters('iwp/http/remote_get_args', [
+            'timeout' => 30,
+            'sslverify' => false,
+            'headers' => $headers,
+            'reject_unsafe_urls' => true
+        ]);
+
+        $args = array_merge($args, [
+            'stream' => true,
+            'filename' => $destination,
+        ]);
+
+        $response = wp_remote_get($source, $args);
         if (is_wp_error($response)) {
             return $response;
         }
