@@ -548,6 +548,8 @@ class ImporterManager
 
             // if this is a new session, clear config files
             if ($state->has_status('init')) {
+                // rest importer log.
+                Logger::clear($importer_id);
                 Logger::debug('IM -clear_config_files');
                 $this->clear_config_files($importer_id, false, true);
                 $config_data['features'] = [
@@ -703,7 +705,9 @@ class ImporterManager
 
             // TODO: Missing template errors are currently not being logged to history, possibly others?
             Logger::error('import -error=' . $e->getMessage(), $importer_id);
-            return $state->error($e)->get_raw();
+            $state->error($e);
+            Util::write_status_session_to_file($id, $state);
+            return $state->get_raw();
         }
 
         /**

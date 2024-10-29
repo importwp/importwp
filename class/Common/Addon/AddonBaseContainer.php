@@ -2,6 +2,9 @@
 
 namespace ImportWP\Common\Addon;
 
+/**
+ * @deprecated 2.14.0
+ */
 class AddonBaseContainer extends AddonBaseData
 {
     public function register_field($field_name, $field_id, $settings = [])

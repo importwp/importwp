@@ -7,6 +7,9 @@ use ImportWP\Common\Importer\Template\Template;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Container;
 
+/**
+ * @deprecated 2.14.0
+ */
 class AddonBase implements AddonInterface
 {
     /**

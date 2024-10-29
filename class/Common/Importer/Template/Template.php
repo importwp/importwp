@@ -543,17 +543,19 @@ class Template extends AbstractTemplate
         // Allows virtual groups to be registered
         $this->groups = $this->event_handler->run('template.pre_process_groups', [$this->groups, $data, $this]);
 
-        $map = $data->getData('default');
-        foreach ($this->groups as $group) {
-            $group_map = [];
+        if (is_array($this->groups) && !empty($this->groups)) {
+            $map = $data->getData('default');
+            foreach ($this->groups as $group) {
+                $group_map = [];
 
-            foreach ($map as $field_key => $fields_map) {
-                if (preg_match('/^' . $group . '\.(.*?)$/', $field_key) === 1) {
-                    $group_map[$field_key] = $fields_map;
+                foreach ($map as $field_key => $fields_map) {
+                    if (preg_match('/^' . $group . '\.(.*?)$/', $field_key) === 1) {
+                        $group_map[$field_key] = $fields_map;
+                    }
                 }
-            }
 
-            $data->replace($group_map, $group);
+                $data->replace($group_map, $group);
+            }
         }
 
         return $data;

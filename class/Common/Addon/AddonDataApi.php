@@ -2,6 +2,9 @@
 
 namespace ImportWP\Common\Addon;
 
+/**
+ * @deprecated 2.14.0
+ */
 class AddonDataApi
 {
     protected $_addon;
@@ -62,7 +65,8 @@ class AddonDataApi
         return $this->_template;
     }
 
-    public function get_mapper(){
+    public function get_mapper()
+    {
         return $this->template()->get_mapper();
     }
 
