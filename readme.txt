@@ -2,7 +2,7 @@
 Contributors: jcollings,importwp  
 Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed, import
 Requires at least: 4.0  
-Tested up to: 6.6  
+Tested up to: 6.7  
 Requires PHP: 5.6  
 Stable tag: 2.14.5  
 License: GPLv3  
