@@ -5,7 +5,7 @@ namespace ImportWP\Common\Queue;
 /**
  * Hack to get the file index from the importer config
  */
-class TMP_Config_Queue implements QueueTasksInterface
+class QueueConfig implements QueueTasksInterface
 {
 
     public $start;

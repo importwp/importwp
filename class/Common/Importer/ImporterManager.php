@@ -32,8 +32,8 @@ use ImportWP\Common\Util\Util;
 use ImportWP\Container;
 use ImportWP\EventHandler;
 use ImportWP\Common\Queue\Queue;
-use ImportWP\Common\Queue\TMP_Config_Queue;
-use ImportWP\Common\Queue\TMP_Queue_Task;
+use ImportWP\Common\Queue\QueueConfig;
+use ImportWP\Common\Queue\QueueTask;
 use ImportWP\Common\Util\DB;
 
 class ImporterManager
@@ -595,7 +595,7 @@ class ImporterManager
 
             //TODO: if session matches _iwp_session, and we havent added teh record into the importer, then we do it now.
             $queue = new Queue();
-            $queue_task = new TMP_Queue_Task($this);
+            $queue_task = new QueueTask($this);
             $result = $queue->process($session, $queue_task);
 
             return Queue::get_status_message($session);
@@ -737,7 +737,7 @@ class ImporterManager
                 // if queue is enabled
                 if (isset($config_data['features'], $config_data['features']['queue']) && $config_data['features']['queue'] === 1) {
                     $queue = new Queue;
-                    $queue->generate($session, new TMP_Config_Queue(
+                    $queue->generate($session, new QueueConfig(
                         $config,
                         $config_data['start'],
                         $config_data['end']

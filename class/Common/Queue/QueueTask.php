@@ -12,9 +12,8 @@ use ImportWP\Common\Queue\Action\SetupDeleteAction;
 use ImportWP\Common\Queue\Action\SetupImportAction;
 use ImportWP\Common\Util\DB;
 use ImportWP\Common\Util\Logger;
-use ImportWP\Container;
 
-class TMP_Queue_Task implements QueueTaskInterface
+class QueueTask implements QueueTaskInterface
 {
     public $data_parser;
     public $mapper;
@@ -208,7 +207,7 @@ class TMP_Queue_Task implements QueueTaskInterface
 
             // if queue is enabled
             $queue = new Queue;
-            $queue->generate($import_id, new TMP_Config_Queue(
+            $queue->generate($import_id, new QueueConfig(
                 $config,
                 $config_data['start'],
                 $config_data['end']
