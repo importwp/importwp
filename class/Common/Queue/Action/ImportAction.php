@@ -6,15 +6,27 @@ use ImportWP\Common\Importer\Exception\FileException;
 use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\Exception\ParserException;
 use ImportWP\Common\Importer\Exception\RecordUpdatedSkippedException;
+use ImportWP\Common\Importer\Importer;
 use ImportWP\Common\Queue\QueueTaskResult;
+use ImportWP\Common\Queue\Type\QueueType;
 use ImportWP\Common\Util\Logger;
 
 class ImportAction implements ActionInterface
 {
     public $chunk;
     public $data_parser;
+
+    /**
+     * @var Importer
+     */
     public $importer;
 
+    /**
+     * @param QueueType $chunk 
+     * @param mixed $data_parser 
+     * @param mixed $importer 
+     * @return void 
+     */
     public function __construct($chunk, $data_parser, $importer)
     {
         $this->chunk = $chunk;
@@ -24,7 +36,7 @@ class ImportAction implements ActionInterface
 
     public function handle()
     {
-        $i = $this->chunk['pos'];
+        $i = $this->chunk->pos;
 
         /**
          * @var ParsedData $data

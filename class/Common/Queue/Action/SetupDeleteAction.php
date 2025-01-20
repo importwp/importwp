@@ -3,6 +3,7 @@
 namespace ImportWP\Common\Queue\Action;
 
 use ImportWP\Common\Queue\QueueTaskResult;
+use ImportWP\Common\Queue\Type\QueueType;
 use ImportWP\Common\Util\DB;
 
 class SetupDeleteAction implements ActionInterface
@@ -10,6 +11,11 @@ class SetupDeleteAction implements ActionInterface
     public $chunk;
     public $mapper;
 
+    /**
+     * @param QueueType $chunk 
+     * @param mixed $mapper 
+     * @return void 
+     */
     public function __construct($chunk, $mapper)
     {
         $this->chunk = $chunk;
@@ -40,7 +46,7 @@ class SetupDeleteAction implements ActionInterface
 
                 foreach ($object_ids as $i => $row) {
                     $query_placeholders[] = "(%d,%d,%d,%s)";
-                    $query_values[] = $this->chunk['import_id'];
+                    $query_values[] = $this->chunk->import_id;
                     $query_values[] = $row;
                     $query_values[] = $i;
                     $query_values[] = 'R';

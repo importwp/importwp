@@ -219,6 +219,8 @@ class Importer
      * @param ImporterRunnerState $importer_state 
      *
      * @throws \Exception
+     * 
+     * @deprecated 2.15 Import process is now ran via queue.
      */
     public function import($id, $user, $importer_state)
     {
@@ -259,6 +261,9 @@ class Importer
         add_filter('rocket_is_importing', '__return_true');
     }
 
+    /**
+     * @deprecated 2.15 Import process is now ran via queue.
+     */
     protected function process_chunk($id, $user, $importer_state)
     {
         // Introduce new running state, to stop cron running duplicates

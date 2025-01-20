@@ -4,6 +4,7 @@ namespace ImportWP\Common\Queue\Action;
 
 use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Queue\QueueTaskResult;
+use ImportWP\Common\Queue\Type\QueueType;
 use ImportWP\Common\Util\Logger;
 
 class DeleteAction implements ActionInterface
@@ -12,6 +13,13 @@ class DeleteAction implements ActionInterface
     public $chunk;
     public $mapper;
 
+    /**
+     * 
+     * @param mixed $import_id 
+     * @param QueueType $chunk 
+     * @param mixed $mapper 
+     * @return void 
+     */
     public function __construct($import_id, $chunk, $mapper)
     {
         $this->chunk = $chunk;
@@ -21,8 +29,8 @@ class DeleteAction implements ActionInterface
 
     public function handle()
     {
-        $i = $this->chunk['pos'];
-        $object_id = $this->chunk['record'];
+        $i = $this->chunk->pos;
+        $object_id = $this->chunk->record;
 
         if ($this->mapper->permission() && $this->mapper->permission()->allowed_method('remove')) {
 

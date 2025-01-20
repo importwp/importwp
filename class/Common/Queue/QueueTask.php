@@ -2,9 +2,14 @@
 
 namespace ImportWP\Common\Queue;
 
+use ImportWP\Common\AddonAPI\Importer\Template\Template;
 use ImportWP\Common\Importer\DataParser;
+use ImportWP\Common\Importer\Importer;
+use ImportWP\Common\Importer\ImporterManager;
+use ImportWP\Common\Importer\MapperInterface;
 use ImportWP\Common\Importer\Parser\CSVParser;
 use ImportWP\Common\Importer\Parser\XMLParser;
+use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Queue\Action\CompleteAction;
 use ImportWP\Common\Queue\Action\DeleteAction;
 use ImportWP\Common\Queue\Action\ImportAction;
@@ -15,12 +20,40 @@ use ImportWP\Common\Util\Logger;
 
 class QueueTask implements QueueTaskInterface
 {
+    /**
+     * @var DataParser
+     */
     public $data_parser;
+
+    /**
+     * @var MapperInterface
+     */
     public $mapper;
+
+    /**
+     * @var ImporterManager
+     */
     public $importer_manager;
+
+    /**
+     * @var Importer
+     */
     public $importer;
+
+    /**
+     * @var bool
+     */
     public $is_setup = false;
+
+    /**
+     * 
+     * @var Template
+     */
     public $template;
+
+    /**
+     * @var ImporterModel
+     */
     public $importer_data;
 
     public function __construct($importer_manager)
@@ -30,7 +63,7 @@ class QueueTask implements QueueTaskInterface
 
     public function process($import_id, $chunk)
     {
-        switch ($chunk['type']) {
+        switch ($chunk->type) {
             case 'S':
                 if (!$this->is_setup) {
                     $this->setup($import_id, true);

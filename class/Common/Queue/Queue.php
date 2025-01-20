@@ -2,6 +2,7 @@
 
 namespace ImportWP\Common\Queue;
 
+use ImportWP\Common\Queue\Type\QueueType;
 use ImportWP\Common\Util\DB;
 use ImportWP\Common\Util\Logger;
 use ImportWP\Container;
@@ -180,6 +181,10 @@ class Queue
 
         do {
             $record_time = microtime(true);
+
+            /**
+             * @var QueueType|null|false
+             */
             $chunk = null;
 
             try {
@@ -218,7 +223,7 @@ class Queue
                      */
                     global $wpdb;
                     $table_name = DB::get_table_name('queue');
-                    $wpdb->update($table_name, ['status' => 'Y', 'data' => $import_type, 'message' => $result->message, 'claim_id' => 0, 'record' => $record_id], ['id' => $chunk['id']]);
+                    $wpdb->update($table_name, ['status' => 'Y', 'data' => $import_type, 'message' => $result->message, 'claim_id' => 0, 'record' => $record_id], ['id' => $chunk->id]);
                 } else {
                     $this->log_error($chunk, $result->message);
                 }
@@ -405,9 +410,14 @@ WHERE `i`.id = %d AND `i`.`status` = 'R' AND (`q`.`type` IN ('S','D') AND `q`.`s
                 "SELECT q.* FROM {$table_name} as q {$join} WHERE q.`claim_id`=%d AND q.`import_id`=%d {$status_where} LIMIT 1",
                 array_merge([$claim_id, $import_id], $where_values)
             ),
-            ARRAY_A
+            OBJECT
         );
-        return $queue_item;
+
+        if ($queue_item) {
+            return new QueueType($queue_item);
+        }
+
+        return false;
     }
 
     protected function make_claim()
@@ -436,7 +446,10 @@ WHERE `i`.id = %d AND `i`.`status` = 'R' AND (`q`.`type` IN ('S','D') AND `q`.`s
         }
     }
 
-
+    /**
+     * @param QueueType $chunk
+     * @param string|\Error|\ErrorException $error
+     */
     protected function log_error($chunk, $error)
     {
         /**
@@ -444,12 +457,12 @@ WHERE `i`.id = %d AND `i`.`status` = 'R' AND (`q`.`type` IN ('S','D') AND `q`.`s
          */
         global $wpdb;
 
-        $attempts = intval($chunk['attempts']) + 1;
+        $attempts = intval($chunk->attempts) + 1;
         if ($table_name = DB::get_table_name('queue')) {
             $wpdb->query(
                 $wpdb->prepare(
                     "UPDATE {$table_name} SET `claim_id`=0, `attempted_at`= NOW(), `status`='E', `attempts`=%d  WHERE `id`= %d ",
-                    [$attempts, $chunk['id']]
+                    [$attempts, $chunk->id]
                 )
             );
         }
@@ -463,7 +476,7 @@ WHERE `i`.id = %d AND `i`.`status` = 'R' AND (`q`.`type` IN ('S','D') AND `q`.`s
             }
 
             $wpdb->insert($table_name, [
-                'queue_id' => $chunk['id'],
+                'queue_id' => $chunk->id,
                 'message' => $message
             ]);
         }
