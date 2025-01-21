@@ -263,7 +263,38 @@ class ImporterManager
         }
         $file_index++;
 
-        return $importer->getId() . '-' . intval($file_index) . '-';
+        return $importer->getId() . '-' . intval($file_index) . '-' . wp_generate_password(12, false, false) . '-';
+    }
+
+    public function set_custom_upload_path($dir)
+    {
+        remove_filter('upload_dir', [$this, 'set_custom_upload_path']);
+
+        $path = $this->filesystem->get_temp_directory();
+        $url = $this->filesystem->get_temp_directory(true);
+
+        add_filter('upload_dir', [$this, 'set_custom_upload_path']);
+
+        $path .= '/uploads';
+        $url .= '/uploads';
+
+        if (!is_dir($path)) {
+            wp_mkdir_p($path);
+        }
+
+        if (!file_exists($path . '/.htaccess')) {
+            file_put_contents($path . '/.htaccess', 'deny from all');
+        }
+
+        if (!file_exists($path . '/index.html')) {
+            touch($path . '/index.html');
+        }
+
+        return array(
+            'path'   => $path,
+            'url'    => $url,
+            'subdir' => '/importwp/uploads',
+        ) + $dir;
     }
 
     public function upload_file($id, $file)
@@ -272,7 +303,19 @@ class ImporterManager
         Logger::setId($importer->getId());
 
         $allowed_file_types = $this->event_handler->run('importer.allowed_file_types', [$importer->getAllowedFileTypes()]);
+
+        $prefix = $this->get_importer_file_prefix($importer);
+
+        $prefix_upload = function ($file) use ($prefix) {
+            $file['name'] = $prefix . $file['name'];
+            return $file;
+        };
+
+        add_filter('wp_handle_upload_prefilter', $prefix_upload);
+
         $result = $this->filesystem->upload_file($file, $allowed_file_types);
+
+        remove_filter('wp_handle_upload_prefilter', $prefix_upload);
 
         if (is_wp_error($result)) {
             return $result;
@@ -606,6 +649,8 @@ class ImporterManager
                 $run_fetch_file = apply_filters('iwp/importer/run_fetch_file',  $run_fetch_file);
                 if ($run_fetch_file) {
 
+                    add_filter('upload_dir', [$this, 'set_custom_upload_path']);
+
                     $datasource = $importer_data->getDatasource();
                     switch ($datasource) {
                         case 'remote':
@@ -625,6 +670,8 @@ class ImporterManager
                             $attachment_id = new \WP_Error('IWP_CRON_1', sprintf(__('Unable to get new file using datasource: %s', 'jc-importer'), $datasource));
                             break;
                     }
+
+                    remove_filter('upload_dir', [$this, 'set_custom_upload_path']);
 
                     if (is_wp_error($attachment_id)) {
                         throw new \Exception(sprintf(__('Importer Datasource: %s', 'jc-importer'), $attachment_id->get_error_message()));

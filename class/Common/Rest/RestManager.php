@@ -1047,6 +1047,8 @@ class RestManager extends \WP_REST_Controller
 
         // TODO: Remove duplicate code, found in cron manager
 
+        add_filter('upload_dir', [$this->importer_manager, 'set_custom_upload_path']);
+
         switch ($action) {
             case 'file_upload':
                 $attachment_id = $this->importer_manager->upload_file($importer, $_FILES['file']);
@@ -1079,6 +1081,8 @@ class RestManager extends \WP_REST_Controller
                 $attachment_id = new \WP_Error('IWP_RM_1', __('Invalid form action', 'jc-importer'));
                 break;
         }
+
+        remove_filter('upload_dir', [$this->importer_manager, 'set_custom_upload_path']);
 
         if (is_wp_error($attachment_id)) {
             return $this->http->end_rest_error($attachment_id->get_error_message());
