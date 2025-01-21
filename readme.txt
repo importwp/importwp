@@ -2,7 +2,7 @@
 Contributors: jcollings,importwp  
 Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed, import
 Requires at least: 4.0  
-Tested up to: 6.6  
+Tested up to: 6.7  
 Requires PHP: 5.6  
 Stable tag: 2.15.0  
 License: GPLv3  
@@ -137,6 +137,14 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.14.6 =
+
+* FIX - Add security recommendations for CVE-2024-13562 to prevent unauthenticated sensitive information being leaked via access to the raw importer csv/xml files as reported by Tim Coen via WordFence.
+
+= 2.14.5 = 
+
+* ADD - Add iwp/http/remote_get_args filter to override wp_remote_get importer args
 
 = 2.14.4 =
 
