@@ -2,9 +2,13 @@
     "core": null,
     "plugins": [
         ".",
-        "../importwp-pro"
+        "../importwp-pro",
+        "jcollings/importwp-woocommerce",
+        "https://downloads.wordpress.org/plugin/woocommerce.9.5.1.zip"
     ],
     "config": {
-        "IWP_VERSION": "9.9.9"
+        "WP_DEBUG": true,
+        "WP_DEBUG_LOG": true,
+        "WP_DEBUG_DISPLAY": false
     }
 }

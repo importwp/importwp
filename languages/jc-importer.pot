@@ -1,15 +1,15 @@
-# Copyright (C) 2024 James Collings <james@jclabs.co.uk>
+# Copyright (C) 2025 James Collings <james@jclabs.co.uk>
 # This file is distributed under the same license as the Import WP plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Import WP 2.14.5\n"
+"Project-Id-Version: Import WP 2.14.6\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/build\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-10-29T11:01:31+00:00\n"
+"POT-Creation-Date: 2025-01-21T20:25:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: jc-importer\n"
@@ -134,7 +134,7 @@ msgid "To download via FTP please enable the php ftp extension."
 msgstr ""
 
 #: class/Common/Ftp/Ftp.php:44
-#: class/Common/Importer/ImporterManager.php:346
+#: class/Common/Importer/ImporterManager.php:389
 msgid "Unable to login to ftp server"
 msgstr ""
 
@@ -175,45 +175,45 @@ msgstr ""
 msgid "Mapper Not Loaded."
 msgstr ""
 
-#: class/Common/Importer/ImporterManager.php:303
+#: class/Common/Importer/ImporterManager.php:346
 msgid "Unable to parse FTP connection string"
 msgstr ""
 
-#: class/Common/Importer/ImporterManager.php:314
-#: class/Common/Importer/ImporterManager.php:318
+#: class/Common/Importer/ImporterManager.php:357
+#: class/Common/Importer/ImporterManager.php:361
 msgid "Unable to parse ftp host from connection string"
 msgstr ""
 
-#: class/Common/Importer/ImporterManager.php:355
+#: class/Common/Importer/ImporterManager.php:398
 msgid "Unable to download: %s file via sftp."
 msgstr ""
 
-#: class/Common/Importer/ImporterManager.php:429
+#: class/Common/Importer/ImporterManager.php:472
 msgid "Unable to link importer file"
 msgstr ""
 
-#: class/Common/Importer/ImporterManager.php:492
-#: class/Common/Importer/ImporterManager.php:501
+#: class/Common/Importer/ImporterManager.php:535
+#: class/Common/Importer/ImporterManager.php:544
 msgid "Unable to create directory: %s"
 msgstr ""
 
-#: class/Common/Importer/ImporterManager.php:625
+#: class/Common/Importer/ImporterManager.php:670
 msgid "Unable to get new file using datasource: %s"
 msgstr ""
 
-#: class/Common/Importer/ImporterManager.php:630
+#: class/Common/Importer/ImporterManager.php:677
 msgid "Importer Datasource: %s"
 msgstr ""
 
-#: class/Common/Importer/ImporterManager.php:796
+#: class/Common/Importer/ImporterManager.php:843
 msgid "Unable to locate importer template: %s"
 msgstr ""
 
-#: class/Common/Importer/ImporterManager.php:838
+#: class/Common/Importer/ImporterManager.php:885
 msgid "Unable to locate mapper: %s"
 msgstr ""
 
-#: class/Common/Importer/ImporterManager.php:863
+#: class/Common/Importer/ImporterManager.php:910
 msgid "Unable to locate template: %s"
 msgstr ""
 
@@ -1262,28 +1262,28 @@ msgstr ""
 msgid ", Run Time: %s"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1079
+#: class/Common/Rest/RestManager.php:1081
 msgid "Invalid form action"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1098
+#: class/Common/Rest/RestManager.php:1102
 msgid "Invalid importer"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1153
-#: class/Common/Rest/RestManager.php:1257
+#: class/Common/Rest/RestManager.php:1157
+#: class/Common/Rest/RestManager.php:1261
 msgid "Unable to load preview, %s"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1477
+#: class/Common/Rest/RestManager.php:1481
 msgid "Invalid template \"%s\""
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1717
+#: class/Common/Rest/RestManager.php:1721
 msgid "No Importers found."
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1720
+#: class/Common/Rest/RestManager.php:1724
 msgid "Import Complete, %d Importer"
 msgid_plural "Import Complete, %d Importers"
 msgstr[0] ""

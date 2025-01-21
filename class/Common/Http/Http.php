@@ -42,7 +42,7 @@ class Http
             'reject_unsafe_urls' => true
         ]);
 
-        $response = wp_safe_remote_get($source, $args);
+        $response = wp_remote_get($source, $args);
         $result = true;
         if (!is_wp_error($response)) {
             $response_code = wp_remote_retrieve_response_code($response);
