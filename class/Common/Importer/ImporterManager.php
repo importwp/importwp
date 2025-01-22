@@ -1137,13 +1137,23 @@ class ImporterManager
 
         if (Queue::is_enabled($importer_data->getId())) {
 
+            $show_error_types = ['S', 'D', 'P'];
+
             /**
              * @var \WPDB $wpdb
              */
             global $wpdb;
             $table_name = DB::get_table_name('queue');
 
-            $query = "SELECT `data`,`message` FROM {$table_name} WHERE `import_id`={$session_id} AND `type` IN ('I','R') AND `status` != 'Q'";
+            $query = "SELECT `data`, `type`, (
+    CASE
+        WHEN `status` = 'Y' THEN `message`
+        ELSE (SELECT message FROM wp_iwp_queue_errors WHERE queue_id = ID LIMIT 1)
+    END
+) AS `message`
+FROM {$table_name} 
+WHERE `import_id`={$session_id} AND ( `type` IN ('I','R') OR (`type` IN ('" . implode("','", $show_error_types) . "') AND `status` = 'E' ) ) AND `status` != 'Q'";
+
             if ($per_page > 0) {
                 $query .= ' LIMIT ' . $per_page . ' OFFSET ' . (($page - 1) * $per_page);
             }
@@ -1151,10 +1161,25 @@ class ImporterManager
             $rows = $wpdb->get_results($query, ARRAY_A);
             foreach ($rows as $i => $row) {
 
+                $message = $row['message'];
+
+
+                switch ($row['type']) {
+                    case 'S':
+                        $message = 'Importer Startup Error: ' . $message;
+                        break;
+                    case 'D':
+                        $message = 'Importer Deletion Error: ' . $message;
+                        break;
+                    case 'P':
+                        $message = 'Importer Completion Error: ' . $message;
+                        break;
+                }
+
                 $lines[] = [
                     $i + 1,
                     $row['data'],
-                    $row['message']
+                    $message
                 ];
             }
 

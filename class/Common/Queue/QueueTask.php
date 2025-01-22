@@ -91,6 +91,7 @@ class QueueTask implements QueueTaskInterface
                 }
                 return new CompleteAction($import_id, $this->importer_data, $this->importer_manager);
 
+            case 'I':
             default:
 
                 if (!$this->is_setup) {
