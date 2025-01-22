@@ -1171,7 +1171,7 @@ class ImporterManager
             $query = "SELECT `data`, `type`, `pos`, (
     CASE
         WHEN `status` = 'Y' THEN `message`
-        ELSE (SELECT message FROM wp_iwp_queue_errors WHERE queue_id = ID LIMIT 1)
+        ELSE (SELECT message FROM wp_iwp_queue_errors WHERE queue_id = {$table_name}.id LIMIT 1)
     END
 ) AS `message`
 FROM {$table_name} 

@@ -35,6 +35,14 @@ class CompleteAction implements ActionInterface
     public function handle()
     {
         /**
+         * @var Properties $properties
+         */
+        $properties = Container::getInstance()->get('properties');
+
+        $this->importer_data->limit_importer_files($properties->file_rotation);
+        $this->importer_manager->prune_importer_logs($this->importer_data, $properties->log_rotation);
+
+        /**
          * @var \WPDB $wpdb
          */
         global $wpdb;
@@ -42,18 +50,6 @@ class CompleteAction implements ActionInterface
         if ($table_name = DB::get_table_name('import')) {
             $wpdb->update($table_name, ['status' => 'Y'], ['id' => $this->import_id]);
         }
-
-        /**
-         * @var Properties $properties
-         */
-        $properties = Container::getInstance()->get('properties');
-
-        // Rotate files to not fill up server
-        $this->importer_data->limit_importer_files($properties->file_rotation);
-
-        // Prune import logs
-        // TODO: Modify to also cleanup database tables
-        $this->importer_manager->prune_importer_logs($this->importer_data, $properties->log_rotation);
 
         return new QueueTaskResult(0, 'Y');
     }

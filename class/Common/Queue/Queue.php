@@ -101,13 +101,11 @@ class Queue
                 $ids = array_slice($importer_ids, $limit);
                 if (!empty($ids)) {
                     $wpdb->query(
-                        $wpdb->prepare(
-                            "DELETE `it`, `qt`,`qet`
+                        "DELETE `it`, `qt`,`qet`
 FROM {$table} as `it`
 LEFT JOIN {$queue_table} as `qt` ON `it`.`id` = `qt`.`import_id`
 LEFT JOIN {$queue_errors_table} as `qet` ON `qt`.`id` = `qet`.`queue_id`
 WHERE `it`.`id` IN ('" . implode("', '", $ids) . "')"
-                        )
                     );
                 }
             }
@@ -390,13 +388,13 @@ WHERE
             return true;
         }
 
-        // Set importer (E) Error status if an error happens on (S) Importer Setup or (D) Delete Setup
+        // Set importer (E) Error status if an error happens on (S) Importer Setup, (D) Delete Setup, (P) Complete import
         $wpdb->query(
             $wpdb->prepare(
                 "UPDATE `{$import_table_name}` AS `i`
 INNER JOIN `{$queue_table_name}` AS `q` ON `i`.id = `q`.import_id
 SET `i`.`status` = 'E' 
-WHERE `i`.id = %d AND `i`.`status` = 'R' AND (`q`.`type` IN ('S','D') AND `q`.`status` = 'E' AND `q`.`attempts` >= 3)",
+WHERE `i`.id = %d AND `i`.`status` = 'R' AND (`q`.`type` IN ('S','D','P') AND `q`.`status` = 'E' AND `q`.`attempts` >= 3)",
                 [$import_id]
             )
         );
