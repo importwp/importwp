@@ -659,6 +659,8 @@ WHERE `i`.id = %d AND `i`.`status` = 'R' AND (`q`.`type` IN ('S','D') AND `q`.`s
 
         if ($output['status'] == 'complete') {
             $output['message'] = 'Import complete.';
+        } elseif ($output['status'] == 'error') {
+            $output['message'] = 'An error has occurred.';
         } else {
 
             $message_stats = [];

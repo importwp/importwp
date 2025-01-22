@@ -1116,6 +1116,17 @@ class ImporterManager
 
         if (Queue::is_enabled($importer_data->getId())) {
             $import_ids = $wpdb->get_col("SELECT `id` FROM {$table_name} WHERE importer_id={$importer_data->getId()}");
+
+            // Remove conflicting legacy status files
+            $lines = array_filter($lines, function ($item) use ($import_ids) {
+
+                if (!$item['id'] || in_array($item['id'], $import_ids)) {
+                    return false;
+                }
+
+                return true;
+            });
+
             foreach ($import_ids as $import_id) {
                 $lines[] = Queue::get_status_message($import_id);
             }
