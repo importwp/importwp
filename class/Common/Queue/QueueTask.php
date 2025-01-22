@@ -185,6 +185,8 @@ class QueueTask implements QueueTaskInterface
             $run_fetch_file = apply_filters('iwp/importer/run_fetch_file',  $run_fetch_file);
             if ($run_fetch_file) {
 
+                add_filter('upload_dir', [$this->importer_manager, 'set_custom_upload_path']);
+
                 $datasource = $importer_data->getDatasource();
                 switch ($datasource) {
                     case 'remote':
@@ -204,6 +206,8 @@ class QueueTask implements QueueTaskInterface
                         $attachment_id = new \WP_Error('IWP_CRON_1', sprintf(__('Unable to get new file using datasource: %s', 'jc-importer'), $datasource));
                         break;
                 }
+
+                remove_filter('upload_dir', [$this->importer_manager, 'set_custom_upload_path']);
 
                 if (is_wp_error($attachment_id)) {
                     throw new \Exception(sprintf(__('Importer Datasource: %s', 'jc-importer'), $attachment_id->get_error_message()));
