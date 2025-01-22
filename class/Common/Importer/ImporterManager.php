@@ -1156,7 +1156,7 @@ class ImporterManager
             global $wpdb;
             $table_name = DB::get_table_name('queue');
 
-            $query = "SELECT `data`, `type`, (
+            $query = "SELECT `data`, `type`, `pos`, (
     CASE
         WHEN `status` = 'Y' THEN `message`
         ELSE (SELECT message FROM wp_iwp_queue_errors WHERE queue_id = ID LIMIT 1)
@@ -1188,7 +1188,7 @@ WHERE `import_id`={$session_id} AND ( `type` IN ('I','R') OR (`type` IN ('" . im
                 }
 
                 $lines[] = [
-                    $i + 1,
+                    $row['pos'],
                     $row['data'],
                     $message
                 ];
