@@ -2,14 +2,27 @@
 
 namespace ImportWP\Common\Queue\Action;
 
+use ImportWP\Common\Importer\ImporterManager;
+use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Queue\QueueTaskResult;
 use ImportWP\Common\Util\DB;
 use ImportWP\Container;
 
 class CompleteAction implements ActionInterface
 {
+    /**
+     * @var int
+     */
     public $import_id;
+
+    /**
+     * @var ImporterModel
+     */
     public $importer_data;
+
+    /**
+     * @var ImporterManager
+     */
     public $importer_manager;
 
     public function __construct($import_id, $importer_data, $importer_manager)

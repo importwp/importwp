@@ -533,7 +533,7 @@ class ImporterManager
         $base = $this->filesystem->get_temp_directory() . DIRECTORY_SEPARATOR;
 
         $base .= str_pad($id, 2, STR_PAD_LEFT) . DIRECTORY_SEPARATOR;
-        if (!file_exists($base)) {
+        if (!Queue::is_enabled($id) && !file_exists($base)) {
             if (!is_writable(dirname($base)) || !mkdir($base)) {
                 throw new \Exception(sprintf(__("Unable to create directory: %s", 'jc-importer'), $base));
             }
@@ -541,7 +541,7 @@ class ImporterManager
 
         for ($i = 0; $i < ceil(strlen($session) / 2); $i++) {
             $base .= substr($session, $i * 2, 2) . DIRECTORY_SEPARATOR;
-            if (!file_exists($base)) {
+            if (!Queue::is_enabled($id) && !file_exists($base)) {
 
                 if (!is_writable(dirname($base)) || !mkdir($base)) {
                     throw new \Exception(sprintf(__("Unable to create directory: %s", 'jc-importer'), $base));
@@ -1027,11 +1027,23 @@ class ImporterManager
             return;
         }
 
-        $file_path = Util::get_importer_status_file_path($importer_model->getId());
-        $tmp_file_path = Util::get_importer_status_file_path($importer_model->getId()) . '.tmp';
         $lines = $this->get_importer_logs($importer_model);
+        $importer_id = $importer_model->getId();
 
         if (count($lines) > $limit) {
+
+            $records_found = 0;
+
+            if (Queue::is_enabled($importer_id)) {
+                $records_found = Queue::prune_logs($importer_id, $limit);
+            }
+
+            $limit -= $records_found;
+
+            // Remove legacy log files
+
+            $file_path = Util::get_importer_status_file_path($importer_id);
+            $tmp_file_path = Util::get_importer_status_file_path($importer_id) . '.tmp';
 
             require_once(ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php');
             require_once(ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php');
@@ -1041,7 +1053,7 @@ class ImporterManager
             for ($i = 0; $i < count($lines); $i++) {
 
                 if ($i < count($lines) - $limit) {
-                    $log_file_path = Util::get_importer_log_file_path($importer_model->getId(), $lines[$i]['id']);
+                    $log_file_path = Util::get_importer_log_file_path($importer_id, $lines[$i]['id']);
                     if ($fileSystemDirect->exists($log_file_path)) {
 
                         $fileSystemDirect->delete($log_file_path);

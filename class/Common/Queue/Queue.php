@@ -72,6 +72,53 @@ class Queue
     }
 
     /**
+     * @param int $importer_id 
+     * @param int $limit
+     * 
+     * @return int Number of records found 
+     */
+    public static function prune_logs($importer_id, $limit)
+    {
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+
+        if ($table = DB::get_table_name('import')) {
+
+            $importer_ids = $wpdb->get_col(
+                $wpdb->prepare(
+                    "SELECT `id` FROM {$table} WHERE `importer_id` = %d AND `status` IN ('Y', 'E')  ORDER BY `id` DESC",
+                    [$importer_id]
+                )
+            );
+
+            if (count($importer_ids) > $limit) {
+
+                $queue_table = DB::get_table_name('queue');
+                $queue_errors_table = DB::get_table_name('queue_error');
+
+                $ids = array_slice($importer_ids, $limit);
+                if (!empty($ids)) {
+                    $wpdb->query(
+                        $wpdb->prepare(
+                            "DELETE `it`, `qt`,`qet`
+FROM {$table} as `it`
+LEFT JOIN {$queue_table} as `qt` ON `it`.`id` = `qt`.`import_id`
+LEFT JOIN {$queue_errors_table} as `qet` ON `qt`.`id` = `qet`.`queue_id`
+WHERE `it`.`id` IN ('" . implode("', '", $ids) . "')"
+                        )
+                    );
+                }
+            }
+
+            return count($importer_ids);
+        }
+
+        return 0;
+    }
+
+    /**
      * Populate import queue with tasks
      * @param int $queue_id
      * @param QueueTasksInterface $tasks
