@@ -81,7 +81,6 @@ class ImporterForm extends Component {
       saving: false,
       setting_max_row: props.settings.max_row,
       setting_start_row: props.settings.start_row,
-      setting_max_threads: props.settings.max_threads ?? 1,
     };
 
     this.onChange = this.onChange.bind(this);
@@ -260,7 +259,6 @@ class ImporterForm extends Component {
       setting_filters,
       setting_run_fetch,
       setting_hash_check,
-      setting_max_threads
     } = this.state;
     return (
       <React.Fragment>

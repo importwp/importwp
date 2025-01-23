@@ -192,6 +192,8 @@ class ImporterModel
             }
         }
 
+        $this->settings['max_threads'] = apply_filters('iwp/importer/settings/max_threads', $this->settings['max_threads'] ?? 1);
+
         Logger::setId($this->getId());
     }
 
