@@ -309,26 +309,6 @@ class ImporterForm extends Component {
                 />
               </div>
 
-              <div className="iwp-form__row iwp-form__row--left">
-                <FieldLabel
-                  label="Threads"
-                  field="setting_max_threads"
-                  id="setting_max_threads"
-                  tooltip="Maximum number of parallel import threads."
-                  display="inline-block"
-                />
-                <input
-                  type="number"
-                  className="iwp-form__input"
-                  id="setting_max_threads"
-                  name="setting_max_threads"
-                  min="1"
-                  placeholder="Leave empty to import from the start."
-                  onChange={this.onChange}
-                  value={setting_max_threads}
-                />
-              </div>
-
               <div className="iwp-form__row" style={{ clear: 'both' }}>
                 <label className="iwp-form__label iwp-form__label--switch">
                   <span>Update records only when data has changed.</span>
