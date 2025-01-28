@@ -137,6 +137,10 @@ class ImporterManager
     public function delete_importer($id)
     {
         $importer = $this->get_importer($id);
+        $this->prune_importer_logs($importer, 0);
+        $importer->limit_importer_files(0);
+        $this->clear_config_files($id);
+        $this->clear_config_files($id, true);
         $importer->delete();
     }
 
