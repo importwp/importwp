@@ -643,8 +643,9 @@ class ImporterManager
             $queue = new Queue();
             $queue_task = new QueueTask($this);
             $result = $queue->process($session, $queue_task);
-
-            return Queue::get_status_message($session);
+            $status = Queue::get_status_message($session);
+            $status['chunks'] = $result;
+            return $status;
         }
 
 

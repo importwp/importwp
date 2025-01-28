@@ -103,110 +103,106 @@ function init(id) {
   });
 }
 
+/**
+ *
+ * @param {number} id
+ * @param {string} session
+ * @param {number} connections
+ * @returns
+ */
 function run(id, session, connections = 1) {
+	if (+connections <= 0) {
+		connections = 1;
+	}
 
-  if (+connections <= 0) {
-    connections = 1;
-  }
+	let abort = false;
+	let xhr_requests = [];
 
-  let abort = false;
-  let xhr_requests = [];
+	const newConnection = (subscriber) => {
+		let jsonResponse = "",
+			lastResponseLen = false;
+		let timeoutDelay = 0;
 
-  const newConnection = (subscriber) => {
-    let jsonResponse = '',
-      lastResponseLen = false;
+		const xhr_request = window.jQuery.ajax({
+			url: AJAX_BASE + "/importer/" + id + "/run",
+			dataType: "text",
+			method: "POST",
+			data: {
+				session: session,
+			},
+			beforeSend: function (xhr) {
+				xhr.setRequestHeader("X-WP-Nonce", window.iwp.nonce);
+			},
+			success: function (data) {
+				try {
+					const startChar = data.substring(0, 1);
+					if (startChar !== "{") {
+						// we have some broken data?
+						const pos = data.indexOf("{");
+						if (pos > -1) {
+							data = data.substring(pos);
+						}
+					}
 
-    const xhr_request = window.jQuery.ajax({
-      url: AJAX_BASE + '/importer/' + id + '/run',
-      dataType: 'text',
-      method: 'POST',
-      data: {
-        session: session,
-      },
-      beforeSend: function (xhr) {
-        xhr.setRequestHeader('X-WP-Nonce', window.iwp.nonce);
-      },
-      // xhrFields: {
-      //   onprogress: function (e) {
-      //     var thisResponse,
-      //       response = e.currentTarget.response;
-      //     if (lastResponseLen === false) {
-      //       thisResponse = response;
-      //       lastResponseLen = 0;
-      //     } else {
-      //       thisResponse = response.substring(lastResponseLen);
-      //     }
+					if (data.trim().length > 0) {
+						const responseData = JSON.parse(data);
+						subscriber.next(responseData);
+						if (+responseData?.data?.chunks > 0) {
+							timeoutDelay = 0;
+						} else {
+							timeoutDelay = 1000;
+						}
+					} else {
+						timeoutDelay = 1000;
+						// no data came back
+						// subscriber.error('Empty Response');
+					}
+				} catch (e) {
+					timeoutDelay = 1000;
+					// console.log('Error Parsing data: ' + data);
+					// subscriber.error('Error Parsing data: ' + data);
+				}
+			},
+			complete: function () {
+				if (!abort) {
+					setTimeout(() => {
+						newConnection(subscriber);
+					}, 300 + timeoutDelay);
+				}
+			},
+			error: function (response) {
+				if (response.status === 200 && response.statusText === "OK") {
+					return;
+				}
+				subscriber.error(response);
+			},
+		});
 
-      //     // TODO: Loop through response until \n, add that length onto lastResponseLen, repeat for all new line characters
-      //     const split_string = '\n';
-      //     while (thisResponse.includes(split_string)) {
-      //       const pos = thisResponse.indexOf(split_string);
-      //       const part = thisResponse.substring(0, pos);
+		xhr_requests.push(xhr_request);
+	};
 
-      //       subscriber.next(JSON.parse(part));
-
-      //       lastResponseLen += pos + split_string.length;
-      //       thisResponse = thisResponse.substring(pos + 1);
-      //     }
-      //   },
-      // },
-      success: function (data) {
-        try {
-          const startChar = data.substring(0, 1);
-          if (startChar !== '{') {
-            // we have some broken data?
-            const pos = data.indexOf('{');
-            if (pos > -1) {
-              data = data.substring(pos);
-            }
-          }
-
-          if (data.trim().length > 0) {
-            subscriber.next(JSON.parse(data));
-          } else {
-            // no data came back
-            // subscriber.error('Empty Response');
-          }
-        } catch (e) {
-          // console.log('Error Parsing data: ' + data);
-          // subscriber.error('Error Parsing data: ' + data);
-        }
-      },
-      complete: function () {
-        if (!abort) {
-          setTimeout(() => {
-            newConnection(subscriber);
-          }, 300);
-        }
-      },
-      error: function (response) {
-        if (response.status === 200 && response.statusText === 'OK') {
-          return;
-        }
-        subscriber.error(response);
-      },
-    });
-
-    xhr_requests.push(xhr_request);
-  };
-
-  return {
-    abort: function () {
-      abort = true;
-      while (xhr_requests.length) {
-        const xhr_request = xhr_requests.shift();
-        if (xhr_request !== null) {
-          xhr_request.abort();
-        }
-      }
-    },
-    request: new Observable((subscriber) => {
-      abort = false;
-      for (var i = 0; i < connections; i++) {
-        newConnection(subscriber);
-      }
-    }),
-  };
+	return {
+		abort: function () {
+			abort = true;
+			while (xhr_requests.length) {
+				const xhr_request = xhr_requests.shift();
+				if (xhr_request !== null) {
+					xhr_request.abort();
+				}
+			}
+		},
+		request: new Observable((subscriber) => {
+			abort = false;
+			for (var i = 0; i < connections; i++) {
+				setTimeout(
+					function () {
+						newConnection(subscriber);
+					},
+					(i + 1) * 1000,
+				);
+			}
+		}),
+	};
 }
 
 function getAndSubscribe(id) {

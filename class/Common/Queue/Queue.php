@@ -88,7 +88,7 @@ class Queue
 
             $importer_ids = $wpdb->get_col(
                 $wpdb->prepare(
-                    "SELECT `id` FROM {$table} WHERE `importer_id` = %d AND `status` IN ('Y', 'E')  ORDER BY `id` DESC",
+                    "SELECT `id` FROM {$table} WHERE `importer_id` = %d AND `status` IN ('Y', 'E', 'C')  ORDER BY `id` DESC",
                     [$importer_id]
                 )
             );
@@ -208,6 +208,12 @@ WHERE `it`.`id` IN ('" . implode("', '", $ids) . "')"
          */
         $properties = Container::getInstance()->get('properties');
         $time_limit = $properties->get_setting('timeout');
+
+        // if rest this makes a responsive ui returning an update every second.
+        if ($this->is_rest()) {
+            $time_limit = apply_filters('iwp/importer/rest_ui_update', 5);
+        }
+
         Logger::info('time_limit ' . $time_limit . 's');
 
         $start = microtime(true);
@@ -285,6 +291,7 @@ WHERE `it`.`id` IN ('" . implode("', '", $ids) . "')"
                 $time_limit === 0 || $this->has_enough_time($start, $time_limit, $max_record_time)
             )
             && $this->has_enough_memory($memory_max_usage)
+            && (!$this->is_rest() || ($this->is_rest() && !in_array($chunk->type, ['S', 'D', 'P']))) // If we are in a setup phase escape after processing
         ); // && $i < 20);
 
         $this->release_claim($claim_id);
@@ -292,6 +299,13 @@ WHERE `it`.`id` IN ('" . implode("', '", $ids) . "')"
         $this->cleanup($import_id);
 
         restore_error_handler();
+
+        return $i;
+    }
+
+    function is_rest()
+    {
+        return defined('REST_REQUEST') && REST_REQUEST;
     }
 
     function has_enough_time($start, $time_limit, $max_record_time)
