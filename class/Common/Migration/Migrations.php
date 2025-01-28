@@ -60,9 +60,30 @@ class Migrations
 
     public function uninstall()
     {
+        /**
+         * @var \WPDB $wpdb
+         */
         global $wpdb;
+
         $wpdb->query("DROP TABLE IF EXISTS `" . $wpdb->prefix . "importer_log`;");
         $wpdb->query("DROP TABLE IF EXISTS `" . $wpdb->prefix . "importer_files`;");
+
+        if ($table_name = DB::get_table_name('import')) {
+            $wpdb->query("DROP TABLE IF EXISTS `{$table_name}`");
+        }
+
+        if ($table_name = DB::get_table_name('claim')) {
+            $wpdb->query("DROP TABLE IF EXISTS `{$table_name}`");
+        }
+
+        if ($table_name = DB::get_table_name('queue')) {
+            $wpdb->query("DROP TABLE IF EXISTS `{$table_name}`");
+        }
+
+        if ($table_name = DB::get_table_name('queue_error')) {
+            $wpdb->query("DROP TABLE IF EXISTS `{$table_name}`");
+        }
+
         delete_site_option('iwp_db_version');
         delete_site_option('jci_db_version');
         delete_site_option('iwp_is_migrating');
@@ -945,6 +966,114 @@ class Migrations
 
     public function migration_10_migrate_queue($migrate_data = true)
     {
-        DB::migrate();
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+
+        $tables = 0;
+
+        if ($table_name = DB::get_table_name('import')) {
+            $wpdb_collate = $wpdb->collate;
+
+            $wpdb->query("DROP TABLE IF EXISTS `{$table_name}`");
+
+            $sql =
+                "CREATE TABLE `{$table_name}` (
+                `id` bigint(20) unsigned NOT NULL auto_increment ,
+                `site_id` int(11) DEFAULT NULL,
+                `importer_id` bigint(20) unsigned NULL,
+                `config` LONGTEXT NULL,
+                `step` varchar(10) DEFAULT 'draft',
+                `status` char(1)  DEFAULT 'R',
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
+                PRIMARY KEY  (`id`)
+                )
+                COLLATE {$wpdb_collate}";
+
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+
+            if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name) {
+                $tables++;
+            }
+        }
+
+        if ($table_name = DB::get_table_name('claim')) {
+            $wpdb_collate = $wpdb->collate;
+
+            $wpdb->query("DROP TABLE IF EXISTS `{$table_name}`");
+
+            $sql =
+                "CREATE TABLE `{$table_name}` (
+                `id` bigint(20) unsigned NOT NULL auto_increment ,
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
+                PRIMARY KEY  (`id`)
+                )
+                COLLATE {$wpdb_collate}";
+
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+
+            if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name) {
+                $tables++;
+            }
+        }
+
+        if ($table_name = DB::get_table_name('queue')) {
+            $wpdb_collate = $wpdb->collate;
+
+            $wpdb->query("DROP TABLE IF EXISTS `{$table_name}`");
+
+            $sql =
+                "CREATE TABLE `{$table_name}` (
+                `id` bigint(20) unsigned NOT NULL auto_increment ,
+                `claim_id` bigint(20) unsigned DEFAULT 0,
+                `import_id` bigint(20) unsigned NULL,
+                `record` bigint(20) unsigned NULL,
+                `pos` bigint(20) unsigned NULL,
+                `len` bigint(20) unsigned NULL,
+                `data` CHAR(1) NULL DEFAULT NULL,
+                `message` TEXT NULL DEFAULT NULL,
+	            `type` CHAR(1) NULL DEFAULT NULL,
+                `status` char(1)  DEFAULT 'Q',
+                `attempts` tinyint(8) DEFAULT 0,
+                `attempted_at` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
+                PRIMARY KEY  (`id`)
+                )
+                COLLATE {$wpdb_collate}";
+
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+
+            if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name) {
+                $tables++;
+            }
+        }
+
+        if ($table_name = DB::get_table_name('queue_error')) {
+            $wpdb_collate = $wpdb->collate;
+
+            $wpdb->query("DROP TABLE IF EXISTS `{$table_name}`");
+
+            $sql =
+                "CREATE TABLE `{$table_name}` (
+                `id` bigint(20) unsigned NOT NULL auto_increment ,
+                `import_id` bigint(20) unsigned NULL DEFAULT NULL,
+                `queue_id` bigint(20) unsigned NULL DEFAULT NULL,
+                `message` LONGTEXT NULL,
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
+                PRIMARY KEY  (`id`)
+                )
+                COLLATE {$wpdb_collate}";
+
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+
+            if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name) {
+                $tables++;
+            }
+        }
     }
 }
