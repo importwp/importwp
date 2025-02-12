@@ -56,11 +56,15 @@ class Properties
 
     protected function get_available_encodings()
     {
-        $encodings = mb_list_encodings();
         $output = [];
-        foreach ($encodings as $encoding) {
-            $output[$encoding] = $encoding;
+
+        if (function_exists('mb_list_encodings')) {
+            $encodings = mb_list_encodings();
+            foreach ($encodings as $encoding) {
+                $output[$encoding] = $encoding;
+            }
         }
+
         return $output;
     }
 
