@@ -138,6 +138,10 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.14.8 =
+
+* ADD - Add `iwp/mapper/session_importer_ids` filter to allow grouping of importers during delete.
+
 = 2.14.7 =
 
 * FIX - Fix activation error caused when mbstring module is not installed.
