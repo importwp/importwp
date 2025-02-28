@@ -256,7 +256,12 @@ class AbstractMapper
          */
         global $wpdb;
 
-        $query = "SELECT item_id FROM `{$wpdb->prefix}iwp_sessions` WHERE importer_id={$this->importer->getId()} AND item_type='{$type}' AND `session` != '{$this->importer->getStatusId()}'";
+        $import_ids = apply_filters('iwp/mapper/session_importer_ids', [$this->importer->getId()], $this->importer->getId());
+        if(empty($import_ids)){
+            return false;
+        }
+        
+        $query = "SELECT item_id FROM `{$wpdb->prefix}iwp_sessions` WHERE importer_id IN (" . implode(',', $import_ids) . ") AND item_type='{$type}' AND `session` != '{$this->importer->getStatusId()}'";
 
         if (is_multisite()) {
             $query .= " AND site_id='{$wpdb->siteid}'";

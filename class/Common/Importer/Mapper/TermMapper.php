@@ -244,18 +244,31 @@ class TermMapper extends AbstractMapper implements MapperInterface
         if ($this->is_session_tag_enabled()) {
             return $this->get_ids_without_session_tag('t-' . $this->importer->getSetting('taxonomy'));
         } else {
+
+            $import_ids = apply_filters('iwp/mapper/session_importer_ids', [$this->importer->getId()], $this->importer->getId());
+            if (empty($import_ids)) {
+                return false;
+            }
+
+            $meta_query = [];
+            foreach ($import_ids as $import_id) {
+                $meta_query[] = [
+                    'key' =>  '_iwp_session_' . $import_id,
+                    'value' => $this->importer->getStatusId(),
+                    'compare' => '!='
+                ];
+            }
+
+            if (count($meta_query) > 1) {
+                $meta_query['relation'] = 'AND';
+            }
+
             $taxonomy = $this->importer->getSetting('taxonomy');
             $terms = get_terms([
                 'taxonomy' => $taxonomy,
                 'fields' => 'ids',
                 'hide_empty' => false,
-                'meta_query' => [
-                    [
-                        'key' =>  '_iwp_session_' . $this->importer->getId(),
-                        'value' => $this->importer->getStatusId(),
-                        'compare' => '!='
-                    ]
-                ]
+                'meta_query' => $meta_query
             ]);
 
             if (!is_wp_error($terms)) {

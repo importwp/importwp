@@ -236,14 +236,27 @@ class CommentMapper extends AbstractMapper implements MapperInterface
         if ($this->is_session_tag_enabled()) {
             return $this->get_ids_without_session_tag('comment');
         } else {
+
+            $import_ids = apply_filters('iwp/mapper/session_importer_ids', [$this->importer->getId()], $this->importer->getId());
+            if (empty($import_ids)) {
+                return false;
+            }
+
+            $meta_query = [];
+            foreach ($import_ids as $import_id) {
+                $meta_query[] = [
+                    'key' => '_iwp_session_' . $import_id,
+                    'value' => $this->importer->getStatusId(),
+                    'compare' => '!='
+                ];
+            }
+
+            if (count($meta_query) > 1) {
+                $meta_query['relation'] = 'AND';
+            }
+
             $q = new \WP_Comment_Query(array(
-                'meta_query' => array(
-                    array(
-                        'key' => '_iwp_session_' . $this->importer->getId(),
-                        'value' => $this->importer->getStatusId(),
-                        'compare' => '!='
-                    )
-                ),
+                'meta_query' => $meta_query,
                 'fields' => 'ids',
                 'update_comment_meta_cache' => false,
                 'update_comment_post_cache' => false,

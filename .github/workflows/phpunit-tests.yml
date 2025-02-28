@@ -26,6 +26,9 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
+      - name: Install svn
+        run: sudo apt-get install -y subversion
+
       - name: Verify DB exists
         run: mysql --ssl-mode=disabled --host 127.0.0.1 --port 33306 -uroot -proot -e "SHOW DATABASES LIKE 'wordpress_test'"
 
