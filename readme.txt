@@ -141,6 +141,7 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 = 2.14.8 =
 
 * ADD - Add `iwp/mapper/session_importer_ids` filter to allow grouping of importers during delete.
+* FIX - Fix issue when importer config data is corrupt and cant be unserialized.
 
 = 2.14.7 =
 
