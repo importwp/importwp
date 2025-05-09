@@ -158,7 +158,12 @@ class ImporterModel
 
             if ($post && $post->post_type === IWP_POST_TYPE) {
 
+                // Fix broken importer issue.
                 $json = maybe_unserialize($post->post_content, true);
+                if (!is_array($json)) {
+                    $json = [];
+                }
+
                 $this->id = $post->ID;
                 $this->name = $post->post_title;
                 $this->user_id = $post->post_author;

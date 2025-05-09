@@ -148,4 +148,25 @@ class XMLParserTest extends \WP_UnitTestCase
 
         $this->assertEquals('/rss/channel/item/a10:updated', $nodes[12]);
     }
+
+    public function testCDATAInvalidFeed()
+    {
+        $config_file = tempnam(sys_get_temp_dir(), 'config');
+        $config      = new Config($config_file);
+
+        $file = new XMLFile(IWP_TEST_ROOT . '/data/xml/ticket-1139-cdata.xml', $config);
+        $file->setRecordPath('products/product');
+
+        $parser = new XMLParser($file);
+
+        $record = $parser->getRecord(0);
+
+        $result = $record->queryGroup([
+            'fields' => [
+                'post_content' => '{/ProductCode}',
+            ]
+        ]);
+
+        $this->assertEquals('927.2115', $result['post_content']);
+    }
 }

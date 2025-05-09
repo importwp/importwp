@@ -465,7 +465,7 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
         $record = preg_replace('/xmlns[^=]*="[^"]*"/i', '', $record);
 
         // No need to check within cdata tags
-        $temp = preg_replace('/<!\[CDATA\[.*?\]\]>/', '', $record);
+        $temp = preg_replace('/<!\[CDATA\[((?:[^]]|\](?!\]>))*)\]\]>/', '', $record);
 
         //        $new_regex       = '/<([^:!\/]+):[^ ]+[^>]*>/';
         //        $new_regex = '/<([^!\/>]+):[^>]+>/'; // breaking due to attr="http://", would match the :
