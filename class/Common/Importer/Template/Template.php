@@ -738,6 +738,38 @@ class Template extends AbstractTemplate
                         }
                     }
 
+                    if (apply_filters('iwp/template/process_attachment/enable_file_size_hash', false) === true) {
+
+                        // check to see if the remote url image is the same size as the one on disk.
+                        if ($attachment_id > 0 && $attachment_enable_image_hash == 'yes') {
+
+                            $existing_file = get_attached_file($attachment_id, true);
+
+                            // Remove -scaled from the file name if it exists
+                            if ($existing_file && file_exists($existing_file)) {
+                                $existing_file = str_replace('-scaled.', '.', $existing_file);
+                            }
+
+                            if ($existing_file && file_exists($existing_file)) {
+                                $head = wp_remote_head($source);
+                                if (!is_wp_error($head)) {
+
+                                    // get file size from the header
+                                    $header_key = apply_filters('iwp/template/process_attachment/remote_file_size_header_key', 'content-length');
+                                    $size = wp_remote_retrieve_header($head, $header_key);
+                                    $existing_file_size = filesize($existing_file);
+
+                                    if ($size != $existing_file_size) {
+
+                                        // append the size to the attachment salt
+                                        $attachment_salt .= $size;
+                                        $attachment_id = $attachment->get_attachment_by_hash($source, $attachment_salt);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     $custom_filename = apply_filters('iwp/attachment/filename', null, $source);
                     if ($attachment_id <= 0) {
                         Logger::write(__CLASS__ . '::process__attachments -remote=' . $source . ' -filename=' . $custom_filename);
@@ -1060,9 +1092,7 @@ class Template extends AbstractTemplate
         return [];
     }
 
-    public function register_settings()
-    {
-    }
+    public function register_settings() {}
 
     public function register_options()
     {
