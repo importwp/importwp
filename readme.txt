@@ -4,7 +4,7 @@ Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed, import
 Requires at least: 4.0  
 Tested up to: 6.8  
 Requires PHP: 5.6  
-Stable tag: 2.14.8  
+Stable tag: 2.14.9  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -137,6 +137,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.14.9 =
+
+* ADD - Add dismissible notices to dashboard, plugins, and importer screen alerting users to available addons.
+* FIX - Notices not display correctly on import wp screen.
 
 = 2.14.8 =
 

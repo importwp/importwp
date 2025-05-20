@@ -11,6 +11,7 @@ use ImportWP\Common\Http\Http;
 use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Properties\Properties;
 use ImportWP\Common\Rest\RestManager;
+use ImportWP\Common\UI\AdminNotices;
 use ImportWP\Common\UI\ViewManager;
 use ImportWP\Common\Util\Util;
 
@@ -61,6 +62,11 @@ class ServiceProvider
     public $util;
 
     /**
+     * @var AdminNotices
+     */
+    public $admin_notices;
+
+    /**
      * @var CompatibilityManager
      */
     public $compatibility_manager;
@@ -77,6 +83,7 @@ class ServiceProvider
         $this->view_manager = new ViewManager($this->properties);
         $this->template_manager = new TemplateManager($event_handler);
         $this->zip_archive = new ZipArchive();
+        $this->admin_notices = new AdminNotices();
 
         $this->properties->mu_plugin_version = 2;
         $this->properties->mu_plugin_dir    = (defined('WPMU_PLUGIN_DIR') && defined('WPMU_PLUGIN_URL')) ? WPMU_PLUGIN_DIR : trailingslashit(WP_CONTENT_DIR) . 'mu-plugins';
