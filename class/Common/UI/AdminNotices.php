@@ -41,7 +41,7 @@ class AdminNotices
             return;
         }
 
-        $addons = AddonManager::instance()->listRequiredAddons();
+        $addons = AddonManager::instance()->getAddonList();
         foreach ($addons as $addon) {
 
             $notice_name = 'iwp_available_addon_' . $addon['slug'];
@@ -51,10 +51,13 @@ class AdminNotices
             }
 
             $class = 'notice notice-warning is-dismissible';
+            $text = sprintf('We have noticed that you are using Import WP with %1$s. To ensure compatibility, we recommend you use', $addon['name']);
+            $plugin_name = sprintf('Import WP %1$s Addon', $addon['name']);
+
             printf('<div class="%1$s">
-                    <a href="' . esc_url(wp_nonce_url(add_query_arg('iwp-hide-notice', $notice_name), 'importwp_hide_notices_nonce', '_iwp_notice_nonce')) . '" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></a>
-                    <p><strong>Import WP:</strong> Your website appears to have <strong>' . $addon['name'] . '</strong> installed, We highly recommend you download the <strong>Import WP - ' . $addon['name'] . ' addon</strong>. <a href="' . $addon['url'] . '" target="_blank">Learn more here</a>.</p>
-                </div>', esc_attr($class));
+                    <a href="%5$s" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></a>
+                    <p>%2$s <a href="%4$s" target="_blank">%3$s</a>.</p>
+                </div>', esc_attr($class), esc_html($text), esc_html($plugin_name), esc_url($addon['url']), esc_url(wp_nonce_url(add_query_arg('iwp-hide-notice', $notice_name), 'importwp_hide_notices_nonce', '_iwp_notice_nonce')));
         }
     }
 }

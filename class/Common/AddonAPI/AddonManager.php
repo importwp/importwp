@@ -53,7 +53,7 @@ class AddonManager
         $this->_addons[] = $addon;
     }
 
-    public function listRequiredAddons()
+    public function getAddonList()
     {
 
         $addons = [];
