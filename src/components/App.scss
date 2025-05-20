@@ -394,7 +394,10 @@
         // border-color: #279d77 #279d77 #279d77;
         color: #fff;
         text-decoration: none;
-        text-shadow: 0 -1px 1px #279d77, 1px 0 1px #279d77, 0 1px 1px #279d77,
+        text-shadow:
+          0 -1px 1px #279d77,
+          1px 0 1px #279d77,
+          0 1px 1px #279d77,
           -1px 0 1px #279d77;
         &:hover {
           background: #739e73;
@@ -653,13 +656,17 @@
 
   &wp-notices {
     padding: 10px;
+    padding-bottom: 0;
+    padding-top: 0;
     width: 100%;
     max-width: 800px;
     margin-left: auto;
     margin-right: auto;
     box-sizing: border-box;
-    position: absolute;
-    left: -9999px;
+
+    .notice {
+      margin-top: 10px !important;
+    }
   }
 }
 
@@ -702,7 +709,7 @@
   }
 
   // hide help tab on smaller screens
-  .tools_page_importwp #screen-meta-links{
+  .tools_page_importwp #screen-meta-links {
     display: none;
   }
 }
