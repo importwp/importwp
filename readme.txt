@@ -4,7 +4,7 @@ Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed, import
 Requires at least: 4.0  
 Tested up to: 6.8  
 Requires PHP: 5.6  
-Stable tag: 2.14.9  
+Stable tag: 2.14.10  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -137,6 +137,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.14.10 =
+
+* ADD - Add filter `iwp/importer/template/process_attachment/resize` to allow resizing of downloaded attachments before they are imported.
+* ADD - Add filter `iwp/template/process_attachment/enable_file_size_hash` to compare file size with remote attachments instead of just the filename.
 
 = 2.14.9 =
 
