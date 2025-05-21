@@ -925,6 +925,30 @@ class Template extends AbstractTemplate
                     $attachment_args['description'] = isset($attachment_descriptions[$location_counter]) ? $attachment_descriptions[$location_counter] : null;;
                 }
 
+                // resize attachment
+                if ($crop_details = apply_filters('iwp/importer/template/process_attachment/resize', '__return_false')) {
+
+                    if (is_array($crop_details) && count($crop_details) == 3 && file_exists($result['dest'])) {
+
+                        list($max_w, $max_h, $crop) = $crop_details;
+
+                        if (!is_null($max_w)) {
+                            $max_w = absint($max_w);
+                        }
+                        if (!is_null($max_h)) {
+                            $max_h = absint($max_h);
+                        }
+
+                        $editor = wp_get_image_editor($result['dest']);
+                        if (!is_wp_error($editor)) {
+                            $editor->resize($max_w, $max_h, (bool)$crop);
+                            $editor->save($result['dest']);
+                        } else {
+                            Logger::write(__CLASS__ . '::process__attachments -resize -error=' . $editor->get_error_message());
+                        }
+                    }
+                }
+
                 $attachment_id = $attachment->insert_attachment($post_id, $result['dest'], $result['mime'], $attachment_args);
                 if (is_wp_error($attachment_id)) {
                     Logger::write(__CLASS__ . '::process__attachments -error=' . $attachment_id->get_error_message());
