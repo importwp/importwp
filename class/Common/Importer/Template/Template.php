@@ -738,6 +738,38 @@ class Template extends AbstractTemplate
                         }
                     }
 
+                    if (apply_filters('iwp/template/process_attachment/enable_file_size_hash', false) === true) {
+
+                        // check to see if the remote url image is the same size as the one on disk.
+                        if ($attachment_id > 0 && $attachment_enable_image_hash == 'yes') {
+
+                            $existing_file = get_attached_file($attachment_id, true);
+
+                            // Remove -scaled from the file name if it exists
+                            if ($existing_file && file_exists($existing_file)) {
+                                $existing_file = str_replace('-scaled.', '.', $existing_file);
+                            }
+
+                            if ($existing_file && file_exists($existing_file)) {
+                                $head = wp_remote_head($source);
+                                if (!is_wp_error($head)) {
+
+                                    // get file size from the header
+                                    $header_key = apply_filters('iwp/template/process_attachment/remote_file_size_header_key', 'content-length');
+                                    $size = wp_remote_retrieve_header($head, $header_key);
+                                    $existing_file_size = filesize($existing_file);
+
+                                    if ($size != $existing_file_size) {
+
+                                        // append the size to the attachment salt
+                                        $attachment_salt .= $size;
+                                        $attachment_id = $attachment->get_attachment_by_hash($source, $attachment_salt);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     $custom_filename = apply_filters('iwp/attachment/filename', null, $source);
                     if ($attachment_id <= 0) {
                         Logger::write(__CLASS__ . '::process__attachments -remote=' . $source . ' -filename=' . $custom_filename);
@@ -925,6 +957,30 @@ class Template extends AbstractTemplate
                     $attachment_args['description'] = isset($attachment_descriptions[$location_counter]) ? $attachment_descriptions[$location_counter] : null;;
                 }
 
+                // resize attachment
+                if ($crop_details = apply_filters('iwp/importer/template/process_attachment/resize', '__return_false')) {
+
+                    if (is_array($crop_details) && count($crop_details) == 3 && file_exists($result['dest'])) {
+
+                        list($max_w, $max_h, $crop) = $crop_details;
+
+                        if (!is_null($max_w)) {
+                            $max_w = absint($max_w);
+                        }
+                        if (!is_null($max_h)) {
+                            $max_h = absint($max_h);
+                        }
+
+                        $editor = wp_get_image_editor($result['dest']);
+                        if (!is_wp_error($editor)) {
+                            $editor->resize($max_w, $max_h, (bool)$crop);
+                            $editor->save($result['dest']);
+                        } else {
+                            Logger::write(__CLASS__ . '::process__attachments -resize -error=' . $editor->get_error_message());
+                        }
+                    }
+                }
+
                 $attachment_id = $attachment->insert_attachment($post_id, $result['dest'], $result['mime'], $attachment_args);
                 if (is_wp_error($attachment_id)) {
                     Logger::write(__CLASS__ . '::process__attachments -error=' . $attachment_id->get_error_message());
@@ -1060,9 +1116,7 @@ class Template extends AbstractTemplate
         return [];
     }
 
-    public function register_settings()
-    {
-    }
+    public function register_settings() {}
 
     public function register_options()
     {
