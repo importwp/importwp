@@ -203,6 +203,7 @@ class AbstractMapper
         ];
         $data_validation = ['%d', '%d', '%s'];
 
+        // TODO: is this needed as blog_id is more relevant since there is a sessions table per site?
         if (is_multisite()) {
             $data['site_id'] = $wpdb->siteid;
             $data_validation[] = '%d';
@@ -241,6 +242,7 @@ class AbstractMapper
         ];
         $data_validation = ['%d', '%d', '%s'];
 
+        // TODO: is this needed as blog_id is more relevant since there is a sessions table per site?
         if (is_multisite()) {
             $data['site_id'] = $wpdb->siteid;
             $data_validation[] = '%d';
@@ -263,6 +265,7 @@ class AbstractMapper
         
         $query = "SELECT item_id FROM `{$wpdb->prefix}iwp_sessions` WHERE importer_id IN (" . implode(',', $import_ids) . ") AND item_type='{$type}' AND `session` != '{$this->importer->getStatusId()}'";
 
+        // TODO: is this needed as blog_id is more relevant since there is a sessions table per site?
         if (is_multisite()) {
             $query .= " AND site_id='{$wpdb->siteid}'";
         }

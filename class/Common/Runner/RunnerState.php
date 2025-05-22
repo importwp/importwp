@@ -263,20 +263,11 @@ abstract class RunnerState
         $existing = self::get_option($lock_option_id, false);
 
         if ($existing !== false) {
-            if (is_multisite()) {
-                $query = $wpdb->prepare(
-                    "UPDATE {$wpdb->sitemeta} SET meta_value=%s WHERE site_id=%d AND meta_key=%s AND meta_value=''",
-                    $user,
-                    $wpdb->siteid,
-                    $lock_option_id
-                );
-            } else {
-                $query = $wpdb->prepare(
-                    "UPDATE {$wpdb->options} SET option_value=%s WHERE option_name=%s AND option_value=''",
-                    $user,
-                    $lock_option_id
-                );
-            }
+            $query = $wpdb->prepare(
+                "UPDATE {$wpdb->options} SET option_value=%s WHERE option_name=%s AND option_value=''",
+                $user,
+                $lock_option_id
+            );
         } else {
             return self::update_option($lock_option_id, '');
         }
@@ -316,11 +307,7 @@ abstract class RunnerState
          */
         global $wpdb;
 
-        if (is_multisite()) {
-            $query = $wpdb->prepare("SELECT meta_id as id, meta_value as data FROM {$wpdb->sitemeta} WHERE site_id=%s AND meta_key=%s LIMIT 1", [$wpdb->siteid, $key]);
-        } else {
-            $query = $wpdb->prepare("SELECT option_id as id, option_value as data FROM {$wpdb->options} WHERE option_name=%s LIMIT 1", [$key]);
-        }
+        $query = $wpdb->prepare("SELECT option_id as id, option_value as data FROM {$wpdb->options} WHERE option_name=%s LIMIT 1", [$key]);        
 
         $result = $wpdb->get_row($query, ARRAY_A);
         if (!$result) {
@@ -343,19 +330,10 @@ abstract class RunnerState
 
         $result = self::get_option($key);
 
-        if (is_multisite()) {
-
-            if ($result !== false) {
-                $result = $wpdb->update($wpdb->sitemeta, ['meta_value' => $value], ['meta_key' => $key, 'site_id' => $wpdb->siteid], ['%s'], ['%s', '%s']);
-            } else {
-                $result = $wpdb->insert($wpdb->sitemeta, ['meta_value' => $value, 'meta_key' => $key, 'site_id' => $wpdb->siteid], ['%s', '%s', '%s']);
-            }
+        if ($result !== false) {
+            $result = $wpdb->update($wpdb->options, ['option_value' => $value], ['option_name' => $key], ['%s'], ['%s']);
         } else {
-            if ($result !== false) {
-                $result = $wpdb->update($wpdb->options, ['option_value' => $value], ['option_name' => $key], ['%s'], ['%s']);
-            } else {
-                $result = $wpdb->insert($wpdb->options, ['option_value' => $value, 'option_name' => $key], ['%s', '%s']);
-            }
+            $result = $wpdb->insert($wpdb->options, ['option_value' => $value, 'option_name' => $key], ['%s', '%s']);
         }
 
         return $result;
@@ -374,11 +352,6 @@ abstract class RunnerState
          * @var \WPDB $wpdb
          */
         global $wpdb;
-
-        if (is_multisite()) {
-            $wpdb->query("DELETE FROM {$wpdb->sitemeta} WHERE meta_key LIKE 'iwp\_" . static::$object_type . "\_state\_" . $id . "\_%'");
-        } else {
-            $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE 'iwp\_" . static::$object_type . "\_state\_" . $id . "\_%'");
-        }
+        $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE 'iwp\_" . static::$object_type . "\_state\_" . $id . "\_%'");
     }
 }

@@ -785,6 +785,7 @@ class Migrations
                 ];
                 $format = ['%d', '%d', '%s', '%s'];
 
+                // TODO: is this needed as blog_id is more relevant since there is a sessions table per site?
                 if (is_multisite()) {
                     $data['site_id'] = $wpdb->siteid;
                     $format[] = '%d';
@@ -811,6 +812,7 @@ class Migrations
                 ];
                 $format = ['%d', '%d', '%s', '%s'];
 
+                // TODO: is this needed as blog_id is more relevant since there is a sessions table per site?
                 if (is_multisite()) {
                     $data['site_id'] = $wpdb->siteid;
                     $format[] = '%d';
@@ -837,6 +839,7 @@ class Migrations
                 ];
                 $format = ['%d', '%d', '%s', '%s'];
 
+                // TODO: is this needed as blog_id is more relevant since there is a sessions table per site?
                 if (is_multisite()) {
                     $data['site_id'] = $wpdb->siteid;
                     $format[] = '%d';
