@@ -60,9 +60,9 @@ class ImporterRunner extends Runner
                             // generate list of items to be deleted
                             $object_ids = $this->importer->getMapper()->get_objects_for_removal();
 
-                            $config = get_site_option('iwp_importer_config_' . $id);
+                            $config = get_option('iwp_importer_config_' . $id);
                             $config['delete_ids'] = $object_ids;
-                            update_site_option('iwp_importer_config_' . $id, $config);
+                            update_option('iwp_importer_config_' . $id, $config);
 
                             $state_data['progress']['delete']['start'] = 0;
                             $state_data['progress']['delete']['end'] = $object_ids ? count($object_ids) : 0;
@@ -85,7 +85,7 @@ class ImporterRunner extends Runner
             // Get increase index, locking record, and saving to user importer state
             if (!empty($state_data['section'])) {
                 $state_data['progress'][$state_data['section']]['current_row']++;
-                update_site_option('iwp_importer_state_' . $id . '_' . $user, array_merge($state_data, ['last_modified' => current_time('timestamp')]));
+                update_option('iwp_importer_state_' . $id . '_' . $user, array_merge($state_data, ['last_modified' => current_time('timestamp')]));
             }
         }
 
@@ -188,7 +188,7 @@ class ImporterRunner extends Runner
             if ($this->importer->getMapper()->permission() && $this->importer->getMapper()->permission()->allowed_method('remove')) {
 
                 $GLOBALS['wp_object_cache']->delete('iwp_importer_config_' . $id, 'options');
-                $config = get_site_option('iwp_importer_config_' . $id);
+                $config = get_option('iwp_importer_config_' . $id);
                 $i = $progress['current_row'] - 1;
 
                 $object_ids = $config['delete_ids'];

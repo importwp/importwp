@@ -943,10 +943,19 @@ class RestManager extends \WP_REST_Controller
             $config = $this->importer_manager->get_config($importer_model);
 
             $output = ImporterState::get_state($importer_id);
-            $output['version'] = 2;
-            $output['message'] = $this->generate_status_message($output);
-            $output['importer'] = $importer_id;
-            $output['process'] = intval($config->get('process'));
+            if (!$output) {
+                $output = [
+                    'version' => 2,
+                    'message' => 'Not setup',
+                    'importer' => $importer_id
+                ];
+            } else {
+
+                $output['version'] = 2;
+                $output['message'] = $this->generate_status_message($output);
+                $output['importer'] = $importer_id;
+                $output['process'] = intval($config->get('process'));
+            }
 
             $result[] = $this->event_handler->run('iwp/importer/status/output', [$output, $importer_model]);
         }
@@ -1456,7 +1465,7 @@ class RestManager extends \WP_REST_Controller
             }
         }
 
-        update_site_option('iwp_settings', $output);
+        update_option('iwp_settings', $output);
 
         return $this->http->end_rest_success($this->properties->get_settings());
     }

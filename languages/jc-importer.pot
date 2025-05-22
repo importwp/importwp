@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the Import WP plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Import WP 2.14.10\n"
+"Project-Id-Version: Import WP 2.14.11\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/build\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-05-21T15:31:13+00:00\n"
+"POT-Creation-Date: 2025-05-22T16:03:29+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: jc-importer\n"
@@ -244,7 +244,8 @@ msgstr ""
 #: class/Common/Importer/Mapper/CommentMapper.php:94
 #: class/Common/Importer/Mapper/PostMapper.php:134
 #: class/Common/Importer/Mapper/TermMapper.php:92
-#: class/Common/Importer/Mapper/UserMapper.php:102
+#: class/Common/Importer/Mapper/UserMapper.php:120
+#: class/Common/Importer/Mapper/UserMapper.php:147
 #, php-format
 msgid "Record is not unique: %s, Matching Ids: (%s)."
 msgstr ""
@@ -257,15 +258,15 @@ msgstr ""
 msgid "Unable to insert comment"
 msgstr ""
 
-#: class/Common/Importer/Mapper/UserMapper.php:133
+#: class/Common/Importer/Mapper/UserMapper.php:178
 msgid "No username present"
 msgstr ""
 
-#: class/Common/Importer/Mapper/UserMapper.php:137
+#: class/Common/Importer/Mapper/UserMapper.php:182
 msgid "No password present"
 msgstr ""
 
-#: class/Common/Importer/Mapper/UserMapper.php:141
+#: class/Common/Importer/Mapper/UserMapper.php:186
 #, php-format
 msgid "%s is not a valid email address"
 msgstr ""
@@ -1246,79 +1247,79 @@ msgstr ""
 msgid "Migration Complete."
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:973
+#: class/Common/Rest/RestManager.php:982
 msgid "Import cancelled"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:976
+#: class/Common/Rest/RestManager.php:985
 msgid "Import complete"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:990
+#: class/Common/Rest/RestManager.php:999
 #, php-format
 msgid "Importing: %s"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:990
+#: class/Common/Rest/RestManager.php:999
 #, php-format
 msgid "Deleting: %s"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:997
+#: class/Common/Rest/RestManager.php:1006
 #, php-format
 msgid ", Inserts: %d"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1000
+#: class/Common/Rest/RestManager.php:1009
 #, php-format
 msgid ", Updates: %d"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1003
+#: class/Common/Rest/RestManager.php:1012
 #, php-format
 msgid ", Deletes: %d"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1006
+#: class/Common/Rest/RestManager.php:1015
 #, php-format
 msgid ", Skips: %d"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1009
+#: class/Common/Rest/RestManager.php:1018
 #, php-format
 msgid ", Errors: %d"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1018
-#: class/Common/Rest/RestManager.php:1024
+#: class/Common/Rest/RestManager.php:1027
+#: class/Common/Rest/RestManager.php:1033
 #, php-format
 msgid ", Run Time: %s"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1081
+#: class/Common/Rest/RestManager.php:1090
 msgid "Invalid form action"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1102
+#: class/Common/Rest/RestManager.php:1111
 msgid "Invalid importer"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1157
-#: class/Common/Rest/RestManager.php:1261
+#: class/Common/Rest/RestManager.php:1166
+#: class/Common/Rest/RestManager.php:1270
 #, php-format
 msgid "Unable to load preview, %s"
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1481
+#: class/Common/Rest/RestManager.php:1490
 #, php-format
 msgid "Invalid template \"%s\""
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1721
+#: class/Common/Rest/RestManager.php:1730
 msgid "No Importers found."
 msgstr ""
 
-#: class/Common/Rest/RestManager.php:1724
+#: class/Common/Rest/RestManager.php:1733
 #, php-format
 msgid "Import Complete, %d Importer"
 msgid_plural "Import Complete, %d Importers"

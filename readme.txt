@@ -4,7 +4,7 @@ Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed, import
 Requires at least: 4.0  
 Tested up to: 6.8  
 Requires PHP: 5.6  
-Stable tag: 2.14.10  
+Stable tag: 2.14.11  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -137,6 +137,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.14.11 = 
+
+* FIX - When importing multisite users that already exist on another site, add them to the current site.
+* FIX - run migrations on all multisite sites.
 
 = 2.14.10 =
 

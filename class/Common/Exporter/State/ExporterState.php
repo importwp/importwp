@@ -177,11 +177,7 @@ class ExporterState
          */
         global $wpdb;
 
-        if (is_multisite()) {
-            $query = $wpdb->prepare("SELECT meta_id as id, meta_value as `data` FROM {$wpdb->sitemeta} WHERE site_id=%s AND meta_key=%s LIMIT 1", [$wpdb->siteid, $key]);
-        } else {
-            $query = $wpdb->prepare("SELECT option_id as id, option_value as `data` FROM {$wpdb->options} WHERE option_name=%s LIMIT 1", [$key]);
-        }
+        $query = $wpdb->prepare("SELECT option_id as id, option_value as `data` FROM {$wpdb->options} WHERE option_name=%s LIMIT 1", [$key]);
 
         $result = $wpdb->get_row($query, ARRAY_A);
         if (!$result) {
@@ -202,17 +198,10 @@ class ExporterState
          */
         global $wpdb;
 
-        if (is_multisite()) {
-
-            $result = $wpdb->update($wpdb->sitemeta, ['meta_value' => $value], ['meta_key' => $key, 'site_id' => $wpdb->siteid], ['%s'], ['%s', '%s']);
-            if (intval($result) < 1) {
-                $result = $wpdb->insert($wpdb->sitemeta, ['meta_value' => $value, 'meta_key' => $key, 'site_id' => $wpdb->siteid], ['%s', '%s', '%s']);
-            }
-        } else {
-            $result = $wpdb->update($wpdb->options, ['option_value' => $value], ['option_name' => $key], ['%s'], ['%s']);
-            if (intval($result) < 1) {
-                $result = $wpdb->insert($wpdb->options, ['option_value' => $value, 'option_name' => $key], ['%s', '%s']);
-            }
+        
+        $result = $wpdb->update($wpdb->options, ['option_value' => $value], ['option_name' => $key], ['%s'], ['%s']);
+        if (intval($result) < 1) {
+            $result = $wpdb->insert($wpdb->options, ['option_value' => $value, 'option_name' => $key], ['%s', '%s']);
         }
 
         return $result;
@@ -222,22 +211,18 @@ class ExporterState
     {
 
         // clear existing
-        delete_site_option('iwp_' . static::$object_type . '_config_' . $id);
-        delete_site_option('iwp_' . static::$object_type . '_state_' . $id);
-        delete_site_option('iwp_' . static::$object_type . '_lock_' . $id);
-        delete_site_option('iwp_' . static::$object_type . '_lock_timestamp_' . $id);
-        delete_site_option('iwp_' . static::$object_type . '_flag_' . $id);
+        delete_option('iwp_' . static::$object_type . '_config_' . $id);
+        delete_option('iwp_' . static::$object_type . '_state_' . $id);
+        delete_option('iwp_' . static::$object_type . '_lock_' . $id);
+        delete_option('iwp_' . static::$object_type . '_lock_timestamp_' . $id);
+        delete_option('iwp_' . static::$object_type . '_flag_' . $id);
 
         /**
          * @var \WPDB $wpdb
          */
         global $wpdb;
 
-        if (is_multisite()) {
-            $wpdb->query("DELETE FROM {$wpdb->sitemeta} WHERE meta_key LIKE 'iwp\_" . static::$object_type . "\_state\_" . $id . "\_%'");
-        } else {
-            $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE 'iwp\_" . static::$object_type . "\_state\_" . $id . "\_%'");
-        }
+        $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE 'iwp\_" . static::$object_type . "\_state\_" . $id . "\_%'");
     }
 
     public function get_section()
