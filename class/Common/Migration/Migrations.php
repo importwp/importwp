@@ -15,7 +15,7 @@ class Migrations
     public function __construct()
     {
 
-        $starting_version = intval(get_site_option('iwp_db_version', 0));
+        $starting_version = intval(get_option('iwp_db_version', 0));
         if ($starting_version <= 3 && $starting_version > 0) {
             // v1 migrations
             $this->_migrations[] = array($this, 'migration_01');
@@ -42,7 +42,7 @@ class Migrations
 
     public function isSetup()
     {
-        $version = intval(get_site_option('iwp_db_version', get_site_option('jci_db_version', 0)));
+        $version = intval(get_option('iwp_db_version', get_option('jci_db_version', 0)));
         if ($version < count($this->_migrations)) {
             return false;
         }
@@ -61,17 +61,17 @@ class Migrations
         global $wpdb;
         $wpdb->query("DROP TABLE IF EXISTS `" . $wpdb->prefix . "importer_log`;");
         $wpdb->query("DROP TABLE IF EXISTS `" . $wpdb->prefix . "importer_files`;");
-        delete_site_option('iwp_db_version');
-        delete_site_option('jci_db_version');
-        delete_site_option('iwp_is_migrating');
+        delete_option('iwp_db_version');
+        delete_option('jci_db_version');
+        delete_option('iwp_is_migrating');
     }
 
     public function migrate($migrate_data = true)
     {
 
         $verion_key = 'iwp_db_version';
-        $version = intval(get_site_option('iwp_db_version', get_site_option('jci_db_version', 0)));
-        $migrating = get_site_option('iwp_is_migrating', 'no');
+        $version = intval(get_option('iwp_db_version', get_option('jci_db_version', 0)));
+        $migrating = get_option('iwp_is_migrating', 'no');
         if ('yes' === $migrating) {
             return;
         }
@@ -85,7 +85,7 @@ class Migrations
                 $migration_version = $i + 1;
                 if ($version < $migration_version) {
 
-                    update_site_option('iwp_is_migrating', 'yes');
+                    update_option('iwp_is_migrating', 'yes');
 
                     set_time_limit(0);
 
@@ -95,13 +95,13 @@ class Migrations
                     }
 
                     // Flag as migrated
-                    update_site_option($verion_key, $migration_version);
-                    update_site_option('iwp_is_migrating', 'no');
+                    update_option($verion_key, $migration_version);
+                    update_option('iwp_is_migrating', 'no');
                 }
             }
         }
 
-        // update_site_option('iwp_is_setup', 'yes');
+        // update_option('iwp_is_setup', 'yes');
     }
 
     public function get_charset()
@@ -785,6 +785,7 @@ class Migrations
                 ];
                 $format = ['%d', '%d', '%s', '%s'];
 
+                // TODO: is this needed as blog_id is more relevant since there is a sessions table per site?
                 if (is_multisite()) {
                     $data['site_id'] = $wpdb->siteid;
                     $format[] = '%d';
@@ -811,6 +812,7 @@ class Migrations
                 ];
                 $format = ['%d', '%d', '%s', '%s'];
 
+                // TODO: is this needed as blog_id is more relevant since there is a sessions table per site?
                 if (is_multisite()) {
                     $data['site_id'] = $wpdb->siteid;
                     $format[] = '%d';
@@ -837,6 +839,7 @@ class Migrations
                 ];
                 $format = ['%d', '%d', '%s', '%s'];
 
+                // TODO: is this needed as blog_id is more relevant since there is a sessions table per site?
                 if (is_multisite()) {
                     $data['site_id'] = $wpdb->siteid;
                     $format[] = '%d';

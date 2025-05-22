@@ -576,7 +576,7 @@ class ImporterManager
         // store current importer
         iwp()->importer = $importer_data;
 
-        $config_data = get_site_option('iwp_importer_config_' . $importer_id, []);
+        $config_data = get_option('iwp_importer_config_' . $importer_id, []);
 
         $this->event_handler->run('importer_manager.import', [$importer_data]);
 
@@ -714,7 +714,7 @@ class ImporterManager
                 $config_data['start'] = $this->get_start($importer_data, $start);
                 $config_data['end'] = $this->get_end($importer_data, $config_data['start'], $end);
 
-                update_site_option('iwp_importer_config_' . $importer_id, $config_data);
+                update_option('iwp_importer_config_' . $importer_id, $config_data);
 
                 Logger::debug('IM -update_state');
                 $state->update(function ($state) use ($config_data) {

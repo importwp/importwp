@@ -52,7 +52,7 @@ abstract class Runner
 
         $this->try_process_dangling_state($id, $user, $state, $user);
 
-        $config = get_site_option('iwp_' . $this->object_type . '_config_' . $id, []);
+        $config = get_option('iwp_' . $this->object_type . '_config_' . $id, []);
 
         while (
             ($i == 0 || (
@@ -108,14 +108,14 @@ abstract class Runner
                 // TODO: Should the option be renamed to the current user first? to make sure its not ran multiple times.
                 // TODO: status should not be overwritten like this.
                 $GLOBALS['wp_object_cache']->delete($dangling_id, 'options');
-                $status = get_site_option($dangling_id);
+                $status = get_option($dangling_id);
                 if ($status && $status['last_modified'] < current_time('timestamp') - 30) {
 
                     Logger::write('try_import_dangling_rows -id=' . $id . ' -user=' . $user . ' -dangling=' . $dangling_id);
 
                     $GLOBALS['wp_object_cache']->delete($dangling_id, 'options');
                     $status['last_modified'] = current_time('timestamp');
-                    update_site_option($dangling_id, $status);
+                    update_option($dangling_id, $status);
 
 
                     $this->process_row($id, $user, $state, $state->get_session(), $status['section'], $status['progress'][$status['section']]);

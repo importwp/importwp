@@ -97,7 +97,7 @@ class Properties
     public function get_settings()
     {
         $defaults = $this->_default_settings();
-        $settings = get_site_option('iwp_settings', []);
+        $settings = get_option('iwp_settings', []);
         $output = [];
 
         foreach ($defaults as $setting => $default) {
@@ -110,7 +110,7 @@ class Properties
     public function get_setting($key)
     {
         $defaults = $this->_default_settings();
-        $settings = get_site_option('iwp_settings', []);
+        $settings = get_option('iwp_settings', []);
 
         if (!isset($defaults[$key])) {
             return false;

@@ -177,7 +177,7 @@ class ExporterManager
         $exporter_data = $this->get_exporter($id);
         $exporter_id = $exporter_data->getId();
 
-        $config_data = []; // get_site_option('iwp_exporter_config_' . $exporter_id, []);
+        $config_data = []; // get_option('iwp_exporter_config_' . $exporter_id, []);
 
         $state = new ExporterState($exporter_id, $user);
 
@@ -226,7 +226,7 @@ class ExporterManager
                 $config_data['records'] = $mapper->get_records();
 
                 // save
-                update_site_option('iwp_exporter_config_' . $exporter_id, $config_data);
+                update_option('iwp_exporter_config_' . $exporter_id, $config_data);
 
                 $state->update(function ($state) use ($config_data) {
                     $state['id'] = $config_data['id'];
@@ -239,7 +239,7 @@ class ExporterManager
                 $file->wipe();
                 $file->start();
             } else {
-                $config_data = get_site_option('iwp_exporter_config_' . $exporter_id, []);
+                $config_data = get_option('iwp_exporter_config_' . $exporter_id, []);
                 $mapper->set_records($config_data['records']);
             }
 

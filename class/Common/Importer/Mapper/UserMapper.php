@@ -94,6 +94,51 @@ class UserMapper extends AbstractMapper implements MapperInterface
         Logger::debug("UserMapper::exists -query=" . wp_json_encode($query_args));
         $query = new \WP_User_Query($query_args);
 
+        // if we are on a multisite instance and user has not been found.
+        if (is_multisite() && $query->get_total() == 0) {
+
+            // get list of sites except this one
+            $sites = get_sites([
+                'site__not_in' => get_current_blog_id(),
+                'fields' => 'ids'
+            ]);
+
+            foreach ($sites as $site) {
+
+                // do user search on each site
+                switch_to_blog($site);
+                $query = new \WP_User_Query($query_args);
+                restore_current_blog();
+
+                $total = $query->get_total();
+                if ($total > 1) {
+
+                    $ids = [];
+                    foreach ($query->results as $result) {
+                        $ids[] = $result->ID;
+                    }
+                    throw new MapperException(sprintf(__("Record is not unique: %s, Matching Ids: (%s).", 'jc-importer'), $unique_field_found, implode(', ', $ids)));
+                } elseif ($total == 1) {
+
+                    // if we have 1 result then add the user to our site.
+
+                    $role = $query->results[0]->roles[0];
+                    if ($this->importer->isEnabledField('user.role')) {
+                        $tmp_role = $data->getValue('role');
+                        if (!empty($tmp_role)) {
+                            $role = $tmp_role;
+                        }
+                    }
+
+                    $result = add_user_to_blog(get_current_blog_id(), $query->results[0]->ID, $role);
+                    if (is_wp_error($result)) {
+                        throw new MapperException($result->get_error_message());
+                    }
+                    break;
+                }
+            }
+        }
+
         if ($query->total_users > 1) {
             $ids = [];
             foreach ($query->results as $result) {
@@ -277,8 +322,12 @@ class UserMapper extends AbstractMapper implements MapperInterface
 
     public function delete($id)
     {
-        require_once(ABSPATH . 'wp-admin/includes/user.php');
-        wp_delete_user($id);
+        if (is_multisite()) {
+            remove_user_from_blog($id);
+        } else {
+            require_once(ABSPATH . 'wp-admin/includes/user.php');
+            wp_delete_user($id);
+        }
 
         $this->remove_session_tag($id, 'user');
     }
