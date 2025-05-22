@@ -1456,7 +1456,7 @@ class RestManager extends \WP_REST_Controller
             }
         }
 
-        update_site_option('iwp_settings', $output);
+        update_option('iwp_settings', $output);
 
         return $this->http->end_rest_success($this->properties->get_settings());
     }

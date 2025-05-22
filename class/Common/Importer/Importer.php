@@ -419,7 +419,7 @@ class Importer
 
                     try {
                         $GLOBALS['wp_object_cache']->delete('iwp_importer_config_' . $id, 'options');
-                        $config = get_site_option('iwp_importer_config_' . $id);
+                        $config = get_option('iwp_importer_config_' . $id);
 
                         $object_ids = $config['delete_ids'];
                         if ($object_ids && count($object_ids) > $i) {
@@ -492,9 +492,9 @@ class Importer
                         $object_ids = $this->getMapper()->get_objects_for_removal();
                         if (!empty($object_ids)) {
 
-                            $config = get_site_option('iwp_importer_config_' . $id);
+                            $config = get_option('iwp_importer_config_' . $id);
                             $config['delete_ids'] = $object_ids;
-                            update_site_option('iwp_importer_config_' . $id, $config);
+                            update_option('iwp_importer_config_' . $id, $config);
 
                             $state_data['progress']['delete']['start'] = 0;
                             $state_data['progress']['delete']['end'] = $object_ids ? count($object_ids) : 0;

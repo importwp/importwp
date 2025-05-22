@@ -55,7 +55,7 @@ class ExporterRunner extends Runner
 
             // Get increase index, locking record, and saving to user importer state
             $state_data['progress'][$section]['current_row']++;
-            update_site_option('iwp_exporter_state_' . $id . '_' . $user, array_merge($state_data, ['last_modified' => current_time('timestamp')]));
+            update_option('iwp_exporter_state_' . $id . '_' . $user, array_merge($state_data, ['last_modified' => current_time('timestamp')]));
         }
 
         $state_data['duration'] = floatval($state_data['duration'] ?? 0) + Logger::timer();

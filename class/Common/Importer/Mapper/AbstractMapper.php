@@ -172,8 +172,8 @@ class AbstractMapper
 
     public function is_session_tag_enabled()
     {
-        $db_version = intval(get_site_option('iwp_db_version', 0));
-        $config_data = get_site_option('iwp_importer_config_' . $this->importer->getId(), []);
+        $db_version = intval(get_option('iwp_db_version', 0));
+        $config_data = get_option('iwp_importer_config_' . $this->importer->getId(), []);
 
         if ($db_version >= 7 && isset($config_data['features'], $config_data['features']['session_table']) && $config_data['features']['session_table']) {
             return true;

@@ -33,7 +33,7 @@ class CSVFile extends File
         // write headers
         fputcsv($this->fh, array_keys($this->columns), $delimiter, $enclosure, $escape);
 
-        update_site_option('iwp_exporter_csv_config', [
+        update_option('iwp_exporter_csv_config', [
             'columns' => $this->columns
         ]);
     }
@@ -41,7 +41,7 @@ class CSVFile extends File
     public function loadConfig()
     {
         if (!$this->setup) {
-            $config = get_site_option('iwp_exporter_csv_config', []);
+            $config = get_option('iwp_exporter_csv_config', []);
             $this->columns = $config['columns'];
             $this->setup = true;
         }

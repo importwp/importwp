@@ -32,7 +32,7 @@ class JSONFile extends File
         fputs($this->fh, $this->parts['open'] . PHP_EOL);
         $this->counter = 0;
 
-        update_site_option('iwp_exporter_json_config', [
+        update_option('iwp_exporter_json_config', [
             'parts' => $this->parts
         ]);
     }
@@ -40,7 +40,7 @@ class JSONFile extends File
     public function loadConfig()
     {
         if (!$this->setup) {
-            $config = get_site_option('iwp_exporter_json_config', []);
+            $config = get_option('iwp_exporter_json_config', []);
             $this->parts = $config['parts'];
             $this->setup = true;
         }

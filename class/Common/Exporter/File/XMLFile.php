@@ -31,7 +31,7 @@ class XMLFile extends File
         $data = $this->buildTemplateDataStructure([]);
         $this->template_data = $data[0];
 
-        update_site_option('iwp_exporter_xml_config', [
+        update_option('iwp_exporter_xml_config', [
             'template' => $this->template,
             'template_sections' => $this->template_sections,
             'template_data' => $this->template_data
@@ -42,7 +42,7 @@ class XMLFile extends File
     {
 
         if (!$this->setup) {
-            $config = get_site_option('iwp_exporter_xml_config');
+            $config = get_option('iwp_exporter_xml_config');
             $this->template = $config['template'];
             $this->template_sections = $config['template_sections'];
             $this->template_data = $config['template_data'];
