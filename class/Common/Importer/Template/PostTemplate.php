@@ -547,7 +547,7 @@ class PostTemplate extends Template implements TemplateInterface
                             $allowed = $data->permission()->validate([$permission_key => ''], $data->getMethod(), $group);
                             $is_allowed = isset($allowed[$permission_key]) ? true : false;
 
-                            if (!$is_allowed || empty($term)) {
+                            if (!$is_allowed || ($term_append[$tax] == true && empty($term))) {
                                 continue;
                             }
                         }
