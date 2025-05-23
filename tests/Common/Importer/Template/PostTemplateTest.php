@@ -8,6 +8,7 @@ use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Ftp\Ftp;
 use ImportWP\Common\Importer\Mapper\PostMapper;
 use ImportWP\Common\Importer\ParsedData;
+use ImportWP\Common\Importer\Permission\Permission;
 use ImportWP\Common\Importer\Template\PostTemplate;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\EventHandler;
@@ -339,7 +340,9 @@ class PostTemplateTest extends \WP_UnitTestCase
                 $not_expected_ids = [$test_tag_1->term_id];
 
                 return [
-                    implode(',', [$test_cat_1->term_id, $test_cat_2->term_id, $test_tag_1->term_id]), $expected_ids, $not_expected_ids
+                    implode(',', [$test_cat_1->term_id, $test_cat_2->term_id, $test_tag_1->term_id]),
+                    $expected_ids,
+                    $not_expected_ids
                 ];
             }],
             'Term name' => ['category', 'name', function () {
@@ -352,7 +355,9 @@ class PostTemplateTest extends \WP_UnitTestCase
                 $not_expected_ids = [$test_tag_1->term_id];
 
                 return [
-                    implode(',', [$test_cat_1->name, $test_cat_2->name, $test_tag_1->name]), $expected_ids, $not_expected_ids
+                    implode(',', [$test_cat_1->name, $test_cat_2->name, $test_tag_1->name]),
+                    $expected_ids,
+                    $not_expected_ids
                 ];
             }],
             'Term slug' => ['category', 'slug', function () {
@@ -365,7 +370,9 @@ class PostTemplateTest extends \WP_UnitTestCase
                 $not_expected_ids = [$test_tag_1->term_id];
 
                 return [
-                    implode(',', [$test_cat_1->slug, $test_cat_2->slug, $test_tag_1->slug]), $expected_ids, $not_expected_ids
+                    implode(',', [$test_cat_1->slug, $test_cat_2->slug, $test_tag_1->slug]),
+                    $expected_ids,
+                    $not_expected_ids
                 ];
             }],
         ];
@@ -443,5 +450,72 @@ class PostTemplateTest extends \WP_UnitTestCase
         // 1. Make sure if no result return false
         $result = $mock_post_template->create_or_get_taxonomy_term($post->ID, 'category', [$cf_key, $cf_value], $post_term_parent->term_id, 'custom_field');
         $this->assertFalse($result);
+    }
+
+    public function test_empty_taxonomy_term_with_append_enabled()
+    {
+        $taxonomy_data = array_merge([
+            'taxonomies._index' => 1,
+        ], $this->create_taxonomy_mock(0, [
+            'tax' => 'category',
+            'term' => '',
+            'append' => 'yes'
+        ]));
+
+        $template = new PostTemplate(new EventHandler());
+
+        $post = $this->factory()->post->create_and_get();
+        $test_cat_1 = $this->factory()->category->create_and_get();
+        wp_set_object_terms($post->ID, $test_cat_1->slug, 'category');
+
+        $original = wp_get_object_terms($post->ID, 'category');
+        $this->assertNotEmpty($original);
+
+        $mock_permission = $this->createMock(Permission::class);
+        $mock_permission->method('validate')->willReturn(['taxonomy.category' => true]);
+
+        $mock_mapper = $this->createMock(PostMapper::class);
+        $mock_mapper->method('permission')->willReturn($mock_permission);
+
+        $parsed_data = new ParsedData($mock_mapper);
+        $parsed_data->add($taxonomy_data, 'taxonomies');
+
+        $template->process_taxonomies($post->ID, $parsed_data);
+
+        $result = wp_get_object_terms($post->ID, 'category');
+        $this->assertEquals($result, $original);
+    }
+
+    public function test_empty_taxonomy_term_with_append_disabled()
+    {
+        $taxonomy_data = array_merge([
+            'taxonomies._index' => 1,
+        ], $this->create_taxonomy_mock(0, [
+            'tax' => 'category',
+            'term' => '',
+            'append' => 'no'
+        ]));
+
+        $template = new PostTemplate(new EventHandler());
+
+        $post = $this->factory()->post->create_and_get();
+        $test_cat_1 = $this->factory()->category->create_and_get();
+        wp_set_object_terms($post->ID, $test_cat_1->slug, 'category');
+
+        $this->assertNotEmpty(wp_get_object_terms($post->ID, 'category'));
+
+        $mock_permission = $this->createMock(Permission::class);
+        $mock_permission->method('validate')->willReturn(['taxonomy.category' => true]);
+
+        $mock_mapper = $this->createMock(PostMapper::class);
+        $mock_mapper->method('permission')->willReturn($mock_permission);
+
+        $parsed_data = new ParsedData($mock_mapper);
+        $parsed_data->add($taxonomy_data, 'taxonomies');
+
+        $template->process_taxonomies($post->ID, $parsed_data);
+
+        $result = wp_get_object_terms($post->ID, 'category');
+        $this->assertEmpty($result);
     }
 }

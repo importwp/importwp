@@ -160,6 +160,10 @@ trait MockDataTrait
             $data['taxonomies.' . $index . '.settings._type'] = $mock_data['type'];
         }
 
+        if (isset($mock_data['append'])) {
+            $data['taxonomies.' . $index . '.settings._append'] = $mock_data['append'];
+        }
+
         return $data;
     }
 }
