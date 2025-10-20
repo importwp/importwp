@@ -805,6 +805,7 @@ class RestManager extends \WP_REST_Controller
                 $importer->setPermission('remove', [
                     'enabled' => $post_data['permissions']['remove']['enabled'] === 'true',
                     'trash' => $post_data['permissions']['remove']['trash'] === 'true',
+                    'media' => $post_data['permissions']['remove']['media'] === 'true',
                 ]);
             }
         }
