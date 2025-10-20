@@ -362,6 +362,16 @@ class PostMapper extends AbstractMapper implements MapperInterface
             update_post_meta($id, '_iwp_trash_importer', $this->importer->getId());
             wp_trash_post($id);
         } else {
+
+            // Remove connected attachments
+            $remove_media = isset($permissions['media']) ? $permissions['media'] : false;
+            if ($remove_media) {
+                $attachments = get_attached_media('', $id);
+                foreach ($attachments as $attachment) {
+                    wp_delete_attachment($attachment->ID, 'true');
+                }
+            }
+
             wp_delete_post($id, $force);
         }
 

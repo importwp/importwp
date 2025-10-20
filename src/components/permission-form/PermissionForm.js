@@ -48,6 +48,10 @@ class PermissionForm extends Component {
         props.permissions.remove && props.permissions.remove.trash
           ? props.permissions.remove.trash
           : false,
+      remove_media:
+        props.permissions.remove && props.permissions.remove.media
+          ? props.permissions.remove.media
+          : false,
       setting_unique_identifier:
         props.permissions.remove && props.settings.unique_identifier
           ? props.settings.unique_identifier
@@ -169,6 +173,7 @@ class PermissionForm extends Component {
       update_permissions,
       remove,
       remove_trash,
+      remove_media,
       setting_unique_identifier,
       setting_unique_identifier_type,
       setting_unique_identifier_ref,
@@ -187,6 +192,7 @@ class PermissionForm extends Component {
       remove: {
         enabled: remove,
         trash: remove_trash,
+        media: remove_media
       },
     };
 
@@ -287,6 +293,7 @@ class PermissionForm extends Component {
       disabled,
       setting_unique_identifier,
       remove_trash,
+      remove_media,
     } = this.state;
 
     const permission_field_selector = (section, active_fields = []) => {
@@ -668,6 +675,17 @@ class PermissionForm extends Component {
                           onChange={this.onChange}
                         />{' '}
                         Move items to trash - <em>Only if trash is enabled</em>.
+                      </label>
+                    </p>
+                    <p>
+                      <label>
+                        <input
+                          type="checkbox"
+                          name="remove_media"
+                          checked={remove_media}
+                          onChange={this.onChange}
+                        />{' '}
+                        Remove related media - <em>Removes attached media, does not work with trash</em>.
                       </label>
                     </p>
                   </div>
