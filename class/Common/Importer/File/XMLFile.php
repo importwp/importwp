@@ -41,6 +41,7 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
     protected $chunk_size = 8192;
     protected $depth = 0;
     protected $node_list = array();
+    protected $namespace_list = null;
     protected $chunk;
     protected $chunk_offset = 0;
 
@@ -193,6 +194,7 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
         $last_percent = 0;
         $size = intval($this->get_file_size($this->getFileHandle()));
         $this->config->set('process', 0);
+        $this->namespace_list = [];
 
         rewind($this->getFileHandle());
 
@@ -224,6 +226,8 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
                 }
             }
         }
+
+        $this->config->set('namespace_list', $this->namespace_list);
 
         // if file is incomplete do we try and fix the record, or skip it?
         if (!$this->is_processing && true === $this->record_opened) {
@@ -399,6 +403,11 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
 
             $this->open_nodes[] = $node_name;
             $this->record_open_nodes();
+
+            // find namespaces
+            if (preg_match_all('/xmlns:([a-zA-Z0-9_-]+)="([^"]+)"/', $node, $matches) > 0) {
+                $this->namespace_list = array_merge($this->namespace_list, array_combine($matches[1], $matches[2]));
+            }
         } elseif ($depth_delta < 0) {
 
             array_pop($this->open_nodes);
@@ -482,7 +491,20 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
 
                 if (!in_array($namespace, $unique_matches)) {
                     $unique_matches[] = $namespace;
-                    $namespace_attrs .= ' xmlns:' . $namespace . '="false"';
+
+                    // load namespace list if needed
+                    if (is_null($this->namespace_list) && !is_null($this->config)) {
+                        $this->namespace_list = $this->config->get('namespace_list');
+                        if (!is_array($this->namespace_list)) {
+                            $this->namespace_list = array();
+                        }
+                    }
+
+                    if (isset($this->namespace_list[$namespace])) {
+                        $namespace_attrs .= ' xmlns:' . $namespace . '="' . $this->namespace_list[$namespace] . '"';
+                    } else {
+                        $namespace_attrs .= ' xmlns:' . $namespace . '="false"';
+                    }
                 }
 
                 $temp = substr($temp, $offset + strlen($match));
