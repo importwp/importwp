@@ -138,6 +138,10 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.14.14 =
+
+* FIX - XML Namespaces now handled properly in record chunks, instead of setting them previously to false.
+
 = 2.14.13 =
 
 * ADD - Add option to remove imported media when an importer deletes an item.

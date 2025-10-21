@@ -156,7 +156,7 @@ class XMLFileTest extends \WP_UnitTestCase
 
         $record = $file->getRecord(0);
 
-        $this->assertStringStartsWith('<record xmlns:i="false">', $record);
+        $this->assertStringStartsWith('<record xmlns:i="http://www.w3.org/2001/XMLSchema-instance">', $record);
     }
 
     public function test_nested_xml_tags()
@@ -234,7 +234,7 @@ class XMLFileTest extends \WP_UnitTestCase
 
         $file->setRecordPath('rss/channel/item');
         $record_item = $file->getRecord();
-        $this->assertEquals('<record xmlns:dc="false" xmlns:content="false" xmlns:excerpt="false" xmlns:wp="false"><item>
+        $this->assertEquals('<record xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/" xmlns:wp="http://wordpress.org/export/1.2/"><item>
             <title>Post One</title>
             <link>http://importwp.dev/2017/08/22/post-one/</link>
             <pubDate>Tue, 22 Aug 2017 21:01:24 +0000</pubDate>

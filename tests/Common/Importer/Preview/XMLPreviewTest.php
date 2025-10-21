@@ -33,10 +33,10 @@ class XMLPreviewTest extends \WP_UnitTestCase
         $this->assertEquals('record', $preview_data[0]['node']);
         $this->assertEmpty($preview_data[0]['xpath']);
         $this->assertEquals([
-            ['name' => 'xmlns:dc', 'value' => 'false', 'xpath' => '/@xmlns:dc'],
-            ['name' => 'xmlns:content', 'value' => 'false', 'xpath' => '/@xmlns:content'],
-            ['name' => 'xmlns:excerpt', 'value' => 'false', 'xpath' => '/@xmlns:excerpt'],
-            ['name' => 'xmlns:wp', 'value' => 'false', 'xpath' => '/@xmlns:wp'],
+            ['name' => 'xmlns:dc', 'value' => 'http://purl.org/dc/elements/1.1/', 'xpath' => '/@xmlns:dc'],
+            ['name' => 'xmlns:content', 'value' => 'http://purl.org/rss/1.0/modules/content/', 'xpath' => '/@xmlns:content'],
+            ['name' => 'xmlns:excerpt', 'value' => 'http://wordpress.org/export/1.2/excerpt/', 'xpath' => '/@xmlns:excerpt'],
+            ['name' => 'xmlns:wp', 'value' => 'http://wordpress.org/export/1.2/', 'xpath' => '/@xmlns:wp'],
         ], $preview_data[0]['attr']);
         $this->assertNotEmpty($preview_data[0]['value']);
 
