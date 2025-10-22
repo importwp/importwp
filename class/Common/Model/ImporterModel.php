@@ -205,8 +205,8 @@ class ImporterModel
         $files = $this->getFiles();
         $file = $this->getFile();
         if ($view === 'public' && false === $this->debug) {
-            
-            if($file){
+
+            if ($file) {
                 $file = basename($file);
             }
 
@@ -304,7 +304,7 @@ class ImporterModel
 
                 // set defaults on new importers
                 $post_content['version'] = $this->version_latest;
-                $post_content['settings']['unique_identifier_type'] = 'custom';
+                $post_content['settings']['unique_identifier_type'] = 'field';
             }
         }
 
