@@ -157,27 +157,37 @@ const ExporterEdit = ({ id, pro = false }) => {
         runnerXHR.current = exporter.run(id, session);
         runnerXHR.current.request.subscribe(
           (response) => {
-            if (response.status === 'running' || response.status === 'timeout') {
-              setProgress(((response.progress.export.current_row / (response.progress.export.end - response.progress.export.start)) * 100).toFixed());
+            if (
+              response.status === 'running' ||
+              response.status === 'timeout'
+            ) {
+              setProgress(
+                (
+                  (response.progress.export.current_row /
+                    (response.progress.export.end -
+                      response.progress.export.start)) *
+                  100
+                ).toFixed()
+              );
             } else if (response.status == 'complete') {
               setModalTitle('Export Complete');
               setProgress(100);
               setStatus(response);
               setRunning(false);
               runnerXHR.current.abort();
-              getStatus();
+              // getStatus();
             }
           },
           (error) => {
             logError(error);
             runnerXHR.current.abort();
-            getStatus();
+            // getStatus();
           }
         );
       },
       (error) => {
         logError(error);
-        getStatus();
+        // getStatus();
       }
     );
   };
@@ -315,17 +325,18 @@ const ExporterEdit = ({ id, pro = false }) => {
     ]);
   };
 
+  const closeModal = () => {
+    setActiveSession("");
+    setShowModal(false);
+    getStatus();
+  };
+
   return (
     <>
       <GlobalNotice />
-      <Modal
-        title={modalTitle}
-        show={showModal}
-        onClose={() => setShowModal(false)}
-      >
-        <ProgressBar progress={progress} text={progress + '%'} />
-
-        {status?.status === 'complete' && activeSession === status?.id && (
+      <Modal title={modalTitle} show={showModal} onClose={() => closeModal()}>
+        <ProgressBar progress={progress} text={progress + "%"} />
+        {status?.status === "complete" && activeSession === status?.id && (
           <>
             <a
               href={`${AJAX_BASE}&exporter=${id}&download=${status.file}`}
@@ -338,7 +349,7 @@ const ExporterEdit = ({ id, pro = false }) => {
               href={`${AJAX_BASE}&exporter=${id}&download=${status.file}`}
               target="_blank"
               className="button button-primary"
-              onClick={() => setShowModal(false)}
+              onClick={() => closeModal()}
             >
               Download & close
             </a>
