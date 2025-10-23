@@ -37,6 +37,23 @@ class ImporterRecordData
 
     public function get_value($panel_id, $field_id)
     {
-        return $this->_data->getValue($panel_id . '.' . $field_id);
+        return $this->_data->getValue($panel_id . '.' . $field_id, 'default');
+    }
+
+    public function set_value($panel_id, $field_id, $value)
+    {
+        $data = $this->_data->getData('default');
+        $data["{$panel_id}.{$field_id}"] = $value;
+        $this->_data->update($data, 'default');
+    }
+
+    public function enable_field($panel_id, $field_id)
+    {
+        iwp()->importer->setEnabled("{$panel_id}.{$field_id}", true);
+    }
+
+    public function get_group($panel_id)
+    {
+        return new ImporterRecordGroupData($panel_id, $this->_data);
     }
 }
