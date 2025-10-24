@@ -12,6 +12,12 @@ use ImportWP\EventHandler;
 
 class ImporterManagerTest extends \WP_UnitTestCase
 {
+    public function whitelistTestDir($paths)
+    {
+        $paths[] = realpath(IWP_TEST_ROOT);
+        return $paths;
+    }
+
     public function testGetImporter()
     {
         /**
@@ -68,7 +74,11 @@ class ImporterManagerTest extends \WP_UnitTestCase
             'name' => 'Test Importer'
         ]);
         $importer_id = $new_importer->save();
+
+        add_filter('iwp/importer/local_file/allowed_directories', 'whitelistTestDir');
         $attachment_id = $manager->local_file($new_importer, IWP_TEST_ROOT . "/data/csv/test.csv");
+        remove_filter('iwp/importer/local_file/allowed_directories', 'whitelistTestDir');
+
         $this->assertGreaterThan(0, $attachment_id);
         $this->assertEquals('csv', $new_importer->getParser());
         $this->assertEquals('"', $new_importer->getFileSetting('enclosure'));
@@ -113,7 +123,11 @@ class ImporterManagerTest extends \WP_UnitTestCase
             'name' => 'Test Importer'
         ]);
         $importer_id = $new_importer->save();
+
+        add_filter('iwp/importer/local_file/allowed_directories', 'whitelistTestDir');
         $attachment_id = $manager->local_file($new_importer, IWP_TEST_ROOT . "/data/xml/simple.xml");
+        remove_filter('iwp/importer/local_file/allowed_directories', 'whitelistTestDir');
+
         $this->assertGreaterThan(0, $attachment_id);
         $this->assertEquals('xml', $new_importer->getParser());
         $this->assertNull($new_importer->getFileSetting('base_path'));
@@ -168,7 +182,10 @@ class ImporterManagerTest extends \WP_UnitTestCase
         $new_importer->setMap('post.post_content', '{/content}');
         $new_importer->save();
 
+        add_filter('iwp/importer/local_file/allowed_directories', 'whitelistTestDir');
         $manager->local_file($new_importer, IWP_TEST_ROOT . "/data/xml/simple.xml");
+        remove_filter('iwp/importer/local_file/allowed_directories', 'whitelistTestDir');
+
         $new_importer->setFileSetting('base_path', 'posts/post');
         $new_importer->save();
 
@@ -214,7 +231,10 @@ class ImporterManagerTest extends \WP_UnitTestCase
         $new_importer->setSetting('unique_identifier_type', '');
         $new_importer->save();
 
+        add_filter('iwp/importer/local_file/allowed_directories', 'whitelistTestDir');
         $manager->local_file($new_importer, IWP_TEST_ROOT . "/data/xml/simple.xml");
+        remove_filter('iwp/importer/local_file/allowed_directories', 'whitelistTestDir');
+
         $new_importer->setFileSetting('base_path', 'posts/post');
         $importer_id = $new_importer->save();
 
