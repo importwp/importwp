@@ -431,6 +431,24 @@ class ImporterManager
         $importer = $this->get_importer($id);
         Logger::setId($importer->getId());
 
+        $allowed_bases = apply_filters('iwp/importer/local_file/allowed_directories', [
+            realpath(WP_CONTENT_DIR)
+        ]);
+
+        $source = realpath($source);
+
+        $is_allowed = false;
+        foreach ($allowed_bases as $allowed_base) {
+            if ($allowed_base && strpos($source, $allowed_base) === 0) {
+                $is_allowed = true;
+                break;
+            }
+        }
+
+        if (!$source || !$is_allowed) {
+            return new \WP_Error('IWP_LOCAL_FILE_1', __('Access to this file path is not allowed.', 'jc-importer'));
+        }
+
         $allowed_file_types = $this->event_handler->run('importer.allowed_file_types', [$importer->getAllowedFileTypes()]);
         $prefix = $this->get_importer_file_prefix($importer);
         $result = $this->filesystem->copy_file($source, $allowed_file_types, null, $prefix, $filetype);
