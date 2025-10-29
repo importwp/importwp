@@ -788,6 +788,8 @@ class PostTemplate extends Template implements TemplateInterface
             }
 
             foreach ($sub_rows as $row) {
+
+                $row = $this->process_attachment_meta_permissions($row, $data, $group, $permission_key, $row_prefix);
                 $ids = $this->process_attachment($post_id, $row, $row_prefix, $filesystem, $ftp, $attachment);
                 $attachment_ids = array_merge($attachment_ids, $ids);
             }
@@ -1142,6 +1144,12 @@ class PostTemplate extends Template implements TemplateInterface
             $permission_fields['attachments'] = [];
             for ($i = 0; $i < $field_map['attachments._index']; $i++) {
                 $permission_fields['attachments']['attachments.' . $i] = 'Attachment Row ' . ($i + 1);
+
+                // Meta fields
+                $permission_fields['attachments']['attachments.' . $i . '._alt'] = 'Attachment Row ' . ($i + 1) . ' - Alt Text';
+                $permission_fields['attachments']['attachments.' . $i . '._title'] = 'Attachment Row ' . ($i + 1) . ' - Title Text';
+                $permission_fields['attachments']['attachments.' . $i . '._caption'] = 'Attachment Row ' . ($i + 1) . ' - Caption Text';
+                $permission_fields['attachments']['attachments.' . $i . '._description'] = 'Attachment Row ' . ($i + 1) . ' - Description Text';
             }
         }
 
