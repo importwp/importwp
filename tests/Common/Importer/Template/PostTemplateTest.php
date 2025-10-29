@@ -200,7 +200,7 @@ class PostTemplateTest extends \WP_UnitTestCase
          */
         $mock_mapper = $this->createPartialMock(PostMapper::class, ['permission']);
 
-        $parsed_data = new ParsedData();
+        $parsed_data = new ParsedData($mock_mapper);
         $parsed_data->add($attachment_data, 'attachments');
 
         /**
