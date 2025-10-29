@@ -142,6 +142,7 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 * ADD - Extend addon api to make handling group data easier.
 * FIX - Fix CVE-2025-12137 vulnerability reported by Wordfence, local file imports that are fetched from outside the wordpress directory now require to be whitelisted using the `iwp/importer/local_file/allowed_directories` filter.
+* ADD - Add permission fields for attachment meta data (title, caption, alt, description).
 
 = 2.14.16 =
 
