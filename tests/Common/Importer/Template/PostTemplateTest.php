@@ -104,7 +104,20 @@ class PostTemplateTest extends \WP_UnitTestCase
 
         $template = new PostTemplate(new EventHandler());
         $post_id = $this->factory()->post->create();
-        $parsed_data = new ParsedData($this->createMock(PostMapper::class));
+
+        /**
+         * @var \PHPUnit\Framework\MockObject\MockObject | PostMapper
+         */
+        $mock_mapper = $this->createPartialMock(PostMapper::class, ['permission']);
+        $parsed_data = new ParsedData($mock_mapper);
+
+        /**
+         * @var \PHPUnit\Framework\MockObject\MockObject | Permission
+         */
+        $mock_permissions = $this->createPartialMock(Permission::class, ['validate']);
+        $mock_permissions->method('validate')->willReturnArgument(0);
+
+        $mock_mapper->method('permission')->willReturn($mock_permissions);
         $parsed_data->add($attachment_data, 'attachments');
 
         /**
@@ -132,8 +145,22 @@ class PostTemplateTest extends \WP_UnitTestCase
 
         $template = new PostTemplate(new EventHandler());
         $post_id = $this->factory()->post->create();
-        $parsed_data = new ParsedData($this->createMock(PostMapper::class));
+
+        /**
+         * @var \PHPUnit\Framework\MockObject\MockObject | PostMapper
+         */
+        $mock_mapper = $this->createPartialMock(PostMapper::class, ['permission']);
+
+        $parsed_data = new ParsedData($mock_mapper);
         $parsed_data->add($attachment_data, 'attachments');
+
+        /**
+         * @var \PHPUnit\Framework\MockObject\MockObject | Permission
+         */
+        $mock_permissions = $this->createPartialMock(Permission::class, ['validate']);
+        $mock_permissions->method('validate')->willReturnArgument(0);
+
+        $mock_mapper->method('permission')->willReturn($mock_permissions);
 
         /**
          * @var \PHPUnit\Framework\MockObject\MockObject | Filesystem
@@ -167,8 +194,22 @@ class PostTemplateTest extends \WP_UnitTestCase
 
         $template = new PostTemplate(new EventHandler());
         $post_id = $this->factory()->post->create();
-        $parsed_data = new ParsedData($this->createMock(PostMapper::class));
+
+        /**
+         * @var \PHPUnit\Framework\MockObject\MockObject | PostMapper
+         */
+        $mock_mapper = $this->createPartialMock(PostMapper::class, ['permission']);
+
+        $parsed_data = new ParsedData();
         $parsed_data->add($attachment_data, 'attachments');
+
+        /**
+         * @var \PHPUnit\Framework\MockObject\MockObject | Permission
+         */
+        $mock_permissions = $this->createPartialMock(Permission::class, ['validate']);
+        $mock_permissions->method('validate')->willReturnArgument(0);
+
+        $mock_mapper->method('permission')->willReturn($mock_permissions);
 
         /**
          * @var \PHPUnit\Framework\MockObject\MockObject | Filesystem
@@ -195,8 +236,22 @@ class PostTemplateTest extends \WP_UnitTestCase
 
         $template = new PostTemplate(new EventHandler());
         $post_id = $this->factory()->post->create();
-        $parsed_data = new ParsedData($this->createMock(PostMapper::class));
+
+        /**
+         * @var \PHPUnit\Framework\MockObject\MockObject | PostMapper
+         */
+        $mock_mapper = $this->createPartialMock(PostMapper::class, ['permission']);
+
+        $parsed_data = new ParsedData($mock_mapper);
         $parsed_data->add($attachment_data, 'attachments');
+
+        /**
+         * @var \PHPUnit\Framework\MockObject\MockObject | Permission
+         */
+        $mock_permissions = $this->createPartialMock(Permission::class, ['validate']);
+        $mock_permissions->method('validate')->willReturnArgument(0);
+
+        $mock_mapper->method('permission')->willReturn($mock_permissions);
 
         /**
          * @var \PHPUnit\Framework\MockObject\MockObject | Filesystem
