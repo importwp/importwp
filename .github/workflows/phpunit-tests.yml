@@ -3,6 +3,7 @@ name: PHPUnit Tests
 on:
   push:
     branches:
+      - master
       - dev
 
 jobs:
