@@ -1,0 +1,98 @@
+<svg id="Robot" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+      }
+
+      .cls-1, .cls-6, .cls-7 {
+        stroke: #fff;
+        stroke-width: 1px;
+      }
+
+      .cls-2 {
+        fill: #279d77;
+      }
+
+      .cls-10, .cls-11, .cls-2, .cls-3, .cls-4, .cls-7, .cls-8, .cls-9 {
+        fill-rule: evenodd;
+      }
+
+      .cls-3 {
+        fill: #22c48f;
+      }
+
+      .cls-5 {
+        filter: url(#filter);
+      }
+
+      .cls-11, .cls-6, .cls-7 {
+        fill: #cc5c56;
+      }
+
+      .cls-8 {
+        fill: none;
+        stroke: #cc5c56;
+        stroke-width: 10px;
+      }
+
+      .cls-9 {
+        fill: #36565e;
+      }
+
+      .cls-10 {
+        fill: #85a1a8;
+      }
+    </style>
+    <filter id="filter" filterUnits="userSpaceOnUse">
+      <feFlood result="flood" flood-color="#b4c8cd"/>
+      <feComposite result="composite" operator="in" in2="SourceGraphic"/>
+      <feBlend result="blend" in2="SourceGraphic"/>
+    </filter>
+  </defs>
+  <g id="Group_3_copy_2" data-name="Group 3 copy 2">
+    <circle id="Ellipse_4_copy_4" data-name="Ellipse 4 copy 4" class="cls-1" cx="256.281" cy="259.781" r="238.094"/>
+  </g>
+  <g id="Char">
+    <g id="Head">
+      <path class="cls-2" d="M210.124,83.536H378.511a42,42,0,0,1,42,42V293.924a42,42,0,0,1-42,42H210.124a42,42,0,0,1-42-42V125.536A42,42,0,0,1,210.124,83.536Z"/>
+      <path class="cls-2" d="M416.486,306.077l-23,56.354-28.752,1.15,12.651-65.555Z"/>
+      <path class="cls-2" d="M203.721,85.261l-60.954,25.3-8.051,35.652,85.106-4.6-5.75-52.9Z"/>
+      <path id="Rectangle_1_copy_2" data-name="Rectangle 1 copy 2" class="cls-3" d="M154.29,106.538H355.51a42,42,0,0,1,42,42v201.22a42,42,0,0,1-42,42H154.29a42,42,0,0,1-42-42V148.538A42,42,0,0,1,154.29,106.538Z"/>
+      <path id="Rectangle_1_copy" data-name="Rectangle 1 copy" class="cls-4" d="M154.739,148.987H355.061V349.309H154.739V148.987Z"/>
+    </g>
+    <g class="cls-5">
+      <g id="Eyes">
+        <circle id="Ellipse_3_copy_2" data-name="Ellipse 3 copy 2" class="cls-6" cx="303.438" cy="222.734" r="23.844"/>
+        <path id="Ellipse_3_copy_3" data-name="Ellipse 3 copy 3" class="cls-7" d="M207.035,198.889a23.848,23.848,0,1,1-23.848,23.848A23.848,23.848,0,0,1,207.035,198.889Z"/>
+      </g>
+      <path class="cls-8" d="M184.17,280.775H326.78v18.4H184.17v-18.4Z"/>
+    </g>
+    <g id="Arms">
+      <g id="Arm_L" data-name="Arm L">
+        <path id="Shape_17_copy" data-name="Shape 17 copy" class="cls-9" d="M112.865,219.821v57.5S55.483,320.088,81.812,392.333l-24.152,20.7S-10.352,298.9,112.865,219.821Z"/>
+      </g>
+      <g id="Arm_R" data-name="Arm R">
+        <path class="cls-9" d="M413.036,230.171s-16.944-.108-9.2,48.3c0,0,57.382,45.063,31.052,117.308l20.7,19.551S513.245,305.993,413.036,230.171Z"/>
+      </g>
+      <g id="Hand_R" data-name="Hand R">
+        <path class="cls-10" d="M445.238,400.383l-34.5-18.4-12.651,12.651-3.451,23,29.9,27.6s12.656,12.669,6.9,26.452c17.375-10.758,37.953-23,37.953-23l2.3-18.4Z"/>
+        <g class="cls-5">
+          <path class="cls-11" d="M361.282,431.436s-9.484-13.876,2.3-27.6l34.5-24.152,4.6,8.05-4.6,27.6-28.752,18.4Z"/>
+          <path class="cls-11" d="M369.333,438.336l34.5-20.7-9.2-8.05-32.2,21.852Z"/>
+          <path id="Shape_18_copy" data-name="Shape 18 copy" class="cls-11" d="M422.236,487.789l32.2-18.4-9.2-12.651-32.2,21.852Z"/>
+          <path class="cls-11" d="M403.835,416.484s-14.768-56.1,37.953-9.2,4.6,49.453,4.6,49.453-3.572,11.381,6.9,12.651c49.027-11.8,13.8-57.5,13.8-57.5l-37.953-33.352s-48.123-15.473-35.653,29.9Z"/>
+        </g>
+      </g>
+      <g id="Hand_L" data-name="Hand L">
+        <path class="cls-10" d="M70.312,400.383l34.5-18.4,12.651,12.651,3.45,23-29.9,27.6s-12.656,12.669-6.9,26.452c-17.374-10.758-37.953-23-37.953-23l-2.3-18.4Z"/>
+        <g class="cls-5">
+          <path class="cls-11" d="M154.268,431.436s9.484-13.876-2.3-27.6l-34.5-24.152-4.6,8.05,4.6,27.6,28.752,18.4Z"/>
+          <path class="cls-11" d="M146.217,438.336l-34.5-20.7,9.2-8.05,32.2,21.852Z"/>
+          <path id="Shape_18_copy-2" data-name="Shape 18 copy" class="cls-11" d="M93.313,487.789l-32.2-18.4,9.2-12.651,32.2,21.852Z"/>
+          <path class="cls-11" d="M111.715,416.484s14.768-56.1-37.953-9.2-4.6,49.453-4.6,49.453,3.573,11.381-6.9,12.651c-49.027-11.8-13.8-57.5-13.8-57.5l37.953-33.352s48.123-15.473,35.652,29.9Z"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

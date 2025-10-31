@@ -1,0 +1,26 @@
+.iwp-dropdown {
+  &__menu {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  &__item {
+    margin: 0;
+    border-top: 1px solid #3d4348;
+    font-size: 12px;
+
+    &:first-child {
+      border-top: none;
+    }
+
+    a {
+      padding: 4px 10px;
+      display: block;
+      color: #fff;
+      &:hover {
+        background: #40464c;
+        cursor: pointer;
+      }
+    }
+  }
+}

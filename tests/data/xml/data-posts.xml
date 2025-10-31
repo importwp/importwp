@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<posts>
+    <post>
+        <title>Post One</title>
+        <slug>post-one-123</slug>
+        <content>This is the post one's content</content>
+        <excerpt>This is the post one's excerpt</excerpt>
+        <status>publish</status>
+        <categories>
+            <category>Wordpress</category>
+            <category>CakePHP</category>
+            <category>PHP</category>
+            <category>Javascript</category>
+        </categories>
+        <tags>submenu, scripts, toast</tags>
+    </post>
+    <post>
+        <title>Post Two</title>
+        <slug>post-two-234</slug>
+        <content>This is the post two's content</content>
+        <excerpt>This is the post two's excerpt</excerpt>
+        <status>publish</status>
+        <categories>
+            <category>Wordpress</category>
+            <category>CakePHP</category>
+        </categories>
+        <tags>submenu</tags>
+    </post>
+    <post>
+        <title>Post Three</title>
+        <slug>post-three-345</slug>
+        <content>This is the post three's content</content>
+        <excerpt>This is the post three's excerpt</excerpt>
+        <status>publish</status>
+        <categories>
+            <category>PHP</category>
+            <category>Javascript</category>
+        </categories>
+        <tags>scripts</tags>
+    </post>
+</posts>

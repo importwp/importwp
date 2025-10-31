@@ -1,0 +1,18 @@
+.iwp-accordion__panel {
+  border: 1px solid #e2e2e2;
+  border-top: none;
+}
+
+.iwp-accordion__handle {
+  padding: 8px 10px;
+}
+
+.iwp-accordion__content {
+  background-color: #f9f9f9;
+  border-top: 1px solid #e2e2e2;
+  padding: 0 10px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  box-sizing: border-box;
+  overflow: hidden;
+}

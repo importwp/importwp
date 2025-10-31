@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<JDBOR date="2012-06-04 04:00:50" version="1.0.16 [2012-02-02]">
+  <DisorderList count="3">
+    <Disorder>
+      <OrphaNumber>1</OrphaNumber>
+      <ExpertLink lang="en">https://placehold.co/600x400.jpg</ExpertLink>
+      <Name lang="en">Lorem Ipsum is simply dummy text  Al-Gazali type</Name>
+      <DisorderFlagList count="1">
+        <DisorderFlag id="2"/>
+      </DisorderFlagList>
+      <SynonymList count="1">
+        <Synonym lang="en">Multiple epiphyseal dysplasia - macrocephaly - distinctive facies</Synonym>
+      </SynonymList>
+      <ExternalReferenceList count="2">
+        <ExternalReference id="38949">
+          <Source>OMIM</Source>
+          <Reference>607131</Reference>
+        </ExternalReference>
+        <ExternalReference id="56147">
+          <Source>ICD10</Source>
+          <Reference>Q78.8</Reference>
+        </ExternalReference>
+      </ExternalReferenceList>
+    </Disorder>
+    <Disorder>
+      <OrphaNumber>2</OrphaNumber>
+      <ExpertLink lang="en">https://placehold.co/600x400.jpg</ExpertLink>
+      <Name lang="en">Lorem Ipsum is simply dummy text with miniepiphyses</Name>
+      <DisorderFlagList count="1">
+        <DisorderFlag id="2"/>
+      </DisorderFlagList>
+      <SynonymList count="0">
+      </SynonymList>
+      <ExternalReferenceList count="2">
+        <ExternalReference id="38953">
+          <Source>OMIM</Source>
+          <Reference>609325</Reference>
+        </ExternalReference>
+        <ExternalReference id="56145">
+          <Source>ICD10</Source>
+          <Reference>Q78.8</Reference>
+        </ExternalReference>
+      </ExternalReferenceList>
+    </Disorder>
+    <Disorder>
+      <OrphaNumber>3</OrphaNumber>
+      <ExpertLink lang="en">https://placehold.co/600x400.jpg</ExpertLink>
+      <Name lang="en">Lorem Ipsum is simply dummy text </Name>
+      <DisorderFlagList count="1">
+        <DisorderFlag id="2"/>
+      </DisorderFlagList>
+      <SynonymList count="0">
+      </SynonymList>
+      <ExternalReferenceList count="2">
+        <ExternalReference id="3649">
+          <Source>OMIM</Source>
+          <Reference>203450</Reference>
+        </ExternalReference>
+        <ExternalReference id="49220">
+          <Source>ICD10</Source>
+          <Reference>E75.2</Reference>
+        </ExternalReference>
+      </ExternalReferenceList>
+    </Disorder>
+  </DisorderList>
+</JDBOR>
