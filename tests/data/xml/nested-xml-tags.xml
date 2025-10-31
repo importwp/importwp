@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Events>
+    <Event>
+        <Id>123</Id>
+        <Instances>
+            <Instance>
+                <Event>
+                    <Id>123</Id>
+                </Event>
+                <Time>Now</Time>
+            </Instance>
+        </Instances>
+    </Event>
+    <Event>
+        <Id>234</Id>
+        <Instances>
+            <Instance>
+                <Event>
+                    <Id>234</Id>
+                </Event>
+                <Time>Now</Time>
+            </Instance>
+        </Instances>
+    </Event>
+</Events>

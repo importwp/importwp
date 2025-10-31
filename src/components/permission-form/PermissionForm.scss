@@ -1,0 +1,42 @@
+@mixin clearfix {
+  &:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
+
+.iwp- {
+  &permission__block {
+    border: 1px solid #e2e2e2;
+    border-top: none;
+    &--create,
+    &--first {
+      border-top: 1px solid #e2e2e2;
+    }
+
+    .iwp-field {
+      @include clearfix;
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
+  &block {
+    &__handle {
+      padding: 8px 10px;
+    }
+    &__content {
+      background-color: #f9f9f9;
+      border-top: 1px solid #e2e2e2;
+      padding: 0 10px;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+      @include clearfix;
+
+      p {
+        padding: 0;
+      }
+    }
+  }
+}

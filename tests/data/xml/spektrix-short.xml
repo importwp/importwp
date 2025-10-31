@@ -1,0 +1,61 @@
+<Events xmlns="http://system.spektrix.com/api/v1/events"
+    xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+    <Event>
+        <Attributes>
+            <EventAttribute>
+                <Name>Location for Website</Name>
+                <Value>Theatre</Value>
+            </EventAttribute>
+            <EventAttribute>
+                <Name>Price for Website</Name>
+                <Value>Tickets £10</Value>
+            </EventAttribute>
+            <EventAttribute>
+                <Name>Event Prefix</Name>
+                <Value/>
+            </EventAttribute>
+            <EventAttribute>
+                <Name>Event Suffix</Name>
+                <Value/>
+            </EventAttribute>
+            <EventAttribute>
+                <Name>Long Event Name Text 1</Name>
+                <Value/>
+            </EventAttribute>
+            <EventAttribute>
+                <Name>Long Event Name Text 2</Name>
+                <Value/>
+            </EventAttribute>
+            <EventAttribute>
+                <Name>Website Category</Name>
+                <Value/>
+            </EventAttribute>
+        </Attributes>
+        <Description>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</Description>
+        <Duration>0</Duration>
+        <FirstInstance>2019-08-17T20:00:00</FirstInstance>
+        <Html/>
+        <Id>90802</Id>
+        <ImageUrl>https://placehold.co/600x400.jpg</ImageUrl>
+        <LastInstance>2019-08-17T20:00:00</LastInstance>
+        <Name>Therapy Room</Name>
+        <OnSaleOnWeb>true</OnSaleOnWeb>
+        <ThumbnailUrl>https://placehold.co/600x400.jpg</ThumbnailUrl>
+        <Times>
+            <EventTime>
+                <Attributes i:nil="true"/>
+                <Capacity>406</Capacity>
+                <EventInstanceId>119801</EventInstanceId>
+                <OnSaleOnWeb>true</OnSaleOnWeb>
+                <SeatsAvailable>162</SeatsAvailable>
+                <SeatsLocked>38</SeatsLocked>
+                <SeatsReserved>0</SeatsReserved>
+                <SeatsSelected>0</SeatsSelected>
+                <SeatsSold>206</SeatsSold>
+                <Time>2019-08-17T20:00:00</Time>
+                <WebInstanceId i:nil="true"/>
+            </EventTime>
+        </Times>
+        <WebEventId i:nil="true"/>
+    </Event>
+</Events>

@@ -1,0 +1,53 @@
+.iwp-tabs {
+  &--center {
+    text-align: center;
+  }
+
+  &__tab {
+    display: inline-block;
+
+    a {
+      text-decoration: none;
+      color: #444;
+      padding: 5px 10px;
+      margin: 0 5px 10px;
+      border: 1px solid #e2e4e7;
+      border-radius: 12px;
+
+      &:hover {
+        background: #e2e4e7;
+      }
+
+      &:focus {
+        outline: none;
+      }
+    }
+
+    &--active {
+      a,
+      a:focus {
+        color: #22c48f;
+        background: #fff;
+      }
+    }
+  }
+}
+
+.iwp-form__grid {
+  &:after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+}
+.iwp-form__col {
+  float: left;
+  width: 50%;
+  box-sizing: border-box;
+  &--first {
+    padding-right: 5px;
+  }
+  &--last {
+    padding-left: 5px;
+  }
+}

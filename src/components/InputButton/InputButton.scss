@@ -1,0 +1,70 @@
+.iwp-input-button {
+  cursor: pointer;
+  border-radius: 3px;
+  text-decoration: none;
+  min-height: 30px;
+  margin: 0;
+  padding: 0 10px;
+  white-space: nowrap;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+
+  &[disabled] {
+    color: #a7aaad !important;
+    border-color: #dcdcde !important;
+    background: #f6f7f7 !important;
+    cursor: not-allowed;
+  }
+
+  .spinner {
+    margin: 0 0 0 10px;
+  }
+}
+
+.iwp-input-button--primary {
+  color: #fff;
+  background: #22c48f;
+  border: 1px solid #279d77;
+  text-shadow: 0 -1px 1px #279d77, 1px 0 1px #279d77, 0 1px 1px #279d77,
+    -1px 0 1px #279d77;
+
+  &:hover {
+    background: #739e73;
+    border-color: #279d77;
+    color: #fff;
+  }
+
+  &[disabled] {
+    color: #c3d5c3 !important;
+    background: #22c48f !important;
+    border-color: #279d77 !important;
+  }
+
+  .spinner {
+    background: url(../../img/loading.gif);
+    background-size: 20px 20px;
+  }
+}
+
+.iwp-input-button--secondary {
+  border-color: #22c48f;
+  color: #22c48f;
+  background: #f6f7f7;
+  &:hover {
+    background: #fff;
+    border-color: #279d77;
+    color: #279d77;
+  }
+}
+
+.iwp-input-button--link {
+  border-color: none;
+  color: #22c48f;
+  background: none;
+  text-decoration: underline;
+  &:hover {
+    background: none;
+    border-color: none;
+    color: #279d77;
+  }
+}
