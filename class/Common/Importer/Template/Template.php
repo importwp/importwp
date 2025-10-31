@@ -1036,6 +1036,45 @@ class Template extends AbstractTemplate
     }
 
     /**
+     * Remove custom field meta fields from the provided array based on importer permissions.
+     * 
+     * @param string[string] $custom_fields 
+     * @param ParsedData $data 
+     * @param string $group_name 
+     * @param string $permission_key 
+     * @param string $prefix 
+     * @return string[string] 
+     */
+    public function process_attachment_meta_permissions($custom_fields, $data, $group_name, $permission_key, $prefix)
+    {
+        $allowed = $data->permission()->validate([
+            $permission_key . '._alt' => '',
+            $permission_key . '._title' => '',
+            $permission_key . '._caption' => '',
+            $permission_key . '._description' => ''
+        ], $data->getMethod(), $group_name);
+
+        if (!isset($allowed[$permission_key . '._alt'])) {
+            // remove alt
+            unset($custom_fields[$prefix . 'settings._meta._alt']);
+        }
+        if (!isset($allowed[$permission_key . '._title'])) {
+            // remove title
+            unset($custom_fields[$prefix . 'settings._meta._title']);
+        }
+        if (!isset($allowed[$permission_key . '._caption'])) {
+            // remove caption
+            unset($custom_fields[$prefix . 'settings._meta._caption']);
+        }
+        if (!isset($allowed[$permission_key . '._description'])) {
+            // remove description
+            unset($custom_fields[$prefix . 'settings._meta._description']);
+        }
+
+        return $custom_fields;
+    }
+
+    /**
      * Add error message
      *
      * @param string|\WP_Error $error
