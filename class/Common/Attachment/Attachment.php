@@ -99,7 +99,6 @@ class Attachment
 
                     // escape if we are only matching the filename
                     $post_id = $result->post_id;
-                    break;
                 }
             }
         }
