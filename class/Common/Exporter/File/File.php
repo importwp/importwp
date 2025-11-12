@@ -77,6 +77,22 @@ class File
             mkdir($path);
         }
 
+        if (!file_exists($path . '/.htaccess')) {
+            file_put_contents($path . '/.htaccess', "# Apache 2.4+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+
+# Apache 2.2 and older (or when mod_authz_core isn't available)
+<IfModule !mod_authz_core.c>
+    Deny from all
+</IfModule>");
+        }
+
+        if (!file_exists($path . '/index.html')) {
+            touch($path . '/index.html');
+        }
+
         return $path . '/' . $this->get_file_name();
     }
 
