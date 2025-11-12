@@ -283,7 +283,15 @@ class ImporterManager
         }
 
         if (!file_exists($path . '/.htaccess')) {
-            file_put_contents($path . '/.htaccess', 'deny from all');
+            file_put_contents($path . '/.htaccess', "# Apache 2.4+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+
+# Apache 2.2 and older (or when mod_authz_core isn't available)
+<IfModule !mod_authz_core.c>
+    Deny from all
+</IfModule>");
         }
 
         if (!file_exists($path . '/index.html')) {

@@ -4,7 +4,7 @@ Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed, import
 Requires at least: 4.0  
 Tested up to: 6.8  
 Requires PHP: 5.6  
-Stable tag: 2.14.17  
+Stable tag: 2.14.18  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -137,6 +137,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.14.18 =
+
+* FIX - Fix CVE-2025-12894 vulnerability reported by Wordfence, by restricting access to debug log files, session data, and export files.
+* FIX - Update local media attachment finder to use complete match over partial matches.
 
 = 2.14.17 =
 
