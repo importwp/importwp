@@ -658,24 +658,24 @@ WHERE `i`.id = %d AND `i`.`status` = 'R' AND (`q`.`type` IN ('S','D','P') AND `q
             foreach ($rows as $row) {
 
                 if ($row['type'] == 'I') {
-                    $stats['import_total'] += $row['count'];
+                    $stats['import_total'] += intval($row['count']);
                 } elseif ($row['type'] == 'R') {
-                    $stats['delete_total'] += $row['count'];
+                    $stats['delete_total'] += intval($row['count']);
                 }
 
                 if (!empty($row['data'])) {
 
                     if (in_array($row['data'], ['I', 'U'])) {
-                        $stats['import'] += $row['count'];
+                        $stats['import'] += intval($row['count']);
                     } elseif (in_array($row['data'], ['N', 'E'])) {
-                        $stats['error'] += $row['count'];
+                        $stats['error'] += intval($row['count']);
                     } elseif ($row['data'] == 'S') {
-                        $stats['skips'] += $row['count'];
+                        $stats['skips'] += intval($row['count']);
                     } else {
-                        $stats['delete'] += $row['count'];
+                        $stats['delete'] += intval($row['count']);
                     }
 
-                    $stats[$row['data']] = $row['count'];
+                    $stats[$row['data']] = intval($row['count']);
                 }
             }
         }
