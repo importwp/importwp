@@ -254,12 +254,15 @@ class Filesystem
         $base = $url ? $dir['baseurl'] : $dir['basedir'];
         $ds = $url ? '/' : DIRECTORY_SEPARATOR;
         $path = $base . $ds . $folder;
-        if (!is_dir($path)) {
-            mkdir($path);
+
+        // create folders and files if required, force to be dir path instead of url.
+        $dir_path = $dir['basedir'] . DIRECTORY_SEPARATOR . $folder;
+        if (!is_dir($dir_path)) {
+            mkdir($dir_path);
         }
 
-        if (!file_exists($path . '/.htaccess')) {
-            file_put_contents($path . '/.htaccess', "# Apache 2.4+
+        if (!file_exists($dir_path . '/.htaccess')) {
+            file_put_contents($dir_path . '/.htaccess', "# Apache 2.4+
 <IfModule mod_authz_core.c>
     Require all denied
 </IfModule>
@@ -270,8 +273,8 @@ class Filesystem
 </IfModule>");
         }
 
-        if (!file_exists($path . '/index.html')) {
-            touch($path . '/index.html');
+        if (!file_exists($dir_path . '/index.html')) {
+            touch($dir_path . '/index.html');
         }
 
         return $path;
