@@ -31,6 +31,10 @@ use ImportWP\Common\Util\Logger;
 use ImportWP\Common\Util\Util;
 use ImportWP\Container;
 use ImportWP\EventHandler;
+use ImportWP\Common\Queue\Queue;
+use ImportWP\Common\Queue\QueueConfig;
+use ImportWP\Common\Queue\QueueTask;
+use ImportWP\Common\Util\DB;
 
 class ImporterManager
 {
@@ -48,7 +52,7 @@ class ImporterManager
     /**
      * @var EventHandler $event_handler
      */
-    protected $event_handler;
+    public $event_handler;
 
     public function __construct(Filesystem $filesystem, TemplateManager $template_manager, EventHandler $event_handler)
     {
@@ -134,6 +138,10 @@ class ImporterManager
     public function delete_importer($id)
     {
         $importer = $this->get_importer($id);
+        $this->prune_importer_logs($importer, 0);
+        $importer->limit_importer_files(0);
+        $this->clear_config_files($id);
+        $this->clear_config_files($id, true);
         $importer->delete();
     }
 
@@ -556,7 +564,7 @@ class ImporterManager
         $base = $this->filesystem->get_temp_directory() . DIRECTORY_SEPARATOR;
 
         $base .= str_pad($id, 2, STR_PAD_LEFT) . DIRECTORY_SEPARATOR;
-        if (!file_exists($base)) {
+        if (!Queue::is_enabled($id) && !file_exists($base)) {
             if (!is_writable(dirname($base)) || !mkdir($base)) {
                 throw new \Exception(sprintf(__("Unable to create directory: %s", 'jc-importer'), $base));
             }
@@ -564,7 +572,7 @@ class ImporterManager
 
         for ($i = 0; $i < ceil(strlen($session) / 2); $i++) {
             $base .= substr($session, $i * 2, 2) . DIRECTORY_SEPARATOR;
-            if (!file_exists($base)) {
+            if (!Queue::is_enabled($id) && !file_exists($base)) {
 
                 if (!is_writable(dirname($base)) || !mkdir($base)) {
                     throw new \Exception(sprintf(__("Unable to create directory: %s", 'jc-importer'), $base));
@@ -594,6 +602,12 @@ class ImporterManager
 
     public function import($id, $user, $session = null)
     {
+
+        // remove polyfill
+        if (has_action('update_postmeta', 'iwp_cron_polyfill')) {
+            remove_action('update_postmeta', 'iwp_cron_polyfill');
+        }
+
         Logger::timer();
 
         $importer_data = $this->get_importer($id);
@@ -602,7 +616,65 @@ class ImporterManager
         // store current importer
         iwp()->importer = $importer_data;
 
-        $config_data = get_option('iwp_importer_config_' . $importer_id, []);
+        $config_data = get_site_option('iwp_importer_config_' . $importer_id, []);
+
+        // If session is string then it has just been created,
+        // or we are running an old style import.
+
+        $session_map = false;
+
+        if (intval($session) != $session) {
+
+            // TODO: use session map getting status
+            $session_map = get_option('iwp_legacy_session');
+            if ($session_map && $session_map['session'] == $session) {
+                $session = $session_map['id'];
+            } else {
+
+                /**
+                 * @var \WPDB $wpdb
+                 */
+                global $wpdb;
+
+                $key = 'iwp_importer_state_' . $importer_id;
+
+                if (is_multisite()) {
+                    $query = $wpdb->prepare("SELECT meta_value as `data` FROM {$wpdb->sitemeta} WHERE site_id=%s AND meta_key=%s LIMIT 1", [$wpdb->siteid, $key]);
+                } else {
+                    $query = $wpdb->prepare("SELECT option_value as `data` FROM {$wpdb->options} WHERE option_name=%s LIMIT 1", [$key]);
+                }
+
+                $result = $wpdb->get_row($query, ARRAY_A);
+                $pre_queue = false;
+                if ($result) {
+                    $result = maybe_unserialize($result['data']);
+                    if ($result['id'] == $session && in_array($result['status'], ['running', 'timeout'])) {
+                        $pre_queue = true;
+                    }
+                }
+
+                if (!$pre_queue) {
+                    $session_map = [
+                        'session' => $session,
+                        'id' => Queue::create($importer_id)
+                    ];
+                    update_option('iwp_legacy_session', $session_map);
+                    $session = $session_map['id'];
+                }
+            }
+        }
+
+        if (Queue::is_enabled($importer_id)) {
+
+            //TODO: if session matches _iwp_session, and we havent added teh record into the importer, then we do it now.
+            $queue = new Queue();
+            $queue_task = new QueueTask($this);
+            $result = $queue->process($session, $queue_task);
+            $status = Queue::get_status_message($session);
+            $status['chunks'] = $result;
+            return $status;
+        }
+
 
         $this->event_handler->run('importer_manager.import', [$importer_data]);
 
@@ -740,7 +812,17 @@ class ImporterManager
                 $config_data['start'] = $this->get_start($importer_data, $start);
                 $config_data['end'] = $this->get_end($importer_data, $config_data['start'], $end);
 
-                update_option('iwp_importer_config_' . $importer_id, $config_data);
+                // if queue is enabled
+                if (isset($config_data['features'], $config_data['features']['queue']) && $config_data['features']['queue'] === 1) {
+                    $queue = new Queue;
+                    $queue->generate($session, new QueueConfig(
+                        $config,
+                        $config_data['start'],
+                        $config_data['end']
+                    ));
+                }
+
+                update_site_option('iwp_importer_config_' . $importer_id, $config_data);
 
                 Logger::debug('IM -update_state');
                 $state->update(function ($state) use ($config_data) {
@@ -977,11 +1059,23 @@ class ImporterManager
             return;
         }
 
-        $file_path = Util::get_importer_status_file_path($importer_model->getId());
-        $tmp_file_path = Util::get_importer_status_file_path($importer_model->getId()) . '.tmp';
         $lines = $this->get_importer_logs($importer_model);
+        $importer_id = $importer_model->getId();
 
         if (count($lines) > $limit) {
+
+            $records_found = 0;
+
+            if (Queue::is_enabled($importer_id)) {
+                $records_found = Queue::prune_logs($importer_id, $limit);
+            }
+
+            $limit -= $records_found;
+
+            // Remove legacy log files
+
+            $file_path = Util::get_importer_status_file_path($importer_id);
+            $tmp_file_path = Util::get_importer_status_file_path($importer_id) . '.tmp';
 
             require_once(ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php');
             require_once(ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php');
@@ -991,7 +1085,7 @@ class ImporterManager
             for ($i = 0; $i < count($lines); $i++) {
 
                 if ($i < count($lines) - $limit) {
-                    $log_file_path = Util::get_importer_log_file_path($importer_model->getId(), $lines[$i]['id']);
+                    $log_file_path = Util::get_importer_log_file_path($importer_id, $lines[$i]['id']);
                     if ($fileSystemDirect->exists($log_file_path)) {
 
                         $fileSystemDirect->delete($log_file_path);
@@ -1031,6 +1125,19 @@ class ImporterManager
             $end =  $start + $per_page;
         }
 
+        /**
+         * @var \WPDB $wpdb
+         */
+        global $wpdb;
+        $table_name = DB::get_table_name('import');
+
+        if (Queue::is_enabled($importer_data->getId())) {
+            if ($per_page > 0) {
+                $queue_count = intval($wpdb->get_var("SELECT COUNT(*) FROM {$table_name} WHERE importer_id={$importer_data->getId()}"));
+                $end += $queue_count;
+            }
+        }
+
         if (file_exists($file_path)) {
             $fh = fopen($file_path, 'r');
             if ($fh !== false) {
@@ -1050,13 +1157,30 @@ class ImporterManager
                 fclose($fh);
             }
         }
+
+        if (Queue::is_enabled($importer_data->getId())) {
+            $import_ids = $wpdb->get_col("SELECT `id` FROM {$table_name} WHERE importer_id={$importer_data->getId()}");
+
+            // Remove conflicting legacy status files
+            $lines = array_filter($lines, function ($item) use ($import_ids) {
+
+                if (!$item['id'] || in_array($item['id'], $import_ids)) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            foreach ($import_ids as $import_id) {
+                $lines[] = Queue::get_status_message($import_id);
+            }
+        }
+
         return $lines;
     }
 
     public function get_importer_log(ImporterModel $importer_data, $session_id, $page = 0, $per_page = -1)
     {
-        $file_path = Util::get_importer_log_file_path($importer_data->getId(), $session_id);
-
         $line_counter = 0;
         $lines = [];
         $start = $end = -1;
@@ -1065,6 +1189,59 @@ class ImporterManager
             $start = ($page - 1) * $per_page;
             $end =  $start + $per_page;
         }
+
+        if (Queue::is_enabled($importer_data->getId())) {
+
+            $show_error_types = ['S', 'D', 'P'];
+
+            /**
+             * @var \WPDB $wpdb
+             */
+            global $wpdb;
+            $table_name = DB::get_table_name('queue');
+
+            $query = "SELECT `data`, `type`, `pos`, (
+    CASE
+        WHEN `status` = 'Y' THEN `message`
+        ELSE (SELECT message FROM wp_iwp_queue_errors WHERE queue_id = {$table_name}.id LIMIT 1)
+    END
+) AS `message`
+FROM {$table_name} 
+WHERE `import_id`={$session_id} AND ( `type` IN ('I','R') OR (`type` IN ('" . implode("','", $show_error_types) . "') AND `status` = 'E' ) ) AND `status` != 'Q'";
+
+            if ($per_page > 0) {
+                $query .= ' LIMIT ' . $per_page . ' OFFSET ' . (($page - 1) * $per_page);
+            }
+
+            $rows = $wpdb->get_results($query, ARRAY_A);
+            foreach ($rows as $i => $row) {
+
+                $message = $row['message'];
+
+
+                switch ($row['type']) {
+                    case 'S':
+                        $message = 'Importer Startup Error: ' . $message;
+                        break;
+                    case 'D':
+                        $message = 'Importer Deletion Error: ' . $message;
+                        break;
+                    case 'P':
+                        $message = 'Importer Completion Error: ' . $message;
+                        break;
+                }
+
+                $lines[] = [
+                    $row['pos'],
+                    $row['data'],
+                    $message
+                ];
+            }
+
+            return $lines;
+        }
+
+        $file_path = Util::get_importer_log_file_path($importer_data->getId(), $session_id);
 
         if (file_exists($file_path)) {
             $fh = fopen($file_path, 'r');

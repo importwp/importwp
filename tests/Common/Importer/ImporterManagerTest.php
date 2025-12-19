@@ -241,10 +241,7 @@ class ImporterManagerTest extends \WP_UnitTestCase
         // test update
         $user = uniqid('wptest');
 
-        // NOTE: For some reason we need a sleep for this test to pass.
-        sleep(1);
-
-        $session = md5($new_importer->getId() . time());
+        $session = md5($new_importer->getId() . time() . '_1');
         update_post_meta($new_importer->getId(), '_iwp_session', $session);
         $status = $manager->import($new_importer, $user, $session);
         $this->assertEquals([
@@ -265,11 +262,8 @@ class ImporterManagerTest extends \WP_UnitTestCase
         $new_importer->setPermission('remove', ['enabled' => true]);
         $new_importer->save();
 
-        // NOTE: For some reason we need a sleep for this test to pass.
-        sleep(1);
-
         // test update
-        $session = md5($new_importer->getId() . time());
+        $session = md5($new_importer->getId() . time() . '_2');
         update_post_meta($new_importer->getId(), '_iwp_session', $session);
         $status = $manager->import($new_importer, $user, $session);
 
@@ -288,11 +282,8 @@ class ImporterManagerTest extends \WP_UnitTestCase
         $new_importer->setPermission('update', ['enabled' => true]);
         $new_importer->save();
 
-        // NOTE: For some reason we need a sleep for this test to pass.
-        sleep(1);
-
         // test update
-        $session = md5($new_importer->getId() . time());
+        $session = md5($new_importer->getId() . time() . '_3');
         update_post_meta($new_importer->getId(), '_iwp_session', $session);
         $status = $manager->import($new_importer, $user, $session);
         $this->assertEquals([
@@ -312,26 +303,11 @@ class ImporterManagerTest extends \WP_UnitTestCase
         $new_importer->setPermission('remove', ['enabled' => true]);
         $new_importer->save();
 
-
-        // NOTE: For some reason we need a sleep for this test to pass.
-        sleep(1);
-
         // test update
-        $session = md5($new_importer->getId() . time());
+        $session = md5($new_importer->getId() . time() . '_4');
         update_post_meta($new_importer->getId(), '_iwp_session', $session);
 
         $new_importer = new ImporterModel($importer_id);
-        $status = $manager->import($new_importer, $user, $session);
-        $this->assertEquals([
-            'errors' => 5,
-            'inserts' => 0,
-            'updates' => 0,
-            'deletes' => 0,
-            'skips' => 0
-        ], $status['stats']);
-
-        $this->assertEquals('running', $status['status']);
-
         $status = $manager->import($new_importer, $user, $session);
         $this->assertEquals([
             'errors' => 5,
