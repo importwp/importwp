@@ -2,9 +2,9 @@
 Contributors: jcollings,importwp  
 Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed, import
 Requires at least: 4.0  
-Tested up to: 6.8  
+Tested up to: 6.9  
 Requires PHP: 5.6  
-Stable tag: 2.14.19  
+Stable tag: 2.14.20  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -137,6 +137,10 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.14.20 =
+
+* FIX - Fix issue when importer enabled fields on term template did not clear data if the field was empty.
 
 = 2.14.19 =
 

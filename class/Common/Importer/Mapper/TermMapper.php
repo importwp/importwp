@@ -185,10 +185,6 @@ class TermMapper extends AbstractMapper implements MapperInterface
 
         $taxonomy = $this->importer->getSetting('taxonomy');
         foreach ($fields as $key => $value) {
-            //
-            if (empty($value)) {
-                continue;
-            }
             if (in_array($key, $this->_term_fields)) {
                 $args[$key] = $value;
             } else {
