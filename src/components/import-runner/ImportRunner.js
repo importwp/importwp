@@ -129,6 +129,10 @@ class ImportRunner extends Component {
           }
           // TODO: Update modal to say error has occurred.
           this.setState({
+            modalTitle: 'A fatal error has occurred.',
+            modalLoading: false,
+            modalContent: <p>Error Code: {error_code}, Error Message: {error_msg}</p>,
+            error: true,
             importer_log: [[error_code, 'I', error_msg], ...importer_log],
             cancelled: 0,
           });
