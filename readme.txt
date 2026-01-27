@@ -1,10 +1,10 @@
 === Import WP – Export and Import CSV and XML files to WordPress ===
 Contributors: jcollings,importwp  
-Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed, import
+Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed
 Requires at least: 4.0  
 Tested up to: 6.9  
 Requires PHP: 5.6  
-Stable tag: 2.14.20  
+Stable tag: 2.14.21  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -137,6 +137,10 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.14.21 =
+
+* ADD - new filter `iwp/regenerate_response_filename_ext` to force unnamed downloaded attachments to add file extension based of content type.
 
 = 2.14.20 =
 

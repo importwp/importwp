@@ -118,7 +118,10 @@ class Http
             $filename = basename($response['filename']);
             $current_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
 
-            if (empty($current_ext)) {
+            $has_allowed_extension = !empty($current_ext);
+            $has_allowed_extension = apply_filters('iwp/regenerate_response_filename_ext', $has_allowed_extension, $current_ext, $response['filename']);
+
+            if (!$has_allowed_extension) {
 
                 $content_type = wp_remote_retrieve_header($response, 'content-type');
 
@@ -128,7 +131,7 @@ class Http
                     $possible_ext = array_search($content_type, $mime_types);
                     $allowed_extensions = explode('|', $possible_ext);
 
-                    if ($possible_ext !== false && empty($current_ext) && !empty($allowed_extensions) && !in_array(strtolower($filename), $allowed_extensions)) {
+                    if ($possible_ext !== false && !$has_allowed_extension && !empty($allowed_extensions) && !in_array(strtolower($filename), $allowed_extensions)) {
                         return $filename . '.' . $allowed_extensions[0];
                     }
                 }
