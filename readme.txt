@@ -4,7 +4,7 @@ Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed
 Requires at least: 4.0  
 Tested up to: 6.9  
 Requires PHP: 5.6  
-Stable tag: 2.14.21  
+Stable tag: 2.14.22  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -137,6 +137,10 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.14.22 =
+
+* FIX - local file import restriction bypass reported by CyberKareem.
 
 = 2.14.21 =
 

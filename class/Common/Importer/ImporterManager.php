@@ -440,7 +440,7 @@ class ImporterManager
         Logger::setId($importer->getId());
 
         $allowed_bases = apply_filters('iwp/importer/local_file/allowed_directories', [
-            realpath(WP_CONTENT_DIR)
+            realpath(WP_CONTENT_DIR) . DIRECTORY_SEPARATOR
         ]);
 
         $source = realpath($source);
