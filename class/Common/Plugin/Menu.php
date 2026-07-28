@@ -135,6 +135,7 @@ class Menu
         wp_localize_script($this->properties->plugin_domain . '-bundle', 'iwp', array(
             'root' => esc_url_raw(rest_url()),
             'nonce' => wp_create_nonce('wp_rest'),
+            'download_nonce' => wp_create_nonce('iwp_export_download'),
             'admin_base' => $ajax_base,
             'ajax_base' => rest_url('/' . $this->properties->rest_namespace . '/' . $this->properties->rest_version),
             'templates' => $template_data,

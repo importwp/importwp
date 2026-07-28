@@ -339,14 +339,14 @@ const ExporterEdit = ({ id, pro = false }) => {
         {status?.status === "complete" && activeSession === status?.id && (
           <>
             <a
-              href={`${AJAX_BASE}&exporter=${id}&download=${status.file}`}
+              href={`${AJAX_BASE}&exporter=${id}&download=${status.file}&_wpnonce=${window.iwp.download_nonce}`}
               target="_blank"
               className="button button-secondary"
             >
               Download
             </a>{' '}
             <a
-              href={`${AJAX_BASE}&exporter=${id}&download=${status.file}`}
+              href={`${AJAX_BASE}&exporter=${id}&download=${status.file}&_wpnonce=${window.iwp.download_nonce}`}
               target="_blank"
               className="button button-primary"
               onClick={() => closeModal()}

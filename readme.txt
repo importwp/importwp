@@ -2,9 +2,9 @@
 Contributors: jcollings,importwp  
 Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed
 Requires at least: 4.0  
-Tested up to: 6.9  
+Tested up to: 7.0  
 Requires PHP: 5.6  
-Stable tag: 2.14.22  
+Stable tag: 2.14.23  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -137,6 +137,10 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.14.23 =
+
+* FIX - unauthenticated download of admin export files researched by Muni Nitish Kumar Yaddala.
 
 = 2.14.22 =
 

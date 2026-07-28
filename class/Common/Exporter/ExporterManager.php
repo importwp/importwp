@@ -40,7 +40,19 @@ class ExporterManager
             return;
         }
 
+        if (!is_user_logged_in() || !current_user_can('manage_options')) {
+            wp_die(esc_html__('You do not have permission to download this file.', 'jc-importer'), '', array('response' => 403));
+        }
+
+        if (!isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_key(wp_unslash($_GET['_wpnonce'])), 'iwp_export_download')) {
+            wp_die(esc_html__('Invalid download request.', 'jc-importer'), '', array('response' => 403));
+        }
+
         $exporter_data = $this->get_exporter(intval($_GET['exporter']));
+        if (!$exporter_data) {
+            wp_die(esc_html__('Invalid download request.', 'jc-importer'), '', array('response' => 403));
+        }
+
         $file = sanitize_key($_GET['download']);
 
         $download_data = get_post_meta($exporter_data->getId(), '_ewp_file_' . $file, true);
@@ -53,6 +65,16 @@ class ExporterManager
             readfile($download_data['path']);
             die();
         }
+
+        wp_die(esc_html__('Invalid download request.', 'jc-importer'), '', array('response' => 403));
+    }
+
+    /**
+     * @return string
+     */
+    protected function generate_download_key()
+    {
+        return bin2hex(random_bytes(16));
     }
 
     /**
@@ -375,7 +397,7 @@ class ExporterManager
                     // complete
                     $file->end();
 
-                    $key = md5(time());
+                    $key = $this->generate_download_key();
                     add_post_meta($exporter_data->getId(), '_ewp_file_' . $key, array(
                         'url' => $file->get_file_url(),
                         'path' => $file->get_file_path(),
@@ -529,7 +551,7 @@ class ExporterManager
 
         $file->end();
 
-        $key = md5(time());
+        $key = $this->generate_download_key();
         add_post_meta($exporter_data->getId(), '_ewp_file_' . $key, array(
             'url' => $file->get_file_url(),
             'path' => $file->get_file_path(),
