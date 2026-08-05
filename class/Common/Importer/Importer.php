@@ -251,7 +251,7 @@ class Importer
         $this->unregister_shutdown();
     }
 
-    protected function disable_caching()
+    public function disable_caching()
     {
         if (!defined('WP_IMPORTING')) {
             define('WP_IMPORTING', true);
