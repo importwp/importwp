@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import RecordCsv from '../record/csv/RecordCsv';
 import RecordXml from '../record/xml/RecordXml';
+import RecordJson from '../record/json/RecordJson';
 import { importer } from '../../services/importer.service';
 
 import './DataSelector.scss';
@@ -104,7 +105,20 @@ class DataSelector extends Component {
               />
             </React.Fragment>
           )}
-          {parser !== 'xml' && parser !== 'csv' && <>
+          {parser === 'json' && (
+            <React.Fragment>
+              <p>
+                Click on a key or value in the record below, to be used as the
+                value in your previously selected field.
+              </p>
+              <RecordJson
+                id={id}
+                onSelect={this.onSelect}
+                base_path={settings.base_path + this.props.subPath}
+              />
+            </React.Fragment>
+          )}
+          {parser !== 'xml' && parser !== 'csv' && parser !== 'json' && <>
             <p>
               Click on a value to be used as the value in your previously selected field.
             </p>

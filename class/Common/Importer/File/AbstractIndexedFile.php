@@ -146,6 +146,14 @@ abstract class AbstractIndexedFile extends AbstractFile
     }
 
     /**
+     * Force the next index access to reload/regenerate for the current key.
+     */
+    public function resetIndexState()
+    {
+        $this->loaded = false;
+    }
+
+    /**
      * Generate file position index.
      *
      * @return mixed

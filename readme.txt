@@ -1,49 +1,50 @@
-=== Import WP – Export and Import CSV and XML files to WordPress ===
+=== Import WP – Export and Import CSV, XML and JSON files to WordPress ===
 Contributors: jcollings,importwp  
-Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed
+Tags: wordpress csv import, wordpress xml import, xml, csv, json, datafeed
 Requires at least: 4.0  
-Tested up to: 7.0  
+Tested up to: 7.1  
 Requires PHP: 5.6  
-Stable tag: 2.14.24-rc.1  
+Stable tag: 2.15.0  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
 
-Import WP, a simple, fast and powerful XML and CSV import solution, Making it easy to import posts, pages, categories, tags, users and attachments.
+Import WP, a simple, fast and powerful XML, CSV and JSON import solution, Making it easy to import posts, pages, categories, tags, users and attachments.
 
 == Description ==
 
-Import and Export WordPress data with ease using Import WP, a WordPress import export plugin that  works with any XML or CSV file, there are no special requirements for how your csv file is laid out, or the structure of your xml file. Import WP’s xml and csv import process can handle it all.
+Import and Export WordPress data with ease using Import WP, a WordPress import export plugin that works with any XML, CSV or JSON file, there are no special requirements for how your csv file is laid out, or the structure of your xml or json file. Import WP’s xml, csv and json import process can handle it all.
 
-XML and CSV import files can be fetched from a remote URL, datafeed or FTP server, downloaded from Google Sheets, or manually uploaded to the importer.
+XML, CSV and JSON import files can be fetched from a remote URL, datafeed or FTP server, downloaded from Google Sheets, or manually uploaded to the importer.
 
-Import WP comes with an intuitive data selection tool that makes it simple to select and map any WordPress field to any part of your xml or csv file.
+Import WP comes with an intuitive data selection tool that makes it simple to select and map any WordPress field to any part of your xml, csv or json file.
 
 Import WP allows you to import into all core WordPress data types from WordPress posts, pages, categories, tags, users and attachments, we offer many free addons that allow integration for third party plugins, and a premium upgrade to import into any custom post type, custom taxonomy, or custom fields.
 
-Our optimised **WordPress importer** makes it easy to **export and import CSV and XML files** into WordPress posts, pages, categories, and tags. We have simplified the process to **Import attachments, images, and any WordPress data** using our custom visual data selection tools that make it straightforward to import XML or CSV files from any **data feed**.
+Our optimised **WordPress importer** makes it easy to **export and import CSV, XML and JSON files** into WordPress posts, pages, categories, and tags. We have simplified the process to **Import attachments, images, and any WordPress data** using our custom visual data selection tools that make it straightforward to import XML, CSV or JSON files from any **data feed**.
 
 Our **WordPress exporter** allows you to **export CSV, XML or JSON files** with data from any wordpress post type or taxonomy, including exporting custom fields, images, attachments, and related terms. This means you can easily export CSV, XML or JSON files containing only the WordPress data and structure you need.
 
-= Import CSV and XML files to WordPress posts, categories and users =
+= Import CSV, XML and JSON files to WordPress posts, categories and users =
 
-To create a **csv importer** or **xml importer** the steps are the same, except that xml files contain a nested data structure, instead of csv files that containing rows and headings.
+To create a **csv importer**, **xml importer** or **json importer** the steps are the same, except that xml and json files contain a nested data structure, instead of csv files that containing rows and headings.
 
-1. **Choose Import file** - Import an XML or CSV file by either uploading a file, downloading from a remote url, or from a remote FTP.
+1. **Choose Import file** - Import an XML, CSV or JSON file by either uploading a file, downloading from a remote url, or from a remote FTP.
 2. **Map data** - Select what parts of your import file should be used to create and update a WordPress record.
 3. **Set Permissions** - Set what is used to identify each record, and select what the importer can insert, update and delete.
 4. **Run the importer**.
 
-= Import WordPress Attachments from XML / CSV files =
+= Import WordPress Attachments from XML / CSV / JSON files =
 
-**Import WordPress attachments** from CSV and XML files from either a **remote url**, an **ftp server**, the **websites filesystem**, or the **WordPress media library**. 
+**Import WordPress attachments** from CSV, XML and JSON files from either a **remote url**, an **ftp server**, the **websites filesystem**, or the **WordPress media library**. 
 
 Attachments can be downloaded every time the importer runs, or can check the media library to **use an existing version** if it exists already, saving media from downloading duplicate images.
 
-= WordPress CSV and XML Importer features =
+= WordPress CSV, XML and JSON Importer features =
 
 * Simple XML data selection tool to Import XML files.
 * Easy to use CSV data selection tool to import CSV files.
+* JSON data selection tool to import JSON files.
 * Import data from remote urls and data feeds.
 * Import data from an FTP server
 * Import data from files stored on the web server.
@@ -121,6 +122,13 @@ Our **CSV importer** makes it possible to **import CSV files** containing any nu
 
 Using our CSV data selector you can visually choose what columns should be used when importing each record.
 
+= How to Import JSON files using our JSON Importer =
+Our **JSON importer** allows you to easily **import json files** made up from nested objects and arrays.
+
+When **importing JSON files** you first need to set the document base path, the JSON base path defines which array contains a record and is used when calculating how many records will be imported. Use `/` when your file is a root array of objects.
+
+Using our JSON visual data selector you can choose what data to be imported from each record's keys, or you can manually select data using slash paths such as `{/author/name}`.
+
 = What documentation is available =
 
 Documentation can be found online on [importwp.com](https://www.importwp.com/docs/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting).
@@ -137,6 +145,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.15.0 =
+
+* ADD - JSON file importer with record base path selection, nested field mapping, and preview support.
+* ADD - Allow JSON exports to be used when setting up a new importer from an exporter.
 
 = 2.14.24 =
 

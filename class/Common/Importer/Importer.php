@@ -8,9 +8,11 @@ use ImportWP\Common\Importer\Exception\MapperException;
 use ImportWP\Common\Importer\Exception\ParserException;
 use ImportWP\Common\Importer\Exception\RecordUpdatedSkippedException;
 use ImportWP\Common\Importer\File\CSVFile;
+use ImportWP\Common\Importer\File\JSONFile;
 use ImportWP\Common\Importer\File\XMLFile;
 use ImportWP\Common\Importer\MapperInterface;
 use ImportWP\Common\Importer\Parser\CSVParser;
+use ImportWP\Common\Importer\Parser\JSONParser;
 use ImportWP\Common\Importer\Parser\XMLParser;
 use ImportWP\Common\Importer\ParserInterface;
 use ImportWP\Common\Importer\State\ImporterState;
@@ -127,6 +129,21 @@ class Importer
     {
         $file         = new CSVFile($file_path, $this->config);
         $this->parser = new CSVParser($file);
+
+        return $this;
+    }
+
+    /**
+     * Load JSON File
+     *
+     * @param string $file_path
+     *
+     * @return $this
+     */
+    public function jsonFile($file_path)
+    {
+        $file         = new JSONFile($file_path, $this->config);
+        $this->parser = new JSONParser($file);
 
         return $this;
     }

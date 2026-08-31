@@ -11,6 +11,7 @@ import SetupForm from '../setup-form/SetupForm';
 import DatasourceForm from '../datasource-form/DatasourceForm';
 import PreviewXmlForm from '../preview-xml-form/PreviewXmlForm';
 import PreviewCsvForm from '../preview-csv-form/PreviewCsvForm';
+import PreviewJsonForm from '../preview-json-form/PreviewJsonForm';
 import TemplateForm from '../template-form/TemplateForm';
 
 import './EditPage.scss';
@@ -484,7 +485,15 @@ class EditPage extends React.Component {
                 onError={this.logError}
               />
             )}
-            {parser !== 'xml' && parser !== 'csv' && (
+            {parser === 'json' && (
+              <PreviewJsonForm
+                id={id}
+                complete={this.nextStep}
+                settings={settings}
+                onError={this.logError}
+              />
+            )}
+            {parser !== 'xml' && parser !== 'csv' && parser !== 'json' && (
               <PreviewForm
                 id={id}
                 parser={parser}

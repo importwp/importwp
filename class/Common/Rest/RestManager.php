@@ -9,6 +9,7 @@ use ImportWP\Common\Filesystem\ZipArchive;
 use ImportWP\Common\Http\Http;
 use ImportWP\Common\Importer\ImporterManager;
 use ImportWP\Common\Importer\Preview\CSVPreview;
+use ImportWP\Common\Importer\Preview\JSONPreview;
 use ImportWP\Common\Importer\Preview\XMLPreview;
 use ImportWP\Common\Importer\State\ImporterState;
 use ImportWP\Common\Importer\Template\Template;
@@ -581,7 +582,7 @@ class RestManager extends \WP_REST_Controller
                     $file_settings = $exporter_data->getFileSettings();
                 }
 
-                if (is_null($file_type) || !in_array($file_type, ['xml', 'csv'])) {
+                if (is_null($file_type) || !in_array($file_type, ['xml', 'csv', 'json'])) {
                     return $this->http->end_rest_error('Invalid exporter file type');
                 }
 
@@ -640,6 +641,69 @@ class RestManager extends \WP_REST_Controller
                                 if ($field['loop'] === true || $field['loop'] === 'true') {
 
                                     // we need to convert all sub fields to tax_category.id ....
+                                    $current_section = $field['selection'];
+                                    $current_section_ancestors = [$field['id']];
+                                } else {
+
+                                    if (!is_null($current_section) && in_array($field['parent'], $current_section_ancestors)) {
+
+                                        $current_section_ancestors[] = $field['id'];
+                                        $current_section_map[$field_map] = $current_section . '.' . $field['selection'];
+                                    } else {
+                                        $headings = $this->complete_section_map($headings, $current_section_map, $current_section, $formatted_fields);
+                                        $current_section = null;
+                                        $current_section_ancestors = [];
+                                        $current_section_map = [];
+                                    }
+                                }
+
+                                if (!in_array($field['id'], $allowed)) {
+                                    $allowed[] = $field['id'];
+                                }
+                            }
+                        }
+
+                        $headings = $this->complete_section_map($headings, $current_section_map, $current_section, $formatted_fields);
+
+                        $tmp = [];
+                        foreach ($headings as $map => $heading) {
+                            $tmp[$map] = $heading;
+                        }
+
+                        $headings = $tmp;
+                        break;
+                    case 'json':
+
+                        $main = false;
+                        foreach ($fields as $field) {
+                            if ($field['selection'] === 'main' && ($field['loop'] === true || $field['loop'] === "true")) {
+                                $main = $field;
+                                break;
+                            }
+                        }
+
+                        if (!$main) {
+                            return $this->http->end_rest_error("JSON exporter is missing main loop.");
+                        }
+
+                        // generate base_path from nested wrappers + main loop label
+                        $post_data['file_settings_base_path'] = implode('/', array_reverse(array_filter($this->generate_base_path($main, $fields))));
+
+                        $allowed = [$main['id']];
+
+                        $current_section = null;
+                        $current_section_ancestors = [];
+                        $current_section_map = [];
+
+                        foreach ($fields as $field) {
+
+                            if (in_array($field['parent'], $allowed)) {
+
+                                $field_map = '/' . implode('/', array_reverse(array_filter($this->generate_base_path($field, $fields, [], $main['id']))));
+                                $headings[$field_map] = $field['selection'];
+
+                                if ($field['loop'] === true || $field['loop'] === 'true') {
+
                                     $current_section = $field['selection'];
                                     $current_section_ancestors = [$field['id']];
                                 } else {
@@ -747,7 +811,7 @@ class RestManager extends \WP_REST_Controller
             if ($clear_config) {
                 $this->importer_manager->clear_config_files($importer->getId(), true);
             }
-        } elseif ($parser === 'xml') {
+        } elseif ($parser === 'xml' || $parser === 'json') {
             if (isset($post_data['file_settings_base_path'])) {
                 $importer->setFileSetting('base_path', $post_data['file_settings_base_path']);
             }
@@ -1119,6 +1183,10 @@ class RestManager extends \WP_REST_Controller
 
                 $nodes = $this->importer_manager->process_xml_file($id, true);
                 $importer->setFileSetting('nodes', $nodes);
+            } elseif ('json' === $parser) {
+
+                $nodes = $this->importer_manager->process_json_file($id, true);
+                $importer->setFileSetting('nodes', $nodes);
             } elseif ('csv' === $parser) {
 
                 $delimiter = isset($post_data['delimiter']) ? $post_data['delimiter'] : null;
@@ -1188,6 +1256,23 @@ class RestManager extends \WP_REST_Controller
                 }
 
                 $preview = new XMLPreview($file, $base_path);
+                $result = $preview->data();
+                if (is_wp_error($result)) {
+                    return $this->http->end_rest_error($result);
+                }
+
+                return $this->http->end_rest_success($result[0]);
+            } elseif ($importer->getParser() === 'json') {
+
+                $config = $this->importer_manager->get_config($importer, true);
+                $file = $this->importer_manager->get_json_file($importer, $config);
+
+                $base_path = isset($post_data['base_path']) ? $post_data['base_path'] : $importer->getFileSetting('base_path');
+                if (!is_null($base_path)) {
+                    $file->setRecordPath($base_path);
+                }
+
+                $preview = new JSONPreview($file, $base_path);
                 $result = $preview->data();
                 if (is_wp_error($result)) {
                     return $this->http->end_rest_error($result);
@@ -1280,6 +1365,8 @@ class RestManager extends \WP_REST_Controller
 
             if ('xml' === $parser) {
                 $result = $this->importer_manager->preview_xml_file($importer, $fields);
+            } elseif ('json' === $parser) {
+                $result = $this->importer_manager->preview_json_file($importer, $fields);
             } elseif ('csv' === $parser) {
                 $row = 0;
                 if ($importer->getFileSetting('show_headings') === true) {
@@ -1616,7 +1703,7 @@ class RestManager extends \WP_REST_Controller
             return $this->http->end_rest_error("Invalid exporter config file.");
         }
 
-        if (!in_array($contents['data']['file_type'], ['xml', 'csv'])) {
+        if (!in_array($contents['data']['file_type'], ['xml', 'csv', 'json'])) {
             return $this->http->end_rest_error("Exporter file type is not supported.");
         }
 

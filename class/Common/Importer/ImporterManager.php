@@ -5,6 +5,7 @@ namespace ImportWP\Common\Importer;
 use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Importer\Config\Config;
 use ImportWP\Common\Importer\File\CSVFile;
+use ImportWP\Common\Importer\File\JSONFile;
 use ImportWP\Common\Importer\File\XMLFile;
 use ImportWP\Common\Importer\Mapper\AttachmentMapper;
 use ImportWP\Common\Importer\Mapper\CommentMapper;
@@ -12,6 +13,7 @@ use ImportWP\Common\Importer\Mapper\PostMapper;
 use ImportWP\Common\Importer\Mapper\TermMapper;
 use ImportWP\Common\Importer\Mapper\UserMapper;
 use ImportWP\Common\Importer\Parser\CSVParser;
+use ImportWP\Common\Importer\Parser\JSONParser;
 use ImportWP\Common\Importer\Parser\XMLParser;
 use ImportWP\Common\Importer\Permission\Permission;
 use ImportWP\Common\Importer\State\ImporterState;
@@ -147,6 +149,8 @@ class ImporterManager
             return $this->get_xml_file($importer, $config);
         } elseif ('csv' === $parser) {
             return $this->get_csv_file($importer, $config);
+        } elseif ('json' === $parser) {
+            return $this->get_json_file($importer, $config);
         }
 
         return false;
@@ -166,6 +170,14 @@ class ImporterManager
     {
         $importer = $this->get_importer($id);
         $file = new XMLFile($importer->getFile(), $config);
+        $file->setRecordPath($importer->getFileSetting('base_path'));
+        return $file;
+    }
+
+    public function get_json_file($id, $config)
+    {
+        $importer = $this->get_importer($id);
+        $file = new JSONFile($importer->getFile(), $config);
         $file->setRecordPath($importer->getFileSetting('base_path'));
         return $file;
     }
@@ -190,6 +202,18 @@ class ImporterManager
 
         $file = $this->get_xml_file($importer, $config);
         $parser = new XMLParser($file);
+
+        $record = $parser->getRecord($row);
+        return $record->queryGroup(['fields' => $fields]);
+    }
+
+    public function preview_json_file($id, $fields = [], $row = 0)
+    {
+        $importer = $this->get_importer($id);
+        $config = $this->get_config($importer, true);
+
+        $file = $this->get_json_file($importer, $config);
+        $parser = new JSONParser($file);
 
         $record = $parser->getRecord($row);
         return $record->queryGroup(['fields' => $fields]);
@@ -229,6 +253,17 @@ class ImporterManager
         }
 
         return $results;
+    }
+
+    public function process_json_file($id, $tmp = false)
+    {
+        $importer = $this->get_importer($id);
+        $config = $this->get_config($importer->getId(), $tmp);
+
+        $file = new JSONFile($importer->getFile(), $config);
+        $file->processing(true);
+
+        return $file->get_path_list();
     }
 
     /**
@@ -721,6 +756,11 @@ class ImporterManager
                 $file = $this->get_xml_file($importer_data, $config);
                 Logger::debug('IM -load_parser');
                 $parser = new XMLParser($file);
+            } elseif ($importer_data->getParser() === 'json') {
+                Logger::debug('IM -get_json_file');
+                $file = $this->get_json_file($importer_data, $config);
+                Logger::debug('IM -load_parser');
+                $parser = new JSONParser($file);
             } else {
                 $parser = apply_filters('iwp/importer/init_parser', false, $importer_data, $config);
             }
