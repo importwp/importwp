@@ -3,6 +3,8 @@
     "core": null,
     "port": 8888,
     "testsEnvironment": false,
+    "phpmyadmin": true,
+    "phpmyadminPort": 8081,
     "plugins": [
         "."
     ],
