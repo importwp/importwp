@@ -57,8 +57,9 @@ class DataSelector extends Component {
       .then((response) => {
         this.setState({ preview: response.selection });
       })
-      .catch(() => {
+      .catch((error) => {
         this.setState({ preview: '' });
+        this.props.onError(error);
       });
   }
 
@@ -108,7 +109,7 @@ class DataSelector extends Component {
             <p>
               Click on a value to be used as the value in your previously selected field.
             </p>
-            <PreviewRecord id={id} onSelect={this.onSelect} parser={parser} />
+            <PreviewRecord id={id} onSelect={this.onSelect} onError={this.props.onError} parser={parser} />
           </>}
         </div>
         <div className="iwp-data-selector__tool">
@@ -142,6 +143,7 @@ DataSelector.propTypes = {
   selection: PropTypes.string,
   settings: PropTypes.object,
   onSelect: PropTypes.func,
+  onError: PropTypes.func,
   preview: PropTypes.string,
   subPath: PropTypes.string,
 };
@@ -150,6 +152,7 @@ DataSelector.defaultProps = {
   settings: {},
   selection: '',
   onSelect: () => { },
+  onError: () => { },
   preview: '',
   subPath: '',
 };

@@ -26,6 +26,8 @@ import ErrorBoundary from '../error-boundary/ErrorBoundary';
 import ImporterDebug from '../importer-debug/ImporterDebug';
 import GlobalNotice from '../global-notice/GlobalNotice';
 import PreviewForm from '../preview-form/PreviewForm';
+import { logAjaxError } from '../../util/ajax-error';
+import { debugLog } from '../../util/debug';
 
 const AJAX_BASE = window.iwp.admin_base;
 
@@ -81,7 +83,7 @@ class EditPage extends React.Component {
   }
 
   componentDidUpdate() {
-    console.log('componentDidUpdate', 'EditPage');
+    debugLog('componentDidUpdate', 'EditPage');
   }
 
   router() {
@@ -96,25 +98,7 @@ class EditPage extends React.Component {
   }
 
   logError(error) {
-    let message = error;
-
-    let tmpMessage = [];
-
-    if (error.hasOwnProperty('responseText')) {
-      tmpMessage.push(`Error: ${error.responseText}`);
-    }
-
-    if (error.hasOwnProperty('status')) {
-      tmpMessage.push(`Error Code: ${error.status}`);
-    }
-
-    if (error.hasOwnProperty('statusText')) {
-      tmpMessage.push(`Error Status Text: ${error.statusText}`);
-    }
-
-    if (tmpMessage.length > 0) {
-      message = tmpMessage.join(', ');
-    }
+    const message = logAjaxError(error, 'EditPage');
 
     this.setState({
       notices: [

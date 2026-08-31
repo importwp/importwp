@@ -4,7 +4,7 @@ Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed
 Requires at least: 4.0  
 Tested up to: 7.1  
 Requires PHP: 5.6  
-Stable tag: 2.14.24  
+Stable tag: 2.14.25  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -137,6 +137,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 4. Import WP, Import history page
 
 == Changelog ==
+
+= 2.14.25 =
+
+* ADD - Improve admin UI error handling with a root error boundary, shared AJAX error formatting, and debug-gated console logging.
+* FIX - Serve debug log downloads through an authenticated admin request so the button works after uploads/importwp was locked down.
 
 = 2.14.24 =
 

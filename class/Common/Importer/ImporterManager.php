@@ -55,6 +55,52 @@ class ImporterManager
         $this->filesystem = $filesystem;
         $this->template_manager = $template_manager;
         $this->event_handler = $event_handler;
+
+        add_action('admin_init', [$this, 'download_debug_log']);
+    }
+
+    /**
+     * Stream an importer debug log through an authenticated admin request.
+     *
+     * Direct public URLs under uploads/importwp are blocked by .htaccess (CVE-2025-12894).
+     *
+     * @return void
+     */
+    public function download_debug_log()
+    {
+        if (!isset($_GET['page'], $_GET['import'], $_GET['download_debug']) || $_GET['page'] !== 'importwp') {
+            return;
+        }
+
+        if (!is_user_logged_in() || !current_user_can('manage_options')) {
+            wp_die(esc_html__('You do not have permission to download this file.', 'jc-importer'), '', array('response' => 403));
+        }
+
+        if (!isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_key(wp_unslash($_GET['_wpnonce'])), 'iwp_debug_log_download')) {
+            wp_die(esc_html__('Invalid download request.', 'jc-importer'), '', array('response' => 403));
+        }
+
+        $importer_id = intval($_GET['import']);
+        $importer_data = $this->get_importer($importer_id);
+        if (!$importer_data) {
+            wp_die(esc_html__('Invalid download request.', 'jc-importer'), '', array('response' => 403));
+        }
+
+        if (!$this->is_debug()) {
+            wp_die(esc_html__('Debug mode is not enabled.', 'jc-importer'), '', array('response' => 403));
+        }
+
+        $file_path = Logger::getLogFile($importer_id);
+        if (!is_string($file_path) || !file_exists($file_path)) {
+            wp_die(esc_html__('Debug log file not found.', 'jc-importer'), '', array('response' => 404));
+        }
+
+        nocache_headers();
+        header('Content-Type: text/plain; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . basename($file_path) . '"');
+        header('Content-Length: ' . (string) filesize($file_path));
+        readfile($file_path);
+        exit;
     }
 
     /**
@@ -730,6 +776,16 @@ class ImporterManager
                 $parser = new XMLParser($file);
             } else {
                 $parser = apply_filters('iwp/importer/init_parser', false, $importer_data, $config);
+            }
+
+            if (!$parser || !is_object($parser) || !method_exists($parser, 'file')) {
+                $parser_type = $importer_data->getParser();
+                throw new \Exception(
+                    sprintf(
+                        __('Unable to load importer parser for type: %s', 'jc-importer'),
+                        $parser_type ? $parser_type : __('unknown', 'jc-importer')
+                    )
+                );
             }
 
             // if this is a new session, set start / end rows to state

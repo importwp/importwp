@@ -8,6 +8,7 @@ import SettingField from '../setting-field/SettingField';
 import UpgradeMessage from '../upgrade-message/UpgradeMessage';
 import FieldLabel from '../field-label/FieldLabel';
 import ImportFilter from '../import-filter/ImportFilter';
+import { debugLog } from '../../util/debug';
 
 const default_schedule = {
   setting_cron_disabled: false,
@@ -98,7 +99,7 @@ class ImporterForm extends Component {
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
 
-    console.log(name, value);
+    debugLog('ImporterForm change', name, value);
 
     this.setState(
       {

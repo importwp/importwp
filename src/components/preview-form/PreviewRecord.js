@@ -25,7 +25,7 @@ const PreviewRecord = ({ id, parser, onSelect = () => { }, onError = () => { } }
                 setPreview(window.iwp.hooks.applyFilters('iwp_preview_record', undefined, record, displayNodeClick));
             })
             .catch((e) => {
-                console.error(e);
+                onError(e);
             })
             .finally(() => {
                 setLoading(false);
@@ -38,7 +38,7 @@ const PreviewRecord = ({ id, parser, onSelect = () => { }, onError = () => { } }
 
 
     return <div className={`iwp-preview iwp-preview--${parser}`}>
-        {loading ? 'Loading' : preview}
+        {loading ? 'Loading...' : preview}
     </div>;
 };
 

@@ -17,6 +17,7 @@ import FormField from '../FormField/FormField';
 import InputField from '../InputField/InputField';
 import InputButton from '../InputButton/InputButton';
 import Switch from 'react-switch';
+import { logAjaxError } from '../../util/ajax-error';
 
 const AJAX_BASE = window.iwp.admin_base;
 const AJAX_URL_BASE = window.iwp.ajax_base;
@@ -80,14 +81,11 @@ const ExporterEdit = ({ id, pro = false }) => {
   const exporterId = parseInt(id) || 0;
 
   const logError = (error) => {
-    let message = error;
-    if (error.hasOwnProperty('statusText') && error.hasOwnProperty('status')) {
-      message = `The following error has occured: ${error.statusText}, Code: ${error.status}`;
-    }
+    const message = logAjaxError(error, 'ExporterEdit');
 
-    setNotices([
-      ...notices,
-      { message: message, type: 'error', dismissible: true },
+    setNotices((current) => [
+      ...current,
+      { message, type: 'error', dismissible: true },
     ]);
   };
 

@@ -1503,7 +1503,17 @@ class RestManager extends \WP_REST_Controller
         $importer_data = $this->importer_manager->get_importer($id);
         $log = $this->importer_manager->get_importer_debug_log($importer_data, $page, 100);
 
-        $download = Logger::getLogFile($importer_data->getId(), true);
+        // Authenticated admin download URL — direct uploads/importwp URLs are blocked by .htaccess.
+        $download = add_query_arg(
+            array(
+                'page' => 'importwp',
+                'import' => $importer_data->getId(),
+                'download_debug' => 1,
+                '_wpnonce' => wp_create_nonce('iwp_debug_log_download'),
+            ),
+            admin_url('tools.php')
+        );
+
         return $this->http->end_rest_success(['log' => $log, 'download' => $download]);
     }
 

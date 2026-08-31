@@ -19,6 +19,7 @@ import { importer } from '../../services/importer.service';
 import DataSelector from '../data-selector/DataSelector';
 import NoticeList from '../notice-list/NoticeList';
 import { store } from '../../store';
+import { debugLog } from '../../util/debug';
 
 class TemplateForm extends PureComponent {
   constructor(props) {
@@ -111,7 +112,7 @@ class TemplateForm extends PureComponent {
   }
 
   showSelectModal(fieldName, sub_path = '') {
-    console.log('showSelectModal', fieldName, sub_path);
+    debugLog('showSelectModal', fieldName, sub_path);
     this.setState({
       showSelectModal: !this.state.showSelectModal,
       showSelectModalSubPath: sub_path,
@@ -351,6 +352,7 @@ class TemplateForm extends PureComponent {
         >
           <DataSelector
             onSelect={this.setAndCloseSelectModal}
+            onError={this.props.onError}
             id={id}
             parser={parser}
             settings={settings}

@@ -144,6 +144,7 @@ class Menu
             'version' => 'v' . $this->properties->plugin_version . $pro_version,
             'encodings' => $this->properties->encodings,
             'is_pro' => $this->properties->is_pro ? 'yes' : 'no',
+            'is_debug' => $this->importer_manager->is_debug() ? 'yes' : 'no',
             'export_fields' => $this->get_export_fields(),
             'registered_addons' => apply_filters('iwp/register_js', []),
             'global_notices' => apply_filters('iwp/frontent/notices',  [])

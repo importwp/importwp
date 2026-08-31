@@ -184,8 +184,8 @@ class Filesystem
     public function file_exists($src)
     {
         try {
-            if (!file_exists($src)) {
-                throw new \Exception(sprintf(__("File not found: %s", 'jc-importer'), $src));
+            if (!is_string($src) || $src === '' || !file_exists($src)) {
+                throw new \Exception(sprintf(__("File not found: %s", 'jc-importer'), is_string($src) ? $src : ''));
             }
 
             $size = filesize($src);

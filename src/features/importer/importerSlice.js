@@ -44,9 +44,14 @@ export const fetchFieldPreview = createAsyncThunk(
 
       return output;
     } catch (e) {
-      return {
-        [field]: 'Unable to load preview',
-      };
+      let output = {};
+      Object.keys(fields).forEach((key) => {
+        output = {
+          ...output,
+          [key]: 'Unable to load preview',
+        };
+      });
+      return output;
     }
   }
 );

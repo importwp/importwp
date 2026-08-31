@@ -9,6 +9,8 @@ import NoticeList from '../notice-list/NoticeList';
 import ToolsPage from '../tools-page/ToolsPage';
 import FieldLabel from '../field-label/FieldLabel';
 import GlobalNotice from '../global-notice/GlobalNotice';
+import { logAjaxError } from '../../util/ajax-error';
+import { setDebug } from '../../util/debug';
 
 class SettingsPage extends React.Component {
   constructor(props) {
@@ -22,12 +24,24 @@ class SettingsPage extends React.Component {
       setting_timeout: 30,
       saving: false,
       disabled: false,
-      compatibility: {}
+      compatibility: {},
+      notices: [],
     };
 
     this.onSwitchChange = this.onSwitchChange.bind(this);
     this.onSave = this.onSave.bind(this);
     this.onSaveCompatibility = this.onSaveCompatibility.bind(this);
+    this.logError = this.logError.bind(this);
+  }
+
+  logError(error) {
+    const message = logAjaxError(error, 'SettingsPage');
+    this.setState({
+      notices: [
+        ...this.state.notices,
+        { message, type: 'error', dismissible: true },
+      ],
+    });
   }
 
   componentDidMount() {
@@ -42,6 +56,7 @@ class SettingsPage extends React.Component {
       },
       error: (error) => {
         this.setState({ loading: false });
+        this.logError(error);
       },
     });
 
@@ -55,6 +70,7 @@ class SettingsPage extends React.Component {
       },
       error: (error) => {
         this.setState({ loading: false });
+        this.logError(error);
       },
     });
   }
@@ -88,6 +104,10 @@ class SettingsPage extends React.Component {
   }
 
   onSave() {
+    if (this.state.saving) {
+      return;
+    }
+
     this.setState({
       saving: true,
     });
@@ -100,9 +120,14 @@ class SettingsPage extends React.Component {
         timeout: this.state.setting_timeout,
       })
       .then(() => {
+        setDebug(this.state.setting_debug);
         this.setState({
           saving: false,
         });
+      })
+      .catch((error) => {
+        this.setState({ saving: false });
+        this.logError(error);
       });
   }
 
@@ -117,6 +142,10 @@ class SettingsPage extends React.Component {
 
     }, []);
 
+    if (this.state.saving) {
+      return;
+    }
+
     this.setState({
       saving: true,
     });
@@ -126,11 +155,15 @@ class SettingsPage extends React.Component {
         this.setState({
           saving: false,
         });
+      })
+      .catch((error) => {
+        this.setState({ saving: false });
+        this.logError(error);
       });
   }
 
   render() {
-    const { saving, disabled, loading } = this.state;
+    const { saving, disabled, loading, notices } = this.state;
     const switch_height = 20;
     const switch_width = 40;
     const base = this.props.location.pathname + '?page=importwp&tab=settings';
@@ -143,6 +176,16 @@ class SettingsPage extends React.Component {
     return (
       <div>
         <GlobalNotice />
+        <NoticeList
+          notices={notices}
+          onDismiss={(i) => {
+            this.setState({
+              notices: notices.map((item, item_i) =>
+                item_i === i ? { ...item, dismissed: true } : item
+              ),
+            });
+          }}
+        />
         <ul className="iwp-tabs iwp-tabs--center iwp-tabs--pills">
           <li
             className={

@@ -48,7 +48,7 @@ const PreviewForm = ({ id, parser, settings = {}, complete = () => { }, onError 
 
                 <div className="iwp-form__row">
                     <FieldLabel label='Record Preview' />
-                    <PreviewRecord id={id} parser={parser} />
+                    <PreviewRecord id={id} parser={parser} onError={onError} />
                 </div>
             </form>
         </div>

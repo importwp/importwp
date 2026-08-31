@@ -4,6 +4,7 @@ import { exporter } from '../../services/exporter.service';
 import GlobalNotice from '../global-notice/GlobalNotice';
 import NoticeList from '../notice-list/NoticeList';
 import StatusMessage from '../status-message/StatusMessage';
+import { logAjaxError } from '../../util/ajax-error';
 
 const AJAX_BASE = window.iwp.admin_base;
 
@@ -50,14 +51,11 @@ const ExporterArchive = () => {
   }, []);
 
   const logError = (error) => {
-    let message = error;
-    if (error.hasOwnProperty('statusText') && error.hasOwnProperty('status')) {
-      message = `The following error has occured: ${error.statusText}, Code: ${error.status}`;
-    }
+    const message = logAjaxError(error, 'ExporterArchive');
 
-    setNotices([
-      ...notices,
-      { message: message, type: 'error', dismissible: true },
+    setNotices((current) => [
+      ...current,
+      { message, type: 'error', dismissible: true },
     ]);
   };
 

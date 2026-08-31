@@ -8,4 +8,5 @@ global.iwp = {
   nonce: '',
   ajax_base: '',
   admin_base: '',
+  is_debug: 'no',
 };
