@@ -386,6 +386,11 @@ class RestManager extends \WP_REST_Controller
             return $data;
         }
 
+        // Preserve booleans/numbers from JSON request bodies
+        if (is_bool($data) || is_int($data) || is_float($data) || $data === null) {
+            return $data;
+        }
+
         $full_path = implode('.', array_filter($path));
         if (!is_null($full_path)) {
 
@@ -402,6 +407,58 @@ class RestManager extends \WP_REST_Controller
         }
 
         return sanitize_text_field($data);
+    }
+
+    /**
+     * Read request body from form-urlencoded or JSON.
+     *
+     * @param \WP_REST_Request $request
+     * @return array
+     */
+    protected function get_request_data(\WP_REST_Request $request)
+    {
+        $post_data = $request->get_body_params();
+        if (!is_array($post_data)) {
+            $post_data = [];
+        }
+
+        $json_params = $request->get_json_params();
+        if (is_array($json_params) && !empty($json_params)) {
+            $post_data = array_replace_recursive($post_data, $json_params);
+        }
+
+        return $this->decode_packed_fields($post_data);
+    }
+
+    /**
+     * Decode map/enabled when sent as a single JSON string (avoids max_input_vars).
+     *
+     * @param array $post_data
+     * @return array
+     */
+    protected function decode_packed_fields($post_data)
+    {
+        foreach (['map', 'enabled'] as $field) {
+            if (!isset($post_data[$field]) || !is_string($post_data[$field])) {
+                continue;
+            }
+
+            $decoded = json_decode(wp_unslash($post_data[$field]), true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $post_data[$field] = $decoded;
+            }
+        }
+
+        return $post_data;
+    }
+
+    /**
+     * @param mixed $value
+     * @return bool
+     */
+    protected function is_truthy($value)
+    {
+        return $value === true || $value === 1 || $value === '1' || $value === 'true';
     }
 
     public function check_rest_status(\WP_REST_Request $request)
@@ -478,7 +535,7 @@ class RestManager extends \WP_REST_Controller
     {
         Logger::setRequestType('save_importer');
 
-        $post_data = $request->get_body_params();
+        $post_data = $this->get_request_data($request);
         $id = isset($post_data['id']) ? intval($post_data['id']) : null;
 
         $temp_post_data = [
@@ -488,8 +545,17 @@ class RestManager extends \WP_REST_Controller
 
         if (isset($post_data['permissions'])) {
             // TODO: update sanitize method to keep track of hierarchy
-            $temp_post_data['create'] = explode("\n", $post_data['permissions']['create']['fields']);
-            $temp_post_data['update'] = explode("\n", $post_data['permissions']['update']['fields']);
+            foreach (['create', 'update'] as $permission_method) {
+                if (!isset($post_data['permissions'][$permission_method]['fields'])) {
+                    continue;
+                }
+                $permission_fields = $post_data['permissions'][$permission_method]['fields'];
+                if (is_array($permission_fields)) {
+                    $temp_post_data[$permission_method] = $permission_fields;
+                } else {
+                    $temp_post_data[$permission_method] = explode("\n", (string) $permission_fields);
+                }
+            }
         }
 
         $post_data = $this->sanitize($post_data);
@@ -741,7 +807,7 @@ class RestManager extends \WP_REST_Controller
 
 
             if (isset($post_data['file_settings_show_headings'])) {
-                $importer->setFileSetting('show_headings', $post_data['file_settings_show_headings'] === 'true' || $post_data['file_settings_show_headings'] === true ? true : false);
+                $importer->setFileSetting('show_headings', $this->is_truthy($post_data['file_settings_show_headings']));
             }
 
             if ($clear_config) {
@@ -754,23 +820,28 @@ class RestManager extends \WP_REST_Controller
         }
 
         if (isset($post_data['file_settings_setup'])) {
-            $importer->setFileSetting('setup', $post_data['file_settings_setup'] === 'true' ? true : false);
+            $importer->setFileSetting('setup', $this->is_truthy($post_data['file_settings_setup']));
         }
 
         if (isset($post_data['map']) && is_array($post_data['map'])) {
+            $map = [];
             foreach ($post_data['map'] as $key => $value) {
+                if ($value === null) {
+                    continue;
+                }
 
                 if (1 === preg_match('/\._index$/', $key)) {
                     $value = intval($value);
                 }
 
-                $importer->setMap($key, $value);
+                $map[$key] = $value;
             }
+            $importer->replaceMap($map);
         }
 
         if (isset($post_data['enabled']) && is_array($post_data['enabled'])) {
             foreach ($post_data['enabled'] as $key => $value) {
-                if ($value === 'true') {
+                if ($this->is_truthy($value)) {
                     $importer->setEnabled($key);
                 } else {
                     $importer->setEnabled($key, false);
@@ -784,7 +855,7 @@ class RestManager extends \WP_REST_Controller
             if (isset($post_data['permissions']['create'])) {
                 $create = $post_data['permissions']['create'];
                 $importer->setPermission('create', [
-                    'enabled' => isset($create['enabled']) && $create['enabled'] === 'true' ? true : false,
+                    'enabled' => isset($create['enabled']) && $this->is_truthy($create['enabled']) ? true : false,
                     'type' => isset($create['type']) && in_array($create['type'], ['include', 'exclude'], true) ? $create['type'] : null,
                     'fields' => isset($create['fields']) ? $create['fields'] : [],
                 ]);
@@ -794,7 +865,7 @@ class RestManager extends \WP_REST_Controller
             if (isset($post_data['permissions']['update'])) {
                 $update = $post_data['permissions']['update'];
                 $importer->setPermission('update', [
-                    'enabled' => isset($update['enabled']) && $update['enabled'] === 'true' ? true : false,
+                    'enabled' => isset($update['enabled']) && $this->is_truthy($update['enabled']) ? true : false,
                     'type' => isset($update['type']) && in_array($update['type'], ['include', 'exclude'], true) ? $update['type'] : null,
                     'fields' => isset($update['fields']) ? $update['fields'] : [],
                 ]);
@@ -803,9 +874,9 @@ class RestManager extends \WP_REST_Controller
             // remove
             if (isset($post_data['permissions']['remove'])) {
                 $importer->setPermission('remove', [
-                    'enabled' => $post_data['permissions']['remove']['enabled'] === 'true',
-                    'trash' => $post_data['permissions']['remove']['trash'] === 'true',
-                    'media' => $post_data['permissions']['remove']['media'] === 'true',
+                    'enabled' => $this->is_truthy($post_data['permissions']['remove']['enabled']),
+                    'trash' => $this->is_truthy($post_data['permissions']['remove']['trash']),
+                    'media' => $this->is_truthy($post_data['permissions']['remove']['media']),
                 ]);
             }
         }

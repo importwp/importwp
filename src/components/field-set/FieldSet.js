@@ -15,17 +15,103 @@ class _FieldSet extends React.PureComponent {
   constructor(props) {
     super(props);
 
+    const initialRows =
+      props.group &&
+      props.group.type === 'repeatable' &&
+      Array.isArray(props.repeaterMap) &&
+      props.repeaterMap.length > 0 &&
+      props.repeaterMap.length <= 3
+        ? props.repeaterMap.map((_, index) => index)
+        : [];
+
     this.state = {
       show_settings: [],
+      // Large repeaters start collapsed so Field/AsyncSelect trees are not mounted
+      expandedRows: initialRows,
+      pendingExpandGroup: null,
     };
+
+    this.toggleRow = this.toggleRow.bind(this);
+    this.expandAll = this.expandAll.bind(this);
+    this.collapseAll = this.collapseAll.bind(this);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (
+      this.state.pendingExpandGroup &&
+      this.props.repeaterMap.length > prevProps.repeaterMap.length
+    ) {
+      const newIndex = this.props.repeaterMap.length - 1;
+      this.setState((state) => ({
+        pendingExpandGroup: null,
+        expandedRows: state.expandedRows.includes(newIndex)
+          ? state.expandedRows
+          : [...state.expandedRows, newIndex],
+      }));
+    }
   }
 
   addRow(id) {
+    this.setState({ pendingExpandGroup: id });
     this.props.dispatch(addMapFieldRow(id));
   }
 
   removeRow(id, index) {
     this.props.dispatch(removeMapFieldRow({ id, index }));
+    this.setState((state) => ({
+      expandedRows: state.expandedRows
+        .filter((rowIndex) => rowIndex !== index)
+        .map((rowIndex) => (rowIndex > index ? rowIndex - 1 : rowIndex)),
+    }));
+  }
+
+  isRowExpanded(index) {
+    return this.state.expandedRows.indexOf(index) !== -1;
+  }
+
+  toggleRow(index) {
+    this.setState((state) => {
+      if (state.expandedRows.indexOf(index) !== -1) {
+        return {
+          expandedRows: state.expandedRows.filter((rowIndex) => rowIndex !== index),
+        };
+      }
+      return {
+        expandedRows: [...state.expandedRows, index],
+      };
+    });
+  }
+
+  expandAll() {
+    this.setState({
+      expandedRows: this.props.repeaterMap.map((_, index) => index),
+    });
+  }
+
+  collapseAll() {
+    this.setState({ expandedRows: [] });
+  }
+
+  getRowSummary(record, key, index) {
+    const prefix = `${key}.${index}.`;
+    const fieldKey = record[`${prefix}key`] || '';
+    const fieldType = record[`${prefix}_field_type`] || '';
+    const value = record[`${prefix}value`] || '';
+
+    const parts = [];
+    if (fieldKey) {
+      parts.push(fieldKey);
+    }
+    if (fieldType && fieldType !== 'text') {
+      parts.push(`(${fieldType})`);
+    }
+    if (value) {
+      const shortValue =
+        value.length > 60 ? `${value.substring(0, 57)}…` : value;
+      parts.push(`→ ${shortValue}`);
+    }
+
+    return parts.length > 0 ? parts.join(' ') : `Row ${index + 1}`;
   }
 
   content(groupData, name, parents) {
@@ -285,22 +371,64 @@ class _FieldSet extends React.PureComponent {
     if (type === 'repeatable') {
       parents.push(id);
       let key = parents.join('.');
-      // let groupData = Object.keys(map).filter(value => {
-      //   return value.startsWith(key);
-      // });
-      // console.log('groupData', groupData, map, id);
+      const rowCount = this.props.repeaterMap.length;
       // console.log(id, key, map);
       return (
         <div className="iwp-repeater__wrapper">
+          {rowCount > 5 && (
+            <div className="iwp-repeater__bulk-actions iwp-buttons">
+              <button
+                type="button"
+                className="button button-link"
+                onClick={this.expandAll}
+              >
+                Expand All
+              </button>
+              <button
+                type="button"
+                className="button button-link"
+                onClick={this.collapseAll}
+              >
+                Collapse All
+              </button>
+            </div>
+          )}
           <ul className="iwp-repeater">
             {this.props.repeaterMap.map((record, index) => {
               const tempParents = [...parents, index];
+              const expanded = this.isRowExpanded(index);
               return (
-                <li key={`${id}_${index}`} className="iwp-repeater__row">
+                <li
+                  key={`${id}_${index}`}
+                  className={
+                    'iwp-repeater__row' +
+                    (expanded ? ' iwp-repeater__row--expanded' : ' iwp-repeater__row--collapsed')
+                  }
+                >
                   <span className="iwp-repeater__index">
                     <span>{index + 1}</span>
                   </span>
-                  {this.content(this.removeGroupIndex(record, 2), key + '.' + index, tempParents)}
+                  <div className="iwp-repeater__summary">
+                    <button
+                      type="button"
+                      className="iwp-repeater__toggle"
+                      aria-expanded={expanded}
+                      onClick={() => this.toggleRow(index)}
+                    >
+                      <span className="iwp-repeater__toggle-icon" aria-hidden="true">
+                        {expanded ? '▾' : '▸'}
+                      </span>
+                      <span className="iwp-repeater__summary-text">
+                        {this.getRowSummary(record, key, index)}
+                      </span>
+                    </button>
+                  </div>
+                  {expanded &&
+                    this.content(
+                      this.removeGroupIndex(record, 2),
+                      key + '.' + index,
+                      tempParents
+                    )}
                   <div className="iwp-field iwp-buttons iwp-repeater__buttons">
                     <Tooltip
                       id={'iwp-delete-tooltip-' + id + '-' + index}

@@ -401,11 +401,22 @@ function save(data) {
       data.id > 0
         ? AJAX_BASE + '/importer/' + data.id
         : AJAX_BASE + '/importer';
+
+    // Keep form-urlencoded so older Pro (get_body_params) still sees id/settings.
+    // Pack large nested maps into single JSON strings to avoid PHP max_input_vars.
+    const payload = { ...data };
+    if (payload.map && typeof payload.map === 'object') {
+      payload.map = JSON.stringify(payload.map);
+    }
+    if (payload.enabled && typeof payload.enabled === 'object') {
+      payload.enabled = JSON.stringify(payload.enabled);
+    }
+
     service_xhr.save = window.jQuery.ajax({
       url: url,
       dataType: 'json',
       method: 'POST',
-      data: data,
+      data: payload,
       beforeSend: function (xhr) {
         xhr.setRequestHeader('X-WP-Nonce', window.iwp.nonce);
       },

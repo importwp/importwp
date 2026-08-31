@@ -152,7 +152,12 @@ class TemplateForm extends PureComponent {
 
     const map_data = Object.keys(data.importer.template)
       .filter((key) => {
-        return !key.includes('{iwpr_template}');
+        // Skip template placeholders and nulls left by deleted repeater rows
+        return (
+          !key.includes('{iwpr_template}') &&
+          data.importer.template[key] !== null &&
+          typeof data.importer.template[key] !== 'undefined'
+        );
       })
       .reduce((obj, key) => {
         obj[key] = data.importer.template[key];

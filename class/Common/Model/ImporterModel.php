@@ -606,6 +606,26 @@ class ImporterModel
         $this->map[$key] = $value;
     }
 
+    /**
+     * Replace the entire field map (skips null values from deleted repeater rows).
+     *
+     * @param array $map
+     */
+    public function replaceMap($map)
+    {
+        $this->map = [];
+        if (!is_array($map)) {
+            return;
+        }
+
+        foreach ($map as $key => $value) {
+            if ($value === null) {
+                continue;
+            }
+            $this->map[$key] = $value;
+        }
+    }
+
     public function getEnabled()
     {
         return $this->enabled;

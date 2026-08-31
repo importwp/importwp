@@ -2,9 +2,9 @@
 Contributors: jcollings,importwp  
 Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed
 Requires at least: 4.0  
-Tested up to: 7.0  
+Tested up to: 7.1  
 Requires PHP: 5.6  
-Stable tag: 2.14.24-rc.1  
+Stable tag: 2.14.24  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -141,6 +141,8 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 = 2.14.24 =
 
 * FIX - Prevent Importers page crash when an importer is left in a running state with an empty section.
+* FIX - Save importer field maps as a packed JSON payload so large custom field setups are not limited by PHP max_input_vars.
+* FIX - Collapse repeatable template rows by default when many rows are present, improving UI performance with large custom field lists.
 
 = 2.14.23 =
 
