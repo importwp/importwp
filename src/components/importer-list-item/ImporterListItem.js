@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { importer } from '../../services/importer.service';
 import './ImporterListItem.scss';
 import StatusMessage from '../status-message/StatusMessage';
+import { getSectionProgressBarWidth } from './progress';
 
 const AJAX_BASE = window.iwp.admin_base;
 
@@ -27,6 +28,7 @@ class ImporterListItem extends React.Component {
     const counter = this.props.status.c > 0 ? this.props.status.c : 0;
     const delete_counter = this.props.status.r > 0 ? this.props.status.r : 0;
     const delete_total = this.props.status.a > 0 ? this.props.status.a : 0;
+    const progressBarWidth = version === 2 ? getSectionProgressBarWidth(this.props.status) : null;
 
     let msg = 'Loading.';
 
@@ -101,9 +103,9 @@ class ImporterListItem extends React.Component {
           <p>{msg}</p>
           {version == 2 ? <>
             {
-              (status == 'running' || status == 'processing') && <div
+              (status == 'running' || status == 'processing') && progressBarWidth !== null && <div
                 className="iwp-item__progress-bar"
-                style={{ width: 100 - (this.props.status.progress[this.props.status.section].current_row / (this.props.status.progress[this.props.status.section].end - this.props.status.progress[this.props.status.section].start)) * 100 + '%' }}
+                style={{ width: progressBarWidth + '%' }}
               ></div>
             }
           </> : <>

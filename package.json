@@ -4,7 +4,9 @@
     "main": "index.js",
     "scripts": {
         "build": "NODE_ENV=production wp-scripts build",
-        "start": "wp-scripts start --config=dev-webpack.config.js"
+        "start": "wp-scripts start --config=dev-webpack.config.js",
+        "test": "wp-scripts test-unit-js",
+        "test:unit": "wp-scripts test-unit-js"
     },
     "dependencies": {
         "@reduxjs/toolkit": "^1.9.2",
@@ -28,5 +30,11 @@
         "@wordpress/scripts": "^26.6.0",
         "prop-types": "^15.8.1",
         "url-loader": "^4.1.1"
+    },
+    "jest": {
+        "preset": "@wordpress/jest-preset-default",
+        "setupFiles": [
+            "<rootDir>/tests/js/setup.js"
+        ]
     }
 }

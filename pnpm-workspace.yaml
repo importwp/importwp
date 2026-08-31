@@ -1,4 +1,4 @@
 allowBuilds:
-  core-js: set this to true or false
-  core-js-pure: set this to true or false
-  fs-ext-extra-prebuilt: set this to true or false
+  core-js: true
+  core-js-pure: true
+  fs-ext-extra-prebuilt: true

@@ -12,6 +12,7 @@ build
 vendor
 webpack.config.js
 pnpm-lock.yaml
+pnpm-workspace.yaml
 phpunit.xml.dist
 package.json
 package-lock.json
