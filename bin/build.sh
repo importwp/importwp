@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-SCRIPT=$(readlink -f "$0")
-SCRIPTPATH=$(dirname "$SCRIPT")
-FOLDER=$(basename $(realpath "$SCRIPTPATH/.."))
+SCRIPTPATH="$(cd "$(dirname "$0")" && pwd)"
+FOLDER="$(basename "$(cd "$SCRIPTPATH/.." && pwd)")"
 
 cd "$SCRIPTPATH/.."
 

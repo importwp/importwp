@@ -24,7 +24,7 @@
         "@babel/plugin-proposal-class-properties": "^7.18.6",
         "@svgr/webpack": "^8.1.0",
         "@wordpress/babel-preset-default": "^7.19.0",
-        "@wordpress/env": "^10.3.0",
+        "@wordpress/env": "^11.14.0",
         "@wordpress/scripts": "^26.6.0",
         "prop-types": "^15.8.1",
         "url-loader": "^4.1.1"
