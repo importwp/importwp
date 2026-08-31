@@ -280,6 +280,97 @@ class Filesystem
         return $path;
     }
 
+    /**
+     * Whether a path looks absolute (Unix or Windows).
+     *
+     * @param string $path
+     * @return bool
+     */
+    public static function is_absolute_path($path)
+    {
+        if (!is_string($path) || $path === '') {
+            return false;
+        }
+
+        if ($path[0] === '/' || $path[0] === '\\') {
+            return true;
+        }
+
+        return strlen($path) > 2 && ctype_alpha($path[0]) && $path[1] === ':';
+    }
+
+    /**
+     * Convert an absolute path under the uploads basedir to a relative path.
+     * Paths outside uploads are returned unchanged.
+     *
+     * @param string $path
+     * @return string
+     */
+    public static function to_uploads_relative_path($path)
+    {
+        $path = wp_normalize_path((string) $path);
+        $basedir = wp_normalize_path(untrailingslashit(wp_upload_dir()['basedir']));
+
+        if ($path === $basedir) {
+            return '';
+        }
+
+        if (strpos($path, $basedir . '/') === 0) {
+            return ltrim(substr($path, strlen($basedir)), '/');
+        }
+
+        return $path;
+    }
+
+    /**
+     * Resolve a stored importer file path to an absolute path under the current uploads directory.
+     *
+     * Avoids calling file_exists() on legacy absolute paths that may sit outside open_basedir
+     * after a site move / hosting path change.
+     *
+     * @param string $stored
+     * @return string|false Absolute filesystem path if the file exists, otherwise false.
+     */
+    public static function resolve_importer_file_path($stored)
+    {
+        if (!is_string($stored) || $stored === '') {
+            return false;
+        }
+
+        $stored = wp_normalize_path(trim($stored));
+        $basedir = wp_normalize_path(untrailingslashit(wp_upload_dir()['basedir']));
+        $candidates = [];
+
+        if (self::is_absolute_path($stored)) {
+            if (strpos($stored, $basedir . '/') === 0 || $stored === $basedir) {
+                $candidates[] = $stored;
+            } else {
+                // Remap legacy absolute paths that still contain the importwp suffix.
+                if (preg_match('#/(importwp(?:/[^/]+)*/.+)$#', $stored, $matches)) {
+                    $candidates[] = $basedir . '/' . ltrim($matches[1], '/');
+                }
+                $candidates[] = $basedir . '/importwp/uploads/' . basename($stored);
+            }
+        } else {
+            $candidates[] = $basedir . '/' . ltrim($stored, '/');
+        }
+
+        foreach (array_unique($candidates) as $candidate) {
+            $candidate = wp_normalize_path($candidate);
+
+            // Never probe paths outside the current uploads basedir (open_basedir safe).
+            if ($candidate !== $basedir && strpos($candidate, $basedir . '/') !== 0) {
+                continue;
+            }
+
+            if (file_exists($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return false;
+    }
+
     public function check_mime_header($mime)
     {
         switch ($mime) {

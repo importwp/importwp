@@ -143,6 +143,7 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 * FIX - Prevent Importers page crash when an importer is left in a running state with an empty section.
 * FIX - Save importer field maps as a packed JSON payload so large custom field setups are not limited by PHP max_input_vars.
 * FIX - Collapse repeatable template rows by default when many rows are present, improving UI performance with large custom field lists.
+* FIX - Store importer files relative to the uploads directory and remap legacy absolute paths, preventing open_basedir warnings after site path changes.
 
 = 2.14.23 =
 

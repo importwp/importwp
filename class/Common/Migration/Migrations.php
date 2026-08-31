@@ -2,6 +2,7 @@
 
 namespace ImportWP\Common\Migration;
 
+use ImportWP\Common\Filesystem\Filesystem;
 use ImportWP\Common\Importer\ImporterManager;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Util\Logger;
@@ -36,6 +37,7 @@ class Migrations
         $this->_migrations[] = array($this, 'migration_07_add_session_table');
         $this->_migrations[] = array($this, 'migration_08_migrate_taxonomy_settings');
         $this->_migrations[] = array($this, 'migration_09_migrate_attachment_settings');
+        $this->_migrations[] = array($this, 'migration_10_relative_importer_file_paths');
 
         $this->_version = count($this->_migrations);
     }
@@ -941,6 +943,56 @@ class Migrations
             remove_filter('content_save_pre', 'wp_filter_post_kses');
             wp_update_post(['ID' => $importer['ID'], 'post_content' => serialize($data)]);
             add_filter('content_save_pre', 'wp_filter_post_kses');
+        }
+    }
+
+    /**
+     * Convert stored absolute importer file paths to uploads-relative paths.
+     *
+     * Prevents open_basedir warnings after hosting path / WordPress root changes.
+     *
+     * @param bool $migrate_data
+     * @return void
+     */
+    public function migration_10_relative_importer_file_paths($migrate_data = true)
+    {
+        if (!$migrate_data) {
+            return;
+        }
+
+        /**
+         * @var \wpdb $wpdb
+         */
+        global $wpdb;
+
+        $results = $wpdb->get_results(
+            "SELECT meta_id, post_id, meta_key, meta_value
+            FROM {$wpdb->postmeta}
+            WHERE meta_key LIKE '\\_importer\\_file\\_%'",
+            ARRAY_A
+        );
+
+        if (empty($results)) {
+            return;
+        }
+
+        foreach ($results as $row) {
+            $stored = $row['meta_value'];
+            if (!Filesystem::is_absolute_path($stored)) {
+                continue;
+            }
+
+            $resolved = Filesystem::resolve_importer_file_path($stored);
+            if (!$resolved) {
+                continue;
+            }
+
+            $relative = Filesystem::to_uploads_relative_path($resolved);
+            if ($relative === '' || $relative === $stored) {
+                continue;
+            }
+
+            update_post_meta((int) $row['post_id'], $row['meta_key'], $relative);
         }
     }
 }

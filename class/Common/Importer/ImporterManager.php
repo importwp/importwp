@@ -248,6 +248,13 @@ class ImporterManager
 
         $index++;
 
+        // Store uploads-relative paths so site moves / open_basedir changes do not break lookups.
+        $file_path = wp_normalize_path($file_path);
+        $relative = Filesystem::to_uploads_relative_path($file_path);
+        if ($relative !== '' && $relative !== $file_path) {
+            $file_path = $relative;
+        }
+
         update_post_meta($importer->getId(), '_importer_files', $index);
         update_post_meta($importer->getId(), '_importer_file_' . $index, $file_path);
         return $index;
