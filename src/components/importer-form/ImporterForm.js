@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import Switch from 'react-switch';
 
@@ -19,248 +19,199 @@ const default_schedule = {
   setting_run_fetch: false,
 };
 
-class ImporterForm extends Component {
-  constructor(props) {
-    super(props);
+const ImporterForm = ({
+  complete = () => {},
+  id,
+  template = '',
+  settings = {},
+  onRun = () => {},
+  onError = () => {},
+  pro = false,
+  templates = [],
+}) => {
+  const template_settings = useMemo(() => {
+    const found = templates.find((data) => data.id === template);
+    return found ? found['settings'] : [];
+  }, [template, templates]);
 
-    const template = this.props.templates.find((data) => {
-      return data.id === props.template;
-    });
-    this.template_settings = template ? template['settings'] : [];
-
+  const initialState = useMemo(() => {
     let settings_state = {};
-    if (this.template_settings) {
-      this.template_settings.forEach((field) => {
+    if (template_settings) {
+      template_settings.forEach((field) => {
         settings_state['setting_' + field.id] =
-          props.settings && props.settings[field.id]
-            ? props.settings[field.id]
-            : '';
+          settings && settings[field.id] ? settings[field.id] : '';
       });
     }
 
-    this.state = {
+    return {
       ...settings_state,
       setting_import_method:
-        props.settings && props.settings.import_method
-          ? props.settings.import_method
-          : 'run',
+        settings && settings.import_method ? settings.import_method : 'run',
       setting_cron_schedule:
-        props.settings && props.settings.cron_schedule
-          ? props.settings.cron_schedule
-          : 'month',
+        settings && settings.cron_schedule ? settings.cron_schedule : 'month',
       setting_cron_day:
-        props.settings && props.settings.cron_day
-          ? parseInt(props.settings.cron_day)
-          : 0,
+        settings && settings.cron_day ? parseInt(settings.cron_day) : 0,
       setting_cron_hour:
-        props.settings && props.settings.cron_hour
-          ? parseInt(props.settings.cron_hour)
-          : 0,
+        settings && settings.cron_hour ? parseInt(settings.cron_hour) : 0,
       setting_cron_minute:
-        props.settings && props.settings.cron_minute
-          ? parseInt(props.settings.cron_minute)
-          : 0,
+        settings && settings.cron_minute ? parseInt(settings.cron_minute) : 0,
       setting_cron_disabled:
-        props.settings && props.settings.cron_disabled
-          ? props.settings.cron_disabled
-          : false,
+        settings && settings.cron_disabled ? settings.cron_disabled : false,
       setting_run_fetch:
-        props.settings && props.settings.run_fetch
-          ? props.settings.run_fetch
-          : false,
+        settings && settings.run_fetch ? settings.run_fetch : false,
       setting_cron:
-        props.settings && props.settings.cron
-          ? props.settings.cron
-          : [default_schedule],
+        settings && settings.cron ? settings.cron : [default_schedule],
       setting_filters:
-        props.settings && props.settings.filters ? props.settings.filters : [],
-      setting_hash_check: props.settings && props.settings.hash_check ? props.settings.hash_check : false,
+        settings && settings.filters ? settings.filters : [],
+      setting_hash_check: settings && settings.hash_check ? settings.hash_check : false,
       disabled:
-        props.pro === false &&
-        props.settings &&
-        props.settings.import_method === 'schedule',
+        pro === false && settings && settings.import_method === 'schedule',
       saving: false,
-      setting_max_row: props.settings.max_row,
-      setting_start_row: props.settings.start_row,
+      setting_max_row: settings.max_row,
+      setting_start_row: settings.start_row,
     };
+  }, [pro, settings, template_settings]);
 
-    this.onChange = this.onChange.bind(this);
-    this.onCronChange = this.onCronChange.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-    this.runNow = this.runNow.bind(this);
-    this.save = this.save.bind(this);
-    this.onSave = this.onSave.bind(this);
-    this.addNewSchedule = this.addNewSchedule.bind(this);
-    this.removeSchedule = this.removeSchedule.bind(this);
-  }
+  const [form, setForm] = useState(initialState);
+  const formRef = useRef(form);
+  formRef.current = form;
 
-  onChange(event) {
+  const setSaving = useCallback((saving) => {
+    setForm((current) => ({ ...current, saving }));
+  }, []);
+
+  const onChange = useCallback((event) => {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
 
     debugLog('ImporterForm change', name, value);
 
-    this.setState(
-      {
+    setForm((current) => {
+      const next = {
+        ...current,
         [name]: value,
-      },
-      () => {
-        this.setState({
-          disabled:
-            this.props.pro === false &&
-            this.state.setting_import_method === 'schedule',
-        });
-      }
-    );
-  }
+      };
+      next.disabled = pro === false && next.setting_import_method === 'schedule';
+      return next;
+    });
+  }, [pro]);
 
-  onCronChange(event, i) {
+  const onCronChange = useCallback((event, i) => {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
 
-    // TODO: not store state in array, makes very slow performance
-    this.setState({
-      setting_cron: [
-        ...this.state.setting_cron.slice(0, i),
-        Object.assign({}, this.state.setting_cron[i], { [name]: value }),
-        ...this.state.setting_cron.slice(i + 1),
-      ],
-    });
-  }
+    setForm((current) => ({
+      ...current,
+      setting_cron: current.setting_cron.map((item, index) =>
+        index === i ? { ...item, [name]: value } : item
+      ),
+    }));
+  }, []);
 
-  addNewSchedule() {
-    this.setState({ setting_cron: [...this.state.setting_cron, default_schedule] });
-  }
+  const addNewSchedule = useCallback(() => {
+    setForm((current) => ({
+      ...current,
+      setting_cron: [...current.setting_cron, default_schedule],
+    }));
+  }, []);
 
-  removeSchedule(i) {
-    let current = this.state.setting_cron;
-    current.splice(i, 1);
-    this.setState({ setting_cron: current });
-  }
+  const removeSchedule = useCallback((i) => {
+    setForm((current) => ({
+      ...current,
+      setting_cron: current.setting_cron.filter((_, index) => index !== i),
+    }));
+  }, []);
 
-  save(callback = () => { }) {
-    const { id } = this.props;
-    this.setState({
-      saving: true,
-    });
+  const save = useCallback((callback = () => {}) => {
+    const current = formRef.current;
+    setSaving(true);
 
-    let data = Object.keys(this.state)
-      .filter((key) => {
-        return key.startsWith('setting_');
-      })
+    const data = Object.keys(current)
+      .filter((key) => key.startsWith('setting_'))
       .reduce((obj, key) => {
-        obj[key] = this.state[key];
+        obj[key] = current[key];
         return obj;
-      }, {});
-    data.id = id;
+      }, { id });
 
     importer.save(data).then(
       () => {
-        callback();
+        callback(current);
       },
       (error) => {
-        this.props.onError(error);
-        this.setState({
-          saving: false,
-        });
+        onError(error);
+        setSaving(false);
       }
     );
-  }
+  }, [id, onError, setSaving]);
 
-  onSave() {
-    this.save(() => {
-      this.setState({
-        saving: false,
-      });
+  const onSave = useCallback(() => {
+    save(() => {
+      setSaving(false);
     });
-  }
+  }, [save, setSaving]);
 
-  runNow() {
-    const { id } = this.props;
-    this.setState({
-      saving: true,
-    });
+  const runNow = useCallback(() => {
+    setSaving(true);
 
     importer.init(id).then(
       (init_response) => {
-        this.setState({
-          saving: false,
-        });
-        const { session } = init_response;
-        this.props.onRun(session);
+        setSaving(false);
+        onRun(init_response.session);
       },
       (error) => {
-        this.props.onError(error);
-        this.setState({
-          saving: false,
-        });
+        onError(error);
+        setSaving(false);
       }
     );
-  }
+  }, [id, onError, onRun, setSaving]);
 
-  onSubmit() {
-    const { id } = this.props;
-    this.save(() => {
-
-      // background
-      if (this.state.setting_import_method == 'background') {
+  const onSubmit = useCallback(() => {
+    save((current) => {
+      if (current.setting_import_method === 'background') {
         importer.init(id).then(
-          (init_response) => {
-            this.setState({
-              saving: false,
-            });
+          () => {
+            setSaving(false);
           },
           (error) => {
-            this.props.onError(error);
-            this.setState({
-              saving: false,
-            });
+            onError(error);
+            setSaving(false);
           }
         );
         return;
       }
 
-      // don't run if its a schedule
-      if (this.state.setting_import_method !== 'run') {
-        this.setState({
-          saving: false,
-        });
+      if (current.setting_import_method !== 'run') {
+        setSaving(false);
         return;
       }
 
-      // run importer
       importer.init(id).then(
         (init_response) => {
-          this.setState({
-            saving: false,
-          });
-          const { session } = init_response;
-          this.props.onRun(session);
+          setSaving(false);
+          onRun(init_response.session);
         },
         (error) => {
-          this.props.onError(error);
-          this.setState({
-            saving: false,
-          });
+          onError(error);
+          setSaving(false);
         }
       );
     });
-  }
+  }, [id, onError, onRun, save, setSaving]);
 
-  render() {
-    const {
-      setting_import_method,
-      disabled,
-      saving,
-      setting_start_row,
-      setting_max_row,
-      setting_cron,
-      setting_filters,
-      setting_run_fetch,
-      setting_hash_check
-    } = this.state;
+  const {
+    setting_import_method,
+    disabled,
+    saving,
+    setting_start_row,
+    setting_max_row,
+    setting_cron,
+    setting_filters,
+    setting_run_fetch,
+    setting_hash_check
+  } = form;
+
     return (
       <React.Fragment>
         <div className="iwp-form">
@@ -283,7 +234,7 @@ class ImporterForm extends Component {
                   name="setting_start_row"
                   min="0"
                   placeholder="Leave empty to import from the start."
-                  onChange={this.onChange}
+                  onChange={onChange}
                   value={setting_start_row}
                 />
               </div>
@@ -303,7 +254,7 @@ class ImporterForm extends Component {
                   name="setting_max_row"
                   min="0"
                   placeholder="Leave empty to import until the last record."
-                  onChange={this.onChange}
+                  onChange={onChange}
                   value={setting_max_row}
                 />
               </div>
@@ -319,7 +270,7 @@ class ImporterForm extends Component {
                     onColor="#22c48f"
                     onChange={checked => {
 
-                      this.onChange({
+                      onChange({
                         target: {
                           name: 'setting_hash_check',
                           type: 'checkbox',
@@ -332,24 +283,32 @@ class ImporterForm extends Component {
               </div>
             </div>
 
-            {this.template_settings &&
-              this.template_settings.map((field) => (
+            {template_settings &&
+              template_settings.map((field) => (
                 <SettingField
                   key={field.id}
                   id={field.id}
                   label={field.label}
                   type={field.type}
-                  value={this.state['setting_' + field.id]}
-                  onChange={this.onChange}
+                  value={form['setting_' + field.id]}
+                  onChange={onChange}
                 />
               ))}
 
             <ImportFilter
-              {...this.props}
+              complete={complete}
+              id={id}
+              template={template}
+              settings={settings}
+              onRun={onRun}
+              onError={onError}
+              pro={pro}
+              templates={templates}
               onFilterChange={(filters) => {
-                this.setState({
+                setForm((current) => ({
+                  ...current,
                   setting_filters: filters,
-                });
+                }));
               }}
               filters={setting_filters}
             />
@@ -362,7 +321,7 @@ class ImporterForm extends Component {
                     name="setting_import_method"
                     value="run"
                     checked={setting_import_method === 'run'}
-                    onChange={this.onChange}
+                    onChange={onChange}
                   />{' '}
                   Run Now - <em>Start the import straight away.</em>
                 </label>
@@ -379,7 +338,7 @@ class ImporterForm extends Component {
                       onColor="#22c48f"
                       onChange={checked => {
 
-                        this.onChange({
+                        onChange({
                           target: {
                             name: 'setting_run_fetch',
                             type: 'checkbox',
@@ -400,7 +359,7 @@ class ImporterForm extends Component {
                     name="setting_import_method"
                     value="background"
                     checked={setting_import_method === 'background'}
-                    onChange={this.onChange}
+                    onChange={onChange}
                   />{' '}
                   Run in the background - <em>Start the import and let it run in the background.</em>
                 </label>
@@ -424,7 +383,7 @@ class ImporterForm extends Component {
                         onColor="#22c48f"
                         onChange={checked => {
 
-                          this.onChange({
+                          onChange({
                             target: {
                               name: 'setting_run_fetch',
                               type: 'checkbox',
@@ -446,7 +405,7 @@ class ImporterForm extends Component {
                     name="setting_import_method"
                     value="schedule"
                     checked={setting_import_method === 'schedule'}
-                    onChange={this.onChange}
+                    onChange={onChange}
                   />{' '}
                   Schedule - <em>Run the import at a later date.</em>
                 </label>
@@ -460,9 +419,9 @@ class ImporterForm extends Component {
                     ),
                     {
                       setting_cron: setting_cron,
-                      onCronChange: this.onCronChange,
-                      removeSchedule: this.removeSchedule,
-                      addNewSchedule: this.addNewSchedule,
+                      onCronChange: onCronChange,
+                      removeSchedule: removeSchedule,
+                      addNewSchedule: addNewSchedule,
                     }
                   )}
                 </div>
@@ -476,7 +435,7 @@ class ImporterForm extends Component {
             <button
               className="button button-secondary"
               type="button"
-              onClick={this.onSave}
+              onClick={onSave}
               disabled={disabled}
             >
               {saving && <span className="spinner is-active"></span>}
@@ -485,7 +444,7 @@ class ImporterForm extends Component {
             <button
               className="button button-primary"
               type="button"
-              onClick={this.onSubmit}
+              onClick={onSubmit}
               disabled={disabled}
             >
               {saving && <span className="spinner is-active"></span>}
@@ -495,11 +454,11 @@ class ImporterForm extends Component {
                   ? 'Save & Run'
                   : 'Save & Schedule'}
             </button>{' '}
-            {setting_import_method == 'schedule' && this.props.pro === true && (
+            {setting_import_method == 'schedule' && pro === true && (
               <button
                 className="button button-link"
                 type="button"
-                onClick={this.runNow}
+                onClick={runNow}
                 disabled={disabled}
               >
                 Run manually
@@ -508,9 +467,8 @@ class ImporterForm extends Component {
           </div>
         </div>
       </React.Fragment>
-    );
-  }
-}
+    )
+};
 
 ImporterForm.propTypes = {
   complete: PropTypes.func,
@@ -521,16 +479,6 @@ ImporterForm.propTypes = {
   onError: PropTypes.func,
   pro: PropTypes.bool,
   templates: PropTypes.array,
-};
-
-ImporterForm.defaultProps = {
-  complete: () => { },
-  template: '',
-  settings: {},
-  onRun: () => { },
-  onError: () => { },
-  pro: false,
-  templates: [],
 };
 
 export default ImporterForm;

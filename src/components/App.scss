@@ -372,26 +372,43 @@
 
     &__input-wrapper {
       @include clearfix;
-      input,
+      display: flex;
+      align-items: stretch;
+
+      input[type='text'],
+      input[type='search'],
+      input:not([type]),
       button {
-        float: left;
+        float: none;
         box-sizing: border-box;
         margin: 0;
         height: 30px;
+        min-height: 30px;
+        max-height: 30px;
+        line-height: 28px;
+        padding-top: 0;
+        padding-bottom: 0;
+        vertical-align: middle;
       }
-      input {
-        width: 80%;
-        // border: 1px solid #e2e4e7;
+
+      input[type='text'],
+      input[type='search'],
+      input:not([type]) {
+        flex: 1 1 auto;
+        width: auto;
         border: 1px solid #7e8993;
         border-right: none;
         border-radius: 0;
+        padding-left: 8px;
+        padding-right: 8px;
       }
+
       button {
+        flex: 0 0 auto;
         width: 20%;
         cursor: pointer;
         background: #22c48f;
         border: 1px solid #279d77;
-        // border-color: #279d77 #279d77 #279d77;
         color: #fff;
         text-decoration: none;
         text-shadow:
@@ -773,9 +790,15 @@
 }
 
 @media screen and (max-width: 782px) {
-  .iwp-field__input-wrapper input,
+  .iwp-field__input-wrapper input.iwp-field__input,
+  .iwp-field__input-wrapper input[type='text'],
+  .iwp-field__input-wrapper input[type='search'],
+  .iwp-field__input-wrapper input:not([type]),
   .iwp-field__input-wrapper button {
-    height: 40px;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    line-height: 38px !important;
   }
 
   // hide help tab on smaller screens
@@ -798,6 +821,7 @@
 .iwp-field__input-wrapper {
   .iwp-field__select {
     width: 15%;
+    flex: 0 0 15%;
   }
 
   .iwp-field__settings {
@@ -807,6 +831,7 @@
     //   -1px 0 1px #bbbbbb;
     text-shadow: none;
     width: 5%;
+    flex: 0 0 5%;
     overflow: hidden;
     text-indent: -9999px;
     position: relative;
@@ -835,6 +860,27 @@
         color: #22c48f;
       }
     }
+  }
+
+  // Beat WP admin input sizing so the field matches adjacent buttons.
+  input.iwp-field__input,
+  input[type='text'],
+  input[type='search'] {
+    flex: 1 1 auto;
+    width: auto;
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
+    line-height: 28px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  button {
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
+    line-height: 28px !important;
   }
 }
 

@@ -1,37 +1,82 @@
-import React, { Component } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import debounce from 'lodash.debounce';
 
 import { importer } from '../../../services/importer.service';
 
-class RecordCsv extends Component {
-  constructor(props) {
-    super(props);
+const RecordCsv = ({
+  id,
+  onSelect = () => { },
+  show_headings = true,
+  delimiter,
+  enclosure,
+  escape,
+  onError = () => { },
+  file_encoding = '',
+}) => {
+  const [loading, setLoading] = useState(true);
+  const [headings, setHeadings] = useState([]);
+  const [row, setRow] = useState([]);
+  const [error, setError] = useState(false);
 
-    this.state = {
-      loading: true,
-      headings: [],
-      row: [],
-      error: false,
-    };
+  const propsRef = useRef();
+  propsRef.current = {
+    id,
+    delimiter,
+    enclosure,
+    escape,
+    show_headings,
+    file_encoding,
+    onError,
+  };
 
-    this.getPreview = debounce(this.getPreview, 300);
-    this.display = this.display.bind(this);
-    this.displayNodeClick = this.displayNodeClick.bind(this);
+  const getPreviewRef = useRef();
+  if (!getPreviewRef.current) {
+    getPreviewRef.current = debounce(() => {
+      const current = propsRef.current;
+      if (current.id && current.delimiter && current.enclosure) {
+        const data = {
+          delimiter: current.delimiter,
+          enclosure: current.enclosure,
+          escape: current.escape,
+          show_headings: current.show_headings,
+          file_encoding: current.file_encoding,
+        };
+        setError(false);
+        importer
+          .filePreview(current.id, data)
+          .then((record) => {
+            if (record.headings.length == record.row.length) {
+              setHeadings(record.headings);
+              setRow(record.row);
+            } else {
+              setHeadings([]);
+              setRow([]);
+              setError(`Inconsistent num of fields, header: ${record.headings.length}, this line: ${record.row.length} `);
+            }
+          })
+          .catch((e) => {
+            setHeadings([]);
+            setRow([]);
+            setError(e);
+            current.onError(e);
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      }
+    }, 300);
   }
 
-  displayNodeClick(content, xpath = '') {
+  const displayNodeClick = (content, xpath = '') => {
     return (
-      <span title={xpath} onClick={() => this.props.onSelect(xpath)}>
+      <span title={xpath} onClick={() => onSelect(xpath)}>
         {content.length > 0 ? content : <>&nbsp;</>}
       </span>
     );
-  }
+  };
 
-  display() {
-    const { show_headings } = this.props;
-    const { headings, row, error } = this.state;
-
+  const display = () => {
     if (error) {
       return (
         <tbody>
@@ -49,129 +94,53 @@ class RecordCsv extends Component {
         {headings.map((heading, index) => (
           <tr key={index}>
             <th>
-              {this.displayNodeClick(
+              {displayNodeClick(
                 false === show_headings ? index : heading,
                 '{' + index + '}'
               )}
             </th>
-            <td>{this.displayNodeClick(row[index], '{' + index + '}')}</td>
+            <td>{displayNodeClick(row[index], '{' + index + '}')}</td>
           </tr>
         ))}
       </tbody>
     );
-  }
+  };
 
-  getPreview() {
-    if (this.props.id && this.props.delimiter && this.props.enclosure) {
-      const { id } = this.props;
-      const data = {
-        delimiter: this.props.delimiter,
-        enclosure: this.props.enclosure,
-        escape: this.props.escape,
-        show_headings: this.props.show_headings,
-        file_encoding: this.props.file_encoding,
-      };
-      this.setState({ error: false });
-      importer
-        .filePreview(id, data)
-        .then((record) => {
-          if (record.headings.length == record.row.length) {
-            this.setState({
-              headings: record.headings,
-              row: record.row,
-            });
-          } else {
-            this.setState({
-              headings: [],
-              row: [],
-              error: `Inconsistent num of fields, header: ${record.headings.length}, this line: ${record.row.length} `,
-            });
-          }
-        })
-        .catch((e) => {
-          this.setState({ headings: [], row: [], error: e });
-          this.props.onError(e);
-        })
-        .finally(() => {
-          this.setState({ loading: false });
-        });
-    }
-  }
+  useEffect(() => {
+    setLoading(true);
+    getPreviewRef.current();
 
-  componentDidMount() {
-    this.getPreview();
-  }
+    return () => {
+      getPreviewRef.current.cancel();
+      importer.abort();
+    };
+  }, [delimiter, enclosure, escape, file_encoding, show_headings, id]);
 
-  componentDidUpdate(prevProps) {
-    let reload = false;
-
-    if (
-      prevProps.delimiter !== this.props.delimiter &&
-      this.props.delimiter !== ''
-    ) {
-      reload = true;
-    }
-
-    if (
-      prevProps.enclosure !== this.props.enclosure &&
-      this.props.enclosure !== ''
-    ) {
-      reload = true;
-    }
-
-    if (
-      prevProps.escape !== this.props.escape
-    ) {
-      reload = true;
-    }
-
-    if (prevProps.file_encoding !== this.props.file_encoding) {
-      reload = true;
-    }
-
-    if (prevProps.show_headings !== this.props.show_headings) {
-      reload = true;
-    }
-
-    if (reload) {
-      this.setState({ loading: true });
-      this.getPreview();
-    }
-  }
-
-  componentWillUnmount() {
-    importer.abort();
-  }
-
-  render() {
-    const { show_headings } = this.props;
-    const { loading } = this.state;
-    const record = this.display();
-    return (
-      <div className="iwp-preview iwp-preview--csv">
-        {loading ? (
-          'Loading'
-        ) : (
-          <table border="1" cellPadding="0" cellSpacing="0">
-            <thead>
-              <tr>
-                <th>
-                  <span>
-                    {false === show_headings ? 'Column Number' : 'Heading'}
-                  </span>
-                </th>
-                <th>
-                  <span>Value</span>
-                </th>
-              </tr>
-            </thead>
-            {record}
-          </table>
-        )}
-      </div>
-    );
-  }
-}
+  const record = display();
+  return (
+    <div className="iwp-preview iwp-preview--csv">
+      {loading ? (
+        'Loading'
+      ) : (
+        <table border="1" cellPadding="0" cellSpacing="0">
+          <thead>
+            <tr>
+              <th>
+                <span>
+                  {false === show_headings ? 'Column Number' : 'Heading'}
+                </span>
+              </th>
+              <th>
+                <span>Value</span>
+              </th>
+            </tr>
+          </thead>
+          {record}
+        </table>
+      )}
+    </div>
+  );
+};
 
 RecordCsv.propTypes = {
   id: PropTypes.number,
@@ -181,13 +150,6 @@ RecordCsv.propTypes = {
   enclosure: PropTypes.string,
   onError: PropTypes.func,
   file_encoding: PropTypes.string,
-};
-
-RecordCsv.defaultProps = {
-  file_encoding: '',
-  show_headings: true,
-  onSelect: () => { },
-  onError: () => { },
 };
 
 export default RecordCsv;

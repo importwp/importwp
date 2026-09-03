@@ -288,25 +288,43 @@
   line-height: 1.2;
   font-weight: bold;
 }
+.iwp-field__input-wrapper {
+  display: flex;
+  align-items: stretch;
+}
 .iwp-field__input-wrapper:after {
   content: "";
   display: table;
   clear: both;
 }
-.iwp-field__input-wrapper input,
+.iwp-field__input-wrapper input[type=text],
+.iwp-field__input-wrapper input[type=search],
+.iwp-field__input-wrapper input:not([type]),
 .iwp-field__input-wrapper button {
-  float: left;
+  float: none;
   box-sizing: border-box;
   margin: 0;
   height: 30px;
+  min-height: 30px;
+  max-height: 30px;
+  line-height: 28px;
+  padding-top: 0;
+  padding-bottom: 0;
+  vertical-align: middle;
 }
-.iwp-field__input-wrapper input {
-  width: 80%;
+.iwp-field__input-wrapper input[type=text],
+.iwp-field__input-wrapper input[type=search],
+.iwp-field__input-wrapper input:not([type]) {
+  flex: 1 1 auto;
+  width: auto;
   border: 1px solid #7e8993;
   border-right: none;
   border-radius: 0;
+  padding-left: 8px;
+  padding-right: 8px;
 }
 .iwp-field__input-wrapper button {
+  flex: 0 0 auto;
   width: 20%;
   cursor: pointer;
   background: #22c48f;
@@ -634,9 +652,15 @@
 }
 
 @media screen and (max-width: 782px) {
-  .iwp-field__input-wrapper input,
+  .iwp-field__input-wrapper input.iwp-field__input,
+  .iwp-field__input-wrapper input[type=text],
+  .iwp-field__input-wrapper input[type=search],
+  .iwp-field__input-wrapper input:not([type]),
   .iwp-field__input-wrapper button {
-    height: 40px;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    line-height: 38px !important;
   }
   .tools_page_importwp #screen-meta-links {
     display: none;
@@ -655,12 +679,14 @@
 
 .iwp-field__input-wrapper .iwp-field__select {
   width: 15%;
+  flex: 0 0 15%;
 }
 .iwp-field__input-wrapper .iwp-field__settings {
   background-color: #f0f0f1;
   border-color: #e5e5e5;
   text-shadow: none;
   width: 5%;
+  flex: 0 0 5%;
   overflow: hidden;
   text-indent: -9999px;
   position: relative;
@@ -685,6 +711,24 @@
 }
 .iwp-field__input-wrapper .iwp-field__settings--active:before {
   color: #22c48f;
+}
+.iwp-field__input-wrapper input.iwp-field__input,
+.iwp-field__input-wrapper input[type=text],
+.iwp-field__input-wrapper input[type=search] {
+  flex: 1 1 auto;
+  width: auto;
+  height: 30px !important;
+  min-height: 30px !important;
+  max-height: 30px !important;
+  line-height: 28px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+.iwp-field__input-wrapper button {
+  height: 30px !important;
+  min-height: 30px !important;
+  max-height: 30px !important;
+  line-height: 28px !important;
 }
 
 .iwp-notice__actions {

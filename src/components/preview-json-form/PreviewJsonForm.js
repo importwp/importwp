@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 
 import RecordJson from '../record/json/RecordJson';
@@ -8,49 +8,47 @@ import FieldLabel from '../field-label/FieldLabel';
 
 const ENCODINGS = window.iwp.encodings;
 
-class PreviewJsonForm extends Component {
-  constructor(props) {
-    super(props);
+function PreviewJsonForm({
+  complete,
+  id = null,
+  settings = {
+    base_path: '',
+    nodes: {},
+  },
+  onError = () => {},
+}) {
+  const [base_path, setBasePath] = useState(
+    settings.base_path !== null ? settings.base_path : ''
+  );
+  const [nodes, setNodes] = useState(settings.nodes);
+  const [file_encoding, setFileEncoding] = useState(settings.file_encoding);
+  const [processing, setProcessing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [prevSettings, setPrevSettings] = useState(settings);
 
-    this.state = {
-      base_path:
-        props.settings.base_path !== null ? props.settings.base_path : '',
-      nodes: props.settings.nodes,
-      file_encoding: props.settings.file_encoding,
-      processing: false,
-      saving: false,
-      disabled: true,
-    };
-
-    this.onChange = this.onChange.bind(this);
-    this.save = this.save.bind(this);
-    this.onSave = this.onSave.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-    this.isDisabled = this.isDisabled.bind(this);
-    this.isFileProcessed = this.isFileProcessed.bind(this);
+  if (settings !== prevSettings) {
+    setPrevSettings(settings);
+    setBasePath(settings.base_path !== null ? settings.base_path : '');
+    setNodes(settings.nodes);
+    setFileEncoding(settings.file_encoding);
   }
 
-  onChange(event) {
+  const disabled = !base_path;
+
+  const onChange = useCallback((event) => {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
-    const name = target.name;
+    const fieldName = target.name;
 
-    this.setState(
-      {
-        [name]: value,
-      },
-      () => {
-        if (this.state.base_path.length > 0) {
-          this.setState({ disabled: false });
-        }
-      }
-    );
-  }
+    if (fieldName === 'base_path') {
+      setBasePath(value);
+    } else if (fieldName === 'file_encoding') {
+      setFileEncoding(value);
+    }
+  }, []);
 
-  save(callback = () => {}) {
-    this.setState({ saving: true });
-    const { id } = this.props;
-    const { base_path, file_encoding } = this.state;
+  const save = useCallback((callback = () => {}) => {
+    setSaving(true);
 
     importer
       .save({
@@ -60,180 +58,151 @@ class PreviewJsonForm extends Component {
         file_settings_encoding: file_encoding,
       })
       .then(() => {
-        this.setState({ saving: false });
+        setSaving(false);
         callback();
       })
       .catch((error) => {
-        this.props.onError(error);
-        this.setState({
-          saving: false,
-        });
+        onError(error);
+        setSaving(false);
       });
-  }
+  }, [base_path, file_encoding, id, onError]);
 
-  onSave() {
-    this.save();
-  }
+  const onSave = useCallback(() => {
+    save();
+  }, [save]);
 
-  onSubmit() {
-    this.save(() => {
-      this.props.complete();
+  const onSubmit = useCallback(() => {
+    save(() => {
+      complete();
     });
-  }
+  }, [complete, save]);
 
-  isDisabled() {
-    if (this.state.base_path) {
-      this.setState({ disabled: false });
-    } else {
-      this.setState({ disabled: true });
-    }
-  }
-
-  isFileProcessed() {
-    if (this.props.settings.processed === false) {
-      this.setState({ processing: true });
-      importer.process(this.props.id).promise.then(
+  useEffect(() => {
+    if (settings.processed === false) {
+      setProcessing(true);
+      importer.process(id).promise.then(
         () => {
-          this.setState({ processing: false });
+          setProcessing(false);
         },
-        (error) => this.props.onError(error)
+        (error) => onError(error)
       );
     }
-  }
+  }, [id, onError, settings.processed]);
 
-  componentDidMount() {
-    this.isDisabled();
-    this.isFileProcessed();
-  }
+  return (
+    <React.Fragment>
+      {processing && (
+        <NoticeList
+          notices={[
+            {
+              message: (
+                <React.Fragment>We are Processing your file.</React.Fragment>
+              ),
+              type: 'warn',
+            },
+          ]}
+        />
+      )}
 
-  componentDidUpdate(prevProps) {
-    if (this.props.settings.processed !== prevProps.settings.processed) {
-      this.setState({
-        base_path: this.props.settings.base_path,
-        nodes: this.props.settings.nodes,
-      });
-    }
-  }
-
-  render() {
-    const { disabled, saving, base_path, nodes, processing, file_encoding } =
-      this.state;
-    const { id } = this.props;
-    return (
-      <React.Fragment>
-        {processing && (
-          <NoticeList
-            notices={[
-              {
-                message: (
-                  <React.Fragment>We are Processing your file.</React.Fragment>
-                ),
-                type: 'warn',
-              },
-            ]}
-          />
-        )}
-
-        <div className="iwp-form">
-          <form>
-            <p className="iwp-heading iwp-heading--has-tooltip">
-              File Settings.{' '}
-              <a
-                href="https://www.importwp.com/docs/importer-file-settings/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer"
-                target="_blank"
-                rel="noreferrer"
-                className="iwp-label__tooltip"
-              >
-                ?
-              </a>
-            </p>
-            <p>
-              Configure how the importer reads a record from your file, a
-              preview showing the first record is available at the bottom of the
-              page.
-            </p>
-            <div className="iwp-form__row">
-              <FieldLabel
-                label="Base Path"
-                id="base_path"
-                field="base_path"
-                tooltip="This Record Base is the path to the JSON array of records that you want to import. Use / for a root array."
-                display="inline-block"
-              />
-              <select
-                className="iwp-form__input"
-                onChange={this.onChange}
-                id="base_path"
-                name="base_path"
-                value={base_path}
-              >
-                <option value="">Choose a record base.</option>
-                {nodes &&
-                  Object.keys(nodes).map((key) => (
-                    <option key={key} value={key}>
-                      {key}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            <div className="iwp-form__row">
-              <FieldLabel
-                label="Encoding"
-                id="file_encoding"
-                field="file_encoding"
-                tooltip="Set the file encoding, check this if you see unexpected ? in the preview text"
-                display="inline-block"
-              />
-              <select
-                className="iwp-form__input"
-                onChange={this.onChange}
-                id="file_encoding"
-                name="file_encoding"
-                value={file_encoding}
-              >
-                <option value="">Default Encoding</option>
-                {Object.keys(ENCODINGS).map((key) => (
+      <div className="iwp-form">
+        <form>
+          <p className="iwp-heading iwp-heading--has-tooltip">
+            File Settings.{' '}
+            <a
+              href="https://www.importwp.com/docs/importer-file-settings/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer"
+              target="_blank"
+              rel="noreferrer"
+              className="iwp-label__tooltip"
+            >
+              ?
+            </a>
+          </p>
+          <p>
+            Configure how the importer reads a record from your file, a
+            preview showing the first record is available at the bottom of the
+            page.
+          </p>
+          <div className="iwp-form__row">
+            <FieldLabel
+              label="Base Path"
+              id="base_path"
+              field="base_path"
+              tooltip="This Record Base is the path to the JSON array of records that you want to import. Use / for a root array."
+              display="inline-block"
+            />
+            <select
+              className="iwp-form__input"
+              onChange={onChange}
+              id="base_path"
+              name="base_path"
+              value={base_path}
+            >
+              <option value="">Choose a record base.</option>
+              {nodes &&
+                Object.keys(nodes).map((key) => (
                   <option key={key} value={key}>
-                    {ENCODINGS[key]}
+                    {key}
                   </option>
                 ))}
-              </select>
-            </div>
-            <div className="iwp-form__row">
-              <label className="iwp-form__label">Record JSON Preview:</label>
-              <RecordJson
-                id={id}
-                base_path={base_path}
-                onError={this.props.onError}
-              />
-            </div>
-          </form>
-        </div>
-        <div className="iwp-form__actions">
-          <div className="iwp-buttons">
-            <button
-              className="button button-secondary"
-              type="button"
-              onClick={this.onSave}
-              disabled={disabled}
-            >
-              {saving && <span className="spinner is-active"></span>}
-              {saving ? 'Saving' : 'Save'}
-            </button>{' '}
-            <button
-              className="button button-primary"
-              type="button"
-              onClick={this.onSubmit}
-              disabled={disabled}
-            >
-              {saving && <span className="spinner is-active"></span>}
-              {saving ? 'Saving' : 'Save & Continue'}
-            </button>
+            </select>
           </div>
+          <div className="iwp-form__row">
+            <FieldLabel
+              label="Encoding"
+              id="file_encoding"
+              field="file_encoding"
+              tooltip="Set the file encoding, check this if you see unexpected ? in the preview text"
+              display="inline-block"
+            />
+            <select
+              className="iwp-form__input"
+              onChange={onChange}
+              id="file_encoding"
+              name="file_encoding"
+              value={file_encoding}
+            >
+              <option value="">Default Encoding</option>
+              {Object.keys(ENCODINGS).map((key) => (
+                <option key={key} value={key}>
+                  {ENCODINGS[key]}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="iwp-form__row">
+            <label className="iwp-form__label">Record JSON Preview:</label>
+            <RecordJson
+              id={id}
+              base_path={base_path}
+              onError={onError}
+            />
+          </div>
+        </form>
+      </div>
+      <div className="iwp-form__actions">
+        <div className="iwp-buttons">
+          <button
+            className="button button-secondary"
+            type="button"
+            onClick={onSave}
+            disabled={disabled}
+          >
+            {saving && <span className="spinner is-active"></span>}
+            {saving ? 'Saving' : 'Save'}
+          </button>{' '}
+          <button
+            className="button button-primary"
+            type="button"
+            onClick={onSubmit}
+            disabled={disabled}
+          >
+            {saving && <span className="spinner is-active"></span>}
+            {saving ? 'Saving' : 'Save & Continue'}
+          </button>
         </div>
-      </React.Fragment>
-    );
-  }
+      </div>
+    </React.Fragment>
+  );
 }
 
 PreviewJsonForm.propTypes = {
@@ -241,15 +210,6 @@ PreviewJsonForm.propTypes = {
   id: PropTypes.number,
   settings: PropTypes.object,
   onError: PropTypes.func,
-};
-
-PreviewJsonForm.defaultProps = {
-  id: null,
-  settings: {
-    base_path: '',
-    nodes: {},
-  },
-  onError: () => {},
 };
 
 export default PreviewJsonForm;

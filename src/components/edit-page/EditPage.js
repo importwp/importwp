@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import qs from 'qs';
@@ -29,319 +29,196 @@ import GlobalNotice from '../global-notice/GlobalNotice';
 import PreviewForm from '../preview-form/PreviewForm';
 import { logAjaxError } from '../../util/ajax-error';
 import { debugLog } from '../../util/debug';
+import { computeMaxStep, getStepFromSearch, shouldPushStepUrl } from './step';
 
 const AJAX_BASE = window.iwp.admin_base;
 
-class EditPage extends React.Component {
-  constructor(props) {
-    super(props);
+const resetImporter = {
+  parser: null,
+  file: null,
+  files: {},
+  permissions: {},
+  settings: {},
+};
 
-    let form, step;
-    if (props.id === null) {
-      form = 'add';
-      step = -1;
-    } else {
-      form = 'edit';
-      step = 0;
-    }
+const EditPage = ({
+  id = null,
+  location,
+  history,
+  pro = false,
+  templates = [],
+  setImporter: setImporterAction,
+}) => {
+  const initialForm = id === null ? 'add' : 'edit';
+  const initialStep = id === null ? -1 : 0;
 
-    this.resetImporter = {
-      parser: null,
-      file: null,
-      files: {},
-      permissions: {},
-      settings: {},
-    };
+  const [step, setStep] = useState(initialStep);
+  const [form, setForm] = useState(initialForm);
+  const [maxStep, setMaxStepState] = useState(initialStep);
+  const [init, setInit] = useState(false);
+  const [importerState, setImporterState] = useState(resetImporter);
+  const [datasource_type, setDatasourceType] = useState(null);
+  const [datasource_settings, setDatasourceSettings] = useState({});
+  const [notices, setNotices] = useState([]);
+  const [run_importer, setRunImporter] = useState(null);
+  const [status, setStatus] = useState(null);
+  const [show_debug, setShowDebug] = useState(false);
 
-    this.state = {
-      step: step,
-      form: form,
-      maxStep: step,
-      init: false,
-      importer: this.resetImporter,
-      loading: true,
-      datasource_type: null,
-      datasource_settings: {},
-      notices: [],
-      run_importer: null,
-      status: null,
-      log: null,
-      show_debug: false,
-    };
+  const statusXHR = useRef(null);
+  const importerSubject = useRef(null);
+  const statusSubject = useRef(null);
+  const getImporterRef = useRef(null);
 
-    this.statusXHR = null;
-    this.importerSubject = null;
-    this.statusSubject = null;
-
-    this.nextStep = this.nextStep.bind(this);
-    this.gotoStep = this.gotoStep.bind(this);
-    this.createImporter = this.createImporter.bind(this);
-    this.getImporter = this.getImporter.bind(this);
-    this.setMaxStep = this.setMaxStep.bind(this);
-    this.runImport = this.runImport.bind(this);
-    this.getStatus = this.getStatus.bind(this);
-    this.logError = this.logError.bind(this);
-  }
-
-  componentDidUpdate() {
-    debugLog('componentDidUpdate', 'EditPage');
-  }
-
-  router() {
-    const values = qs.parse(this.props.location.search);
-    if (values.log !== 'undefined') {
-      if (values.log !== '') {
-        // show single log
-      } else {
-        // show log archive
-      }
-    }
-  }
-
-  logError(error) {
+  const logError = useCallback((error) => {
     const message = logAjaxError(error, 'EditPage');
+    setNotices((current) => [
+      ...current,
+      { message: message, type: 'error', dismissible: true },
+    ]);
+    window.scrollTo(0, 0);
+  }, []);
 
-    this.setState({
-      notices: [
-        ...this.state.notices,
-        { message: message, type: 'error', dismissible: true },
-      ],
-    }, () => {
-      window.scrollTo(0, 0);
-    });
-  }
+  const getActiveStep = useCallback((maxStepValue) => {
+    setStep(getStepFromSearch(location.search, maxStepValue));
+  }, [location.search]);
 
-  getActiveStep() {
-    const { step } = qs.parse(this.props.location.search);
+  const setMaxStep = useCallback((importerData) => {
+    const max = computeMaxStep(importerData);
+    setMaxStepState(max);
+    return max;
+  }, []);
 
-    if (step) {
-      const activeStep = Math.min(this.state.maxStep, step);
-      this.setState({ step: parseInt(activeStep) });
-    } else {
-      // if no step set it to max step
-      this.setState({ step: this.state.maxStep > 4 ? 4 : this.state.maxStep });
+  const getStatus = useCallback(() => {
+    statusXHR.current = importer.status([id]);
+    statusSubject.current = statusXHR.current.request.subscribe(
+      (response) => {
+        setStatus(
+          response.find((item) =>
+            item?.version == 2 ? item.importer == id : item.id === id
+          )
+        );
+      },
+      () => {}
+    );
+  }, [id]);
+
+  const getImporter = useCallback(() => {
+    if (importerSubject.current !== null) {
+      importerSubject.current.unsubscribe();
     }
-  }
 
-  getImporter() {
-    const { id } = this.props;
-    this.setState({ loading: true });
-
-    this.importerSubject = importer.getAndSubscribe(id).subscribe({
+    importerSubject.current = importer.getAndSubscribe(id).subscribe({
       next: (data) => {
         if (data !== null) {
-          this.setState({
-            init: true,
-            importer: data,
-            loading: false,
-            datasource_type: data.datasource.type,
-            datasource_settings: data.datasource.settings,
-          });
+          setInit(true);
+          setImporterState(data);
+          setDatasourceType(data.datasource.type);
+          setDatasourceSettings(data.datasource.settings);
+          setImporterAction(data);
+          const max = setMaxStep(data);
+          getActiveStep(max);
 
-          // TODO: dispatch importer to redux
-          this.props.setImporter(data);
-
-          this.setMaxStep(data);
-          this.getActiveStep();
-
-          if (this.statusXHR === null) {
-            this.getStatus();
+          if (statusXHR.current === null) {
+            getStatus();
           }
         }
       },
       error: (error) => {
-        this.logError(error);
-        this.setState({ loading: false });
+        logError(error);
       },
     });
-  }
+  }, [getActiveStep, getStatus, id, logError, setImporterAction, setMaxStep]);
 
-  getStatus() {
-    const { id } = this.props;
-    this.statusXHR = importer.status([id]);
-    this.statusSubject = this.statusXHR.request.subscribe(
-      (response) => {
-        this.setState({
-          status: response.find((item) =>
-            item?.version == 2 ? item.importer == id : item.id === id
-          ),
-        });
-      },
-      () => { }
-    );
-  }
-
-  nextStep() {
-    let { step, maxStep } = this.state;
-    step++;
-
-    if (step > maxStep) {
-      this.setState({ maxStep: step });
-    }
-
-    if (step > 4) {
-      step = 0;
-    }
-
-    this.setState({ step: step });
-  }
-
-  gotoStep(step) {
-    this.setState({ step: step });
-  }
-
-  createImporter(id) {
-    this.setState({ id: id });
-
-    if (this.props.id === null) {
-      this.props.history.push(AJAX_BASE + '&edit=' + id);
-    }
-
-    this.nextStep();
-  }
-
-  setMaxStep(importer) {
-    let max = 0;
-
-    if (importer.file && importer.file.id > 0) {
-      max = 1;
-    }
-
-    if (
-      importer.file &&
-      importer.file.settings &&
-      importer.file.settings.setup === true
-    ) {
-      max = 2;
-    }
-
-    if (importer.map && Object.keys(importer.map).length > 0) {
-      max = 3;
-    }
-
-    const hasNewUniqueIdentifierUI = () => {
-      return +importer?.version >= 2 || importer.settings?.unique_identifier_type;
-    }
-
-    // TODO: make sure a unique identifier has been chosen.
-    if (importer.permissions && (
-      !hasNewUniqueIdentifierUI() ||
-      (importer.settings?.unique_identifier_type === 'field' && importer.settings?.unique_identifier?.length > 0) ||
-      (importer.settings?.unique_identifier_type === 'custom' && importer.settings?.unique_identifier_ref?.length > 0)
-    )) {
-      if (
-        (importer.permissions.create &&
-          importer.permissions.create.enabled === true) ||
-        (importer.permissions.update &&
-          importer.permissions.update.enabled === true) ||
-        (importer.permissions.remove &&
-          importer.permissions.remove.enabled === true)
-      ) {
-        max = 5;
+  const nextStep = useCallback(() => {
+    setStep((current) => {
+      let next = current + 1;
+      setMaxStepState((currentMax) => (next > currentMax ? next : currentMax));
+      if (next > 4) {
+        next = 0;
       }
+      return next;
+    });
+  }, []);
+
+  const gotoStep = useCallback((next) => {
+    setStep(next);
+  }, []);
+
+  const createImporter = useCallback((nextId) => {
+    if (id === null) {
+      history.push(AJAX_BASE + '&edit=' + nextId);
     }
+    nextStep();
+  }, [history, id, nextStep]);
 
-    this.setState({ maxStep: max });
-  }
-
-  runImport(session) {
-    if (this.statusXHR !== null) {
-      this.statusXHR.abort();
-      this.statusXHR = null;
+  const runImport = useCallback((session) => {
+    if (statusXHR.current !== null) {
+      statusXHR.current.abort();
+      statusXHR.current = null;
     }
+    setRunImporter(session);
+  }, []);
 
-    this.setState({ run_importer: session });
-  }
+  getImporterRef.current = getImporter;
 
-  componentDidMount() {
-    if (this.props.id > 0) {
-      this.setState({ maxStep: 0 });
-      this.getImporter();
+  useEffect(() => {
+    const nextId = parseInt(id, 10) || 0;
+    debugLog('EditPage load', nextId);
+
+    if (nextId > 0) {
+      getImporterRef.current();
     } else {
-      this.setState({
-        form: 'add',
-        step: -1,
-        maxStep: -1,
-        loading: false,
-        init: true,
-      });
+      setForm('add');
+      setStep(-1);
+      setMaxStepState(-1);
+      setInit(true);
+      setNotices([]);
+      setImporterState(resetImporter);
     }
-  }
 
-  componentDidUpdate(prevProps, prevState) {
-    const id = parseInt(this.props.id) || 0;
-    const prevId = parseInt(prevProps.id) || 0;
-    if (id !== prevId) {
-      if (id > 0) {
-        this.getImporter();
-      } else {
-        this.setState({
-          form: 'add',
-          step: -1,
-          maxStep: -1,
-          notices: [],
-          importer: this.resetImporter,
-        });
+    return () => {
+      if (statusXHR.current) {
+        statusXHR.current.abort();
+        statusXHR.current = null;
       }
-    }
-
-    const step = parseInt(this.state.step) || 0;
-    const prevStep = parseInt(prevState.step) || 0;
-    if (step !== prevStep) {
-      if (this.props.id !== null) {
-        // keep log if part of url
-        const { log } = qs.parse(this.props.location.search);
-        let url = AJAX_BASE + '&edit=' + id + '&step=' + step;
-        if (log && step === 5) {
-          url += '&log=' + log;
-        }
-
-        this.props.history.push(url);
+      importer.abort();
+      if (importerSubject.current !== null) {
+        importerSubject.current.unsubscribe();
+        importerSubject.current = null;
       }
+      if (statusSubject.current !== null) {
+        statusSubject.current.unsubscribe();
+        statusSubject.current = null;
+      }
+    };
+  }, [id]);
+
+  useEffect(() => {
+    const values = qs.parse(location.search, { ignoreQueryPrefix: true });
+    const currentUrlStep = values.step ? parseInt(values.step, 10) : null;
+
+    if (!shouldPushStepUrl({ init, id, currentUrlStep, step })) {
+      return;
     }
+
+    let url = AJAX_BASE + '&edit=' + id + '&step=' + step;
+    if (values.log && step === 5) {
+      url += '&log=' + values.log;
+    }
+    history.push(url);
+  }, [history, id, init, location.search, step]);
+
+  const { template, parser, file, files, enabled, permissions } = importerState;
+  const settings = file ? file.settings : null;
+
+  if (init === false) {
+    return <NoticeList notices={[{ message: 'Loading', type: 'info' }]} />;
   }
 
-  componentWillUnmount() {
-    // abort ajax requests
-    if (this.statusXHR) {
-      this.statusXHR.abort();
-    }
-    importer.abort();
+  const general_settings = importerState.settings;
 
-    // unsubscribe from subjects
-    if (this.importerSubject !== null) {
-      this.importerSubject.unsubscribe();
-    }
-    if (this.statusSubject !== null) {
-      this.statusSubject.unsubscribe();
-    }
-  }
-
-  render() {
-    const {
-      step,
-      maxStep,
-      form,
-      datasource_type,
-      datasource_settings,
-      notices,
-      init,
-      run_importer,
-      status,
-    } = this.state;
-    const { id } = this.props;
-    const { template, parser, file, files, enabled, permissions } =
-      this.state.importer;
-    const settings = file ? file.settings : null;
-
-    if (init === false) {
-      return <NoticeList notices={[{ message: 'Loading', type: 'info' }]} />;
-    }
-
-    const general_settings = this.state.importer.settings;
-
-    return (
-      <React.Fragment>
+  return (
+    <React.Fragment>
         <GlobalNotice />
 
         {run_importer !== null && (
@@ -350,10 +227,10 @@ class EditPage extends React.Component {
             session={run_importer}
             status={status}
             onComplete={() => {
-              this.setState({ run_importer: null, status: null });
+              setRunImporter(null); setStatus(null);
 
-              if (this.statusXHR === null) {
-                this.getStatus();
+              if (statusXHR.current === null) {
+                getStatus();
               }
             }}
           />
@@ -363,10 +240,10 @@ class EditPage extends React.Component {
           id={id}
           step={step}
           form={form}
-          gotoStep={this.gotoStep}
+          gotoStep={gotoStep}
           maxStep={maxStep}
-          importer={this.state.importer}
-          onError={this.logError}
+          importer={importerState}
+          onError={logError}
         />
 
         {id > 0 &&
@@ -388,7 +265,7 @@ class EditPage extends React.Component {
                               onClick={() => {
                                 // TODO: how do we resume
                                 if (status?.id) {
-                                  this.runImport(status.id);
+                                  runImport(status.id);
                                 }
                               }}
                             >
@@ -420,9 +297,11 @@ class EditPage extends React.Component {
         <NoticeList
           notices={notices}
           onDismiss={(i) => {
-            let temp = this.state.notices;
-            temp[i].dismissed = true;
-            this.setState({ notices: temp });
+            setNotices((current) =>
+              current.map((notice, index) =>
+                index === i ? { ...notice, dismissed: true } : notice
+              )
+            );
           }}
         />
 
@@ -430,10 +309,10 @@ class EditPage extends React.Component {
           <ErrorBoundary>
             <SetupForm
               id={id}
-              complete={this.createImporter}
+              complete={createImporter}
               template={template}
-              onError={this.logError}
-              templates={this.props.templates}
+              onError={logError}
+              templates={templates}
             />
           </ErrorBoundary>
         )}
@@ -441,13 +320,13 @@ class EditPage extends React.Component {
           <ErrorBoundary>
             <DatasourceForm
               id={id}
-              complete={this.nextStep}
+              complete={nextStep}
               parser={parser}
               file={file ? file.id : null}
               files={files}
               datasource={datasource_type}
               settings={datasource_settings}
-              onError={this.logError}
+              onError={logError}
             />
           </ErrorBoundary>
         )}
@@ -456,34 +335,34 @@ class EditPage extends React.Component {
             {parser === 'xml' && (
               <PreviewXmlForm
                 id={id}
-                complete={this.nextStep}
+                complete={nextStep}
                 settings={settings}
-                onError={this.logError}
+                onError={logError}
               />
             )}
             {parser === 'csv' && (
               <PreviewCsvForm
                 id={id}
-                complete={this.nextStep}
+                complete={nextStep}
                 settings={settings}
-                onError={this.logError}
+                onError={logError}
               />
             )}
             {parser === 'json' && (
               <PreviewJsonForm
                 id={id}
-                complete={this.nextStep}
+                complete={nextStep}
                 settings={settings}
-                onError={this.logError}
+                onError={logError}
               />
             )}
             {parser !== 'xml' && parser !== 'csv' && parser !== 'json' && (
               <PreviewForm
                 id={id}
                 parser={parser}
-                complete={this.nextStep}
+                complete={nextStep}
                 settings={settings}
-                onError={this.logError}
+                onError={logError}
               />
             )}
           </ErrorBoundary>
@@ -495,11 +374,11 @@ class EditPage extends React.Component {
               template={template}
               parser={parser}
               settings={settings}
-              complete={this.nextStep}
+              complete={nextStep}
               enabled={enabled}
-              onError={this.logError}
-              pro={this.props.pro}
-              templates={this.props.templates}
+              onError={logError}
+              pro={pro}
+              templates={templates}
             />
           </ErrorBoundary>
         )}
@@ -508,9 +387,9 @@ class EditPage extends React.Component {
             <PermissionForm
               id={id}
               template={template}
-              complete={this.nextStep}
+              complete={nextStep}
               permissions={permissions}
-              onError={this.logError}
+              onError={logError}
               settings={general_settings}
             />
           </ErrorBoundary>
@@ -519,45 +398,44 @@ class EditPage extends React.Component {
           <ErrorBoundary>
             <ImporterForm
               id={id}
-              complete={this.nextStep}
+              complete={nextStep}
               template={template}
               settings={general_settings}
-              onRun={this.runImport}
-              onError={this.logError}
-              pro={this.props.pro}
-              templates={this.props.templates}
+              onRun={runImport}
+              onError={logError}
+              pro={pro}
+              templates={templates}
             />
           </ErrorBoundary>
         )}
         {step === 5 && <ImporterLogs id={id} />}
-        {this.state.importer && this.state.importer.debug && (
+        {importerState && importerState.debug && (
           <React.Fragment>
             {step === 5 && <div className="iwp-debug-spacer">&nbsp;</div>}
             <button
               type="button"
               className="iwp-debug__toggle dashicons-before dashicons-editor-code"
               onClick={() => {
-                this.setState({ show_debug: !this.state.show_debug });
+                setShowDebug((current) => !current);
               }}
             >
-              {this.state.show_debug ? (
+              {show_debug ? (
                 <span>Hide Debug</span>
               ) : (
                 <span>Show Debug</span>
               )}
             </button>
-            {this.state.show_debug && (
+            {show_debug && (
               <ImporterDebug
-                id={this.props.id}
-                settings={this.state.importer.debug.settings}
+                id={id}
+                settings={importerState.debug.settings}
               />
             )}
           </React.Fragment>
         )}
       </React.Fragment>
-    );
-  }
-}
+    )
+};
 
 EditPage.propTypes = {
   id: PropTypes.number,
@@ -565,12 +443,6 @@ EditPage.propTypes = {
   history: PropTypes.object,
   pro: PropTypes.bool,
   templates: PropTypes.array,
-};
-
-EditPage.defaultProps = {
-  id: null,
-  pro: false,
-  templates: [],
 };
 
 const mapStateToProps = (state) => ({

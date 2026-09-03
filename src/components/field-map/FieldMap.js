@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getFieldMap, setTemplate } from '../../features/importer/importerSlice';
 import FieldLabel from '../field-label/FieldLabel';
@@ -6,20 +6,8 @@ import FieldMapped from '../field/FieldMapped';
 import Modal from '../modal/Modal';
 
 const FieldMap = ({ show, field, name, onClose = () => { }, delimiter = false }) => {
-  const [showModal, setShowModal] = useState(false);
-
   const map = useSelector((state) => getFieldMap(state, name));
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    if (!showModal) {
-      onClose();
-    }
-  }, [showModal]);
-
-  useEffect(() => {
-    setShowModal(show);
-  }, [show]);
 
   const onChange = (event) => {
     const target = event.target;
@@ -30,13 +18,11 @@ const FieldMap = ({ show, field, name, onClose = () => { }, delimiter = false })
     }
   };
 
-
-
   return (
     <Modal
-      show={showModal}
+      show={show}
       title={`Field map`}
-      onClose={() => setShowModal(!showModal)}
+      onClose={onClose}
     >
       <p>Click on add row to add your first data map, the field value will be compared against this data map.</p>
       {delimiter !== false && <>

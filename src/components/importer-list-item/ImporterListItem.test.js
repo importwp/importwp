@@ -70,7 +70,7 @@ function hasProgressBar(element) {
 
 describe('ImporterListItem rendering', () => {
   it('does not crash when running with an empty section', () => {
-    const instance = new ImporterListItem({
+    const props = {
       importer: {
         id: 17284,
         name: 'WooCommerce Importer',
@@ -79,13 +79,13 @@ describe('ImporterListItem rendering', () => {
       },
       status: runningStatusWithEmptySection,
       onDelete: () => {},
-    });
+    };
 
-    expect(() => instance.render()).not.toThrow();
+    expect(() => ImporterListItem(props)).not.toThrow();
   });
 
   it('renders a progress bar when section progress is available', () => {
-    const instance = new ImporterListItem({
+    const element = ImporterListItem({
       importer: {
         id: 1,
         name: 'Importer One',
@@ -96,11 +96,11 @@ describe('ImporterListItem rendering', () => {
       onDelete: () => {},
     });
 
-    expect(hasProgressBar(instance.render())).toBe(true);
+    expect(hasProgressBar(element)).toBe(true);
   });
 
   it('does not render a progress bar when section progress is missing', () => {
-    const instance = new ImporterListItem({
+    const element = ImporterListItem({
       importer: {
         id: 17284,
         name: 'WooCommerce Importer',
@@ -111,6 +111,6 @@ describe('ImporterListItem rendering', () => {
       onDelete: () => {},
     });
 
-    expect(hasProgressBar(instance.render())).toBe(false);
+    expect(hasProgressBar(element)).toBe(false);
   });
 });

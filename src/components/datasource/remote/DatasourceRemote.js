@@ -1,37 +1,30 @@
-import React, { Component } from 'react';
+import React, { useImperativeHandle, useState } from 'react';
 import PropTypes from 'prop-types';
 
 import { importer } from '../../../services/importer.service';
 import FieldLabel from '../../field-label/FieldLabel';
 
-class DatasourceRemote extends Component {
-  constructor(props) {
-    super(props);
+const DatasourceRemote = React.forwardRef(({
+  id,
+  remote_url,
+  onChange,
+  complete,
+  showModal = () => { },
+  closeModal = () => { },
+  filetype: filetypeProp = '',
+  onError = () => { }
+}, ref) => {
+  const [filetype, setFiletype] = useState(filetypeProp);
+  const [filetype_enabled] = useState(!filetypeProp);
 
-    let filetype_enabled = true;
-    if (props.filetype) {
-      filetype_enabled = false;
-    }
+  const onFiletypeChange = (event) => {
+    setFiletype(event.target.value);
+  };
 
-    this.state = {
-      filetype: props.filetype,
-      filetype_enabled: filetype_enabled
-    };
-
-    this.onChange = this.onChange.bind(this);
-    this.run = this.run.bind(this);
-  }
-
-  onChange(event) {
-    this.setState({ [event.target.name]: event.target.value });
-  }
-
-  run(callback = () => { }) {
+  const run = (callback = () => { }) => {
     const title = 'Downloading File.';
-    const { remote_url, id } = this.props;
-    const { filetype } = this.state;
 
-    this.props.showModal(<progress className="iwp-progress-bar" />, title);
+    showModal(<progress className="iwp-progress-bar" />, title);
 
     let form_data = new FormData();
     form_data.append('remote_url', remote_url);
@@ -40,70 +33,69 @@ class DatasourceRemote extends Component {
 
     importer.upload(id, form_data).then(
       () => {
-        this.props.showModal(
+        showModal(
           <progress className="iwp-progress-bar" value="100" max="100" />,
           title
         );
-        this.props.closeModal();
+        closeModal();
         callback();
       },
       error => {
-        this.props.onError(error);
-        this.props.closeModal();
+        onError(error);
+        closeModal();
       }
     );
-  }
+  };
 
-  render() {
-    const { remote_url } = this.props;
-    const { filetype, filetype_enabled } = this.state;
+  useImperativeHandle(ref, () => ({
+    run
+  }));
 
-    const extra_file_types = window.iwp.hooks.applyFilters('iwp_allowed_file_types', []);
+  const extra_file_types = window.iwp.hooks.applyFilters('iwp_allowed_file_types', []);
 
-    return (
-      <React.Fragment>
-        <div className="iwp-field">
+  return (
+    <React.Fragment>
+      <div className="iwp-field">
+        <div className="iwp-field__left">
+          <FieldLabel
+            id="remote_url"
+            field="remote_url"
+            label="Remote Url"
+            tooltip="Enter the  url of the file, this should begin with http/https."
+          />
+        </div>
+        <div className="iwp-field__right">
+          <input
+            className="iwp-form__input"
+            id="remote_url"
+            name="remote_url"
+            value={remote_url}
+            onChange={onChange}
+            type="text"
+          />
+        </div>
+      </div>
+      {filetype_enabled && (
+        <div className="iwp-field iwp-pb--0 iwp-pt--0">
           <div className="iwp-field__left">
-            <FieldLabel
-              id="remote_url"
-              field="remote_url"
-              label="Remote Url"
-              tooltip="Enter the  url of the file, this should begin with http/https."
-            />
+            <label className="iwp-form__label" htmlFor="remote_url">
+              File Type:
+            </label>
           </div>
           <div className="iwp-field__right">
-            <input
-              className="iwp-form__input"
-              id="remote_url"
-              name="remote_url"
-              value={remote_url}
-              onChange={this.props.onChange}
-              type="text"
-            />
+            <select name="filetype" value={filetype} onChange={onFiletypeChange}>
+              <option value="">Choose file type</option>
+              <option value="csv">CSV File</option>
+              <option value="xml">XML File</option>
+              <option value="json">JSON File</option>
+              {extra_file_types && extra_file_types.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+            </select>
           </div>
         </div>
-        {filetype_enabled && (
-          <div className="iwp-field iwp-pb--0 iwp-pt--0">
-            <div className="iwp-field__left">
-              <label className="iwp-form__label" htmlFor="remote_url">
-                File Type:
-              </label>
-            </div>
-            <div className="iwp-field__right">
-              <select name="filetype" value={filetype} onChange={this.onChange}>
-                <option value="">Choose file type</option>
-                <option value="csv">CSV File</option>
-                <option value="xml">XML File</option>
-                <option value="json">JSON File</option>
-                {extra_file_types && extra_file_types.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-              </select>
-            </div>
-          </div>
-        )}
-      </React.Fragment>
-    );
-  }
-}
+      )}
+    </React.Fragment>
+  );
+});
 
 DatasourceRemote.propTypes = {
   id: PropTypes.number,
@@ -114,13 +106,6 @@ DatasourceRemote.propTypes = {
   closeModal: PropTypes.func,
   filetype: PropTypes.string,
   onError: PropTypes.func
-};
-
-DatasourceRemote.defaultProps = {
-  showModal: () => { },
-  closeModal: () => { },
-  filetype: '',
-  onError: () => { }
 };
 
 export default DatasourceRemote;

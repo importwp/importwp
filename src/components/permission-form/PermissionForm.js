@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 
 import './PermissionForm.scss';
@@ -11,174 +11,147 @@ import InputFieldDataSelector from '../InputFieldDataSelector/InputFieldDataSele
 import NoticeList from '../notice-list/NoticeList';
 import { Tooltip } from 'react-tooltip';
 
-class PermissionForm extends Component {
-  constructor(props) {
-    super(props);
+const PermissionForm = ({
+  id,
+  permissions = {},
+  settings = {},
+  complete,
+  onError = () => {},
+  importer: importerData,
+}) => {
+  const initialCreatePermissions = (
+    permissions.create && permissions.create.fields
+      ? permissions.create.fields.join('\n')
+      : ''
+  );
+  const initialUpdatePermissions = (
+    permissions.update && permissions.update.fields
+      ? permissions.update.fields.join('\n')
+      : ''
+  );
 
-    this.state = {
-      create:
-        props.permissions.create && props.permissions.create.enabled == false
-          ? props.permissions.create.enabled
-          : true,
-      create_type:
-        props.permissions.create && props.permissions.create.type
-          ? props.permissions.create.type
-          : '',
-      create_permissions:
-        props.permissions.create && props.permissions.create.fields
-          ? props.permissions.create.fields.join('\n')
-          : '',
-      update:
-        props.permissions.update && props.permissions.update.enabled == false
-          ? props.permissions.update.enabled
-          : true,
-      update_type:
-        props.permissions.update && props.permissions.update.type
-          ? props.permissions.update.type
-          : '',
-      update_permissions:
-        props.permissions.update && props.permissions.update.fields
-          ? props.permissions.update.fields.join('\n')
-          : '',
-      remove:
-        props.permissions.remove && props.permissions.remove.enabled
-          ? props.permissions.remove.enabled
-          : false,
-      remove_trash:
-        props.permissions.remove && props.permissions.remove.trash
-          ? props.permissions.remove.trash
-          : false,
-      remove_media:
-        props.permissions.remove && props.permissions.remove.media
-          ? props.permissions.remove.media
-          : false,
-      setting_unique_identifier:
-        props.permissions.remove && props.settings.unique_identifier
-          ? props.settings.unique_identifier
-          : '',
-      setting_unique_identifier_type: props.settings.unique_identifier_type ? props.settings.unique_identifier_type : '',
-      setting_unique_identifier_ref: props.settings.unique_identifier_ref ? props.settings.unique_identifier_ref : '',
-      saving: false,
-      disabled: true,
-      unique_identifiers: [],
-      permission_fields: [],
-      update_permission_fields: [],
-      create_permission_fields: [],
-      isLoading: false,
-    };
+  const [create, setCreate] = useState(
+    permissions.create && permissions.create.enabled == false
+      ? permissions.create.enabled
+      : true
+  );
+  const [create_type, setCreateType] = useState(
+    permissions.create && permissions.create.type
+      ? permissions.create.type
+      : ''
+  );
+  const [create_permissions, setCreatePermissions] = useState(initialCreatePermissions);
+  const [update, setUpdate] = useState(
+    permissions.update && permissions.update.enabled == false
+      ? permissions.update.enabled
+      : true
+  );
+  const [update_type, setUpdateType] = useState(
+    permissions.update && permissions.update.type
+      ? permissions.update.type
+      : ''
+  );
+  const [update_permissions, setUpdatePermissions] = useState(initialUpdatePermissions);
+  const [remove, setRemove] = useState(
+    permissions.remove && permissions.remove.enabled
+      ? permissions.remove.enabled
+      : false
+  );
+  const [remove_trash, setRemoveTrash] = useState(
+    permissions.remove && permissions.remove.trash
+      ? permissions.remove.trash
+      : false
+  );
+  const [remove_media, setRemoveMedia] = useState(
+    permissions.remove && permissions.remove.media
+      ? permissions.remove.media
+      : false
+  );
+  const [setting_unique_identifier, setSettingUniqueIdentifier] = useState(
+    settings.unique_identifier ? settings.unique_identifier : ''
+  );
+  const [setting_unique_identifier_type, setSettingUniqueIdentifierType] = useState(
+    settings.unique_identifier_type ? settings.unique_identifier_type : ''
+  );
+  const [setting_unique_identifier_ref, setSettingUniqueIdentifierRef] = useState(
+    settings.unique_identifier_ref ? settings.unique_identifier_ref : ''
+  );
+  const [saving, setSaving] = useState(false);
+  const [unique_identifiers, setUniqueIdentifiers] = useState([]);
+  const [permission_fields, setPermissionFields] = useState([]);
+  const [update_permission_fields, setUpdatePermissionFields] = useState(
+    initialUpdatePermissions.split('\n')
+  );
+  const [create_permission_fields, setCreatePermissionFields] = useState(
+    initialCreatePermissions.split('\n')
+  );
+  const [isLoading, setIsLoading] = useState(false);
 
-    this.state.update_permission_fields = this.state.update_permissions.split("\n");
-    this.state.create_permission_fields = this.state.create_permissions.split("\n");
+  const hasNewUniqueIdentifierUI = useCallback(() => {
+    const { version = 0 } = importerData || {};
+    return version >= 2 || setting_unique_identifier_type;
+  }, [importerData, setting_unique_identifier_type]);
 
-    this.onChange = this.onChange.bind(this);
-    this.save = this.save.bind(this);
-    this.onSave = this.onSave.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-    this.isDisabled = this.isDisabled.bind(this);
-    this.setPermissionFields = this.setPermissionFields.bind(this);
-    this.onUniqueIdentifierTypeChange = this.onUniqueIdentifierTypeChange.bind(this);
-    this.hasNewUniqueIdentifierUI = this.hasNewUniqueIdentifierUI.bind(this);
-  }
+  const disabled = !((create || update || remove) && (
+    !hasNewUniqueIdentifierUI() ||
+    (setting_unique_identifier_type == 'field' && setting_unique_identifier) ||
+    (setting_unique_identifier_type == 'custom' && setting_unique_identifier_ref)
+  ));
 
-  onChange(event) {
+  const onChange = (event) => {
     const target = event.target;
     let value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
+    const setters = {
+      create: setCreate,
+      create_type: setCreateType,
+      create_permissions: setCreatePermissions,
+      update: setUpdate,
+      update_type: setUpdateType,
+      update_permissions: setUpdatePermissions,
+      remove: setRemove,
+      remove_trash: setRemoveTrash,
+      remove_media: setRemoveMedia,
+      setting_unique_identifier: setSettingUniqueIdentifier,
+      setting_unique_identifier_type: setSettingUniqueIdentifierType,
+      setting_unique_identifier_ref: setSettingUniqueIdentifierRef,
+    };
+    if (setters[name]) {
+      setters[name](value);
+    }
+  };
 
-    this.setState(
-      {
-        [name]: value,
-      },
-      this.isDisabled
-    );
-  }
+  const setPermissionFieldsFn = (section, fields = [], add = true) => {
+    const isUpdate = section == 'update';
+    const current = isUpdate ? update_permission_fields : create_permission_fields;
+    const next = add
+      ? [...current, ...fields]
+      : [...current.filter(item => !fields.includes(item))];
 
-  isDisabled() {
-
-    if ((this.state.create || this.state.update || this.state.remove) &&
-      (
-        !this.hasNewUniqueIdentifierUI() ||
-        (this.state.setting_unique_identifier_type == 'field' && this.state.setting_unique_identifier) ||
-        (this.state.setting_unique_identifier_type == 'custom' && this.state.setting_unique_identifier_ref)
-      )) {
-      // can save if there are some permissions enabled
-      this.setState({ disabled: false });
+    if (isUpdate) {
+      setUpdatePermissionFields(next);
     } else {
-      this.setState({ disabled: true });
+      setCreatePermissionFields(next);
     }
-  }
 
-  async componentDidMount() {
-
-    this.isDisabled();
-
-    try {
-
-      this.setState({ isLoading: true });
-
-      // Load list of unique identifier fields
-      const unique_identifiers_result = await importer.templateUniqueIdentifiers(this.props.id);
-      let unique_identifiers = unique_identifiers_result.options;
-      if (this.state.setting_unique_identifier.length > 0 && !unique_identifiers.find(item => item.value == this.state.setting_unique_identifier)) {
-        unique_identifiers = [...unique_identifiers, { label: 'Custom: ' + this.state.setting_unique_identifier, value: this.state.setting_unique_identifier }];
+    const joined = next.filter(item => {
+      for (const [key, value] of Object.entries(permission_fields)) {
+        if (Object.keys(value).includes(item)) {
+          return true;
+        }
       }
-      this.setState({ unique_identifiers, isLoading: false });
+      return false;
+    }).join('\n');
 
-      // load list of permission_fields
-      const template_group = await importer.template(this.props.id);
-      this.setState({ permission_fields: template_group.permission_fields });
-
-    } catch (e) {
-      this.props.onError('Error: ' + e);
-      this.setState({ loaded: true });
-      return;
+    if (isUpdate) {
+      setUpdatePermissions(joined);
+    } else {
+      setCreatePermissions(joined);
     }
-  }
+  };
 
-  componentDidUpdate(prevProps) {
-    if (this.props.permissions.create && prevProps.permissions.create) {
-      const create = this.props.permissions.create.enabled;
-      const prevCreate = prevProps.permissions.create.enabled;
-      if (create !== prevCreate) {
-        this.setState({ create: this.props.permissions.create.enabled });
-      }
-    }
-
-    if (this.props.permissions.update && prevProps.permissions.update) {
-      const update = this.props.permissions.update.enabled;
-      const prevUpdate = prevProps.permissions.update.enabled;
-      if (update !== prevUpdate) {
-        this.setState({ update: this.props.permissions.update.enabled });
-      }
-    }
-
-    if (this.props.permissions.remove && prevProps.permissions.remove) {
-      const remove = this.props.permissions.remove.enabled;
-      const prevRemove = prevProps.permissions.remove.enabled;
-      if (remove !== prevRemove) {
-        this.setState({ remove: this.props.permissions.remove.enabled });
-      }
-    }
-  }
-
-  save(callback = () => { }) {
-    const { id } = this.props;
-
-    const {
-      create,
-      create_type,
-      create_permissions,
-      update,
-      update_type,
-      update_permissions,
-      remove,
-      remove_trash,
-      remove_media,
-      setting_unique_identifier,
-      setting_unique_identifier_type,
-      setting_unique_identifier_ref,
-    } = this.state;
-    const permissions = {
+  const save = (callback = () => {}) => {
+    const payload = {
       create: {
         enabled: create,
         type: create_type,
@@ -196,16 +169,15 @@ class PermissionForm extends Component {
       },
     };
 
-    this.setState({ saving: true });
+    setSaving(true);
 
     let data = {
       id: id,
-      permissions: permissions,
+      permissions: payload,
       setting_unique_identifier: setting_unique_identifier,
     };
 
-    if (this.hasNewUniqueIdentifierUI()) {
-      // save new permission form data
+    if (hasNewUniqueIdentifierUI()) {
       data = {
         ...data,
         setting_unique_identifier_type: setting_unique_identifier_type,
@@ -216,109 +188,96 @@ class PermissionForm extends Component {
     importer
       .save(data)
       .then(() => {
-        this.setState({ saving: false });
+        setSaving(false);
         callback();
       })
       .catch((error) => {
-        this.props.onError(error);
-        this.setState({
-          saving: false,
-        });
+        onError(error);
+        setSaving(false);
       });
-  }
+  };
 
-  onSave() {
-    this.save();
-  }
+  const onSave = () => {
+    save();
+  };
 
-  onSubmit() {
-    this.save(() => {
-      this.props.complete();
+  const onSubmit = () => {
+    save(() => {
+      complete();
     });
-  }
+  };
 
-  setPermissionFields(section, fields = [], add = true) {
+  const onUniqueIdentifierTypeChange = (e) => {
+    setSettingUniqueIdentifierType(e.target.value);
+  };
 
-    const name = section == 'update' ? 'update_permission_fields' : 'create_permission_fields';
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        setIsLoading(true);
+        const unique_identifiers_result = await importer.templateUniqueIdentifiers(id);
+        let nextIdentifiers = unique_identifiers_result.options;
+        if (setting_unique_identifier.length > 0 && !nextIdentifiers.find(item => item.value == setting_unique_identifier)) {
+          nextIdentifiers = [...nextIdentifiers, { label: 'Custom: ' + setting_unique_identifier, value: setting_unique_identifier }];
+        }
+        if (!cancelled) {
+          setUniqueIdentifiers(nextIdentifiers);
+          setIsLoading(false);
+        }
 
-    const onStateSet = () => {
-      this.setState({
-        [section == 'update' ? 'update_permissions' : 'create_permissions']: this.state[name].filter(item => {
+        const template_group = await importer.template(id);
+        if (!cancelled) {
+          setPermissionFields(template_group.permission_fields);
+        }
+      } catch (e) {
+        onError('Error: ' + e);
+      }
+    };
 
-          for (const [key, value] of Object.entries(this.state.permission_fields)) {
-            if (Object.keys(value).includes(item)) {
-              return true;
-            }
-          }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
-          return false;
-        }).join("\n")
-      });
+  // Adjust local permission toggles when parent importer permissions change.
+  const [prevPermissions, setPrevPermissions] = useState(permissions);
+  if (permissions !== prevPermissions) {
+    setPrevPermissions(permissions);
+    if (permissions.create) {
+      setCreate(permissions.create.enabled);
     }
-
-    if (add) {
-
-      this.setState({
-        [name]: [...this.state[name], ...fields]
-      }, onStateSet);
-
-    } else {
-      this.setState({
-        [name]: [...this.state[name].filter(item => !fields.includes(item))]
-      }, onStateSet);
+    if (permissions.update) {
+      setUpdate(permissions.update.enabled);
+    }
+    if (permissions.remove) {
+      setRemove(permissions.remove.enabled);
     }
   }
 
-  onUniqueIdentifierTypeChange(e) {
-    this.setState({
-      setting_unique_identifier_type: e.target.value
-    }, this.isDisabled);
-  }
+  const permission_field_selector = (section, active_fields = []) => {
+    const btn_styles = {
+      background: 'none',
+      border: 'none',
+      textDecoration: 'underline'
+    };
 
-  hasNewUniqueIdentifierUI() {
-    const { version = 0 } = this.props.importer;
-    return version >= 2 || this.state.setting_unique_identifier_type;
-  }
-
-  render() {
-    const {
-      create,
-      create_type,
-      create_permissions,
-      update,
-      update_type,
-      update_permissions,
-      remove,
-      saving,
-      disabled,
-      setting_unique_identifier,
-      remove_trash,
-      remove_media,
-    } = this.state;
-
-    const permission_field_selector = (section, active_fields = []) => {
-
-      const btn_styles = {
-        background: 'none',
-        border: 'none',
-        textDecoration: 'underline'
-      };
-
-      return <>
-        {Object.keys(this.state.permission_fields).map((group) => <div>
+    return <>
+      {Object.keys(permission_fields).map((group) => <div key={group}>
           <p>
             {group !== 'core' && <span style={{ fontWeight: 'bold' }}>{group} </span>}
             (<button style={btn_styles} type='button' onClick={() => {
-              this.setPermissionFields(section, Object.keys(this.state.permission_fields[group]), true);
+              setPermissionFieldsFn(section, Object.keys(permission_fields[group]), true);
             }}>Check All</button>,
             <button style={btn_styles} type='button' onClick={() => {
-              this.setPermissionFields(section, Object.keys(this.state.permission_fields[group]), false);
+              setPermissionFieldsFn(section, Object.keys(permission_fields[group]), false);
             }}>Uncheck All</button>)
           </p>
 
-          {Object.keys(this.state.permission_fields[group]).map(field => <label style={{ display: 'block' }}><input type="checkbox" checked={active_fields.includes(field)} onChange={() => {
-            this.setPermissionFields(section, [field], !active_fields.includes(field));
-          }} /> {this.state.permission_fields[group][field]}</label>)}
+          {Object.keys(permission_fields[group]).map(field => <label key={field} style={{ display: 'block' }}><input type="checkbox" checked={active_fields.includes(field)} onChange={() => {
+            setPermissionFieldsFn(section, [field], !active_fields.includes(field));
+          }} /> {permission_fields[group][field]}</label>)}
         </div>)}
       </>;
     }
@@ -330,7 +289,7 @@ class PermissionForm extends Component {
           <form>
             <p className="iwp-heading iwp-heading--has-tooltip">Permissions. <a href="https://www.importwp.com/docs/permissions/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer" target='_blank' className='iwp-label__tooltip'>?</a></p>
 
-            {this.hasNewUniqueIdentifierUI() ? <>
+            {hasNewUniqueIdentifierUI() ? <>
               <div>
                 <p className="iwp-form__label iwp-label--has-tooltip iwp-label--inline-block" style={{ marginBlock: '10px', paddingBottom: 0 }}>
                   Unique identifier:
@@ -348,11 +307,11 @@ class PermissionForm extends Component {
               <div className='iwp-permissions'>
                 <div className='iwp-permission__block iwp-permission__block--first'>
                   <div className='iwp-block__handle'>
-                    <input type='radio' id="setting_unique_identifier_type__field" name="setting_unique_identifier_type" value="field" defaultChecked={this.state.setting_unique_identifier_type === 'field'} onChange={this.onUniqueIdentifierTypeChange} />
+                    <input type='radio' id="setting_unique_identifier_type__field" name="setting_unique_identifier_type" value="field" defaultChecked={setting_unique_identifier_type === 'field'} onChange={onUniqueIdentifierTypeChange} />
                     <label htmlFor='setting_unique_identifier_type__field'>Select a template field to be used as the unique identifier for each record.</label>
                   </div>
                   <div className='iwp-block__content' style={{
-                    display: this.state.setting_unique_identifier_type === 'field' ? 'block' : 'none',
+                    display: setting_unique_identifier_type === 'field' ? 'block' : 'none',
                     paddingBottom: '10px',
                     paddingTop: '10px',
                   }}>
@@ -369,30 +328,23 @@ class PermissionForm extends Component {
                         id="setting_unique_identifier"
                         name="setting_unique_identifier"
                         isClearable
-                        isLoading={this.state.isLoading}
-                        options={this.state.unique_identifiers}
-                        value={this.state.unique_identifiers.find(item => item.value == setting_unique_identifier)}
+                        isLoading={isLoading}
+                        options={unique_identifiers}
+                        value={unique_identifiers.find(item => item.value == setting_unique_identifier)}
                         onChange={(data) => {
 
                           let value = data?.value;
 
                           if (value) {
-                            if (!this.state.unique_identifiers.find(item => item.value == value)) {
-                              this.setState({
-                                unique_identifiers: [...this.state.unique_identifiers, { label: 'Custom: ' + value, value }]
-                              });
+                            if (!unique_identifiers.find(item => item.value == value)) {
+                              setUniqueIdentifiers([...unique_identifiers, { label: 'Custom: ' + value, value }]);
                             }
                           } else {
                             value = '';
                           }
 
 
-                          this.setState(
-                            {
-                              setting_unique_identifier: value,
-                            },
-                            this.isDisabled
-                          );
+                          setSettingUniqueIdentifier(value);
                         }}
                         className="iwp-form__select"
                         placeholder="Select a field from the importer template."
@@ -407,11 +359,11 @@ class PermissionForm extends Component {
 
                 <div className='iwp-permission__block'>
                   <div className='iwp-block__handle'>
-                    <input type='radio' id="setting_unique_identifier_type__custom" name="setting_unique_identifier_type" value="custom" defaultChecked={this.state.setting_unique_identifier_type === 'custom'} onChange={this.onUniqueIdentifierTypeChange} />
+                    <input type='radio' id="setting_unique_identifier_type__custom" name="setting_unique_identifier_type" value="custom" defaultChecked={setting_unique_identifier_type === 'custom'} onChange={onUniqueIdentifierTypeChange} />
                     <label htmlFor='setting_unique_identifier_type__custom'>Select data from your import file to be used as the unique identifier per record.</label>
                   </div>
                   <div className='iwp-block__content' style={{
-                    display: this.state.setting_unique_identifier_type === 'custom' ? 'block' : 'none',
+                    display: setting_unique_identifier_type === 'custom' ? 'block' : 'none',
                     paddingBottom: '10px',
                     paddingTop: '10px',
                   }}>
@@ -426,17 +378,13 @@ class PermissionForm extends Component {
                     <div className="iwp-field__right">
                       <InputField
                         name="setting_unique_identifier_ref"
-                        value={this.state.setting_unique_identifier_ref}
-                        onChange={val => this.setState({
-                          setting_unique_identifier_ref: val
-                        }, this.isDisabled)}
+                        value={setting_unique_identifier_ref}
+                        onChange={val => setSettingUniqueIdentifierRef(val)}
                       >
                         <InputFieldDataSelector
-                          value={this.state.setting_unique_identifier_ref}
+                          value={setting_unique_identifier_ref}
                           onClose={(selection) => {
-                            this.setState({
-                              setting_unique_identifier_ref: selection !== null ? selection : this.state.setting_unique_identifier_ref
-                            }, this.isDisabled);
+                            setSettingUniqueIdentifierRef(selection !== null ? selection : setting_unique_identifier_ref);
                           }} />
                       </InputField>
                     </div>
@@ -457,30 +405,23 @@ class PermissionForm extends Component {
                     id="setting_unique_identifier"
                     name="setting_unique_identifier"
                     isClearable
-                    isLoading={this.state.isLoading}
-                    options={this.state.unique_identifiers}
-                    value={this.state.unique_identifiers.find(item => item.value == setting_unique_identifier)}
+                    isLoading={isLoading}
+                    options={unique_identifiers}
+                    value={unique_identifiers.find(item => item.value == setting_unique_identifier)}
                     onChange={(data) => {
 
                       let value = data?.value;
 
                       if (value) {
-                        if (!this.state.unique_identifiers.find(item => item.value == value)) {
-                          this.setState({
-                            unique_identifiers: [...this.state.unique_identifiers, { label: 'Custom: ' + value, value }]
-                          });
+                        if (!unique_identifiers.find(item => item.value == value)) {
+                          setUniqueIdentifiers([...unique_identifiers, { label: 'Custom: ' + value, value }]);
                         }
                       } else {
                         value = '';
                       }
 
 
-                      this.setState(
-                        {
-                          setting_unique_identifier: value,
-                        },
-                        this.isDisabled
-                      );
+                      setSettingUniqueIdentifier(value);
                     }}
                     className="iwp-form__select"
                     placeholder="Leave empty to use the templates default."
@@ -488,15 +429,13 @@ class PermissionForm extends Component {
                 </div>
               </div>
 
-              {(this.state.setting_unique_identifier.length > 0 && this.props.importer.template !== 'jet-engine-cct') && <>
+              {(setting_unique_identifier.length > 0 && importerData.template !== 'jet-engine-cct') && <>
                 <NoticeList notices={[
                   { message: 'Please backup your site database before enabling the new unique identifier Interface, The new unique identifier interface is not required for the importer to still run, and if enabled may change how your importer currently finds existing records.', type: 'error' },
                 ]} />
 
                 <button type="button" className='button button-primary' onClick={() => {
-                  this.setState({
-                    setting_unique_identifier_type: 'field'
-                  })
+                  setSettingUniqueIdentifierType('field')
                 }}>Enable new unique identifier interface</button>
               </>}
             </>}
@@ -514,7 +453,7 @@ class PermissionForm extends Component {
                       type="checkbox"
                       name="create"
                       checked={create}
-                      onChange={this.onChange}
+                      onChange={onChange}
                     />{' '}
                     Create - <em>Allow the creation of new records when no unique identifer match has been found.</em>
                   </label>
@@ -538,7 +477,7 @@ class PermissionForm extends Component {
                         <select
                           id="create_type"
                           name="create_type"
-                          onChange={this.onChange}
+                          onChange={onChange}
                           value={create_type}
                         >
                           <option value="">All Fields</option>
@@ -562,13 +501,13 @@ class PermissionForm extends Component {
                           />
                         </div>
                         <div className="iwp-field__right">
-                          {Object.keys(this.state.permission_fields).length > 0 && permission_field_selector('create', this.state.create_permission_fields)}
+                          {Object.keys(permission_fields).length > 0 && permission_field_selector('create', create_permission_fields)}
                           <textarea
                             id="create_permissions"
                             name="create_permissions"
-                            onChange={this.onChange}
+                            onChange={onChange}
                             value={create_permissions}
-                            style={Object.keys(this.state.permission_fields).length ? { display: 'none' } : {}}
+                            style={Object.keys(permission_fields).length ? { display: 'none' } : {}}
                           ></textarea>
 
                         </div>
@@ -585,7 +524,7 @@ class PermissionForm extends Component {
                       type="checkbox"
                       name="update"
                       checked={update}
-                      onChange={this.onChange}
+                      onChange={onChange}
                     />{' '}
                     Update - <em>Allow updating of existing records when a unique identifier match has been found.</em>
                   </label>
@@ -609,7 +548,7 @@ class PermissionForm extends Component {
                         <select
                           id="update_type"
                           name="update_type"
-                          onChange={this.onChange}
+                          onChange={onChange}
                           value={update_type}
                         >
                           <option value="">All Fields</option>
@@ -635,14 +574,14 @@ class PermissionForm extends Component {
                         </div>
                         <div className="iwp-field__right">
 
-                          {Object.keys(this.state.permission_fields).length > 0 && permission_field_selector('update', this.state.update_permission_fields)}
+                          {Object.keys(permission_fields).length > 0 && permission_field_selector('update', update_permission_fields)}
 
                           <textarea
                             id="update_permissions"
                             name="update_permissions"
-                            onChange={this.onChange}
+                            onChange={onChange}
                             value={update_permissions}
-                            style={Object.keys(this.state.permission_fields).length ? { display: 'none' } : {}}
+                            style={Object.keys(permission_fields).length ? { display: 'none' } : {}}
                           ></textarea>
 
                         </div>
@@ -658,7 +597,7 @@ class PermissionForm extends Component {
                       type="checkbox"
                       name="remove"
                       checked={remove}
-                      onChange={this.onChange}
+                      onChange={onChange}
                     />{' '}
                     Delete -{' '}
                     <em>Allow deletion of previously imported records that are no longer in the import file.</em>
@@ -672,7 +611,7 @@ class PermissionForm extends Component {
                           type="checkbox"
                           name="remove_trash"
                           checked={remove_trash}
-                          onChange={this.onChange}
+                          onChange={onChange}
                         />{' '}
                         Move items to trash - <em>Only if trash is enabled</em>.
                       </label>
@@ -683,7 +622,7 @@ class PermissionForm extends Component {
                           type="checkbox"
                           name="remove_media"
                           checked={remove_media}
-                          onChange={this.onChange}
+                          onChange={onChange}
                         />{' '}
                         Remove related media - <em>Removes attached media, does not work with trash</em>.
                       </label>
@@ -700,7 +639,7 @@ class PermissionForm extends Component {
             <button
               className="button button-secondary"
               type="button"
-              onClick={this.onSave}
+              onClick={onSave}
               disabled={disabled}
             >
               {saving && <span className="spinner is-active"></span>}
@@ -709,7 +648,7 @@ class PermissionForm extends Component {
             <button
               className="button button-primary"
               type="button"
-              onClick={this.onSubmit}
+              onClick={onSubmit}
               disabled={disabled}
             >
               {saving && <span className="spinner is-active"></span>}
@@ -718,9 +657,8 @@ class PermissionForm extends Component {
           </div>
         </div>
       </React.Fragment >
-    );
-  }
-}
+    )
+};
 
 PermissionForm.propTypes = {
   id: PropTypes.number,
@@ -729,12 +667,6 @@ PermissionForm.propTypes = {
   complete: PropTypes.func,
   onError: PropTypes.func,
   template: PropTypes.string,
-};
-
-PermissionForm.defaultProps = {
-  permissions: {},
-  settings: {},
-  onError: () => { },
 };
 
 const mapStateToProps = (state, props) => ({

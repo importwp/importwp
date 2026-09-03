@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import debounce from 'lodash.debounce';
 
@@ -20,128 +20,125 @@ const colStyles = (index) => {
   };
 };
 
-class ImporterLogSingle extends Component {
-  constructor(props) {
-    super(props);
+function ImporterLogSingle(props) {
+  const [logs, setLogs] = useState([]);
+  const [status, setStatus] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
 
-    this.state = {
-      logs: [],
-      status: null,
-      isLoading: true,
-      hasMore: true,
-      page: 0,
-    };
+  const scrollBoxRef = useRef(null);
+  const isLoadingRef = useRef(isLoading);
+  const hasMoreRef = useRef(hasMore);
+  const pageRef = useRef(page);
 
-    this.getLog = this.getLog.bind(this);
-  }
+  isLoadingRef.current = isLoading;
+  hasMoreRef.current = hasMore;
+  pageRef.current = page;
 
-  getLog() {
-    const page = this.state.page + 1;
-    this.setState({ isLoading: true, page: page });
-    const { id, log } = this.props;
-    importer.log(id, log, page).then((data) => {
-      const { logs } = this.state;
-
-      this.setState({
-        logs: logs.concat(data.logs),
-        status: data.status,
-        isLoading: false,
-        hasMore: data.logs.length > 0,
-      });
+  const getLog = useCallback(() => {
+    const nextPage = pageRef.current + 1;
+    setIsLoading(true);
+    setPage(nextPage);
+    const { id, log } = props;
+    importer.log(id, log, nextPage).then((data) => {
+      setLogs((prevLogs) => prevLogs.concat(data.logs));
+      setStatus(data.status);
+      setIsLoading(false);
+      setHasMore(data.logs.length > 0);
     });
-  }
+  }, [props.id, props.log]);
 
-  componentDidMount() {
-    this.setState({ page: 0 });
-    this.getLog();
+  useEffect(() => {
+    setPage(0);
+    pageRef.current = 0;
+    getLog();
 
-    const node = this.scrollBox;
+    const node = scrollBoxRef.current;
     if (node) {
-      node.addEventListener(
-        'scroll',
-        debounce(() => {
-          window.requestAnimationFrame(() => {
-            // console.log(node.scrollTop, node.scrollHeight - node.clientHeight);
+      const handleScroll = debounce(() => {
+        window.requestAnimationFrame(() => {
+          if (
+            node.scrollTop > node.scrollHeight - node.clientHeight * 2 &&
+            isLoadingRef.current === false &&
+            hasMoreRef.current
+          ) {
+            getLog();
+          }
+        });
+      }, 100);
 
-            if (
-              node.scrollTop > node.scrollHeight - node.clientHeight * 2 &&
-              this.state.isLoading === false &&
-              this.state.hasMore
-            ) {
-              this.getLog();
-            }
+      node.addEventListener('scroll', handleScroll);
 
-            // TODO: if we are close to the end, load the next page
-            // this.getLog();
-          });
-        }, 100)
-      );
+      return () => {
+        node.removeEventListener('scroll', handleScroll);
+        handleScroll.cancel();
+        importer.abort('log');
+      };
     }
-  }
 
-  componentWillUnmount() {
-    importer.abort('log');
-  }
+    return () => {
+      importer.abort('log');
+    };
+  }, [getLog]);
 
-  render() {
-    const { log } = this.props;
-    const { logs, status, isLoading } = this.state;
-    return (
-      <React.Fragment>
-        <div className="iwp-form">
-          <p className="iwp-heading">
-            Importer History: <small>{log}</small>{' '}
-            <button
-              type="button"
-              className="button button-secondary button-small"
-              onClick={() => this.props.onSetLog(null)}
-            >
-              Back
-            </button>
-          </p>
+  const { log } = props;
 
-          {status && (
-            <div className="iwp-notices">
-              <div className="iwp-mb-20 iwp-notice iwp-notice--info iwp-notice--bordered">
-                <p>
-                  <StatusMessageOld showStatus={true} status={status} />
-                </p>
-              </div>
+  return (
+    <React.Fragment>
+      <div className="iwp-form">
+        <p className="iwp-heading">
+          Importer History: <small>{log}</small>{' '}
+          <button
+            type="button"
+            className="button button-secondary button-small"
+            onClick={() => props.onSetLog(null)}
+          >
+            Back
+          </button>
+        </p>
+
+        {status && (
+          <div className="iwp-notices">
+            <div className="iwp-mb-20 iwp-notice iwp-notice--info iwp-notice--bordered">
+              <p>
+                <StatusMessageOld showStatus={true} status={status} />
+              </p>
             </div>
-          )}
-
-          <div className="iwp-table__wrapper">
-            <table className="iwp-table iwp-table--fixed iwp-table--logs">
-              <thead>
-                <tr>
-                  <th style={colStyles(0)}>Record</th>
-                  <th style={colStyles(1)}>Message</th>
-                </tr>
-              </thead>
-              <tbody ref={(scrollBox) => (this.scrollBox = scrollBox)}>
-                {logs.map((log) => (
-                  <tr key={log[0] + log[1]}>
-                    <td className="iwp-table-row">{log[0]}</td>
-                    <td className="iwp-table-content">{log[2]}</td>
-                  </tr>
-                ))}
-                {isLoading && (
-                  <tr>
-                    <td colSpan={2}>Loading...</td>
-                  </tr>
-                )}
-                {logs.length === 0 && !isLoading && (
-                  <tr>
-                    <td colSpan={2}>No Logs found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
           </div>
+        )}
+
+        <div className="iwp-table__wrapper">
+          <table className="iwp-table iwp-table--fixed iwp-table--logs">
+            <thead>
+              <tr>
+                <th style={colStyles(0)}>Record</th>
+                <th style={colStyles(1)}>Message</th>
+              </tr>
+            </thead>
+            <tbody ref={scrollBoxRef}>
+              {logs.map((logEntry) => (
+                <tr key={logEntry[0] + logEntry[1]}>
+                  <td className="iwp-table-row">{logEntry[0]}</td>
+                  <td className="iwp-table-content">{logEntry[2]}</td>
+                </tr>
+              ))}
+              {isLoading && (
+                <tr>
+                  <td colSpan={2}>Loading...</td>
+                </tr>
+              )}
+              {logs.length === 0 && !isLoading && (
+                <tr>
+                  <td colSpan={2}>No Logs found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      </React.Fragment>
-    );
-  }
+      </div>
+    </React.Fragment>
+  );
 }
 
 ImporterLogSingle.propTypes = {

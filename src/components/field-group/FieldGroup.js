@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import FieldSet from '../field-set/FieldSet';
 import { connect } from 'react-redux';
@@ -14,119 +14,122 @@ import {
 import './FieldGroup.scss';
 import ButtonDropdown from '../ButtonDropdown/ButtonDropdown';
 
-class FieldGroup extends React.PureComponent {
-  constructor(props) {
-    super(props);
-
-    this.getEnableFieldLabel = this.getEnableFieldLabel.bind(this);
-  }
-
+function FieldGroup({
+  group,
+  showSelectModal,
+  enabledData = {},
+  importer_id,
+  map,
+  dispatch,
+}) {
   /**
    * Take enable field key and get readable label
    * @param {string} key
    */
-  getEnableFieldLabel(key) {
+  const getEnableFieldLabel = useCallback((key) => {
     let output = key.substring(key.lastIndexOf('.') + 1);
     if (output.indexOf('_') === 0) {
       return output.substring(1);
     }
 
-    const field = this.props.group.fields.find((field) => field.id === output);
+    const field = group.fields.find((fieldItem) => fieldItem.id === output);
     if (field) {
       return field.type === 'field' ? field.label : field.heading;
     }
 
     return output;
-  }
+  }, [group.fields]);
 
-  render() {
-    const { heading, type, link, settings = [] } = this.props.group;
-    const { enabledData } = this.props;
+  const { heading, type, link, settings = [] } = group;
 
-    const switch_height = 20;
-    const switch_width = 40;
+  const switch_height = 20;
+  const switch_width = 40;
 
-    return (
-      <div className="iwp-form iwp-form--mb">
-        <form>
-          {link ? <p className="iwp-heading iwp-heading--has-tooltip">{heading} <a href={`${link}?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer`} target='_blank' className='iwp-label__tooltip'>?</a></p> : <p className="iwp-heading">{heading}</p>}
+  return (
+    <div className="iwp-form iwp-form--mb">
+      <form>
+        {link ? <p className="iwp-heading iwp-heading--has-tooltip">{heading} <a href={`${link}?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer`} target='_blank' className='iwp-label__tooltip'>?</a></p> : <p className="iwp-heading">{heading}</p>}
 
-          {React.cloneElement(window.iwp.hooks.applyFilters(
-            `iwp_panel_${this.props.group.id}`,
-            <></>
-          ), {
-            ...this.props,
-            setTemplate: (data) => {
-              this.props.dispatch(
-                setTemplate(data)
-              );
-            },
-            setPreview: (data) => {
-              this.props.dispatch(
-                setPreview(data)
-              );
-            }
+        {React.cloneElement(window.iwp.hooks.applyFilters(
+          `iwp_panel_${group.id}`,
+          <></>
+        ), {
+          group,
+          showSelectModal,
+          enabledData,
+          importer_id,
+          map,
+          dispatch,
+          setTemplate: (data) => {
+            dispatch(
+              setTemplate(data)
+            );
+          },
+          setPreview: (data) => {
+            dispatch(
+              setPreview(data)
+            );
+          }
+        })}
+
+        {settings && <div className='iwp-panel-settings'>
+          {settings.map(field => {
+
+            const field_id = `${group.id}._iwp_settings.${field.id}`;
+            const value = map.hasOwnProperty(field_id) ? (map[field_id] == 'yes' ? true : false) : false;
+
+            return <div key={field.id} className="iwp-form__row iwp-form__row--small">
+              <label className="iwp-form__label iwp-form__label--switch">
+                <span>{field.label}</span>
+                <Switch
+                  checked={value}
+                  name={field_id}
+                  height={switch_height}
+                  width={switch_width}
+                  onColor="#22c48f"
+                  onChange={(checked) => {
+                    dispatch(
+                      setTemplate({ [field_id]: checked ? 'yes' : 'no' })
+                    );
+                  }}
+                />
+              </label>
+            </div>
           })}
+        </div>}
 
-          {settings && <div className='iwp-panel-settings'>
-            {settings.map(field => {
-
-              const field_id = `${this.props.group.id}._iwp_settings.${field.id}`;
-              const value = this.props.map.hasOwnProperty(field_id) ? (this.props.map[field_id] == 'yes' ? true : false) : false;
-
-              return <div className="iwp-form__row iwp-form__row--small">
-                <label className="iwp-form__label iwp-form__label--switch">
-                  <span>{field.label}</span>
-                  <Switch
-                    checked={value}
-                    name={field_id}
-                    height={switch_height}
-                    width={switch_width}
-                    onColor="#22c48f"
-                    onChange={(checked) => {
-                      this.props.dispatch(
-                        setTemplate({ [field_id]: checked ? 'yes' : 'no' })
-                      );
-                    }}
-                  />
-                </label>
-              </div>
-            })}
-          </div>}
-
-          <FieldSet
-            id={this.props.group.id}
-            group={this.props.group}
-            showSelectModal={this.props.showSelectModal}
-            importer_id={this.props.importer_id}
-          />
-        </form>
-        {type !== 'repeatable' && Object.keys(enabledData).length > 0 && (
-          <div className="iwp-buttons">
-            <ButtonDropdown items={(closeDropdown) => {
-              return (
-                <ul className="iwp-dropdown__menu">
-                  {Object.keys(enabledData).map((key) => (
-                    <li key={key} className="iwp-dropdown__item">
-                      <a
-                        onClick={() => {
-                          closeDropdown();
-                          this.props.dispatch(setEnabled({ [key]: !enabledData[key] }));
-                        }}
-                      >
-                        {enabledData[key] === true ? 'Disable' : 'Enable'}:{' '}
-                        {this.getEnableFieldLabel(key)}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )
-            }} />
-          </div>
-        )}
-      </div>
-    );
-  }
+        <FieldSet
+          id={group.id}
+          group={group}
+          showSelectModal={showSelectModal}
+          importer_id={importer_id}
+        />
+      </form>
+      {type !== 'repeatable' && Object.keys(enabledData).length > 0 && (
+        <div className="iwp-buttons">
+          <ButtonDropdown items={(closeDropdown) => {
+            return (
+              <ul className="iwp-dropdown__menu">
+                {Object.keys(enabledData).map((key) => (
+                  <li key={key} className="iwp-dropdown__item">
+                    <a
+                      onClick={() => {
+                        closeDropdown();
+                        dispatch(setEnabled({ [key]: !enabledData[key] }));
+                      }}
+                    >
+                      {enabledData[key] === true ? 'Disable' : 'Enable'}:{' '}
+                      {getEnableFieldLabel(key)}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )
+          }} />
+        </div>
+      )}
+    </div>
+  );
 }
 
 FieldGroup.propTypes = {
@@ -135,10 +138,6 @@ FieldGroup.propTypes = {
   onEnabledField: PropTypes.func,
   enabledData: PropTypes.object,
   importer_id: PropTypes.number,
-};
-
-FieldGroup.defaultProps = {
-  enabledData: {},
 };
 
 const mapStateToProps = (state, props) => ({

@@ -1,132 +1,122 @@
-import React, { Component } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, Fragment } from 'react';
 import PropTypes from 'prop-types';
 import debounce from 'lodash.debounce';
 
 import { importer } from '../../../services/importer.service';
 
-class RecordJson extends Component {
-  constructor(props) {
-    super(props);
+const RecordJson = ({
+  id,
+  onSelect = () => {},
+  base_path,
+  onError = () => {},
+}) => {
+  const [loading, setLoading] = useState(true);
+  const [record, setRecord] = useState(null);
 
-    this.state = {
-      loading: true,
-      record: null,
-    };
-
-    this.getPreview = debounce(this.getPreview, 300);
-  }
-
-  displayNodeClick(content, xpath = '') {
+  const displayNodeClick = useCallback((content, xpath = '') => {
     return (
       <span
         title={xpath}
-        onClick={() => this.props.onSelect(xpath)}
+        onClick={() => onSelect(xpath)}
         dangerouslySetInnerHTML={{
           __html: content,
         }}
       ></span>
     );
-  }
+  }, [onSelect]);
 
-  displayNode(currentNode) {
+  const displayNode = useCallback((currentNode) => {
     const node_name = currentNode.node;
     const node_xpath = currentNode.xpath ? '{' + currentNode.xpath + '}' : '';
 
     if (currentNode.type === 'text') {
-      return <li>{this.displayNodeClick(currentNode.value, node_xpath)}</li>;
+      return <li>{displayNodeClick(currentNode.value, node_xpath)}</li>;
     }
 
     const hasChildren = Array.isArray(currentNode.value);
 
     return (
       <li>
-        {this.displayNodeClick('"' + node_name + '"', node_xpath)}
+        {displayNodeClick('"' + node_name + '"', node_xpath)}
         {hasChildren ? (
-          <React.Fragment>
-            {this.displayNodeClick(': {', node_xpath)}
+          <>
+            {displayNodeClick(': {', node_xpath)}
             {currentNode.value.length > 0 ? (
               <ul>
                 {currentNode.value.map((node, i) => (
-                  <React.Fragment key={i}>{this.displayNode(node)}</React.Fragment>
+                  <Fragment key={i}>{displayNode(node)}</Fragment>
                 ))}
               </ul>
             ) : null}
-            {this.displayNodeClick('}', node_xpath)}
-          </React.Fragment>
+            {displayNodeClick('}', node_xpath)}
+          </>
         ) : (
-          <React.Fragment>
-            {this.displayNodeClick(': ', node_xpath)}
-            {this.displayNodeClick(
+          <>
+            {displayNodeClick(': ', node_xpath)}
+            {displayNodeClick(
               typeof currentNode.value === 'string'
                 ? '"' + currentNode.value + '"'
                 : String(currentNode.value),
               node_xpath
             )}
-          </React.Fragment>
+          </>
         )}
       </li>
     );
-  }
+  }, [displayNodeClick]);
 
-  getPreview() {
-    if (this.props.id && this.props.base_path) {
-      this.setState({ loading: true });
+  const getPreview = useMemo(
+    () =>
+      debounce(() => {
+        if (id && base_path) {
+          setLoading(true);
 
-      const { id } = this.props;
-      const data = {
-        base_path: this.props.base_path,
-      };
-      importer
-        .filePreview(id, data)
-        .then((record) => {
-          this.setState({
-            record: record,
-          });
-        })
-        .catch((e) => this.props.onError(e))
-        .finally(() => {
-          this.setState({ loading: false });
-        });
-    } else {
-      this.setState({ loading: false, record: null });
-    }
-  }
+          importer
+            .filePreview(id, {
+              base_path,
+            })
+            .then((nextRecord) => {
+              setRecord(nextRecord);
+            })
+            .catch((e) => onError(e))
+            .finally(() => {
+              setLoading(false);
+            });
+        } else {
+          setLoading(false);
+          setRecord(null);
+        }
+      }, 300),
+    [id, base_path, onError]
+  );
 
-  componentDidMount() {
-    this.getPreview();
-  }
+  const getPreviewRef = useRef(getPreview);
+  getPreviewRef.current = getPreview;
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.base_path !== this.props.base_path) {
-      this.setState({ loading: true });
-      this.getPreview();
-    }
-  }
+  useEffect(() => {
+    getPreviewRef.current();
 
-  render() {
-    const { loading, record } = this.state;
-    const output = record
-      ? this.displayNode(record)
-      : 'No data to preview, please try changing the base_path.';
+    return () => {
+      getPreviewRef.current.cancel();
+    };
+  }, [id, base_path]);
 
-    return (
-      <div className="iwp-preview iwp-preview--json">
-        {loading ? 'Loading' : <ul>{output}</ul>}
-      </div>
-    );
-  }
-}
+  const output = record
+    ? displayNode(record)
+    : 'No data to preview, please try changing the base_path.';
+
+  return (
+    <div className="iwp-preview iwp-preview--json">
+      {loading ? 'Loading' : <ul>{output}</ul>}
+    </div>
+  );
+};
 
 RecordJson.propTypes = {
   id: PropTypes.number,
   onSelect: PropTypes.func,
   base_path: PropTypes.string,
   onError: PropTypes.func,
-};
-
-RecordJson.defaultProps = {
-  onSelect: () => {},
-  onError: () => {},
 };
 
 export default RecordJson;

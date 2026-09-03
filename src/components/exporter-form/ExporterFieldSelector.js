@@ -1,16 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import FieldLabel from '../field-label/FieldLabel';
 import ExporterFieldSelectorGroup from './ExporterFieldSelectorGroup';
 
 import './ExporterFieldSelector.scss';
 
 const ExporterFieldSelector = ({ fields, fileType, activeType, setFields }) => {
-
-    const [lastId, setLastId] = useState(0);
-
-    useEffect(() => {
-        setLastId(fields.reduce((carry, item) => carry < +item.id ? +item.id : carry, 0));
-    }, [fields]);
+    const lastId = useMemo(
+        () => fields.reduce((carry, item) => (carry < +item.id ? +item.id : carry), 0),
+        [fields]
+    );
 
     const row = fields.find(item => item.id == 0);
 
@@ -52,8 +50,7 @@ const ExporterFieldSelector = ({ fields, fileType, activeType, setFields }) => {
                 }
 
                 return item;
-            })])
-
+            })]);
         }} />
     </div>;
 };

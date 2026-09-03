@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {
@@ -21,44 +21,51 @@ import NoticeList from '../notice-list/NoticeList';
 import { store } from '../../store';
 import { debugLog } from '../../util/debug';
 
-class TemplateForm extends PureComponent {
-  constructor(props) {
-    super(props);
+const TemplateForm = ({
+  id,
+  complete,
+  parser,
+  settings,
+  map = {},
+  enabled = {},
+  onError = () => {},
+  template,
+  dispatch,
+}) => {
+  const repeaterTemplates = useRef({});
+  const defaultValues = useRef({});
 
-    this.repeaterTemplates = {};
-    this.defaultValues = {};
+  const [showSelectModal, setShowSelectModal] = useState(false);
+  const [showSelectModalSubPath, setShowSelectModalSubPath] = useState('');
+  const [selectModalField, setSelectModalField] = useState('');
+  const [saving, setSaving] = useState(false);
+  const disabled = false;
+  const [loaded, setLoaded] = useState(false);
+  const [groups, setGroups] = useState([]);
 
-    this.state = {
-      showSelectModal: false,
-      showSelectModalSubPath: '',
-      selectModalField: '',
-      saving: false,
-      disabled: false,
-      loaded: false,
-    };
+  const enabledRef = useRef(enabled);
+  const mapRef = useRef(map);
+  const parserRef = useRef(parser);
+  const onErrorRef = useRef(onError);
+  const templateRef = useRef(template);
+  enabledRef.current = enabled;
+  mapRef.current = map;
+  parserRef.current = parser;
+  onErrorRef.current = onError;
+  templateRef.current = template;
 
-    this.save = this.save.bind(this);
-    this.onSave = this.onSave.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-    this.getGroupValues = this.getGroupValues.bind(this);
-    this.showSelectModal = this.showSelectModal.bind(this);
-    this.closeSelectModal = this.closeSelectModal.bind(this);
-    this.setAndCloseSelectModal = this.setAndCloseSelectModal.bind(this);
-  }
-
-  generateRepeaterTemplates(templateFields, group) {
+  const generateRepeaterTemplates = (templateFields, group) => {
     const prefix = group + '.{iwpr_template}.';
-    const templateKeys = Object.keys(templateFields)
+    return Object.keys(templateFields)
       .filter((fieldKey) => fieldKey.startsWith(prefix))
       .reduce((obj, key) => {
         obj[key.substring(prefix.length)] = templateFields[key];
         delete templateFields[key];
         return obj;
       }, {});
-    return templateKeys;
-  }
+  };
 
-  recursiveFieldSearch(data, path = [], output = [], join = '') {
+  const recursiveFieldSearch = (data, path = [], output = [], join = '') => {
     let result = [];
     const keys = Object.keys(data);
 
@@ -75,85 +82,62 @@ class TemplateForm extends PureComponent {
       tempPath.push(record.id);
       if (record.hasOwnProperty('type') && record.type === 'repeatable') {
         result.push(
-          ...this.recursiveFieldSearch(
+          ...recursiveFieldSearch(
             record.fields,
             tempPath,
             output,
             '{iwpr_template}'
           )
         );
-        this.repeaterTemplates[[...tempPath].join()] = null;
+        repeaterTemplates.current[[...tempPath].join()] = null;
         tempPath.push('_index');
         result.push(tempPath);
       } else if (record.hasOwnProperty('fields')) {
         result.push(
-          ...this.recursiveFieldSearch(record.fields, tempPath, output)
+          ...recursiveFieldSearch(record.fields, tempPath, output)
         );
       } else {
         result.push(tempPath);
         if (record.default) {
-          this.defaultValues[[...tempPath].join('.')] = record.default;
+          defaultValues.current[[...tempPath].join('.')] = record.default;
         }
       }
     }
 
     return result;
-  }
+  };
 
-  getGroupValues(groupName) {
-    const keyPrefix = 'value_' + groupName + '.';
-    const result = Object.keys(this.state)
-      .filter((key) => key.startsWith(keyPrefix))
-      .reduce((obj, key) => {
-        obj[key.substring('value_'.length)] = this.state[key];
-        return obj;
-      }, {});
-    return result;
-  }
+  const closeSelectModal = useCallback(() => {
+    setShowSelectModal(false);
+    setSelectModalField('');
+  }, []);
 
-  showSelectModal(fieldName, sub_path = '') {
+  const showSelectModalFn = useCallback((fieldName, sub_path = '') => {
     debugLog('showSelectModal', fieldName, sub_path);
-    this.setState({
-      showSelectModal: !this.state.showSelectModal,
-      showSelectModalSubPath: sub_path,
-      selectModalField: fieldName,
-    });
-  }
+    setShowSelectModal((current) => !current);
+    setShowSelectModalSubPath(sub_path);
+    setSelectModalField(fieldName);
+  }, []);
 
-  setAndCloseSelectModal(selection) {
-    this.props.dispatch(
-      setTemplate({ [this.state.selectModalField]: selection })
-    );
-
-    // TODO: why doesnt this update?
-    this.props.dispatch(
+  const setAndCloseSelectModal = useCallback((selection) => {
+    dispatch(setTemplate({ [selectModalField]: selection }));
+    dispatch(
       fetchFieldPreview({
-        id: this.props.id,
+        id,
         fields: {
-          [this.state.selectModalField]: selection,
+          [selectModalField]: selection,
         },
       })
     );
+    closeSelectModal();
+  }, [closeSelectModal, dispatch, id, selectModalField]);
 
-    this.closeSelectModal();
-  }
-
-  closeSelectModal() {
-    this.setState({
-      showSelectModal: false,
-      selectModalField: '',
-    });
-  }
-
-  save(callback = () => { }) {
-    this.setState({ saving: true });
-    const { id } = this.props;
-
+  const save = useCallback((callback = () => {}) => {
+    setSaving(true);
     const data = store.getState();
 
     const map_data = Object.keys(data.importer.template)
       .filter((key) => {
-        // Skip template placeholders and nulls left by deleted repeater rows
         return (
           !key.includes('{iwpr_template}') &&
           data.importer.template[key] !== null &&
@@ -165,7 +149,6 @@ class TemplateForm extends PureComponent {
         return obj;
       }, {});
 
-    // TODO: enable data is currently stored in FieldGroup
     const enable_data = Object.keys(data.importer.enabled).reduce(
       (obj, key) => {
         obj[key] = data.importer.enabled[key];
@@ -176,239 +159,220 @@ class TemplateForm extends PureComponent {
 
     importer
       .save({
-        id: id,
+        id,
         map: map_data,
         enabled: enable_data,
       })
       .then(() => {
-        this.setState({ saving: false });
+        setSaving(false);
         callback();
       })
       .catch((error) => {
-
-        // console.log('ERROR', error);
-
-        this.props.onError(error);
-
-        this.setState({
-          saving: false,
-          // errors: [
-          //   ...this.state.errors,
-          //   {
-          //     section: 'setup',
-          //     message: error.responseText,
-          //   },
-          // ],
-        });
+        onError(error);
+        setSaving(false);
       });
-  }
+  }, [id, onError]);
 
-  onSave() {
-    this.save();
-  }
+  const onSave = useCallback(() => {
+    save();
+  }, [save]);
 
-  onSubmit() {
-    this.save(() => {
-      this.props.complete();
+  const onSubmit = useCallback(() => {
+    save(() => {
+      complete();
     });
-  }
+  }, [complete, save]);
 
-  async componentDidMount() {
-    // TODO: Get Template from rest
-    try {
-      const template_group = await importer.template(this.props.id);
-      if (!template_group) {
-        // TODO: Add error message
-        this.props.onError(
-          'Importer Template could not be found: ' + this.props.template
-        );
-      }
+  useEffect(() => {
+    let cancelled = false;
 
-      this.template_groups = template_group ? template_group.map : [];
+    const load = async () => {
+      try {
+        const template_group = await importer.template(id);
+        if (!template_group) {
+          onErrorRef.current('Importer Template could not be found: ' + templateRef.current);
+        }
 
-      let templateState = {};
-      let enabledFields = {};
+        let nextGroups = template_group ? template_group.map : [];
+        let templateState = {};
+        let enabledFields = {};
 
-      if (this.template_groups) {
-        this.recursiveFieldSearch(this.template_groups).map((field) => {
-          const fieldKey = field.join('.');
-          if (field[field.length - 1] === '_index') {
-            templateState[fieldKey] = 0;
-          } else {
-            templateState[fieldKey] = this.defaultValues[fieldKey]
-              ? this.defaultValues[fieldKey]
-              : '';
-          }
-        });
+        if (nextGroups) {
+          recursiveFieldSearch(nextGroups).map((field) => {
+            const fieldKey = field.join('.');
+            if (field[field.length - 1] === '_index') {
+              templateState[fieldKey] = 0;
+            } else {
+              templateState[fieldKey] = defaultValues.current[fieldKey]
+                ? defaultValues.current[fieldKey]
+                : '';
+            }
+          });
 
-        // Generate repeater templates
-        Object.keys(this.repeaterTemplates).map((group) => {
-          this.repeaterTemplates[group] = this.generateRepeaterTemplates(
-            templateState,
-            group
-          );
-        });
-
-        let tmp = [];
-        this.template_groups.forEach((group) => {
-          if (group.type === 'group') {
-            group.fields.forEach((field) => {
-              if (!field.hasOwnProperty('core') || field.core === false) {
-                enabledFields = {
-                  ...enabledFields,
-                  [`${group.id}.${field.id}`]: false,
-                };
-              }
-            });
-          }
-
-          // Clone: https://scotch.io/bar-talk/copying-objects-in-javascript
-          let group_clone = JSON.parse(JSON.stringify(group));
-
-          // Remove row_base field for non xml/json imports
-          if (this.props.parser !== 'xml' && this.props.parser !== 'json') {
-            const tmp_fields = group_clone.fields;
-            group_clone.fields = tmp_fields.filter(
-              (field) => field.id !== 'row_base'
+          Object.keys(repeaterTemplates.current).map((group) => {
+            repeaterTemplates.current[group] = generateRepeaterTemplates(
+              templateState,
+              group
             );
-          }
+          });
 
-          tmp = [...tmp, group_clone];
-        });
+          let tmp = [];
+          nextGroups.forEach((group) => {
+            if (group.type === 'group') {
+              group.fields.forEach((field) => {
+                if (!field.hasOwnProperty('core') || field.core === false) {
+                  enabledFields = {
+                    ...enabledFields,
+                    [`${group.id}.${field.id}`]: false,
+                  };
+                }
+              });
+            }
 
-        this.template_groups = [...tmp];
-      }
+            let group_clone = JSON.parse(JSON.stringify(group));
 
-      // setup enabled field state
+            if (parserRef.current !== 'xml' && parserRef.current !== 'json') {
+              const tmp_fields = group_clone.fields;
+              group_clone.fields = tmp_fields.filter(
+                (field) => field.id !== 'row_base'
+              );
+            }
 
-      enabledFields = {
-        ...enabledFields,
-        ...Object.keys(this.props.enabled).reduce((obj, key) => {
-          obj[key] = this.props.enabled[key];
+            tmp = [...tmp, group_clone];
+          });
+
+          nextGroups = [...tmp];
+        }
+
+        enabledFields = {
+          ...enabledFields,
+          ...Object.keys(enabledRef.current).reduce((obj, key) => {
+            obj[key] = enabledRef.current[key];
+            return obj;
+          }, {}),
+        };
+
+        if (cancelled) {
+          return;
+        }
+
+        dispatch(resetEnabled(enabledFields));
+
+        const nextTemplate = Object.keys(mapRef.current).reduce((obj, key) => {
+          obj[key] = mapRef.current[key];
           return obj;
-        }, {}),
-      };
+        }, {});
 
-      this.props.dispatch(resetEnabled(enabledFields));
+        dispatch(
+          resetTemplate({
+            ...templateState,
+            ...nextTemplate,
+          })
+        );
+        dispatch(clearPreview());
+        dispatch(
+          fetchFieldPreview({
+            id,
+            fields: nextTemplate,
+          })
+        );
+        dispatch(resetRepeater({ ...repeaterTemplates.current }));
+        setGroups(nextGroups);
+        setLoaded(true);
+      } catch (e) {
+        onErrorRef.current('Error: ' + e);
+        if (!cancelled) {
+          setLoaded(true);
+        }
+      }
+    };
 
-      // setup template field value state
-      const template = Object.keys(this.props.map).reduce((obj, key) => {
-        obj[key] = this.props.map[key];
-        return obj;
-      }, {});
+    load();
 
-      this.props.dispatch(
-        resetTemplate({
-          ...templateState,
-          ...template,
-        })
-      );
-      this.props.dispatch(clearPreview());
+    return () => {
+      cancelled = true;
+      importer.abort();
+    };
+    // Template bootstrap should run once per mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
-      // trigger field previews
-      this.props.dispatch(
-        fetchFieldPreview({
-          id: this.props.id,
-          fields: template,
-        })
-      );
+  const title =
+    parser === 'csv'
+      ? 'CSV Data Selector'
+      : parser === 'xml'
+        ? 'XML Data Selector'
+        : parser === 'json'
+          ? 'JSON Data Selector'
+          : 'Data Selector';
 
-      // store field group templates
-      this.props.dispatch(resetRepeater({ ...this.repeaterTemplates }));
-
-      this.setState({
-        loaded: true,
-      });
-    } catch (e) {
-      this.props.onError('Error: ' + e);
-      this.setState({ loaded: true });
-      return;
-    }
+  if (!loaded) {
+    return <NoticeList notices={[{ message: 'Loading', type: 'info' }]} />;
   }
 
-  componentWillUnmount() {
-    importer.abort();
-  }
+  return (
+    <>
+      <Modal
+        onClose={closeSelectModal}
+        show={showSelectModal}
+        title={title}
+      >
+        <DataSelector
+          onSelect={setAndCloseSelectModal}
+          onError={onError}
+          id={id}
+          parser={parser}
+          settings={settings}
+          selection={undefined}
+          subPath={showSelectModalSubPath}
+        ></DataSelector>
+      </Modal>
 
-  render() {
-    const { id, parser, settings } = this.props;
-    const { disabled, saving } = this.state;
-    const title =
-      parser === 'csv'
-        ? 'CSV Data Selector'
-        : parser === 'xml'
-          ? 'XML Data Selector'
-          : parser === 'json'
-            ? 'JSON Data Selector'
-            : 'Data Selector';
+      {groups.length > 0 &&
+        groups.map((group) => {
+          return (
+            <FieldGroup
+              key={group.id}
+              group={group}
+              showSelectModal={showSelectModalFn}
+              importer_id={id}
+            />
+          );
+        })}
 
-    if (!this.state.loaded) {
-      return <NoticeList notices={[{ message: 'Loading', type: 'info' }]} />;
-    }
-    return (
-      <React.Fragment>
-        <Modal
-          onClose={this.closeSelectModal}
-          show={this.state.showSelectModal}
-          title={title}
-        >
-          <DataSelector
-            onSelect={this.setAndCloseSelectModal}
-            onError={this.props.onError}
-            id={id}
-            parser={parser}
-            settings={settings}
-            selection={this.state['value_' + this.state.selectModalField]}
-            subPath={this.state.showSelectModalSubPath}
-          ></DataSelector>
-        </Modal>
-
-        {this.template_groups.length > 0 &&
-          this.template_groups.map((group) => {
-            return (
-              <FieldGroup
-                key={group.id}
-                group={group}
-                showSelectModal={this.showSelectModal}
-                importer_id={id}
-              />
-            );
-          })}
-
-        {window.iwp.hooks.applyFilters(
-          'iwp_template_form_end',
-          <div className="iwp-form iwp-form--mb">
-            <p className="iwp-heading">Custom Fields</p>
-            <UpgradeMessage message="Please upgrade to Import WP Pro to import custom fields." />
-          </div>
-        )}
-
-        <div className="iwp-form__actions">
-          <div className="iwp-buttons">
-            <button
-              className="button button-secondary"
-              type="button"
-              onClick={this.onSave}
-              disabled={disabled}
-            >
-              {saving && <span className="spinner is-active"></span>}
-              {saving ? 'Saving' : 'Save'}
-            </button>{' '}
-            <button
-              className="button button-primary"
-              type="button"
-              onClick={this.onSubmit}
-              disabled={disabled}
-            >
-              {saving && <span className="spinner is-active"></span>}
-              {saving ? 'Saving' : 'Save & Continue'}
-            </button>
-          </div>
+      {window.iwp.hooks.applyFilters(
+        'iwp_template_form_end',
+        <div className="iwp-form iwp-form--mb">
+          <p className="iwp-heading">Custom Fields</p>
+          <UpgradeMessage message="Please upgrade to Import WP Pro to import custom fields." />
         </div>
-      </React.Fragment>
-    );
-  }
-}
+      )}
+
+      <div className="iwp-form__actions">
+        <div className="iwp-buttons">
+          <button
+            className="button button-secondary"
+            type="button"
+            onClick={onSave}
+            disabled={disabled}
+          >
+            {saving && <span className="spinner is-active"></span>}
+            {saving ? 'Saving' : 'Save'}
+          </button>{' '}
+          <button
+            className="button button-primary"
+            type="button"
+            onClick={onSubmit}
+            disabled={disabled}
+          >
+            {saving && <span className="spinner is-active"></span>}
+            {saving ? 'Saving' : 'Save & Continue'}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+};
 
 TemplateForm.propTypes = {
   id: PropTypes.number,
@@ -421,14 +385,6 @@ TemplateForm.propTypes = {
   template: PropTypes.string,
   pro: PropTypes.bool,
   templates: PropTypes.array,
-};
-
-TemplateForm.defaultProps = {
-  map: {},
-  enabled: {},
-  onError: () => { },
-  pro: false,
-  templates: [],
 };
 
 const mapStateToProps = (state) => ({

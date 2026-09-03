@@ -160,12 +160,12 @@ const ExporterEdit = ({ id, pro = false }) => {
               response.status === 'timeout'
             ) {
               setProgress(
-                (
+                Math.round(
                   (response.progress.export.current_row /
                     (response.progress.export.end -
                       response.progress.export.start)) *
-                  100
-                ).toFixed()
+                    100
+                )
               );
             } else if (response.status == 'complete') {
               setModalTitle('Export Complete');
@@ -197,7 +197,7 @@ const ExporterEdit = ({ id, pro = false }) => {
         const tmpStatus = response.find((item) => item.exporter === id);
         if (tmpStatus) {
           setStatus(tmpStatus);
-          setProgress(tmpStatus.progress.toFixed());
+          setProgress(Math.round(tmpStatus.progress));
         }
       },
       (e) => {

@@ -4489,16 +4489,10 @@ __webpack_require__.r(__webpack_exports__);
 const IS_SETUP = window.iwp.is_setup;
 const IS_PRO = window.iwp.is_pro === 'yes' ? true : false;
 const IWP_TEMPLATES = window.iwp.templates;
-class App extends (react__WEBPACK_IMPORTED_MODULE_0___default().Component) {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isSetup: IS_SETUP === 'no' ? false : true
-    };
-    this.onSetupComplete = this.onSetupComplete.bind(this);
-  }
-  getActiveSection() {
-    const values = qs__WEBPACK_IMPORTED_MODULE_10___default().parse(this.props.location.search);
+function App(props) {
+  const [isSetup, setIsSetup] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(IS_SETUP === 'no' ? false : true);
+  const getActiveSection = () => {
+    const values = qs__WEBPACK_IMPORTED_MODULE_10___default().parse(props.location.search);
     if (typeof values.new !== 'undefined') {
       return 'new';
     } else if (typeof values['new-exporter'] !== 'undefined') {
@@ -4520,9 +4514,9 @@ class App extends (react__WEBPACK_IMPORTED_MODULE_0___default().Component) {
       }
     }
     return 'archive';
-  }
-  getPage(section) {
-    const values = qs__WEBPACK_IMPORTED_MODULE_10___default().parse(this.props.location.search);
+  };
+  const getPage = section => {
+    const values = qs__WEBPACK_IMPORTED_MODULE_10___default().parse(props.location.search);
     switch (section) {
       case 'new':
       case 'edit':
@@ -4548,33 +4542,23 @@ class App extends (react__WEBPACK_IMPORTED_MODULE_0___default().Component) {
       default:
         return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_archive_page_ArchivePage__WEBPACK_IMPORTED_MODULE_3__["default"], null);
     }
-  }
-  onSetupComplete() {
-    this.setState({
-      isSetup: true
+  };
+  const onSetupComplete = () => {
+    setIsSetup(true);
+  };
+  const active = getActiveSection();
+  if (isSetup === false) {
+    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_setup_wizard_SetupWizard__WEBPACK_IMPORTED_MODULE_7__["default"], {
+      onComplete: onSetupComplete
     });
   }
-  render() {
-    const active = this.getActiveSection();
-    const {
-      isSetup
-    } = this.state;
-    if (isSetup === false) {
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_setup_wizard_SetupWizard__WEBPACK_IMPORTED_MODULE_7__["default"], {
-        onComplete: this.onSetupComplete
-      });
-    }
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_page_header_PageHeader__WEBPACK_IMPORTED_MODULE_2__["default"], {
-      active: active,
-      pro: IS_PRO
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-body"
-    }, this.getPage(active)));
-  }
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_page_header_PageHeader__WEBPACK_IMPORTED_MODULE_2__["default"], {
+    active: active,
+    pro: IS_PRO
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-body"
+  }, getPage(active)));
 }
-App.defaultProps = {
-  heading: 'React Page'
-};
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (App);
 
 /***/ }),
@@ -5026,102 +5010,79 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const AJAX_BASE = window.iwp.admin_base;
-class ArchivePage extends (react__WEBPACK_IMPORTED_MODULE_0___default().Component) {
-  constructor(props) {
-    super(props);
-    this.state = {
-      loaded: false,
-      errors: [],
-      importers: [],
-      status: [],
-      init: false
-    };
-    this.statusXHR = null;
-    this.getImporters = this.getImporters.bind(this);
-    this.getStatus = this.getStatus.bind(this);
-    this.onDelete = this.onDelete.bind(this);
-  }
-  getImporters() {
+function ArchivePage() {
+  const [loaded, setLoaded] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [errors, setErrors] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [importers, setImporters] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [status, setStatus] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [init, setInit] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const statusXHRRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const getStatus = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    statusXHRRef.current = _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.status();
+    statusXHRRef.current.request.subscribe(response => {
+      setStatus(response);
+    }, () => {});
+  }, []);
+  const getImporters = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
     _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.importers().then(data => {
-      this.setState({
-        importers: data,
-        loaded: true,
-        init: true
-      });
-      if (this.statusXHR !== null) {
-        this.statusXHR.abort();
+      setImporters(data);
+      setLoaded(true);
+      setInit(true);
+      if (statusXHRRef.current !== null) {
+        statusXHRRef.current.abort();
       }
-      this.getStatus();
+      getStatus();
     }).catch(data => {
       if (data.statusText === 'abort') {
         return;
       }
-      this.setState({
-        errors: [...this.state.errors, {
-          section: 'archive',
-          message: data.responseJSON.message
-        }],
-        loaded: true,
-        init: true
-      });
+      setErrors(prevErrors => [...prevErrors, {
+        section: 'archive',
+        message: data.responseJSON.message
+      }]);
+      setLoaded(true);
+      setInit(true);
     });
-  }
-  onDelete(id) {
-    this.setState({
-      importers: this.state.importers.filter(data => data.id !== id)
-    });
-    this.getImporters();
-  }
-  getStatus() {
-    this.statusXHR = _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.status();
-    this.statusXHR.request.subscribe(response => {
-      this.setState({
-        status: response
-      });
-    }, () => {});
-  }
-  componentDidMount() {
-    this.getImporters();
-  }
-  componentWillUnmount() {
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.abort('importers');
-    if (this.statusXHR) {
-      this.statusXHR.abort();
-    }
-  }
-  render() {
-    const {
-      importers,
-      status,
-      init
-    } = this.state;
-    if (init === false) {
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        notices: [{
-          message: 'Loading',
-          type: 'info'
-        }]
-      });
-    }
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_global_notice_GlobalNotice__WEBPACK_IMPORTED_MODULE_4__["default"], null), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-archive-header"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_router_dom__WEBPACK_IMPORTED_MODULE_5__.Link, {
-      to: AJAX_BASE + '&new',
-      className: "iwp-add-new"
-    }, "Add Importer +")), importers.length > 0 && importers.map(importer => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_importer_list_item_ImporterListItem__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      key: importer.id,
-      importer: importer,
-      status: Array.isArray(status) ? status.find(item => {
-        return item?.version == 2 ? item.importer == importer.id : item.id === importer.id;
-      }) : {},
-      onDelete: this.onDelete
-    })), importers.length === 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_3__["default"], {
+  }, [getStatus]);
+  const onDelete = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(id => {
+    setImporters(prevImporters => prevImporters.filter(data => data.id !== id));
+    getImporters();
+  }, [getImporters]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    getImporters();
+    return () => {
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.abort('importers');
+      if (statusXHRRef.current) {
+        statusXHRRef.current.abort();
+      }
+    };
+  }, [getImporters]);
+  if (init === false) {
+    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_3__["default"], {
       notices: [{
-        message: 'No Importers have been created, click add importer to create one.',
+        message: 'Loading',
         type: 'info'
       }]
-    }));
+    });
   }
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_global_notice_GlobalNotice__WEBPACK_IMPORTED_MODULE_4__["default"], null), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-archive-header"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_router_dom__WEBPACK_IMPORTED_MODULE_5__.Link, {
+    to: AJAX_BASE + '&new',
+    className: "iwp-add-new"
+  }, "Add Importer +")), importers.length > 0 && importers.map(importerItem => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_importer_list_item_ImporterListItem__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    key: importerItem.id,
+    importer: importerItem,
+    status: Array.isArray(status) ? status.find(item => {
+      return item?.version == 2 ? item.importer == importerItem.id : item.id === importerItem.id;
+    }) : {},
+    onDelete: onDelete
+  })), importers.length === 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    notices: [{
+      message: 'No Importers have been created, click add importer to create one.',
+      type: 'info'
+    }]
+  }));
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ArchivePage);
 
@@ -5161,110 +5122,92 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class DataSelector extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      selection: props.selection,
-      preview: props.preview
-    };
-    this.onChange = this.onChange.bind(this);
-    this.onSelect = this.onSelect.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-    this.refreshPreview = this.refreshPreview.bind(this);
-  }
-  onChange(event) {
-    const target = event.target;
-    this.setState({
-      [target.name]: target.value
-    }, this.refreshPreview);
-  }
-  onSelect(selection) {
-    this.setState({
-      selection: this.state.selection + selection
-    }, this.refreshPreview);
-  }
-  onSubmit() {
-    const {
-      selection
-    } = this.state;
-    this.props.onSelect(selection);
-  }
-  refreshPreview() {
-    this.setState({
-      preview: 'Loading.'
-    });
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_4__.importer.recordPreview(this.props.id, {
-      selection: this.state.selection
+const DataSelector = ({
+  id,
+  parser,
+  selection: selectionProp = '',
+  settings = {},
+  onSelect: onSelectProp = () => {},
+  onError = () => {},
+  preview: previewProp = '',
+  subPath = ''
+}) => {
+  var _settings$escape;
+  const [selection, setSelection] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(selectionProp);
+  const [preview, setPreview] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(previewProp);
+  const refreshPreview = (nextSelection = selection) => {
+    setPreview('Loading.');
+    _services_importer_service__WEBPACK_IMPORTED_MODULE_4__.importer.recordPreview(id, {
+      selection: nextSelection
     }).then(response => {
-      this.setState({
-        preview: response.selection
-      });
+      setPreview(response.selection);
     }).catch(error => {
-      this.setState({
-        preview: ''
-      });
-      this.props.onError(error);
+      setPreview('');
+      onError(error);
     });
-  }
-  componentDidMount() {
-    this.refreshPreview();
-  }
-  render() {
-    var _settings$escape;
-    const {
-      id,
-      parser,
-      settings
-    } = this.props;
-    const {
-      selection,
-      preview
-    } = this.state;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-data-selector"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-data-selector__tool"
-    }, parser === 'csv' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Click on a row in the table below, to be used as the value in your previously selected field, each row represents a column in your CSV file."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_record_csv_RecordCsv__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      id: id,
-      onSelect: this.onSelect,
-      show_headings: settings.show_headings,
-      enclosure: settings.enclosure,
-      delimiter: settings.delimiter,
-      escape: (_settings$escape = settings.escape) !== null && _settings$escape !== void 0 ? _settings$escape : '\\',
-      file_encoding: settings.file_encoding
-    })), parser === 'xml' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Click on a node/attribute/text in the record below, to be used as the value in your previously selected field."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_record_xml_RecordXml__WEBPACK_IMPORTED_MODULE_2__["default"], {
-      id: id,
-      onSelect: this.onSelect,
-      base_path: settings.base_path + this.props.subPath
-    })), parser === 'json' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Click on a key or value in the record below, to be used as the value in your previously selected field."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_record_json_RecordJson__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      id: id,
-      onSelect: this.onSelect,
-      base_path: settings.base_path + this.props.subPath
-    })), parser !== 'xml' && parser !== 'csv' && parser !== 'json' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Click on a value to be used as the value in your previously selected field."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_preview_form_PreviewRecord__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      id: id,
-      onSelect: this.onSelect,
-      onError: this.props.onError,
-      parser: parser
-    }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-data-selector__tool"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputField_InputField__WEBPACK_IMPORTED_MODULE_8__["default"], {
-      name: "selection",
-      value: selection,
-      onChange: val => this.onChange({
-        target: {
-          name: 'selection',
-          value: val
-        }
-      })
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputButton_InputButton__WEBPACK_IMPORTED_MODULE_7__["default"], {
-      onClick: this.onSubmit
-    }, "Select and Close")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-preview--text",
-      title: preview
-    }, "Preview: ", preview)));
-  }
-}
+  };
+  const onChange = event => {
+    const target = event.target;
+    const nextSelection = target.value;
+    setSelection(nextSelection);
+    refreshPreview(nextSelection);
+  };
+  const onSelect = next => {
+    const nextSelection = selection + next;
+    setSelection(nextSelection);
+    refreshPreview(nextSelection);
+  };
+  const onSubmit = () => {
+    onSelectProp(selection);
+  };
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    refreshPreview();
+    // Match class componentDidMount: preview once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-data-selector"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-data-selector__tool"
+  }, parser === 'csv' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Click on a row in the table below, to be used as the value in your previously selected field, each row represents a column in your CSV file."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_record_csv_RecordCsv__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    id: id,
+    onSelect: onSelect,
+    show_headings: settings.show_headings,
+    enclosure: settings.enclosure,
+    delimiter: settings.delimiter,
+    escape: (_settings$escape = settings.escape) !== null && _settings$escape !== void 0 ? _settings$escape : '\\',
+    file_encoding: settings.file_encoding
+  })), parser === 'xml' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Click on a node/attribute/text in the record below, to be used as the value in your previously selected field."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_record_xml_RecordXml__WEBPACK_IMPORTED_MODULE_2__["default"], {
+    id: id,
+    onSelect: onSelect,
+    base_path: settings.base_path + subPath
+  })), parser === 'json' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Click on a key or value in the record below, to be used as the value in your previously selected field."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_record_json_RecordJson__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    id: id,
+    onSelect: onSelect,
+    base_path: settings.base_path + subPath
+  })), parser !== 'xml' && parser !== 'csv' && parser !== 'json' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Click on a value to be used as the value in your previously selected field."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_preview_form_PreviewRecord__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    id: id,
+    onSelect: onSelect,
+    onError: onError,
+    parser: parser
+  }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-data-selector__tool"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputField_InputField__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    name: "selection",
+    value: selection,
+    onChange: val => onChange({
+      target: {
+        name: 'selection',
+        value: val
+      }
+    })
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputButton_InputButton__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    onClick: onSubmit
+  }, "Select and Close")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-preview--text",
+    title: preview
+  }, "Preview: ", preview)));
+};
 DataSelector.propTypes = {
   id: (prop_types__WEBPACK_IMPORTED_MODULE_9___default().number),
   parser: (prop_types__WEBPACK_IMPORTED_MODULE_9___default().string),
@@ -5274,14 +5217,6 @@ DataSelector.propTypes = {
   onError: (prop_types__WEBPACK_IMPORTED_MODULE_9___default().func),
   preview: (prop_types__WEBPACK_IMPORTED_MODULE_9___default().string),
   subPath: (prop_types__WEBPACK_IMPORTED_MODULE_9___default().string)
-};
-DataSelector.defaultProps = {
-  settings: {},
-  selection: '',
-  onSelect: () => {},
-  onError: () => {},
-  preview: '',
-  subPath: ''
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DataSelector);
 
@@ -5317,308 +5252,257 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class DatasourceForm extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      datasource: props.datasource,
-      remote_url: props.settings.remote_url ? props.settings.remote_url : '',
-      local_url: props.settings.local_url ? props.settings.local_url : '',
-      file: props.file,
-      saving: false,
-      disabled: false,
-      showModal: false,
-      modalTitle: '',
-      modalMessage: ''
-    };
-    this.save = this.save.bind(this);
-    this.onSave = this.onSave.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-    this.onChange = this.onChange.bind(this);
-    this.processFile = this.processFile.bind(this);
-    this.showModal = this.showModal.bind(this);
-    this.closeModal = this.closeModal.bind(this);
-    this.datasourceRef = react__WEBPACK_IMPORTED_MODULE_0___default().createRef();
-  }
-  onChange(event) {
-    this.setState({
-      [event.target.name]: event.target.value
-    });
-  }
-  processFile(callback = () => {}) {
+function DatasourceForm({
+  id,
+  complete,
+  parser,
+  file: fileProp,
+  files,
+  datasource: datasourceProp = 'upload',
+  settings = {},
+  onError = () => {}
+}) {
+  const [datasource, setDatasource] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(datasourceProp);
+  const [remote_url, setRemoteUrl] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings.remote_url ? settings.remote_url : '');
+  const [local_url, setLocalUrl] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings.local_url ? settings.local_url : '');
+  const [file, setFile] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(fileProp);
+  const [prevFileProp, setPrevFileProp] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(fileProp);
+  const [prevDatasourceProp, setPrevDatasourceProp] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(datasourceProp);
+  const [saving, setSaving] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [showModalState, setShowModalState] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [modalTitle, setModalTitle] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  const [modalMessage, setModalMessage] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  const datasourceRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const onChange = event => {
+    const {
+      name,
+      value
+    } = event.target;
+    if (name === 'datasource') {
+      setDatasource(value);
+    } else if (name === 'remote_url') {
+      setRemoteUrl(value);
+    } else if (name === 'local_url') {
+      setLocalUrl(value);
+    }
+  };
+  const showModal = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((content = '', title = '') => {
+    setShowModalState(true);
+    setModalMessage(content);
+    setModalTitle(title);
+  }, []);
+  const closeModal = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    setShowModalState(false);
+  }, []);
+  const processFile = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((callback = () => {}) => {
     const title = 'Processing File';
-    this.setState({
-      disabled: false
-    });
-    this.showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
+    showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
       className: "iwp-progress-bar"
     }), title);
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_4__.importer.process(this.props.id).promise.then(() => {
-      this.showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
+    _services_importer_service__WEBPACK_IMPORTED_MODULE_4__.importer.process(id).promise.then(() => {
+      showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
         className: "iwp-progress-bar",
         value: "100",
         max: "100"
       }), title);
       callback();
-    }).catch(e => this.props.onError(e));
-  }
-  save(callback = () => {}) {
-    this.setState({
-      saving: true
-    });
-    const {
-      id
-    } = this.props;
-    const {
-      datasource,
-      remote_url,
-      local_url
-    } = this.state;
+    }).catch(e => onError(e));
+  }, [id, onError, showModal]);
+  const save = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((callback = () => {}) => {
+    setSaving(true);
     _services_importer_service__WEBPACK_IMPORTED_MODULE_4__.importer.save({
       id: id,
       datasource: datasource,
       remote_url: remote_url,
       local_url: local_url
     }).then(() => {
-      this.setState({
-        saving: false
-      });
+      setSaving(false);
       callback();
     }).catch(error => {
-      this.props.onError(error);
-      this.setState({
-        saving: false
-      });
+      onError(error);
+      setSaving(false);
     });
-  }
-  onSave() {
-    if (this.datasourceRef && this.datasourceRef.current) {
-      this.datasourceRef.current.run(() => {
-        this.props.onError('New File added.');
-        this.processFile(() => {
-          this.save(() => {
-            this.closeModal();
+  }, [id, datasource, remote_url, local_url, onError]);
+  const onSave = () => {
+    if (datasourceRef && datasourceRef.current) {
+      datasourceRef.current.run(() => {
+        onError('New File added.');
+        processFile(() => {
+          save(() => {
+            closeModal();
           });
         });
       });
     } else {
-      this.save(() => {
-        this.closeModal();
+      save(() => {
+        closeModal();
       });
     }
-  }
-  onSubmit() {
-    if (this.datasourceRef && this.datasourceRef.current) {
-      this.datasourceRef.current.run(() => {
-        this.save(() => {
-          this.processFile(() => {
-            this.props.complete();
+  };
+  const onSubmit = () => {
+    if (datasourceRef && datasourceRef.current) {
+      datasourceRef.current.run(() => {
+        save(() => {
+          processFile(() => {
+            complete();
           });
         });
       });
     } else {
-      this.save(() => {
-        this.props.complete();
+      save(() => {
+        complete();
       });
     }
-  }
-  componentDidUpdate(prevProps) {
-    // update file
-    const prevFile = prevProps.file;
-    const file = this.props.file;
-    if (prevFile !== file && file !== null) {
-      this.setState({
-        file: file
-      });
-    }
-
-    // disabled
-    const prevParser = prevProps.parser;
-    const parser = this.props.parser;
-    if (parser !== prevParser) {
-      this.setState({
-        disabled: false
-      });
-    }
-
-    // update datasource
-    const prevDatasource = prevProps.datasource;
-    const datasource = this.props.datasource;
-    if (datasource !== prevDatasource) {
-      this.setState({
-        datasource: datasource,
-        remote_url: this.props.settings.remote_url ? this.props.settings.remote_url : '',
-        local_url: this.props.settings.local_url ? this.props.settings.local_url : ''
-      });
+  };
+  if (fileProp !== prevFileProp) {
+    setPrevFileProp(fileProp);
+    if (fileProp !== null) {
+      setFile(fileProp);
     }
   }
-  showModal(content = '', title = '') {
-    this.setState({
-      showModal: true,
-      modalMessage: content,
-      modalTitle: title
-    });
+  if (datasourceProp !== prevDatasourceProp) {
+    setPrevDatasourceProp(datasourceProp);
+    setDatasource(datasourceProp);
+    setRemoteUrl(settings.remote_url ? settings.remote_url : '');
+    setLocalUrl(settings.local_url ? settings.local_url : '');
   }
-  closeModal() {
-    this.setState({
-      showModal: false
-    });
+  let btn_action_text = 'Save';
+  switch (datasource) {
+    case 'upload':
+      btn_action_text = 'Upload';
+      break;
+    case 'remote':
+    case 'local':
+      btn_action_text = 'Download';
+      break;
   }
-  render() {
-    const {
-      datasource,
-      disabled,
-      saving,
-      file,
-      showModal,
-      modalTitle,
-      modalMessage,
-      local_url,
-      remote_url
-    } = this.state;
-    const {
-      files,
-      id,
-      parser
-    } = this.props;
-    let btn_action_text = 'Save';
-    switch (datasource) {
-      case 'upload':
-        btn_action_text = 'Upload';
-        break;
-      case 'remote':
-      case 'local':
-        btn_action_text = 'Download';
-        break;
-    }
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_modal_Modal__WEBPACK_IMPORTED_MODULE_5__["default"], {
-      title: modalTitle,
-      onClose: this.closeModal,
-      show: showModal,
-      closable: false
-    }, modalMessage), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading iwp-heading--has-tooltip"
-    }, "Datasource. ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
-      href: "https://www.importwp.com/docs/selecting-a-file-to-import/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer",
-      target: "_blank",
-      className: "iwp-label__tooltip"
-    }, "?")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Select from the options below, the method to be used to retrieve your data file."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", {
-      encType: "multipart/form-data"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-accordion__block iwp-accordion__block--first"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__handle"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      id: "datasource_upload",
-      type: "radio",
-      name: "datasource",
-      value: "upload",
-      onChange: this.onChange,
-      checked: datasource === 'upload'
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      htmlFor: "datasource_upload"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Uploaded File"), " - Upload a file from your computer.")), datasource === 'upload' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__content"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_datasource_upload_DatasourceUpload__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      id: id,
-      complete: this.processFile,
-      showModal: this.showModal,
-      closeModal: this.closeModal,
-      onError: this.props.onError,
-      ref: this.datasourceRef
-    }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-accordion__block"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__handle"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      id: "datasource_remote",
-      type: "radio",
-      name: "datasource",
-      value: "remote",
-      onChange: this.onChange,
-      checked: datasource === 'remote'
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      htmlFor: "datasource_remote"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Remote File"), " - Download your file from a website or url.")), datasource === 'remote' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__content"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_datasource_remote_DatasourceRemote__WEBPACK_IMPORTED_MODULE_2__["default"], {
-      id: id,
-      complete: this.processFile,
-      remote_url: remote_url,
-      filetype: parser,
-      onChange: this.onChange,
-      showModal: this.showModal,
-      closeModal: this.closeModal,
-      onError: this.props.onError,
-      ref: this.datasourceRef
-    }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-accordion__block"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__handle"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      id: "datasource_local",
-      type: "radio",
-      name: "datasource",
-      value: "local",
-      onChange: this.onChange,
-      checked: datasource === 'local'
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      htmlFor: "datasource_local"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Local File"), " - Get file from within a local folder.")), datasource === 'local' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__content"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_datasource_local_DatasourceLocal__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      id: id,
-      complete: this.processFile,
-      local_url: local_url,
-      filetype: parser,
-      onChange: this.onChange,
-      showModal: this.showModal,
-      closeModal: this.closeModal,
-      onError: this.props.onError,
-      ref: this.datasourceRef
-    }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-accordion__block"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__handle"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      id: "datasource_attached",
-      type: "radio",
-      name: "datasource",
-      value: "existing",
-      onChange: this.onChange,
-      checked: datasource === 'existing'
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      htmlFor: "datasource_attached"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Existing Files"), " - Choose from a list of previously attached files.")), datasource === 'existing' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__content"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_datasource_existing_ExistingDatasource__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      id: id,
-      onError: this.props.onError,
-      files: files,
-      file: file,
-      ref: this.datasourceRef
-    }))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__actions"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-buttons"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-secondary",
-      type: "button",
-      onClick: this.onSave,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : btn_action_text), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-primary",
-      type: "button",
-      onClick: this.onSubmit,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : btn_action_text + ' & continue'))));
-  }
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_modal_Modal__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    title: modalTitle,
+    onClose: closeModal,
+    show: showModalState,
+    closable: false
+  }, modalMessage), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading iwp-heading--has-tooltip"
+  }, "Datasource. ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
+    href: "https://www.importwp.com/docs/selecting-a-file-to-import/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer",
+    target: "_blank",
+    className: "iwp-label__tooltip"
+  }, "?")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Select from the options below, the method to be used to retrieve your data file."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", {
+    encType: "multipart/form-data"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-accordion__block iwp-accordion__block--first"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__handle"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    id: "datasource_upload",
+    type: "radio",
+    name: "datasource",
+    value: "upload",
+    onChange: onChange,
+    checked: datasource === 'upload'
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    htmlFor: "datasource_upload"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Uploaded File"), " - Upload a file from your computer.")), datasource === 'upload' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__content"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_datasource_upload_DatasourceUpload__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    id: id,
+    complete: processFile,
+    showModal: showModal,
+    closeModal: closeModal,
+    onError: onError,
+    ref: datasourceRef
+  }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-accordion__block"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__handle"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    id: "datasource_remote",
+    type: "radio",
+    name: "datasource",
+    value: "remote",
+    onChange: onChange,
+    checked: datasource === 'remote'
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    htmlFor: "datasource_remote"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Remote File"), " - Download your file from a website or url.")), datasource === 'remote' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__content"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_datasource_remote_DatasourceRemote__WEBPACK_IMPORTED_MODULE_2__["default"], {
+    id: id,
+    complete: processFile,
+    remote_url: remote_url,
+    filetype: parser,
+    onChange: onChange,
+    showModal: showModal,
+    closeModal: closeModal,
+    onError: onError,
+    ref: datasourceRef
+  }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-accordion__block"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__handle"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    id: "datasource_local",
+    type: "radio",
+    name: "datasource",
+    value: "local",
+    onChange: onChange,
+    checked: datasource === 'local'
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    htmlFor: "datasource_local"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Local File"), " - Get file from within a local folder.")), datasource === 'local' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__content"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_datasource_local_DatasourceLocal__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    id: id,
+    complete: processFile,
+    local_url: local_url,
+    filetype: parser,
+    onChange: onChange,
+    showModal: showModal,
+    closeModal: closeModal,
+    onError: onError,
+    ref: datasourceRef
+  }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-accordion__block"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__handle"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    id: "datasource_attached",
+    type: "radio",
+    name: "datasource",
+    value: "existing",
+    onChange: onChange,
+    checked: datasource === 'existing'
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    htmlFor: "datasource_attached"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Existing Files"), " - Choose from a list of previously attached files.")), datasource === 'existing' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__content"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_datasource_existing_ExistingDatasource__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    id: id,
+    onError: onError,
+    files: files,
+    file: file,
+    ref: datasourceRef
+  }))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__actions"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-buttons"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-secondary",
+    type: "button",
+    onClick: onSave,
+    disabled: saving
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : btn_action_text), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-primary",
+    type: "button",
+    onClick: onSubmit,
+    disabled: saving
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : btn_action_text + ' & continue'))));
 }
 DatasourceForm.propTypes = {
   id: (prop_types__WEBPACK_IMPORTED_MODULE_7___default().number).isRequired,
@@ -5629,11 +5513,6 @@ DatasourceForm.propTypes = {
   datasource: (prop_types__WEBPACK_IMPORTED_MODULE_7___default().string),
   settings: (prop_types__WEBPACK_IMPORTED_MODULE_7___default().object),
   onError: (prop_types__WEBPACK_IMPORTED_MODULE_7___default().func)
-};
-DatasourceForm.defaultProps = {
-  datasource: 'upload',
-  settings: {},
-  onError: () => {}
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DatasourceForm);
 
@@ -5659,68 +5538,54 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class ExistingDatasource extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      file: props.file
-    };
-    this.onChange = this.onChange.bind(this);
-    this.run = this.run.bind(this);
+const ExistingDatasource = (0,react__WEBPACK_IMPORTED_MODULE_0__.forwardRef)(function ExistingDatasource({
+  id,
+  files,
+  file: fileProp,
+  onError = () => {}
+}, ref) {
+  const [file, setFile] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(fileProp);
+  const [prevFileProp, setPrevFileProp] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(fileProp);
+  if (fileProp !== prevFileProp) {
+    setPrevFileProp(fileProp);
+    setFile(fileProp);
   }
-  onChange(event) {
-    this.setState({
-      [event.target.name]: event.target.value
-    });
-  }
-  run(callback = () => {}) {
+  const onChange = event => {
+    setFile(event.target.value);
+  };
+  const run = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((callback = () => {}) => {
     _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.save({
-      id: this.props.id,
-      existing_id: this.state.file
+      id,
+      existing_id: file
     }).then(() => {
       callback();
     }, error => {
-      this.props.onError(error);
+      onError(error);
     });
-  }
-  componentDidUpdate(prevProps) {
-    if (prevProps.file !== this.props.file) {
-      this.setState({
-        file: this.props.file
-      });
-    }
-  }
-  render() {
-    const {
-      files
-    } = this.props;
-    const {
-      file
-    } = this.state;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, files && Object.keys(files).length > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-file-list"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", null, Object.keys(files).map(file_id => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
-      key: file_id
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      id: 'file_' + file_id,
-      type: "radio",
-      name: "file",
-      value: file_id,
-      onChange: this.onChange,
-      checked: file_id == file
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      htmlFor: 'file_' + file_id
-    }, files[file_id]))))));
-  }
-}
+  }, [id, file, onError]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useImperativeHandle)(ref, () => ({
+    run
+  }), [run]);
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, files && Object.keys(files).length > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-file-list"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", null, Object.keys(files).map(file_id => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
+    key: file_id
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    id: 'file_' + file_id,
+    type: "radio",
+    name: "file",
+    value: file_id,
+    onChange: onChange,
+    checked: file_id == file
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    htmlFor: 'file_' + file_id
+  }, files[file_id]))))));
+});
 ExistingDatasource.propTypes = {
   id: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().number),
   files: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().array),
   file: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().number),
   onError: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().func)
-};
-ExistingDatasource.defaultProps = {
-  onError: () => {}
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ExistingDatasource);
 
@@ -5748,112 +5613,91 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class DatasourceLocal extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    let filetype_enabled = true;
-    if (props.filetype) {
-      filetype_enabled = false;
-    }
-    this.state = {
-      filetype: props.filetype,
-      filetype_enabled: filetype_enabled
-    };
-    this.onChange = this.onChange.bind(this);
-    this.run = this.run.bind(this);
-  }
-  onChange(event) {
-    this.setState({
-      [event.target.name]: event.target.value
-    });
-  }
-  run(callback = () => {}) {
-    this.setState({
-      showModal: true,
-      modalMessage: 'Uploading.'
-    });
+const DatasourceLocal = (0,react__WEBPACK_IMPORTED_MODULE_0__.forwardRef)(function DatasourceLocal({
+  id,
+  local_url,
+  filetype: filetypeProp,
+  onChange,
+  complete,
+  showModal = () => {},
+  closeModal = () => {},
+  onError = () => {}
+}, ref) {
+  const [filetype, setFiletype] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(filetypeProp);
+  const [filetype_enabled] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => !filetypeProp);
+  const onFiletypeChange = event => {
+    setFiletype(event.target.value);
+  };
+  const run = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((callback = () => {}) => {
     const title = 'Uploading';
-    this.props.showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
+    showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
       className: "iwp-progress-bar"
     }), title);
-    const {
-      local_url,
-      id
-    } = this.props;
-    const {
-      filetype
-    } = this.state;
     let form_data = new FormData();
     form_data.append('local_url', local_url);
     form_data.append('filetype', filetype);
     form_data.append('action', 'file_local');
     _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.upload(id, form_data).then(() => {
-      this.props.showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
+      showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
         className: "iwp-progress-bar",
         value: "100",
         max: "100"
       }), title);
-      this.props.closeModal();
+      closeModal();
       callback();
     }, error => {
-      this.props.onError(error);
-      this.props.closeModal();
+      onError(error);
+      closeModal();
     });
-  }
-  render() {
-    const {
-      local_url
-    } = this.props;
-    const {
-      filetype,
-      filetype_enabled
-    } = this.state;
-    const extra_file_types = window.iwp.hooks.applyFilters('iwp_allowed_file_types', []);
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_2__["default"], {
-      id: "local_url",
-      field: "local_url",
-      label: "Local Path",
-      tooltip: "Enter the path to the file from the servers root."
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      className: "iwp-form__input",
-      id: "local_url",
-      name: "local_url",
-      type: "text",
-      value: local_url,
-      onChange: this.props.onChange
-    }))), filetype_enabled && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field iwp-pb--0 iwp-pt--0"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      className: "iwp-form__label",
-      htmlFor: "remote_url"
-    }, "File Type:")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
-      name: "filetype",
-      value: filetype,
-      onChange: this.onChange
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: ""
-    }, "Choose file type"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: "csv"
-    }, "CSV File"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: "xml"
-    }, "XML File"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: "json"
-    }, "JSON File"), extra_file_types && extra_file_types.map(item => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      key: item.value,
-      value: item.value
-    }, item.label))))));
-  }
-}
+  }, [id, local_url, filetype, showModal, closeModal, onError]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useImperativeHandle)(ref, () => ({
+    run
+  }), [run]);
+  const extra_file_types = window.iwp.hooks.applyFilters('iwp_allowed_file_types', []);
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_2__["default"], {
+    id: "local_url",
+    field: "local_url",
+    label: "Local Path",
+    tooltip: "Enter the path to the file from the servers root."
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    className: "iwp-form__input",
+    id: "local_url",
+    name: "local_url",
+    type: "text",
+    value: local_url,
+    onChange: onChange
+  }))), filetype_enabled && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field iwp-pb--0 iwp-pt--0"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    className: "iwp-form__label",
+    htmlFor: "remote_url"
+  }, "File Type:")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
+    name: "filetype",
+    value: filetype,
+    onChange: onFiletypeChange
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: ""
+  }, "Choose file type"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: "csv"
+  }, "CSV File"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: "xml"
+  }, "XML File"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: "json"
+  }, "JSON File"), extra_file_types && extra_file_types.map(item => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    key: item.value,
+    value: item.value
+  }, item.label))))));
+});
 DatasourceLocal.propTypes = {
   id: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().number),
   local_url: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().string),
@@ -5863,11 +5707,6 @@ DatasourceLocal.propTypes = {
   showModal: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().func),
   closeModal: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().func),
   onError: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().func)
-};
-DatasourceLocal.defaultProps = {
-  showModal: () => {},
-  closeModal: () => {},
-  onError: () => {}
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DatasourceLocal);
 
@@ -5895,35 +5734,24 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class DatasourceRemote extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    let filetype_enabled = true;
-    if (props.filetype) {
-      filetype_enabled = false;
-    }
-    this.state = {
-      filetype: props.filetype,
-      filetype_enabled: filetype_enabled
-    };
-    this.onChange = this.onChange.bind(this);
-    this.run = this.run.bind(this);
-  }
-  onChange(event) {
-    this.setState({
-      [event.target.name]: event.target.value
-    });
-  }
-  run(callback = () => {}) {
+const DatasourceRemote = react__WEBPACK_IMPORTED_MODULE_0___default().forwardRef(({
+  id,
+  remote_url,
+  onChange,
+  complete,
+  showModal = () => {},
+  closeModal = () => {},
+  filetype: filetypeProp = '',
+  onError = () => {}
+}, ref) => {
+  const [filetype, setFiletype] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(filetypeProp);
+  const [filetype_enabled] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(!filetypeProp);
+  const onFiletypeChange = event => {
+    setFiletype(event.target.value);
+  };
+  const run = (callback = () => {}) => {
     const title = 'Downloading File.';
-    const {
-      remote_url,
-      id
-    } = this.props;
-    const {
-      filetype
-    } = this.state;
-    this.props.showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
+    showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
       className: "iwp-progress-bar"
     }), title);
     let form_data = new FormData();
@@ -5931,72 +5759,66 @@ class DatasourceRemote extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     form_data.append('filetype', filetype);
     form_data.append('action', 'file_remote');
     _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.upload(id, form_data).then(() => {
-      this.props.showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
+      showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
         className: "iwp-progress-bar",
         value: "100",
         max: "100"
       }), title);
-      this.props.closeModal();
+      closeModal();
       callback();
     }, error => {
-      this.props.onError(error);
-      this.props.closeModal();
+      onError(error);
+      closeModal();
     });
-  }
-  render() {
-    const {
-      remote_url
-    } = this.props;
-    const {
-      filetype,
-      filetype_enabled
-    } = this.state;
-    const extra_file_types = window.iwp.hooks.applyFilters('iwp_allowed_file_types', []);
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_2__["default"], {
-      id: "remote_url",
-      field: "remote_url",
-      label: "Remote Url",
-      tooltip: "Enter the  url of the file, this should begin with http/https."
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      className: "iwp-form__input",
-      id: "remote_url",
-      name: "remote_url",
-      value: remote_url,
-      onChange: this.props.onChange,
-      type: "text"
-    }))), filetype_enabled && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field iwp-pb--0 iwp-pt--0"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      className: "iwp-form__label",
-      htmlFor: "remote_url"
-    }, "File Type:")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
-      name: "filetype",
-      value: filetype,
-      onChange: this.onChange
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: ""
-    }, "Choose file type"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: "csv"
-    }, "CSV File"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: "xml"
-    }, "XML File"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: "json"
-    }, "JSON File"), extra_file_types && extra_file_types.map(item => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      key: item.value,
-      value: item.value
-    }, item.label))))));
-  }
-}
+  };
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useImperativeHandle)(ref, () => ({
+    run
+  }));
+  const extra_file_types = window.iwp.hooks.applyFilters('iwp_allowed_file_types', []);
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_2__["default"], {
+    id: "remote_url",
+    field: "remote_url",
+    label: "Remote Url",
+    tooltip: "Enter the  url of the file, this should begin with http/https."
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    className: "iwp-form__input",
+    id: "remote_url",
+    name: "remote_url",
+    value: remote_url,
+    onChange: onChange,
+    type: "text"
+  }))), filetype_enabled && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field iwp-pb--0 iwp-pt--0"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    className: "iwp-form__label",
+    htmlFor: "remote_url"
+  }, "File Type:")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
+    name: "filetype",
+    value: filetype,
+    onChange: onFiletypeChange
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: ""
+  }, "Choose file type"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: "csv"
+  }, "CSV File"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: "xml"
+  }, "XML File"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: "json"
+  }, "JSON File"), extra_file_types && extra_file_types.map(item => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    key: item.value,
+    value: item.value
+  }, item.label))))));
+});
 DatasourceRemote.propTypes = {
   id: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().number),
   remote_url: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().string),
@@ -6006,12 +5828,6 @@ DatasourceRemote.propTypes = {
   closeModal: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().func),
   filetype: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().string),
   onError: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().func)
-};
-DatasourceRemote.defaultProps = {
-  showModal: () => {},
-  closeModal: () => {},
-  filetype: '',
-  onError: () => {}
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DatasourceRemote);
 
@@ -6039,78 +5855,67 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class DatasourceUpload extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      file: null
-    };
-    this.onChange = this.onChange.bind(this);
-    // this.uploadFile = this.uploadFile.bind(this);
-    this.run = this.run.bind(this);
-  }
-  onChange(event) {
-    this.setState({
-      file: event.target.files[0]
-    });
-  }
-  run(callback = () => {}) {
+const DatasourceUpload = react__WEBPACK_IMPORTED_MODULE_0___default().forwardRef(({
+  complete,
+  id,
+  showModal = () => {},
+  closeModal = () => {},
+  onError = () => {}
+}, ref) => {
+  const [file, setFile] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const onChange = event => {
+    setFile(event.target.files[0]);
+  };
+  const run = (callback = () => {}) => {
     const title = 'Uploading';
-    this.props.showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
+    showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
       className: "iwp-progress-bar"
     }), title);
-    const {
-      file
-    } = this.state;
     const file_data = file;
     let form_data = new FormData();
     form_data.append('file', file_data);
     form_data.append('action', 'file_upload');
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.upload(this.props.id, form_data).then(() => {
-      this.props.showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
+    _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.upload(id, form_data).then(() => {
+      showModal((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("progress", {
         className: "iwp-progress-bar",
         value: "100",
         max: "100"
       }), title);
-      this.props.closeModal();
+      closeModal();
       callback();
     }, error => {
-      this.props.onError(error);
-      this.props.closeModal();
+      onError(error);
+      closeModal();
     });
-  }
-  render() {
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_2__["default"], {
-      field: "upload_file",
-      id: "upload_file",
-      label: "Upload File",
-      tooltip: "Select the file you wish to import via the file upload input."
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      className: "iwp-form__input",
-      id: "upload_file",
-      name: "file",
-      type: "file",
-      onChange: this.onChange
-    })));
-  }
-}
+  };
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useImperativeHandle)(ref, () => ({
+    run
+  }));
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_2__["default"], {
+    field: "upload_file",
+    id: "upload_file",
+    label: "Upload File",
+    tooltip: "Select the file you wish to import via the file upload input."
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    className: "iwp-form__input",
+    id: "upload_file",
+    name: "file",
+    type: "file",
+    onChange: onChange
+  })));
+});
 DatasourceUpload.propTypes = {
   complete: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().func),
   id: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().number),
   showModal: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().func),
   closeModal: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().func),
   onError: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().func)
-};
-DatasourceUpload.defaultProps = {
-  showModal: () => {},
-  closeModal: () => {},
-  onError: () => {}
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DatasourceUpload);
 
@@ -6129,12 +5934,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! prop-types */ "./node_modules/.pnpm/prop-types@15.8.1/node_modules/prop-types/index.js");
-/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_25___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_25__);
-/* harmony import */ var react_router__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! react-router */ "./node_modules/.pnpm/react-router@5.3.4_react@18.3.1/node_modules/react-router/esm/react-router.js");
-/* harmony import */ var qs__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! qs */ "./node_modules/.pnpm/qs@6.16.0/node_modules/qs/lib/index.js");
-/* harmony import */ var qs__WEBPACK_IMPORTED_MODULE_24___default = /*#__PURE__*/__webpack_require__.n(qs__WEBPACK_IMPORTED_MODULE_24__);
-/* harmony import */ var _reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! @reduxjs/toolkit */ "./node_modules/.pnpm/redux@4.2.1/node_modules/redux/es/redux.js");
+/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! prop-types */ "./node_modules/.pnpm/prop-types@15.8.1/node_modules/prop-types/index.js");
+/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_26___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_26__);
+/* harmony import */ var react_router__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! react-router */ "./node_modules/.pnpm/react-router@5.3.4_react@18.3.1/node_modules/react-router/esm/react-router.js");
+/* harmony import */ var qs__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! qs */ "./node_modules/.pnpm/qs@6.16.0/node_modules/qs/lib/index.js");
+/* harmony import */ var qs__WEBPACK_IMPORTED_MODULE_25___default = /*#__PURE__*/__webpack_require__.n(qs__WEBPACK_IMPORTED_MODULE_25__);
+/* harmony import */ var _reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! @reduxjs/toolkit */ "./node_modules/.pnpm/redux@4.2.1/node_modules/redux/es/redux.js");
 /* harmony import */ var react_redux__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-redux */ "./node_modules/.pnpm/react-redux@8.1.3_@types+react@18.2.60_react-dom@18.2.0_react@18.3.1__react@18.3.1_redux@4.2.1/node_modules/react-redux/es/index.js");
 /* harmony import */ var _features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../features/importer/importerSlice */ "./src/features/importer/importerSlice.js");
 /* harmony import */ var _edit_steps_EditSteps__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../edit-steps/EditSteps */ "./src/components/edit-steps/EditSteps.js");
@@ -6158,6 +5963,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _preview_form_PreviewForm__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ../preview-form/PreviewForm */ "./src/components/preview-form/PreviewForm.js");
 /* harmony import */ var _util_ajax_error__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ../../util/ajax-error */ "./src/util/ajax-error.js");
 /* harmony import */ var _util_debug__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ../../util/debug */ "./src/util/debug.js");
+/* harmony import */ var _step__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! ./step */ "./src/components/edit-page/step.js");
+
 
 
 
@@ -6188,448 +5995,315 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const AJAX_BASE = window.iwp.admin_base;
-class EditPage extends (react__WEBPACK_IMPORTED_MODULE_0___default().Component) {
-  constructor(props) {
-    super(props);
-    let form, step;
-    if (props.id === null) {
-      form = 'add';
-      step = -1;
-    } else {
-      form = 'edit';
-      step = 0;
-    }
-    this.resetImporter = {
-      parser: null,
-      file: null,
-      files: {},
-      permissions: {},
-      settings: {}
-    };
-    this.state = {
-      step: step,
-      form: form,
-      maxStep: step,
-      init: false,
-      importer: this.resetImporter,
-      loading: true,
-      datasource_type: null,
-      datasource_settings: {},
-      notices: [],
-      run_importer: null,
-      status: null,
-      log: null,
-      show_debug: false
-    };
-    this.statusXHR = null;
-    this.importerSubject = null;
-    this.statusSubject = null;
-    this.nextStep = this.nextStep.bind(this);
-    this.gotoStep = this.gotoStep.bind(this);
-    this.createImporter = this.createImporter.bind(this);
-    this.getImporter = this.getImporter.bind(this);
-    this.setMaxStep = this.setMaxStep.bind(this);
-    this.runImport = this.runImport.bind(this);
-    this.getStatus = this.getStatus.bind(this);
-    this.logError = this.logError.bind(this);
-  }
-  componentDidUpdate() {
-    (0,_util_debug__WEBPACK_IMPORTED_MODULE_23__.debugLog)('componentDidUpdate', 'EditPage');
-  }
-  router() {
-    const values = qs__WEBPACK_IMPORTED_MODULE_24___default().parse(this.props.location.search);
-    if (values.log !== 'undefined') {
-      if (values.log !== '') {
-        // show single log
-      } else {
-        // show log archive
-      }
-    }
-  }
-  logError(error) {
+const resetImporter = {
+  parser: null,
+  file: null,
+  files: {},
+  permissions: {},
+  settings: {}
+};
+const EditPage = ({
+  id = null,
+  location,
+  history,
+  pro = false,
+  templates = [],
+  setImporter: setImporterAction
+}) => {
+  const initialForm = id === null ? 'add' : 'edit';
+  const initialStep = id === null ? -1 : 0;
+  const [step, setStep] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialStep);
+  const [form, setForm] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialForm);
+  const [maxStep, setMaxStepState] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialStep);
+  const [init, setInit] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [importerState, setImporterState] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(resetImporter);
+  const [datasource_type, setDatasourceType] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [datasource_settings, setDatasourceSettings] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({});
+  const [notices, setNotices] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [run_importer, setRunImporter] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [status, setStatus] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [show_debug, setShowDebug] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const statusXHR = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const importerSubject = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const statusSubject = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const getImporterRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const logError = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(error => {
     const message = (0,_util_ajax_error__WEBPACK_IMPORTED_MODULE_22__.logAjaxError)(error, 'EditPage');
-    this.setState({
-      notices: [...this.state.notices, {
-        message: message,
-        type: 'error',
-        dismissible: true
-      }]
-    }, () => {
-      window.scrollTo(0, 0);
-    });
-  }
-  getActiveStep() {
-    const {
-      step
-    } = qs__WEBPACK_IMPORTED_MODULE_24___default().parse(this.props.location.search);
-    if (step) {
-      const activeStep = Math.min(this.state.maxStep, step);
-      this.setState({
-        step: parseInt(activeStep)
-      });
-    } else {
-      // if no step set it to max step
-      this.setState({
-        step: this.state.maxStep > 4 ? 4 : this.state.maxStep
-      });
+    setNotices(current => [...current, {
+      message: message,
+      type: 'error',
+      dismissible: true
+    }]);
+    window.scrollTo(0, 0);
+  }, []);
+  const getActiveStep = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(maxStepValue => {
+    setStep((0,_step__WEBPACK_IMPORTED_MODULE_24__.getStepFromSearch)(location.search, maxStepValue));
+  }, [location.search]);
+  const setMaxStep = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(importerData => {
+    const max = (0,_step__WEBPACK_IMPORTED_MODULE_24__.computeMaxStep)(importerData);
+    setMaxStepState(max);
+    return max;
+  }, []);
+  const getStatus = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    statusXHR.current = _services_importer_service__WEBPACK_IMPORTED_MODULE_11__.importer.status([id]);
+    statusSubject.current = statusXHR.current.request.subscribe(response => {
+      setStatus(response.find(item => item?.version == 2 ? item.importer == id : item.id === id));
+    }, () => {});
+  }, [id]);
+  const getImporter = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    if (importerSubject.current !== null) {
+      importerSubject.current.unsubscribe();
     }
-  }
-  getImporter() {
-    const {
-      id
-    } = this.props;
-    this.setState({
-      loading: true
-    });
-    this.importerSubject = _services_importer_service__WEBPACK_IMPORTED_MODULE_11__.importer.getAndSubscribe(id).subscribe({
+    importerSubject.current = _services_importer_service__WEBPACK_IMPORTED_MODULE_11__.importer.getAndSubscribe(id).subscribe({
       next: data => {
         if (data !== null) {
-          this.setState({
-            init: true,
-            importer: data,
-            loading: false,
-            datasource_type: data.datasource.type,
-            datasource_settings: data.datasource.settings
-          });
-
-          // TODO: dispatch importer to redux
-          this.props.setImporter(data);
-          this.setMaxStep(data);
-          this.getActiveStep();
-          if (this.statusXHR === null) {
-            this.getStatus();
+          setInit(true);
+          setImporterState(data);
+          setDatasourceType(data.datasource.type);
+          setDatasourceSettings(data.datasource.settings);
+          setImporterAction(data);
+          const max = setMaxStep(data);
+          getActiveStep(max);
+          if (statusXHR.current === null) {
+            getStatus();
           }
         }
       },
       error: error => {
-        this.logError(error);
-        this.setState({
-          loading: false
-        });
+        logError(error);
       }
     });
-  }
-  getStatus() {
-    const {
-      id
-    } = this.props;
-    this.statusXHR = _services_importer_service__WEBPACK_IMPORTED_MODULE_11__.importer.status([id]);
-    this.statusSubject = this.statusXHR.request.subscribe(response => {
-      this.setState({
-        status: response.find(item => item?.version == 2 ? item.importer == id : item.id === id)
-      });
-    }, () => {});
-  }
-  nextStep() {
-    let {
-      step,
-      maxStep
-    } = this.state;
-    step++;
-    if (step > maxStep) {
-      this.setState({
-        maxStep: step
-      });
-    }
-    if (step > 4) {
-      step = 0;
-    }
-    this.setState({
-      step: step
-    });
-  }
-  gotoStep(step) {
-    this.setState({
-      step: step
-    });
-  }
-  createImporter(id) {
-    this.setState({
-      id: id
-    });
-    if (this.props.id === null) {
-      this.props.history.push(AJAX_BASE + '&edit=' + id);
-    }
-    this.nextStep();
-  }
-  setMaxStep(importer) {
-    let max = 0;
-    if (importer.file && importer.file.id > 0) {
-      max = 1;
-    }
-    if (importer.file && importer.file.settings && importer.file.settings.setup === true) {
-      max = 2;
-    }
-    if (importer.map && Object.keys(importer.map).length > 0) {
-      max = 3;
-    }
-    const hasNewUniqueIdentifierUI = () => {
-      return +importer?.version >= 2 || importer.settings?.unique_identifier_type;
-    };
-
-    // TODO: make sure a unique identifier has been chosen.
-    if (importer.permissions && (!hasNewUniqueIdentifierUI() || importer.settings?.unique_identifier_type === 'field' && importer.settings?.unique_identifier?.length > 0 || importer.settings?.unique_identifier_type === 'custom' && importer.settings?.unique_identifier_ref?.length > 0)) {
-      if (importer.permissions.create && importer.permissions.create.enabled === true || importer.permissions.update && importer.permissions.update.enabled === true || importer.permissions.remove && importer.permissions.remove.enabled === true) {
-        max = 5;
+  }, [getActiveStep, getStatus, id, logError, setImporterAction, setMaxStep]);
+  const nextStep = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    setStep(current => {
+      let next = current + 1;
+      setMaxStepState(currentMax => next > currentMax ? next : currentMax);
+      if (next > 4) {
+        next = 0;
       }
-    }
-    this.setState({
-      maxStep: max
+      return next;
     });
-  }
-  runImport(session) {
-    if (this.statusXHR !== null) {
-      this.statusXHR.abort();
-      this.statusXHR = null;
+  }, []);
+  const gotoStep = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(next => {
+    setStep(next);
+  }, []);
+  const createImporter = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(nextId => {
+    if (id === null) {
+      history.push(AJAX_BASE + '&edit=' + nextId);
     }
-    this.setState({
-      run_importer: session
-    });
-  }
-  componentDidMount() {
-    if (this.props.id > 0) {
-      this.setState({
-        maxStep: 0
-      });
-      this.getImporter();
+    nextStep();
+  }, [history, id, nextStep]);
+  const runImport = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(session => {
+    if (statusXHR.current !== null) {
+      statusXHR.current.abort();
+      statusXHR.current = null;
+    }
+    setRunImporter(session);
+  }, []);
+  getImporterRef.current = getImporter;
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const nextId = parseInt(id, 10) || 0;
+    (0,_util_debug__WEBPACK_IMPORTED_MODULE_23__.debugLog)('EditPage load', nextId);
+    if (nextId > 0) {
+      getImporterRef.current();
     } else {
-      this.setState({
-        form: 'add',
-        step: -1,
-        maxStep: -1,
-        loading: false,
-        init: true
-      });
+      setForm('add');
+      setStep(-1);
+      setMaxStepState(-1);
+      setInit(true);
+      setNotices([]);
+      setImporterState(resetImporter);
     }
-  }
-  componentDidUpdate(prevProps, prevState) {
-    const id = parseInt(this.props.id) || 0;
-    const prevId = parseInt(prevProps.id) || 0;
-    if (id !== prevId) {
-      if (id > 0) {
-        this.getImporter();
-      } else {
-        this.setState({
-          form: 'add',
-          step: -1,
-          maxStep: -1,
-          notices: [],
-          importer: this.resetImporter
-        });
+    return () => {
+      if (statusXHR.current) {
+        statusXHR.current.abort();
+        statusXHR.current = null;
       }
-    }
-    const step = parseInt(this.state.step) || 0;
-    const prevStep = parseInt(prevState.step) || 0;
-    if (step !== prevStep) {
-      if (this.props.id !== null) {
-        // keep log if part of url
-        const {
-          log
-        } = qs__WEBPACK_IMPORTED_MODULE_24___default().parse(this.props.location.search);
-        let url = AJAX_BASE + '&edit=' + id + '&step=' + step;
-        if (log && step === 5) {
-          url += '&log=' + log;
-        }
-        this.props.history.push(url);
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_11__.importer.abort();
+      if (importerSubject.current !== null) {
+        importerSubject.current.unsubscribe();
+        importerSubject.current = null;
       }
-    }
-  }
-  componentWillUnmount() {
-    // abort ajax requests
-    if (this.statusXHR) {
-      this.statusXHR.abort();
-    }
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_11__.importer.abort();
-
-    // unsubscribe from subjects
-    if (this.importerSubject !== null) {
-      this.importerSubject.unsubscribe();
-    }
-    if (this.statusSubject !== null) {
-      this.statusSubject.unsubscribe();
-    }
-  }
-  render() {
-    const {
-      step,
-      maxStep,
-      form,
-      datasource_type,
-      datasource_settings,
-      notices,
+      if (statusSubject.current !== null) {
+        statusSubject.current.unsubscribe();
+        statusSubject.current = null;
+      }
+    };
+  }, [id]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const values = qs__WEBPACK_IMPORTED_MODULE_25___default().parse(location.search, {
+      ignoreQueryPrefix: true
+    });
+    const currentUrlStep = values.step ? parseInt(values.step, 10) : null;
+    if (!(0,_step__WEBPACK_IMPORTED_MODULE_24__.shouldPushStepUrl)({
       init,
-      run_importer,
-      status
-    } = this.state;
-    const {
-      id
-    } = this.props;
-    const {
-      template,
-      parser,
-      file,
-      files,
-      enabled,
-      permissions
-    } = this.state.importer;
-    const settings = file ? file.settings : null;
-    if (init === false) {
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_14__["default"], {
-        notices: [{
-          message: 'Loading',
-          type: 'info'
-        }]
-      });
+      id,
+      currentUrlStep,
+      step
+    })) {
+      return;
     }
-    const general_settings = this.state.importer.settings;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_global_notice_GlobalNotice__WEBPACK_IMPORTED_MODULE_20__["default"], null), run_importer !== null && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_import_runner_ImportRunner__WEBPACK_IMPORTED_MODULE_15__["default"], {
-      id: id,
-      session: run_importer,
-      status: status,
-      onComplete: () => {
-        this.setState({
-          run_importer: null,
-          status: null
-        });
-        if (this.statusXHR === null) {
-          this.getStatus();
-        }
-      }
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_edit_steps_EditSteps__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      id: id,
-      step: step,
-      form: form,
-      gotoStep: this.gotoStep,
-      maxStep: maxStep,
-      importer: this.state.importer,
-      onError: this.logError
-    }), id > 0 && status && status?.version === 2 && (status.status === 'running' || status.status === 'processing' || status.status === 'timeout' || status?.cron) && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_14__["default"], {
+    let url = AJAX_BASE + '&edit=' + id + '&step=' + step;
+    if (values.log && step === 5) {
+      url += '&log=' + values.log;
+    }
+    history.push(url);
+  }, [history, id, init, location.search, step]);
+  const {
+    template,
+    parser,
+    file,
+    files,
+    enabled,
+    permissions
+  } = importerState;
+  const settings = file ? file.settings : null;
+  if (init === false) {
+    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_14__["default"], {
       notices: [{
-        message: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_status_message_StatusMessage__WEBPACK_IMPORTED_MODULE_16__["default"], {
-          status: status
-        }), (status?.status === 'running' || status?.status === 'processing' || status.status === 'timeout') && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-          className: "iwp-notice__actions"
-        }, !status.hasOwnProperty('cron') && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-          type: "button",
-          className: "button-link-continue",
-          onClick: () => {
-            // TODO: how do we resume
-            if (status?.id) {
-              this.runImport(status.id);
-            }
-          }
-        }, "Continue"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-          type: "button",
-          className: "button-link-delete",
-          onClick: () => {
-            _services_importer_service__WEBPACK_IMPORTED_MODULE_11__.importer.stop(id);
-          },
-          style: {
-            marginRight: '10px'
-          }
-        }, "Cancel"))),
-        type: 'warn'
+        message: 'Loading',
+        type: 'info'
       }]
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_14__["default"], {
-      notices: notices,
-      onDismiss: i => {
-        let temp = this.state.notices;
-        temp[i].dismissed = true;
-        this.setState({
-          notices: temp
-        });
-      }
-    }), step === -1 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_error_boundary_ErrorBoundary__WEBPACK_IMPORTED_MODULE_18__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_setup_form_SetupForm__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      id: id,
-      complete: this.createImporter,
-      template: template,
-      onError: this.logError,
-      templates: this.props.templates
-    })), step === 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_error_boundary_ErrorBoundary__WEBPACK_IMPORTED_MODULE_18__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_datasource_form_DatasourceForm__WEBPACK_IMPORTED_MODULE_5__["default"], {
-      id: id,
-      complete: this.nextStep,
-      parser: parser,
-      file: file ? file.id : null,
-      files: files,
-      datasource: datasource_type,
-      settings: datasource_settings,
-      onError: this.logError
-    })), step === 1 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_error_boundary_ErrorBoundary__WEBPACK_IMPORTED_MODULE_18__["default"], null, parser === 'xml' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_preview_xml_form_PreviewXmlForm__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      id: id,
-      complete: this.nextStep,
-      settings: settings,
-      onError: this.logError
-    }), parser === 'csv' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_preview_csv_form_PreviewCsvForm__WEBPACK_IMPORTED_MODULE_7__["default"], {
-      id: id,
-      complete: this.nextStep,
-      settings: settings,
-      onError: this.logError
-    }), parser === 'json' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_preview_json_form_PreviewJsonForm__WEBPACK_IMPORTED_MODULE_8__["default"], {
-      id: id,
-      complete: this.nextStep,
-      settings: settings,
-      onError: this.logError
-    }), parser !== 'xml' && parser !== 'csv' && parser !== 'json' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_preview_form_PreviewForm__WEBPACK_IMPORTED_MODULE_21__["default"], {
-      id: id,
-      parser: parser,
-      complete: this.nextStep,
-      settings: settings,
-      onError: this.logError
-    })), step === 2 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_error_boundary_ErrorBoundary__WEBPACK_IMPORTED_MODULE_18__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_template_form_TemplateForm__WEBPACK_IMPORTED_MODULE_9__["default"], {
-      id: id,
-      template: template,
-      parser: parser,
-      settings: settings,
-      complete: this.nextStep,
-      enabled: enabled,
-      onError: this.logError,
-      pro: this.props.pro,
-      templates: this.props.templates
-    })), step === 3 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_error_boundary_ErrorBoundary__WEBPACK_IMPORTED_MODULE_18__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_permission_form_PermissionForm__WEBPACK_IMPORTED_MODULE_12__["default"], {
-      id: id,
-      template: template,
-      complete: this.nextStep,
-      permissions: permissions,
-      onError: this.logError,
-      settings: general_settings
-    })), step === 4 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_error_boundary_ErrorBoundary__WEBPACK_IMPORTED_MODULE_18__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_importer_form_ImporterForm__WEBPACK_IMPORTED_MODULE_13__["default"], {
-      id: id,
-      complete: this.nextStep,
-      template: template,
-      settings: general_settings,
-      onRun: this.runImport,
-      onError: this.logError,
-      pro: this.props.pro,
-      templates: this.props.templates
-    })), step === 5 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_importer_logs_ImporterLogs__WEBPACK_IMPORTED_MODULE_17__["default"], {
-      id: id
-    }), this.state.importer && this.state.importer.debug && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, step === 5 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-debug-spacer"
-    }, "\xA0"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      type: "button",
-      className: "iwp-debug__toggle dashicons-before dashicons-editor-code",
-      onClick: () => {
-        this.setState({
-          show_debug: !this.state.show_debug
-        });
-      }
-    }, this.state.show_debug ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Hide Debug") : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Show Debug")), this.state.show_debug && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_importer_debug_ImporterDebug__WEBPACK_IMPORTED_MODULE_19__["default"], {
-      id: this.props.id,
-      settings: this.state.importer.debug.settings
-    })));
+    });
   }
-}
-EditPage.propTypes = {
-  id: (prop_types__WEBPACK_IMPORTED_MODULE_25___default().number),
-  location: (prop_types__WEBPACK_IMPORTED_MODULE_25___default().object),
-  history: (prop_types__WEBPACK_IMPORTED_MODULE_25___default().object),
-  pro: (prop_types__WEBPACK_IMPORTED_MODULE_25___default().bool),
-  templates: (prop_types__WEBPACK_IMPORTED_MODULE_25___default().array)
+  const general_settings = importerState.settings;
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_global_notice_GlobalNotice__WEBPACK_IMPORTED_MODULE_20__["default"], null), run_importer !== null && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_import_runner_ImportRunner__WEBPACK_IMPORTED_MODULE_15__["default"], {
+    id: id,
+    session: run_importer,
+    status: status,
+    onComplete: () => {
+      setRunImporter(null);
+      setStatus(null);
+      if (statusXHR.current === null) {
+        getStatus();
+      }
+    }
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_edit_steps_EditSteps__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    id: id,
+    step: step,
+    form: form,
+    gotoStep: gotoStep,
+    maxStep: maxStep,
+    importer: importerState,
+    onError: logError
+  }), id > 0 && status && status?.version === 2 && (status.status === 'running' || status.status === 'processing' || status.status === 'timeout' || status?.cron) && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_14__["default"], {
+    notices: [{
+      message: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_status_message_StatusMessage__WEBPACK_IMPORTED_MODULE_16__["default"], {
+        status: status
+      }), (status?.status === 'running' || status?.status === 'processing' || status.status === 'timeout') && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "iwp-notice__actions"
+      }, !status.hasOwnProperty('cron') && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+        type: "button",
+        className: "button-link-continue",
+        onClick: () => {
+          // TODO: how do we resume
+          if (status?.id) {
+            runImport(status.id);
+          }
+        }
+      }, "Continue"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+        type: "button",
+        className: "button-link-delete",
+        onClick: () => {
+          _services_importer_service__WEBPACK_IMPORTED_MODULE_11__.importer.stop(id);
+        },
+        style: {
+          marginRight: '10px'
+        }
+      }, "Cancel"))),
+      type: 'warn'
+    }]
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_14__["default"], {
+    notices: notices,
+    onDismiss: i => {
+      setNotices(current => current.map((notice, index) => index === i ? {
+        ...notice,
+        dismissed: true
+      } : notice));
+    }
+  }), step === -1 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_error_boundary_ErrorBoundary__WEBPACK_IMPORTED_MODULE_18__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_setup_form_SetupForm__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    id: id,
+    complete: createImporter,
+    template: template,
+    onError: logError,
+    templates: templates
+  })), step === 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_error_boundary_ErrorBoundary__WEBPACK_IMPORTED_MODULE_18__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_datasource_form_DatasourceForm__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    id: id,
+    complete: nextStep,
+    parser: parser,
+    file: file ? file.id : null,
+    files: files,
+    datasource: datasource_type,
+    settings: datasource_settings,
+    onError: logError
+  })), step === 1 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_error_boundary_ErrorBoundary__WEBPACK_IMPORTED_MODULE_18__["default"], null, parser === 'xml' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_preview_xml_form_PreviewXmlForm__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    id: id,
+    complete: nextStep,
+    settings: settings,
+    onError: logError
+  }), parser === 'csv' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_preview_csv_form_PreviewCsvForm__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    id: id,
+    complete: nextStep,
+    settings: settings,
+    onError: logError
+  }), parser === 'json' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_preview_json_form_PreviewJsonForm__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    id: id,
+    complete: nextStep,
+    settings: settings,
+    onError: logError
+  }), parser !== 'xml' && parser !== 'csv' && parser !== 'json' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_preview_form_PreviewForm__WEBPACK_IMPORTED_MODULE_21__["default"], {
+    id: id,
+    parser: parser,
+    complete: nextStep,
+    settings: settings,
+    onError: logError
+  })), step === 2 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_error_boundary_ErrorBoundary__WEBPACK_IMPORTED_MODULE_18__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_template_form_TemplateForm__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    id: id,
+    template: template,
+    parser: parser,
+    settings: settings,
+    complete: nextStep,
+    enabled: enabled,
+    onError: logError,
+    pro: pro,
+    templates: templates
+  })), step === 3 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_error_boundary_ErrorBoundary__WEBPACK_IMPORTED_MODULE_18__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_permission_form_PermissionForm__WEBPACK_IMPORTED_MODULE_12__["default"], {
+    id: id,
+    template: template,
+    complete: nextStep,
+    permissions: permissions,
+    onError: logError,
+    settings: general_settings
+  })), step === 4 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_error_boundary_ErrorBoundary__WEBPACK_IMPORTED_MODULE_18__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_importer_form_ImporterForm__WEBPACK_IMPORTED_MODULE_13__["default"], {
+    id: id,
+    complete: nextStep,
+    template: template,
+    settings: general_settings,
+    onRun: runImport,
+    onError: logError,
+    pro: pro,
+    templates: templates
+  })), step === 5 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_importer_logs_ImporterLogs__WEBPACK_IMPORTED_MODULE_17__["default"], {
+    id: id
+  }), importerState && importerState.debug && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, step === 5 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-debug-spacer"
+  }, "\xA0"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    type: "button",
+    className: "iwp-debug__toggle dashicons-before dashicons-editor-code",
+    onClick: () => {
+      setShowDebug(current => !current);
+    }
+  }, show_debug ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Hide Debug") : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Show Debug")), show_debug && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_importer_debug_ImporterDebug__WEBPACK_IMPORTED_MODULE_19__["default"], {
+    id: id,
+    settings: importerState.debug.settings
+  })));
 };
-EditPage.defaultProps = {
-  id: null,
-  pro: false,
-  templates: []
+EditPage.propTypes = {
+  id: (prop_types__WEBPACK_IMPORTED_MODULE_26___default().number),
+  location: (prop_types__WEBPACK_IMPORTED_MODULE_26___default().object),
+  history: (prop_types__WEBPACK_IMPORTED_MODULE_26___default().object),
+  pro: (prop_types__WEBPACK_IMPORTED_MODULE_26___default().bool),
+  templates: (prop_types__WEBPACK_IMPORTED_MODULE_26___default().array)
 };
 const mapStateToProps = state => ({
   importer: state.importer.importer
@@ -6637,7 +6311,73 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   setImporter: _features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.setImporter
 };
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((0,_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_26__.compose)(react_router__WEBPACK_IMPORTED_MODULE_27__.withRouter, (0,react_redux__WEBPACK_IMPORTED_MODULE_1__.connect)(mapStateToProps, mapDispatchToProps))(EditPage));
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((0,_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_27__.compose)(react_router__WEBPACK_IMPORTED_MODULE_28__.withRouter, (0,react_redux__WEBPACK_IMPORTED_MODULE_1__.connect)(mapStateToProps, mapDispatchToProps))(EditPage));
+
+/***/ }),
+
+/***/ "./src/components/edit-page/step.js":
+/*!******************************************!*\
+  !*** ./src/components/edit-page/step.js ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   computeMaxStep: () => (/* binding */ computeMaxStep),
+/* harmony export */   getStepFromImporterAndSearch: () => (/* binding */ getStepFromImporterAndSearch),
+/* harmony export */   getStepFromSearch: () => (/* binding */ getStepFromSearch),
+/* harmony export */   shouldPushStepUrl: () => (/* binding */ shouldPushStepUrl)
+/* harmony export */ });
+/* harmony import */ var qs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! qs */ "./node_modules/.pnpm/qs@6.16.0/node_modules/qs/lib/index.js");
+/* harmony import */ var qs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(qs__WEBPACK_IMPORTED_MODULE_0__);
+
+function computeMaxStep(importerData = {}) {
+  let max = 0;
+  if (importerData.file && importerData.file.id > 0) {
+    max = 1;
+  }
+  if (importerData.file && importerData.file.settings && importerData.file.settings.setup === true) {
+    max = 2;
+  }
+  if (importerData.map && Object.keys(importerData.map).length > 0) {
+    max = 3;
+  }
+  const hasNewUniqueIdentifierUI = +importerData?.version >= 2 || importerData.settings?.unique_identifier_type;
+  if (importerData.permissions && (!hasNewUniqueIdentifierUI || importerData.settings?.unique_identifier_type === 'field' && importerData.settings?.unique_identifier?.length > 0 || importerData.settings?.unique_identifier_type === 'custom' && importerData.settings?.unique_identifier_ref?.length > 0)) {
+    if (importerData.permissions.create && importerData.permissions.create.enabled === true || importerData.permissions.update && importerData.permissions.update.enabled === true || importerData.permissions.remove && importerData.permissions.remove.enabled === true) {
+      max = 5;
+    }
+  }
+  return max;
+}
+function getStepFromSearch(search, maxStep) {
+  const values = qs__WEBPACK_IMPORTED_MODULE_0___default().parse(search, {
+    ignoreQueryPrefix: true
+  });
+  if (values.step) {
+    const requestedStep = parseInt(values.step, 10);
+    if (Number.isNaN(requestedStep)) {
+      return maxStep > 4 ? 4 : maxStep;
+    }
+    return Math.min(maxStep, requestedStep);
+  }
+  return maxStep > 4 ? 4 : maxStep;
+}
+function getStepFromImporterAndSearch(importerData, search) {
+  return getStepFromSearch(search, computeMaxStep(importerData));
+}
+function shouldPushStepUrl({
+  init,
+  id,
+  currentUrlStep,
+  step
+}) {
+  if (!init || id === null) {
+    return false;
+  }
+  return currentUrlStep !== step;
+}
 
 /***/ }),
 
@@ -7365,7 +7105,7 @@ const ExporterEdit = ({
       runnerXHR.current = _services_exporter_service__WEBPACK_IMPORTED_MODULE_1__.exporter.run(id, session);
       runnerXHR.current.request.subscribe(response => {
         if (response.status === 'running' || response.status === 'timeout') {
-          setProgress((response.progress.export.current_row / (response.progress.export.end - response.progress.export.start) * 100).toFixed());
+          setProgress(Math.round(response.progress.export.current_row / (response.progress.export.end - response.progress.export.start) * 100));
         } else if (response.status == 'complete') {
           setModalTitle('Export Complete');
           setProgress(100);
@@ -7390,7 +7130,7 @@ const ExporterEdit = ({
       const tmpStatus = response.find(item => item.exporter === id);
       if (tmpStatus) {
         setStatus(tmpStatus);
-        setProgress(tmpStatus.progress.toFixed());
+        setProgress(Math.round(tmpStatus.progress));
       }
     }, e => {
       // ignore abort errors
@@ -7757,10 +7497,7 @@ const ExporterFieldSelector = ({
   activeType,
   setFields
 }) => {
-  const [lastId, setLastId] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    setLastId(fields.reduce((carry, item) => carry < +item.id ? +item.id : carry, 0));
-  }, [fields]);
+  const lastId = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => fields.reduce((carry, item) => carry < +item.id ? +item.id : carry, 0), [fields]);
   const row = fields.find(item => item.id == 0);
   return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
     className: "iwp-form__row"
@@ -8153,103 +7890,106 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class FieldGroup extends (react__WEBPACK_IMPORTED_MODULE_0___default().PureComponent) {
-  constructor(props) {
-    super(props);
-    this.getEnableFieldLabel = this.getEnableFieldLabel.bind(this);
-  }
-
+function FieldGroup({
+  group,
+  showSelectModal,
+  enabledData = {},
+  importer_id,
+  map,
+  dispatch
+}) {
   /**
    * Take enable field key and get readable label
    * @param {string} key
    */
-  getEnableFieldLabel(key) {
+  const getEnableFieldLabel = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(key => {
     let output = key.substring(key.lastIndexOf('.') + 1);
     if (output.indexOf('_') === 0) {
       return output.substring(1);
     }
-    const field = this.props.group.fields.find(field => field.id === output);
+    const field = group.fields.find(fieldItem => fieldItem.id === output);
     if (field) {
       return field.type === 'field' ? field.label : field.heading;
     }
     return output;
-  }
-  render() {
-    const {
-      heading,
-      type,
-      link,
-      settings = []
-    } = this.props.group;
-    const {
-      enabledData
-    } = this.props;
-    const switch_height = 20;
-    const switch_width = 40;
+  }, [group.fields]);
+  const {
+    heading,
+    type,
+    link,
+    settings = []
+  } = group;
+  const switch_height = 20;
+  const switch_width = 40;
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form iwp-form--mb"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", null, link ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading iwp-heading--has-tooltip"
+  }, heading, " ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
+    href: `${link}?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer`,
+    target: "_blank",
+    className: "iwp-label__tooltip"
+  }, "?")) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading"
+  }, heading), react__WEBPACK_IMPORTED_MODULE_0___default().cloneElement(window.iwp.hooks.applyFilters(`iwp_panel_${group.id}`, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null)), {
+    group,
+    showSelectModal,
+    enabledData,
+    importer_id,
+    map,
+    dispatch,
+    setTemplate: data => {
+      dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.setTemplate)(data));
+    },
+    setPreview: data => {
+      dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.setPreview)(data));
+    }
+  }), settings && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-panel-settings"
+  }, settings.map(field => {
+    const field_id = `${group.id}._iwp_settings.${field.id}`;
+    const value = map.hasOwnProperty(field_id) ? map[field_id] == 'yes' ? true : false : false;
     return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form iwp-form--mb"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", null, link ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading iwp-heading--has-tooltip"
-    }, heading, " ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
-      href: `${link}?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer`,
-      target: "_blank",
-      className: "iwp-label__tooltip"
-    }, "?")) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading"
-    }, heading), react__WEBPACK_IMPORTED_MODULE_0___default().cloneElement(window.iwp.hooks.applyFilters(`iwp_panel_${this.props.group.id}`, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null)), {
-      ...this.props,
-      setTemplate: data => {
-        this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.setTemplate)(data));
-      },
-      setPreview: data => {
-        this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.setPreview)(data));
-      }
-    }), settings && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-panel-settings"
-    }, settings.map(field => {
-      const field_id = `${this.props.group.id}._iwp_settings.${field.id}`;
-      const value = this.props.map.hasOwnProperty(field_id) ? this.props.map[field_id] == 'yes' ? true : false : false;
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-        className: "iwp-form__row iwp-form__row--small"
-      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-        className: "iwp-form__label iwp-form__label--switch"
-      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, field.label), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_switch__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        checked: value,
-        name: field_id,
-        height: switch_height,
-        width: switch_width,
-        onColor: "#22c48f",
-        onChange: checked => {
-          this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.setTemplate)({
-            [field_id]: checked ? 'yes' : 'no'
-          }));
-        }
-      })));
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_set_FieldSet__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      id: this.props.group.id,
-      group: this.props.group,
-      showSelectModal: this.props.showSelectModal,
-      importer_id: this.props.importer_id
-    })), type !== 'repeatable' && Object.keys(enabledData).length > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-buttons"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_ButtonDropdown_ButtonDropdown__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      items: closeDropdown => {
-        return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", {
-          className: "iwp-dropdown__menu"
-        }, Object.keys(enabledData).map(key => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
-          key: key,
-          className: "iwp-dropdown__item"
-        }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
-          onClick: () => {
-            closeDropdown();
-            this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.setEnabled)({
-              [key]: !enabledData[key]
-            }));
-          }
-        }, enabledData[key] === true ? 'Disable' : 'Enable', ":", ' ', this.getEnableFieldLabel(key)))));
+      key: field.id,
+      className: "iwp-form__row iwp-form__row--small"
+    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+      className: "iwp-form__label iwp-form__label--switch"
+    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, field.label), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_switch__WEBPACK_IMPORTED_MODULE_3__["default"], {
+      checked: value,
+      name: field_id,
+      height: switch_height,
+      width: switch_width,
+      onColor: "#22c48f",
+      onChange: checked => {
+        dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.setTemplate)({
+          [field_id]: checked ? 'yes' : 'no'
+        }));
       }
     })));
-  }
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_set_FieldSet__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    id: group.id,
+    group: group,
+    showSelectModal: showSelectModal,
+    importer_id: importer_id
+  })), type !== 'repeatable' && Object.keys(enabledData).length > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-buttons"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_ButtonDropdown_ButtonDropdown__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    items: closeDropdown => {
+      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", {
+        className: "iwp-dropdown__menu"
+      }, Object.keys(enabledData).map(key => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
+        key: key,
+        className: "iwp-dropdown__item"
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
+        onClick: () => {
+          closeDropdown();
+          dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.setEnabled)({
+            [key]: !enabledData[key]
+          }));
+        }
+      }, enabledData[key] === true ? 'Disable' : 'Enable', ":", ' ', getEnableFieldLabel(key)))));
+    }
+  })));
 }
 FieldGroup.propTypes = {
   group: (prop_types__WEBPACK_IMPORTED_MODULE_7___default().object).isRequired,
@@ -8257,9 +7997,6 @@ FieldGroup.propTypes = {
   onEnabledField: (prop_types__WEBPACK_IMPORTED_MODULE_7___default().func),
   enabledData: (prop_types__WEBPACK_IMPORTED_MODULE_7___default().object),
   importer_id: (prop_types__WEBPACK_IMPORTED_MODULE_7___default().number)
-};
-FieldGroup.defaultProps = {
-  enabledData: {}
 };
 const mapStateToProps = (state, props) => ({
   enabledData: (0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.getEnabledMap)(state, props.group.id),
@@ -8288,47 +8025,40 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-class FieldLabel extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  render() {
-    const {
-      tooltip,
-      label,
-      id,
-      field,
-      display
-    } = this.props;
-    let field_class = '';
-    if (display === 'inline-block') {
-      field_class = 'iwp-label--inline-block';
-    }
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, tooltip ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      className: 'iwp-form__label iwp-label--has-tooltip ' + field_class,
-      htmlFor: field
-    }, label, ":", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "iwp-label__tooltip",
-      "data-tooltip-content": tooltip,
-      "data-tooltip-id": 'iwp-tooltip_' + id
-    }, "?"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_tooltip__WEBPACK_IMPORTED_MODULE_1__.Tooltip, {
-      id: 'iwp-tooltip_' + id,
-      effect: "solid",
-      delayHide: 300,
-      className: "iwp-react-tooltip"
-    })) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      htmlFor: field,
-      className: 'iwp-form__label ' + field_class
-    }, label, ":"));
+const FieldLabel = ({
+  tooltip,
+  label,
+  id,
+  field = '',
+  display
+}) => {
+  let field_class = '';
+  if (display === 'inline-block') {
+    field_class = 'iwp-label--inline-block';
   }
-}
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, tooltip ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    className: 'iwp-form__label iwp-label--has-tooltip ' + field_class,
+    htmlFor: field
+  }, label, ":", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "iwp-label__tooltip",
+    "data-tooltip-content": tooltip,
+    "data-tooltip-id": 'iwp-tooltip_' + id
+  }, "?"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_tooltip__WEBPACK_IMPORTED_MODULE_1__.Tooltip, {
+    id: 'iwp-tooltip_' + id,
+    effect: "solid",
+    delayHide: 300,
+    className: "iwp-react-tooltip"
+  })) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    htmlFor: field,
+    className: 'iwp-form__label ' + field_class
+  }, label, ":"));
+};
 FieldLabel.propTypes = {
   field: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().string),
   display: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().string),
   label: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().string).isRequired,
   tooltip: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().any),
   id: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().string)
-};
-FieldLabel.defaultProps = {
-  field: ''
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (FieldLabel);
 
@@ -8366,17 +8096,8 @@ const FieldMap = ({
   onClose = () => {},
   delimiter = false
 }) => {
-  const [showModal, setShowModal] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const map = (0,react_redux__WEBPACK_IMPORTED_MODULE_1__.useSelector)(state => (0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.getFieldMap)(state, name));
   const dispatch = (0,react_redux__WEBPACK_IMPORTED_MODULE_1__.useDispatch)();
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    if (!showModal) {
-      onClose();
-    }
-  }, [showModal]);
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    setShowModal(show);
-  }, [show]);
   const onChange = event => {
     const target = event.target;
     let value = target.value;
@@ -8387,9 +8108,9 @@ const FieldMap = ({
     }
   };
   return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_modal_Modal__WEBPACK_IMPORTED_MODULE_5__["default"], {
-    show: showModal,
+    show: show,
     title: `Field map`,
-    onClose: () => setShowModal(!showModal)
+    onClose: onClose
   }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Click on add row to add your first data map, the field value will be compared against this data map."), delimiter !== false && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
     label: "Delimiter"
   }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
@@ -8436,70 +8157,51 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class _FieldSet extends (react__WEBPACK_IMPORTED_MODULE_0___default().PureComponent) {
-  constructor(props) {
-    super(props);
-    const initialRows = props.group && props.group.type === 'repeatable' && Array.isArray(props.repeaterMap) && props.repeaterMap.length > 0 && props.repeaterMap.length <= 3 ? props.repeaterMap.map((_, index) => index) : [];
-    this.state = {
-      show_settings: [],
-      // Large repeaters start collapsed so Field/AsyncSelect trees are not mounted
-      expandedRows: initialRows,
-      pendingExpandGroup: null
-    };
-    this.toggleRow = this.toggleRow.bind(this);
-    this.expandAll = this.expandAll.bind(this);
-    this.collapseAll = this.collapseAll.bind(this);
-  }
-  componentDidUpdate(prevProps) {
-    if (this.state.pendingExpandGroup && this.props.repeaterMap.length > prevProps.repeaterMap.length) {
-      const newIndex = this.props.repeaterMap.length - 1;
-      this.setState(state => ({
-        pendingExpandGroup: null,
-        expandedRows: state.expandedRows.includes(newIndex) ? state.expandedRows : [...state.expandedRows, newIndex]
-      }));
-    }
-  }
-  addRow(id) {
-    this.setState({
-      pendingExpandGroup: id
-    });
-    this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.addMapFieldRow)(id));
-  }
-  removeRow(id, index) {
-    this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.removeMapFieldRow)({
+function FieldSet({
+  group,
+  showSelectModal,
+  parents = [],
+  enabledFields = {},
+  importer_id,
+  map,
+  repeaterMap,
+  dispatch
+}) {
+  const initialRows = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
+    return group && group.type === 'repeatable' && Array.isArray(repeaterMap) && repeaterMap.length > 0 && repeaterMap.length <= 3 ? repeaterMap.map((_, index) => index) : [];
+  }, [group, repeaterMap]);
+  const [show_settings, setShowSettings] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [expandedRows, setExpandedRows] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialRows);
+  const addRow = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(id => {
+    const newIndex = Array.isArray(repeaterMap) ? repeaterMap.length : 0;
+    dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.addMapFieldRow)(id));
+    setExpandedRows(current => current.includes(newIndex) ? current : [...current, newIndex]);
+  }, [dispatch, repeaterMap]);
+  const removeRow = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((id, index) => {
+    dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.removeMapFieldRow)({
       id,
       index
     }));
-    this.setState(state => ({
-      expandedRows: state.expandedRows.filter(rowIndex => rowIndex !== index).map(rowIndex => rowIndex > index ? rowIndex - 1 : rowIndex)
-    }));
-  }
-  isRowExpanded(index) {
-    return this.state.expandedRows.indexOf(index) !== -1;
-  }
-  toggleRow(index) {
-    this.setState(state => {
-      if (state.expandedRows.indexOf(index) !== -1) {
-        return {
-          expandedRows: state.expandedRows.filter(rowIndex => rowIndex !== index)
-        };
+    setExpandedRows(current => current.filter(rowIndex => rowIndex !== index).map(rowIndex => rowIndex > index ? rowIndex - 1 : rowIndex));
+  }, [dispatch]);
+  const isRowExpanded = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(index => {
+    return expandedRows.indexOf(index) !== -1;
+  }, [expandedRows]);
+  const toggleRow = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(index => {
+    setExpandedRows(current => {
+      if (current.indexOf(index) !== -1) {
+        return current.filter(rowIndex => rowIndex !== index);
       }
-      return {
-        expandedRows: [...state.expandedRows, index]
-      };
+      return [...current, index];
     });
-  }
-  expandAll() {
-    this.setState({
-      expandedRows: this.props.repeaterMap.map((_, index) => index)
-    });
-  }
-  collapseAll() {
-    this.setState({
-      expandedRows: []
-    });
-  }
-  getRowSummary(record, key, index) {
+  }, []);
+  const expandAll = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    setExpandedRows(repeaterMap.map((_, index) => index));
+  }, [repeaterMap]);
+  const collapseAll = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    setExpandedRows([]);
+  }, []);
+  const getRowSummary = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((record, key, index) => {
     const prefix = `${key}.${index}.`;
     const fieldKey = record[`${prefix}key`] || '';
     const fieldType = record[`${prefix}_field_type`] || '';
@@ -8516,116 +8218,23 @@ class _FieldSet extends (react__WEBPACK_IMPORTED_MODULE_0___default().PureCompon
       parts.push(`→ ${shortValue}`);
     }
     return parts.length > 0 ? parts.join(' ') : `Row ${index + 1}`;
-  }
-  content(groupData, name, parents) {
-    const {
-      fields,
-      type
-    } = this.props.group;
-    const {
-      show_settings
-    } = this.state;
-    const liClass = type !== 'repeatable' ? 'iwp-field--border' : 'iwp-field--repeater';
-
-    // Fix: Pass row base from repeater to nested group fields
-
-    groupData = !groupData.hasOwnProperty('row_base') && this.props.map.hasOwnProperty('row_base') ? {
-      ...groupData,
-      row_base: this.props.map.row_base
-    } : groupData;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", {
-      className: "iwp-fields"
-    }, fields.map(field => {
-      const field_set_id = `${parents.join('.')}.${field.id}`;
-      if (field.type === 'settings' && typeof field.fields !== 'undefined') {
-        return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), {
-          key: field.id
-        }, this.displayFieldSet((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
-          className: "iwp-field-settings"
-        }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-          type: "button",
-          className: "button button-primary",
-          onClick: () => {
-            if (show_settings.indexOf(field_set_id) > -1) {
-              this.setState({
-                show_settings: [...show_settings.filter(item => item !== field_set_id)]
-              });
-            } else {
-              this.setState({
-                show_settings: [...show_settings, field_set_id]
-              });
-            }
-          }
-        }, show_settings.indexOf(field_set_id) !== -1 ? 'Hide ' : 'Show ', "Settings"), show_settings.indexOf(field_set_id) !== -1 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(FieldSet, {
-          id: `${parents.join('.')}`,
-          group: field,
-          parents: parents,
-          showSelectModal: this.props.showSelectModal,
-          importer_id: this.props.importer_id
-        })), groupData, field, parents));
-      }
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), {
-        key: field.id
-      }, typeof field.fields !== 'undefined' ? this.displayFieldSet((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
-        className: 'iwp-field iwp-field--template ' + liClass + ' iwp-field--' + type
-      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(FieldSet, {
-        id: `${parents.join('.')}`,
-        group: field,
-        parents: parents,
-        showSelectModal: this.props.showSelectModal,
-        importer_id: this.props.importer_id
-      })), groupData, field, parents) : this.display((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
-        className: 'iwp-field iwp-field--template ' + liClass
-      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_Field__WEBPACK_IMPORTED_MODULE_1__["default"], {
-        field: field,
-        name: name,
-        showSelectModal: this.props.showSelectModal,
-        importer_id: this.props.importer_id
-      })), groupData, field, parents));
-    }));
-  }
-  displayFieldSet(content, groupData, group, parents) {
-    // Check to see if group is enabled
-    const parent_path = [...parents, group.id].join('.');
-    if (this.props.enabledFields.hasOwnProperty(parent_path) && this.props.enabledFields[parent_path] === false) {
-      return '';
-    }
-
-    // console.log(group,)
-
-    if (typeof group.condition !== 'undefined') {
-      // TODO: make more robust conditional checks,
-      //       should check to see if conditional fields are enabled
-
-      if (false === this.checkConditions(group.condition, groupData)) {
-        return '';
-      }
-    }
-    return content;
-  }
-  checkConditions(condition, groupData) {
-    // TODO: move to props
-
+  }, []);
+  const checkConditions = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((condition, groupData) => {
     let relation = 'AND';
-    if (typeof condition.relation !== 'undefined') {
-      relation = condition.relation;
-
-      // convert condition back to array
-      condition = Object.keys(condition).filter(key => key !== 'relation').map(function (key) {
-        return condition[key];
+    let currentCondition = condition;
+    if (typeof currentCondition.relation !== 'undefined') {
+      relation = currentCondition.relation;
+      currentCondition = Object.keys(currentCondition).filter(key => key !== 'relation').map(function (key) {
+        return currentCondition[key];
       });
     }
-
-    // console.log('condition', condition, this.props.conditionData);
-
-    if (Array.isArray(condition[0]) || condition[0].hasOwnProperty('relation')) {
-      if (condition.length === 0) {
+    if (Array.isArray(currentCondition[0]) || currentCondition[0].hasOwnProperty('relation')) {
+      if (currentCondition.length === 0) {
         return true;
       }
-      for (let i = 0; i < condition.length; i++) {
-        const row_result = this.checkConditions(condition[i], groupData);
+      for (let i = 0; i < currentCondition.length; i++) {
+        const row_result = checkConditions(currentCondition[i], groupData);
         if ('OR' === relation && true === row_result) {
-          // console.log('passed', condition, this.props.conditionData);
           return true;
         }
         if ('AND' === relation && false === row_result) {
@@ -8633,177 +8242,226 @@ class _FieldSet extends (react__WEBPACK_IMPORTED_MODULE_0___default().PureCompon
         }
       }
       if ('OR' === relation) {
-        // console.log('failed', condition, this.props.conditionData);
         return false;
       }
       return true;
     } else {
-      const operator = condition[1];
+      const operator = currentCondition[1];
       switch (operator) {
         case '*=':
           // Contains
-          if (groupData[condition[0]] && true === groupData[condition[0]].includes(condition[2])) {
+          if (groupData[currentCondition[0]] && true === groupData[currentCondition[0]].includes(currentCondition[2])) {
             return true;
           }
           break;
         case '!*':
           // Not Contains
-          if (groupData[condition[0]] && false === groupData[condition[0]].includes(condition[2])) {
+          if (groupData[currentCondition[0]] && false === groupData[currentCondition[0]].includes(currentCondition[2])) {
             return true;
           }
           break;
         case '==':
           // Equals
-          if (groupData[condition[0]] === condition[2]) {
+          if (groupData[currentCondition[0]] === currentCondition[2]) {
             return true;
           }
           break;
         case '!=':
           // Not Equals
-          if (groupData[condition[0]] !== condition[2]) {
+          if (groupData[currentCondition[0]] !== currentCondition[2]) {
             return true;
           }
           break;
       }
     }
     return false;
-  }
-  display(content, groupData, field, parents) {
-    // toggle display of field based on enabled fields settings
-    const parent_path = [...parents, field.id].join('.');
-    // const enable_key = 'enable_' + parent_path;
-    if (this.props.enabledFields.hasOwnProperty(parent_path) && this.props.enabledFields[parent_path] === false) {
+  }, []);
+  const displayFieldSet = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((content, groupData, groupItem, parentList) => {
+    const parent_path = [...parentList, groupItem.id].join('.');
+    if (enabledFields.hasOwnProperty(parent_path) && enabledFields[parent_path] === false) {
       return '';
     }
-    if (typeof field.condition !== 'undefined') {
-      // TODO: make more robust conditional checks,
-      //       should check to see if conditional fields are enabled
-
-      if (false === this.checkConditions(field.condition, groupData)) {
+    if (typeof groupItem.condition !== 'undefined') {
+      if (false === checkConditions(groupItem.condition, groupData)) {
         return '';
       }
     }
     return content;
-  }
-  removeGroupIndex(data, offset = 1) {
+  }, [checkConditions, enabledFields]);
+  const display = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((content, groupData, field, parentList) => {
+    const parent_path = [...parentList, field.id].join('.');
+    if (enabledFields.hasOwnProperty(parent_path) && enabledFields[parent_path] === false) {
+      return '';
+    }
+    if (typeof field.condition !== 'undefined') {
+      if (false === checkConditions(field.condition, groupData)) {
+        return '';
+      }
+    }
+    return content;
+  }, [checkConditions, enabledFields]);
+  const removeGroupIndex = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((data, offset = 1) => {
     return Object.keys(data).reduce((obj, key) => {
       const parts = key.split('.');
       obj[parts.splice(offset).join('.')] = data[key];
       return obj;
     }, {});
-  }
-  render() {
+  }, []);
+  const content = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((groupData, name, parentList) => {
     const {
-      type,
-      id
-    } = this.props.group;
-    const {
-      map
-    } = this.props;
-    let parents = [...this.props.parents];
-    if (type === 'repeatable') {
-      parents.push(id);
-      let key = parents.join('.');
-      const rowCount = this.props.repeaterMap.length;
-      // console.log(id, key, map);
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-        className: "iwp-repeater__wrapper"
-      }, rowCount > 5 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-        className: "iwp-repeater__bulk-actions iwp-buttons"
-      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-        type: "button",
-        className: "button button-link",
-        onClick: this.expandAll
-      }, "Expand All"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-        type: "button",
-        className: "button button-link",
-        onClick: this.collapseAll
-      }, "Collapse All")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", {
-        className: "iwp-repeater"
-      }, this.props.repeaterMap.map((record, index) => {
-        const tempParents = [...parents, index];
-        const expanded = this.isRowExpanded(index);
-        return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
-          key: `${id}_${index}`,
-          className: 'iwp-repeater__row' + (expanded ? ' iwp-repeater__row--expanded' : ' iwp-repeater__row--collapsed')
-        }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-          className: "iwp-repeater__index"
-        }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, index + 1)), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-          className: "iwp-repeater__summary"
+      fields,
+      type
+    } = group;
+    const liClass = type !== 'repeatable' ? 'iwp-field--border' : 'iwp-field--repeater';
+    const resolvedGroupData = !groupData.hasOwnProperty('row_base') && map.hasOwnProperty('row_base') ? {
+      ...groupData,
+      row_base: map.row_base
+    } : groupData;
+    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", {
+      className: "iwp-fields"
+    }, fields.map(field => {
+      const field_set_id = `${parentList.join('.')}.${field.id}`;
+      if (field.type === 'settings' && typeof field.fields !== 'undefined') {
+        return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), {
+          key: field.id
+        }, displayFieldSet((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
+          className: "iwp-field-settings"
         }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
           type: "button",
-          className: "iwp-repeater__toggle",
-          "aria-expanded": expanded,
-          onClick: () => this.toggleRow(index)
-        }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-          className: "iwp-repeater__toggle-icon",
-          "aria-hidden": "true"
-        }, expanded ? '▾' : '▸'), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-          className: "iwp-repeater__summary-text"
-        }, this.getRowSummary(record, key, index)))), expanded && this.content(this.removeGroupIndex(record, 2), key + '.' + index, tempParents), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-          className: "iwp-field iwp-buttons iwp-repeater__buttons"
-        }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_tooltip__WEBPACK_IMPORTED_MODULE_2__.Tooltip, {
-          id: 'iwp-delete-tooltip-' + id + '-' + index,
-          effect: "solid",
-          delayHide: 300,
-          className: "iwp-react-tooltip"
-        }, "Delete Row"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-          onClick: () => this.removeRow(id, index),
-          type: "button",
-          title: "Delete Row",
-          "data-tooltip-content": "Delete Row",
-          "data-tooltip-id": 'iwp-delete-tooltip-' + id + '-' + index
-        }, "Delete Row")));
-      })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-        className: "iwp-repeater__actions"
-      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-        className: "iwp-buttons"
+          className: "button button-primary",
+          onClick: () => {
+            if (show_settings.indexOf(field_set_id) > -1) {
+              setShowSettings([...show_settings.filter(item => item !== field_set_id)]);
+            } else {
+              setShowSettings([...show_settings, field_set_id]);
+            }
+          }
+        }, show_settings.indexOf(field_set_id) !== -1 ? 'Hide ' : 'Show ', "Settings"), show_settings.indexOf(field_set_id) !== -1 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(FieldSet, {
+          id: `${parentList.join('.')}`,
+          group: field,
+          parents: parentList,
+          showSelectModal: showSelectModal,
+          importer_id: importer_id
+        })), resolvedGroupData, field, parentList));
+      }
+      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), {
+        key: field.id
+      }, typeof field.fields !== 'undefined' ? displayFieldSet((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
+        className: 'iwp-field iwp-field--template ' + liClass + ' iwp-field--' + type
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(FieldSet, {
+        id: `${parentList.join('.')}`,
+        group: field,
+        parents: parentList,
+        showSelectModal: showSelectModal,
+        importer_id: importer_id
+      })), resolvedGroupData, field, parentList) : display((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
+        className: 'iwp-field iwp-field--template ' + liClass
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_Field__WEBPACK_IMPORTED_MODULE_1__["default"], {
+        field: field,
+        name: name,
+        showSelectModal: showSelectModal,
+        importer_id: importer_id
+      })), resolvedGroupData, field, parentList));
+    }));
+  }, [display, displayFieldSet, group, importer_id, map, showSelectModal, show_settings]);
+  const {
+    type,
+    id
+  } = group;
+  let currentParents = [...parents];
+  if (type === 'repeatable') {
+    currentParents.push(id);
+    let key = currentParents.join('.');
+    const rowCount = repeaterMap.length;
+    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+      className: "iwp-repeater__wrapper"
+    }, rowCount > 5 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+      className: "iwp-repeater__bulk-actions iwp-buttons"
+    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+      type: "button",
+      className: "button button-link",
+      onClick: expandAll
+    }, "Expand All"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+      type: "button",
+      className: "button button-link",
+      onClick: collapseAll
+    }, "Collapse All")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", {
+      className: "iwp-repeater"
+    }, repeaterMap.map((record, index) => {
+      const tempParents = [...currentParents, index];
+      const expanded = isRowExpanded(index);
+      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
+        key: `${id}_${index}`,
+        className: 'iwp-repeater__row' + (expanded ? ' iwp-repeater__row--expanded' : ' iwp-repeater__row--collapsed')
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+        className: "iwp-repeater__index"
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, index + 1)), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "iwp-repeater__summary"
       }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
         type: "button",
-        className: "button button-secondary",
-        onClick: () => this.addRow(id)
-      }, "Add Row"))));
-    } else {
-      parents.push(id);
-      let field_key = parents.join('.');
-      let groupData = {};
-      if (typeof map === 'undefined') {
-        return '';
-      }
-      let tmp = Object.keys(map).filter(value => {
-        return value.startsWith(field_key + '.');
-      });
-      groupData = tmp.reduce((obj, key) => {
-        const pos = key.indexOf(id);
-        if (pos > -1) {
-          obj[key.substring(pos)] = map[key];
-        }
-        return obj;
-      }, {});
-      return this.content(this.removeGroupIndex(groupData, 1), field_key, parents);
+        className: "iwp-repeater__toggle",
+        "aria-expanded": expanded,
+        onClick: () => toggleRow(index)
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+        className: "iwp-repeater__toggle-icon",
+        "aria-hidden": "true"
+      }, expanded ? '▾' : '▸'), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+        className: "iwp-repeater__summary-text"
+      }, getRowSummary(record, key, index)))), expanded && content(removeGroupIndex(record, 2), key + '.' + index, tempParents), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "iwp-field iwp-buttons iwp-repeater__buttons"
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_tooltip__WEBPACK_IMPORTED_MODULE_2__.Tooltip, {
+        id: 'iwp-delete-tooltip-' + id + '-' + index,
+        effect: "solid",
+        delayHide: 300,
+        className: "iwp-react-tooltip"
+      }, "Delete Row"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+        onClick: () => removeRow(id, index),
+        type: "button",
+        title: "Delete Row",
+        "data-tooltip-content": "Delete Row",
+        "data-tooltip-id": 'iwp-delete-tooltip-' + id + '-' + index
+      }, "Delete Row")));
+    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+      className: "iwp-repeater__actions"
+    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+      className: "iwp-buttons"
+    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+      type: "button",
+      className: "button button-secondary",
+      onClick: () => addRow(id)
+    }, "Add Row"))));
+  } else {
+    currentParents.push(id);
+    let field_key = currentParents.join('.');
+    if (typeof map === 'undefined') {
+      return '';
     }
+    let tmp = Object.keys(map).filter(value => {
+      return value.startsWith(field_key + '.');
+    });
+    const groupData = tmp.reduce((obj, key) => {
+      const pos = key.indexOf(id);
+      if (pos > -1) {
+        obj[key.substring(pos)] = map[key];
+      }
+      return obj;
+    }, {});
+    return content(removeGroupIndex(groupData, 1), field_key, currentParents);
   }
 }
-_FieldSet.propTypes = {
+FieldSet.propTypes = {
   group: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().object).isRequired,
   showSelectModal: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().func),
   parents: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().array),
   enabledFields: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().object),
   importer_id: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().number)
 };
-_FieldSet.defaultProps = {
-  parents: [],
-  enabledFields: {},
-  removeRow: () => {},
-  addRow: () => {}
-};
 const mapStateToProps = (state, props) => ({
   enabledFields: (0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.getEnabledMap)(state, props.id),
   map: (0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.getFieldMap)(state, props.id),
   repeaterMap: (0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.getRepeaterFields)(state, props.id)
 });
-const FieldSet = (0,react_redux__WEBPACK_IMPORTED_MODULE_3__.connect)(mapStateToProps)(_FieldSet);
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (FieldSet);
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((0,react_redux__WEBPACK_IMPORTED_MODULE_3__.connect)(mapStateToProps)(FieldSet));
 
 /***/ }),
 
@@ -8875,21 +8533,24 @@ const customReactSelectStyles = {
     height: '30px'
   })
 };
-class Field extends (react__WEBPACK_IMPORTED_MODULE_0___default().PureComponent) {
-  constructor(props) {
-    super(props);
-    this.state = {
-      enable_text: props.map.hasOwnProperty(props.name + '.' + props.field.id + '._enable_text') && props.map[props.name + '.' + props.field.id + '._enable_text'] === 'yes' ? true : false,
-      options: [],
-      show_map: false
-    };
-    this.toggleTextField = this.toggleTextField.bind(this);
-    this.selectOptions = this.selectOptions.bind(this);
-    this.onSelectChange = this.onSelectChange.bind(this);
-    this.getPreview = this.getPreview.bind(this);
-    this.fetchPreview = lodash_debounce__WEBPACK_IMPORTED_MODULE_4___default()(this.fetchPreview, 500);
-  }
-  getPreview(data) {
+const Field = props => {
+  const {
+    field,
+    map,
+    value,
+    name,
+    showSelectModal,
+    preview,
+    importer_id,
+    dispatch
+  } = props;
+  const [enable_text, setEnableText] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(map.hasOwnProperty(name + '.' + field.id + '._enable_text') && map[name + '.' + field.id + '._enable_text'] === 'yes');
+  const [options, setOptions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [show_map, setShowMap] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const fetchPreview = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => lodash_debounce__WEBPACK_IMPORTED_MODULE_4___default()(data => {
+    dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_3__.fetchFieldPreview)(data));
+  }, 500), [dispatch]);
+  const getPreview = data => {
     let tmp = {};
     Object.keys(data.fields).forEach(element => {
       tmp = {
@@ -8897,202 +8558,172 @@ class Field extends (react__WEBPACK_IMPORTED_MODULE_0___default().PureComponent)
         [element]: 'Loading'
       };
     });
-    this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_3__.setPreview)(tmp));
-    this.fetchPreview(data);
-  }
-  fetchPreview(data) {
-    this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_3__.fetchFieldPreview)(data));
-  }
-  toggleTextField(event) {
+    dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_3__.setPreview)(tmp));
+    fetchPreview(data);
+  };
+  const toggleTextField = event => {
     const target = event.target;
-    const value = target.type === 'checkbox' ? target.checked : target.value;
-    const name = target.name;
-    this.setState({
-      [name]: value
-    });
-    this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_3__.setTemplate)({
-      [this.props.name + '.' + this.props.field.id + '._enable_text']: value === true ? 'yes' : 'no'
+    const nextValue = target.type === 'checkbox' ? target.checked : target.value;
+    setEnableText(nextValue);
+    dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_3__.setTemplate)({
+      [name + '.' + field.id + '._enable_text']: nextValue === true ? 'yes' : 'no'
     }));
-  }
-  selectOptions() {
-    const options = this.props.field.options;
+  };
+  const selectOptions = () => {
+    const fieldOptions = field.options;
     return new Promise((resolve, reject) => {
-      if (options !== 'callback') {
-        this.setState({
-          options: options
-        });
-        resolve(options);
+      if (fieldOptions !== 'callback') {
+        setOptions(fieldOptions);
+        resolve(fieldOptions);
       } else {
-        // how to we get the cache key?
-
-        const field = `${this.props.name}.${this.props.field.id}`;
-        _services_importer_service__WEBPACK_IMPORTED_MODULE_7__.importer.fieldOptions(this.props.importer_id, field, field.replace(/\.\d+\./gm, '')).then(data => {
-          this.setState({
-            options: data
-          });
+        const fieldKey = `${name}.${field.id}`;
+        _services_importer_service__WEBPACK_IMPORTED_MODULE_7__.importer.fieldOptions(importer_id, fieldKey, fieldKey.replace(/\.\d+\./gm, '')).then(data => {
+          setOptions(data);
           resolve(data);
         }).catch(e => reject(e));
       }
     });
-  }
-  onSelectChange(data) {
-    this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_3__.setTemplate)({
-      [this.props.name + '.' + this.props.field.id]: data && data.value ? data.value : ''
+  };
+  const onSelectChange = data => {
+    dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_3__.setTemplate)({
+      [name + '.' + field.id]: data && data.value ? data.value : ''
     }));
+  };
+  const {
+    type,
+    label,
+    id,
+    tooltip
+  } = field;
+  const fieldOptions = field.options;
+  if (type === 'mapped' && (!map.hasOwnProperty(name + '.' + id + '._index') || map[name + '.' + id + '._index'] == 0)) {
+    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_11__["default"], {
+      notices: [{
+        message: 'Mapped field type has been deprecated, please use the generic field mapper found beside the select data button.',
+        type: 'info'
+      }]
+    });
   }
-  getField() {
-    const {
-      type,
-      label,
-      id,
-      options,
-      tooltip
-    } = this.props.field;
-    const {
-      value,
-      name,
-      preview
-    } = this.props;
-
-    // hide mapped field, unless it is populated.
-    if (type === 'mapped' && (!this.props.map.hasOwnProperty(name + '.' + id + '._index') || this.props.map[name + '.' + id + '._index'] == 0)) {
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_11__["default"], {
-        notices: [{
-          message: 'Mapped field type has been deprecated, please use the generic field mapper found beside the select data button.',
-          type: 'info'
-        }]
-      });
-    }
-
-    // strip html tags
-    const preview_text = preview ? preview.replace(/<\/?[^>]+(>|$)/g, '') : '';
-    switch (type) {
-      case 'serialized':
-        return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-          className: "iwp-field__left"
-        }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
-          label: label,
-          tooltip: tooltip,
-          id: name + '.' + id,
-          field: name + '.' + id
-        })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-          className: "iwp-field__right"
-        }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FieldSerialized__WEBPACK_IMPORTED_MODULE_9__["default"], {
-          ...this.props
-        })));
-      case 'mapped':
-        return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-          className: "iwp-field__left"
-        }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
-          label: label,
-          tooltip: tooltip,
-          id: name + '.' + id,
-          field: name + '.' + id
-        })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-          className: "iwp-field__right"
-        }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FieldMapped__WEBPACK_IMPORTED_MODULE_8__["default"], {
-          ...this.props
-        })));
-      case 'select':
-        return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-          className: "iwp-field__left"
-        }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
-          label: label,
-          tooltip: tooltip,
-          id: name + '.' + id,
-          field: name + '.' + id
-        })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-          className: "iwp-field__right"
-        }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_select_async__WEBPACK_IMPORTED_MODULE_1__["default"], {
-          isClearable: true,
-          defaultOptions: true,
-          loadOptions: this.selectOptions,
-          value: options === 'callback' ? this.state.options.find(item => item.value === value) : options.find(item => item.value === value),
-          name: name + '.' + id,
-          id: name + '.' + id,
-          onChange: this.onSelectChange,
-          isSearchable: true,
-          className: "iwp-form__input",
-          styles: customReactSelectStyles
-        })));
-      default:
-        return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-          className: "iwp-field__left"
-        }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
-          label: label,
-          tooltip: tooltip,
-          id: name + '.' + id,
-          field: name + '.' + id
-        })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-          className: "iwp-field__right"
-        }, typeof options !== 'undefined' && this.state.enable_text === false ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_select_async__WEBPACK_IMPORTED_MODULE_1__["default"], {
-          isClearable: true,
-          defaultOptions: true,
-          loadOptions: this.selectOptions,
-          value: options === 'callback' ? this.state.options?.find(item => item.value === value) : options.find(item => item.value === value),
-          name: name + '.' + id,
-          id: name + '.' + id,
-          onChange: this.onSelectChange,
-          isSearchable: true,
-          className: "iwp-form__input",
-          styles: customReactSelectStyles
-        })) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_map_FieldMap__WEBPACK_IMPORTED_MODULE_10__["default"], {
-          show: this.state.show_map,
-          onClose: () => this.setState({
-            show_map: false
-          }),
-          name: name + '.' + id,
-          field: this.props.field,
-          delimiter: this.props.map.hasOwnProperty(`${name}.settings._delimiter`) ? this.props.map[`${name}.settings._delimiter`]?.length ? this.props.map[`${name}.settings._delimiter`] : ',' : false
-        }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-          className: "iwp-field__input-wrapper"
-        }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-          type: "text",
-          name: name + '.' + id,
-          id: name + '.' + id,
-          className: "iwp-field__input-wrapper",
-          value: value,
-          onChange: event => {
-            const target = event.target;
-            let value = target.value;
-            this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_3__.setTemplate)({
-              [target.name]: value
-            }));
-            this.getPreview({
-              id: this.props.importer_id,
-              fields: {
-                [target.name]: value
-              }
-            });
-          }
-        }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-          className: "iwp-field__select",
-          type: "button",
-          onClick: () => this.props.showSelectModal(name + '.' + id, this.props.map.hasOwnProperty(`${name}.row_base`) ? this.props.map[`${name}.row_base`] : '')
-        }, "Select Data"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-          className: `iwp-field__settings dashicons-before dashicons-editor-table ${this.props.map.hasOwnProperty(name + '.' + id + '._mapped._index') && +this.props.map[name + '.' + id + '._mapped._index'] > 0 ? 'iwp-field__settings--active' : ''}`,
-          type: "button",
-          onClick: () => this.setState({
-            show_map: true
-          })
-        }, "Settings")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-          className: "iwp-preview--text",
-          title: preview
-        }, "Preview: ", preview_text)), typeof options !== 'undefined' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-          className: "iwp-field__enable-text"
-        }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-          type: "checkbox",
-          name: "enable_text",
-          onChange: this.toggleTextField,
-          value: "yes",
-          checked: this.state.enable_text
-        }), ' ', "Enable Text Field")));
-    }
+  const preview_text = preview ? preview.replace(/<\/?[^>]+(>|$)/g, '') : '';
+  switch (type) {
+    case 'serialized':
+      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "iwp-field__left"
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
+        label: label,
+        tooltip: tooltip,
+        id: name + '.' + id,
+        field: name + '.' + id
+      })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "iwp-field__right"
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FieldSerialized__WEBPACK_IMPORTED_MODULE_9__["default"], {
+        ...props
+      })));
+    case 'mapped':
+      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "iwp-field__left"
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
+        label: label,
+        tooltip: tooltip,
+        id: name + '.' + id,
+        field: name + '.' + id
+      })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "iwp-field__right"
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FieldMapped__WEBPACK_IMPORTED_MODULE_8__["default"], {
+        ...props
+      })));
+    case 'select':
+      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "iwp-field__left"
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
+        label: label,
+        tooltip: tooltip,
+        id: name + '.' + id,
+        field: name + '.' + id
+      })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "iwp-field__right"
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_select_async__WEBPACK_IMPORTED_MODULE_1__["default"], {
+        isClearable: true,
+        defaultOptions: true,
+        loadOptions: selectOptions,
+        value: fieldOptions === 'callback' ? options.find(item => item.value === value) : fieldOptions.find(item => item.value === value),
+        name: name + '.' + id,
+        id: name + '.' + id,
+        onChange: onSelectChange,
+        isSearchable: true,
+        className: "iwp-form__input",
+        styles: customReactSelectStyles
+      })));
+    default:
+      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "iwp-field__left"
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
+        label: label,
+        tooltip: tooltip,
+        id: name + '.' + id,
+        field: name + '.' + id
+      })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "iwp-field__right"
+      }, typeof fieldOptions !== 'undefined' && enable_text === false ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_select_async__WEBPACK_IMPORTED_MODULE_1__["default"], {
+        isClearable: true,
+        defaultOptions: true,
+        loadOptions: selectOptions,
+        value: fieldOptions === 'callback' ? options?.find(item => item.value === value) : fieldOptions.find(item => item.value === value),
+        name: name + '.' + id,
+        id: name + '.' + id,
+        onChange: onSelectChange,
+        isSearchable: true,
+        className: "iwp-form__input",
+        styles: customReactSelectStyles
+      })) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_map_FieldMap__WEBPACK_IMPORTED_MODULE_10__["default"], {
+        show: show_map,
+        onClose: () => setShowMap(false),
+        name: name + '.' + id,
+        field: field,
+        delimiter: map.hasOwnProperty(`${name}.settings._delimiter`) ? map[`${name}.settings._delimiter`]?.length ? map[`${name}.settings._delimiter`] : ',' : false
+      }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+        className: "iwp-field__input-wrapper"
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+        type: "text",
+        name: name + '.' + id,
+        id: name + '.' + id,
+        className: "iwp-field__input",
+        value: value,
+        onChange: event => {
+          const target = event.target;
+          let nextValue = target.value;
+          dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_3__.setTemplate)({
+            [target.name]: nextValue
+          }));
+          getPreview({
+            id: importer_id,
+            fields: {
+              [target.name]: nextValue
+            }
+          });
+        }
+      }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+        className: "iwp-field__select",
+        type: "button",
+        onClick: () => showSelectModal(name + '.' + id, map.hasOwnProperty(`${name}.row_base`) ? map[`${name}.row_base`] : '')
+      }, "Select Data"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+        className: `iwp-field__settings dashicons-before dashicons-editor-table ${map.hasOwnProperty(name + '.' + id + '._mapped._index') && +map[name + '.' + id + '._mapped._index'] > 0 ? 'iwp-field__settings--active' : ''}`,
+        type: "button",
+        onClick: () => setShowMap(true)
+      }, "Settings")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+        className: "iwp-preview--text",
+        title: preview
+      }, "Preview: ", preview_text)), typeof fieldOptions !== 'undefined' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+        className: "iwp-field__enable-text"
+      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+        type: "checkbox",
+        name: "enable_text",
+        onChange: toggleTextField,
+        value: "yes",
+        checked: enable_text
+      }), ' ', "Enable Text Field")));
   }
-  render() {
-    return this.getField();
-  }
-}
+};
 Field.propTypes = {
   field: (prop_types__WEBPACK_IMPORTED_MODULE_12___default().object).isRequired,
   map: (prop_types__WEBPACK_IMPORTED_MODULE_12___default().object),
@@ -9587,287 +9218,181 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class ImportRunner extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      saving: true,
-      modalTitle: 'Initialising Import.',
-      modalContent: '',
-      modalClosable: false,
-      importer_log: [],
-      modalLoading: true,
-      progress: 0,
-      complete: false,
-      showModal: true,
-      paused: -1,
-      cancelled: -1,
-      error: false
-    };
-    this.import_ids = -1;
-    this.delete_ids = -1;
-
-    // this.statusSubject = null;
-
-    this.run = this.run.bind(this);
-    this.stop = this.stop.bind(this);
-    this.showModal = this.showModal.bind(this);
-    this.closeModal = this.closeModal.bind(this);
-    this.togglePause = this.togglePause.bind(this);
-    this.updateStatus = this.updateStatus.bind(this);
-  }
-  togglePause() {
-    const {
-      id,
-      session
-    } = this.props;
-    let pause = 'yes';
-    if (this.state.paused === 1) {
-      pause = 'no';
-    }
-    if (this.state.paused === -1) {
-      this.setState({
-        paused: 0
-      });
-    } else if (this.state.paused === 1) {
-      this.setState({
-        paused: 2
-      });
-    }
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.pause(id, session, pause).then(response => {
-      if (response.s === 'timeout') {
-        this.setState({
-          paused: -1
-        });
-        this.run();
-      }
-    });
-  }
-  stop() {
-    const {
-      id,
-      session
-    } = this.props;
-    this.runner.abort();
-    this.setState({
-      cancelled: 0
-    });
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.stop(id, session).then(() => {
-      this.setState({
-        showModal: false,
-        cancelled: 1
-      });
-      this.props.onComplete();
-      document.title = this.document_title;
-    }, error_msg => {
-      this.setState({
-        importer_log: [['500', 'I', error_msg], ...this.state.importer_log],
-        cancelled: 0,
-        error: true
-      });
-    });
-  }
-  run() {
-    const {
-      id,
-      session
-    } = this.props;
-    this.runner = _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.run(id, session);
-    this.document_title = document.title;
-    this.setState({
-      complete: false
-    });
-    this.runner.request.subscribe(response => {
-      if (response.status !== 'S' || response.data.status === 'error') {
-        // Error occured
-        this.setState({
-          modalTitle: 'A fatal error has occurred.',
-          modalLoading: false,
-          modalContent: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, response.data.message),
-          error: true
-        });
-        this.runner.abort();
-        document.title = this.document_title;
-        return;
-      }
-      if (response.data.status === 'complete') {
-        this.runner.abort();
-      }
-      this.updateStatus(response.data);
-    }, error => {
-      this.runner.abort();
-      const {
-        importer_log
-      } = this.state;
-      if (error.status > 0) {
-        let error_msg = error.statusText;
-        let error_code = error.status;
-        if (error.responseJSON && error.responseJSON.code && error.responseJSON.message && error.responseJSON.code === 'IWP_ERR') {
-          error_msg = error.responseJSON.message;
-          error_code = error.responseJSON.code;
-        }
-        // TODO: Update modal to say error has occurred.
-        this.setState({
-          importer_log: [[error_code, 'I', error_msg], ...importer_log],
-          cancelled: 0
-        });
-      }
-    });
-  }
-  showModal() {
-    this.setState({
-      showModal: true
-    });
-  }
-  closeModal() {
-    this.setState({
-      showModal: false
-    });
-  }
-  componentDidMount() {
-    this.run();
-  }
-  updateStatus(response) {
-    let modalContent = (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+const ImportRunner = ({
+  id,
+  session,
+  status,
+  onComplete = () => {}
+}) => {
+  const [modalTitle, setModalTitle] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('Initialising Import.');
+  const [modalContent, setModalContent] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  const [modalClosable, setModalClosable] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [modalLoading, setModalLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const [progress, setProgress] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const [complete, setComplete] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [showModal, setShowModal] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const [error, setError] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const runnerRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const documentTitleRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(document.title);
+  const closeModal = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    setShowModal(false);
+  }, []);
+  const updateStatus = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(response => {
+    const nextModalContent = (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
       className: "iwp-import__stats"
     }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_status_message_StatusMessage__WEBPACK_IMPORTED_MODULE_4__["default"], {
       status: response
     }));
     if (response.status === 'error') {
-      document.title = this.document_title;
-      this.setState({
-        modalTitle: 'A fatal error has occurred.',
-        modalLoading: false,
-        modalContent: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, response.message),
-        error: true
-      });
+      document.title = documentTitleRef.current;
+      setModalTitle('A fatal error has occurred.');
+      setModalLoading(false);
+      setModalContent((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, response.message));
+      setError(true);
       return;
     }
     if (response.status === 'complete') {
-      document.title = this.document_title;
-      this.setState({
-        modalTitle: 'Complete.',
-        modalContent: modalContent,
-        progress: 100,
-        saving: false,
-        modalClosable: true,
-        modalLoading: false,
-        complete: true
-      });
+      document.title = documentTitleRef.current;
+      setModalTitle('Complete.');
+      setModalContent(nextModalContent);
+      setProgress(100);
+      setModalClosable(true);
+      setModalLoading(false);
+      setComplete(true);
       return;
     }
     if (response.section === 'import') {
       if (response.status === 'init') {
-        // handle processing status?
-        // counter is value 0-100
         const counter = +response.process;
         document.title = 'Processing File: ' + counter + '%';
-        this.setState({
-          modalTitle: 'Processing File.',
-          progress: counter,
-          modalContent
-        });
+        setModalTitle('Processing File.');
+        setProgress(counter);
+        setModalContent(nextModalContent);
       } else {
         const counter = response.progress.import.current_row;
         const total = response.progress.import.end - response.progress.import.start;
         document.title = 'Importing: (' + counter + '/' + total + ')';
-        this.setState({
-          modalTitle: 'Importing.',
-          progress: (counter / total * 100).toFixed(),
-          modalContent
-        });
+        setModalTitle('Importing.');
+        setProgress(Math.round(counter / total * 100));
+        setModalContent(nextModalContent);
       }
     } else if (response.section === 'delete') {
       const counter = response.progress.delete.current_row;
       const total = response.progress.delete.end - response.progress.delete.start;
       document.title = 'Deleting: (' + counter + '/' + total + ')';
-      this.setState({
-        modalTitle: 'Deleting.',
-        progress: (counter / total * 100).toFixed(),
-        modalContent
-      });
+      setModalTitle('Deleting.');
+      setProgress(Math.round(counter / total * 100));
+      setModalContent(nextModalContent);
     }
-    return;
-  }
-  componentDidUpdate(prevProps) {
-    if (prevProps.status !== this.props.status) {
-      // This should all be moved to render
-      if (this.props.status != null) {
-        const response = this.props.status;
-        this.updateStatus(response);
+  }, []);
+  const run = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    runnerRef.current = _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.run(id, session);
+    documentTitleRef.current = document.title;
+    setComplete(false);
+    runnerRef.current.request.subscribe(response => {
+      if (response.status !== 'S' || response.data.status === 'error') {
+        setModalTitle('A fatal error has occurred.');
+        setModalLoading(false);
+        setModalContent((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, response.data.message));
+        setError(true);
+        runnerRef.current.abort();
+        document.title = documentTitleRef.current;
+        return;
       }
+      if (response.data.status === 'complete') {
+        runnerRef.current.abort();
+      }
+      updateStatus(response.data);
+    }, err => {
+      runnerRef.current.abort();
+      if (err.status > 0) {
+        let error_msg = err.statusText;
+        if (err.responseJSON && err.responseJSON.code && err.responseJSON.message && err.responseJSON.code === 'IWP_ERR') {
+          error_msg = err.responseJSON.message;
+        }
+        setModalTitle('A fatal error has occurred.');
+        setModalLoading(false);
+        setModalContent((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, error_msg));
+        setError(true);
+      }
+    });
+  }, [id, session, updateStatus]);
+  const stop = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    if (runnerRef.current) {
+      runnerRef.current.abort();
     }
-  }
-  render() {
-    const {
-      showModal,
-      progress,
-      modalTitle,
-      modalContent,
-      modalClosable,
-      importer_log,
-      modalLoading,
-      paused,
-      complete,
-      cancelled,
-      error
-    } = this.state;
-    const {
-      id,
-      session
-    } = this.props;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_modal_Modal__WEBPACK_IMPORTED_MODULE_2__["default"], {
-      title: modalTitle,
-      onClose: () => {
-        this.closeModal();
-        this.props.onComplete();
-      },
-      show: showModal,
-      closable: modalClosable,
-      loading: modalLoading && paused !== 1
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_progress_bar_ProgressBar__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      progress: progress,
-      text: progress + '%'
-    }), modalContent, !error ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, !complete ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      type: "button",
-      className: "button button-link-delete",
-      style: {
-        marginBottom: '20px'
-      },
-      onClick: this.stop
-    }, "Cancel")) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      type: "button",
-      onClick: () => {
-        this.closeModal();
-        this.props.onComplete();
-      },
-      className: "button button-secondary",
-      style: {
-        marginBottom: '20px'
+    _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.stop(id, session).then(() => {
+      setShowModal(false);
+      onComplete();
+      document.title = documentTitleRef.current;
+    }, error_msg => {
+      setModalTitle('A fatal error has occurred.');
+      setModalLoading(false);
+      setModalContent((0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, error_msg));
+      setError(true);
+    });
+  }, [id, onComplete, session]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    run();
+    return () => {
+      if (runnerRef.current) {
+        runnerRef.current.abort();
       }
-    }, "Close"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_importer_log_table_ImporterLogTable__WEBPACK_IMPORTED_MODULE_5__["default"], {
-      id: id,
-      log: session
-    }))) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      type: "button",
-      onClick: () => {
-        this.closeModal();
-        this.props.onComplete();
-      },
-      className: "button button-link-delete",
-      style: {
-        marginBottom: '20px'
-      }
-    }, "Close"));
-  }
-}
+    };
+  }, [run]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (status != null) {
+      updateStatus(status);
+    }
+  }, [status, updateStatus]);
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_modal_Modal__WEBPACK_IMPORTED_MODULE_2__["default"], {
+    title: modalTitle,
+    onClose: () => {
+      closeModal();
+      onComplete();
+    },
+    show: showModal,
+    closable: modalClosable,
+    loading: modalLoading
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_progress_bar_ProgressBar__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    progress: progress,
+    text: progress + '%'
+  }), modalContent, !error ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, !complete ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    type: "button",
+    className: "button button-link-delete",
+    style: {
+      marginBottom: '20px'
+    },
+    onClick: stop
+  }, "Cancel")) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    type: "button",
+    onClick: () => {
+      closeModal();
+      onComplete();
+    },
+    className: "button button-secondary",
+    style: {
+      marginBottom: '20px'
+    }
+  }, "Close"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_importer_log_table_ImporterLogTable__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    id: id,
+    log: session
+  }))) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    type: "button",
+    onClick: () => {
+      closeModal();
+      onComplete();
+    },
+    className: "button button-link-delete",
+    style: {
+      marginBottom: '20px'
+    }
+  }, "Close"));
+};
 ImportRunner.propTypes = {
   id: (prop_types__WEBPACK_IMPORTED_MODULE_6___default().number).isRequired,
   session: (prop_types__WEBPACK_IMPORTED_MODULE_6___default().string).isRequired,
   onComplete: (prop_types__WEBPACK_IMPORTED_MODULE_6___default().func)
-};
-ImportRunner.defaultProps = {
-  onComplete: () => {}
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ImportRunner);
 
@@ -9893,99 +9418,63 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class ImporterDebug extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      log: '',
-      isLoading: true,
-      hasMore: true,
-      page: 0,
-      download: ''
-    };
-    this.getLog = this.getLog.bind(this);
-  }
-  getLog() {
-    const page = this.state.page + 1;
-    this.setState({
-      isLoading: true,
-      page: page
-    });
-    const {
-      id
-    } = this.props;
+const ImporterDebug = ({
+  id,
+  settings
+}) => {
+  const [log, setLog] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  const [download, setDownload] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  const scrollBox = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const pageRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(0);
+  const logRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)('');
+  const getLog = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    const page = pageRef.current + 1;
+    pageRef.current = page;
     _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.debug_log(id, page).then(data => {
-      const {
-        log
-      } = this.state;
+      const nextLog = logRef.current + (page > 1 ? '\n' : '') + data.log.join('\n');
       const hasMore = data.log.length > 0;
-      this.setState({
-        log: log + (page > 1 ? '\n' : '') + data.log.join('\n'),
-        status: data.status,
-        isLoading: false,
-        hasMore: hasMore,
-        download: data.download
-      }, () => {
-        if (hasMore) {
-          this.getLog();
-        }
-      });
+      logRef.current = nextLog;
+      setLog(nextLog);
+      setDownload(data.download);
+      if (hasMore) {
+        getLog();
+      }
     });
-  }
-  componentDidMount() {
-    this.setState({
-      page: 0
-    });
-    this.getLog();
-
-    // const node = this.scrollBox;
-    // if (node) {
-    //   node.addEventListener(
-    //     'scroll',
-    //     debounce(() => {
-    //       window.requestAnimationFrame(() => {
-    //         if (
-    //           node.scrollTop > node.scrollHeight - node.clientHeight * 2 &&
-    //           this.state.isLoading === false &&
-    //           this.state.hasMore
-    //         ) {
-    //           this.getLog();
-    //         }
-    //       });
-    //     }, 100)
-    //   );
-    // }
-  }
-  componentWillUnmount() {
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.abort('debug_log');
-  }
-  render() {
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form iwp-form--mb"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading"
-    }, "Debug"), this.props.settings && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Importer Settings:"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("textarea", {
-      disabled: true,
-      className: "iwp-debug__code iwp-debug__code--settings",
-      defaultValue: this.props.settings
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Import Logs: (", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
-      href: this.state.download,
-      target: "_blank",
-      rel: "noopener noreferrer"
-    }, "download"), ")"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("textarea", {
-      ref: scrollBox => this.scrollBox = scrollBox,
-      disabled: true,
-      className: "iwp-debug__code iwp-debug__code--log",
-      defaultValue: this.state.log
-    })));
-  }
-}
+  }, [id]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    pageRef.current = 0;
+    logRef.current = '';
+    setLog('');
+    getLog();
+    return () => {
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.abort('debug_log');
+    };
+  }, [getLog]);
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form iwp-form--mb"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading"
+  }, "Debug"), settings && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Importer Settings:"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("textarea", {
+    disabled: true,
+    className: "iwp-debug__code iwp-debug__code--settings",
+    defaultValue: settings
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Import Logs: (", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
+    href: download,
+    target: "_blank",
+    rel: "noopener noreferrer"
+  }, "download"), ")"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("textarea", {
+    ref: scrollBox,
+    disabled: true,
+    className: "iwp-debug__code iwp-debug__code--log",
+    value: log,
+    readOnly: true
+  })));
+};
 ImporterDebug.propTypes = {
   id: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().number),
   settings: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().string),
   log: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().string)
 };
-ImporterDebug.defaultProps = {};
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ImporterDebug);
 
 /***/ }),
@@ -10032,374 +9521,348 @@ const default_schedule = {
   setting_cron_minute: 0,
   setting_run_fetch: false
 };
-class ImporterForm extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    const template = this.props.templates.find(data => {
-      return data.id === props.template;
-    });
-    this.template_settings = template ? template['settings'] : [];
+const ImporterForm = ({
+  complete = () => {},
+  id,
+  template = '',
+  settings = {},
+  onRun = () => {},
+  onError = () => {},
+  pro = false,
+  templates = []
+}) => {
+  const template_settings = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
+    const found = templates.find(data => data.id === template);
+    return found ? found['settings'] : [];
+  }, [template, templates]);
+  const initialState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
     let settings_state = {};
-    if (this.template_settings) {
-      this.template_settings.forEach(field => {
-        settings_state['setting_' + field.id] = props.settings && props.settings[field.id] ? props.settings[field.id] : '';
+    if (template_settings) {
+      template_settings.forEach(field => {
+        settings_state['setting_' + field.id] = settings && settings[field.id] ? settings[field.id] : '';
       });
     }
-    this.state = {
+    return {
       ...settings_state,
-      setting_import_method: props.settings && props.settings.import_method ? props.settings.import_method : 'run',
-      setting_cron_schedule: props.settings && props.settings.cron_schedule ? props.settings.cron_schedule : 'month',
-      setting_cron_day: props.settings && props.settings.cron_day ? parseInt(props.settings.cron_day) : 0,
-      setting_cron_hour: props.settings && props.settings.cron_hour ? parseInt(props.settings.cron_hour) : 0,
-      setting_cron_minute: props.settings && props.settings.cron_minute ? parseInt(props.settings.cron_minute) : 0,
-      setting_cron_disabled: props.settings && props.settings.cron_disabled ? props.settings.cron_disabled : false,
-      setting_run_fetch: props.settings && props.settings.run_fetch ? props.settings.run_fetch : false,
-      setting_cron: props.settings && props.settings.cron ? props.settings.cron : [default_schedule],
-      setting_filters: props.settings && props.settings.filters ? props.settings.filters : [],
-      setting_hash_check: props.settings && props.settings.hash_check ? props.settings.hash_check : false,
-      disabled: props.pro === false && props.settings && props.settings.import_method === 'schedule',
+      setting_import_method: settings && settings.import_method ? settings.import_method : 'run',
+      setting_cron_schedule: settings && settings.cron_schedule ? settings.cron_schedule : 'month',
+      setting_cron_day: settings && settings.cron_day ? parseInt(settings.cron_day) : 0,
+      setting_cron_hour: settings && settings.cron_hour ? parseInt(settings.cron_hour) : 0,
+      setting_cron_minute: settings && settings.cron_minute ? parseInt(settings.cron_minute) : 0,
+      setting_cron_disabled: settings && settings.cron_disabled ? settings.cron_disabled : false,
+      setting_run_fetch: settings && settings.run_fetch ? settings.run_fetch : false,
+      setting_cron: settings && settings.cron ? settings.cron : [default_schedule],
+      setting_filters: settings && settings.filters ? settings.filters : [],
+      setting_hash_check: settings && settings.hash_check ? settings.hash_check : false,
+      disabled: pro === false && settings && settings.import_method === 'schedule',
       saving: false,
-      setting_max_row: props.settings.max_row,
-      setting_start_row: props.settings.start_row
+      setting_max_row: settings.max_row,
+      setting_start_row: settings.start_row
     };
-    this.onChange = this.onChange.bind(this);
-    this.onCronChange = this.onCronChange.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-    this.runNow = this.runNow.bind(this);
-    this.save = this.save.bind(this);
-    this.onSave = this.onSave.bind(this);
-    this.addNewSchedule = this.addNewSchedule.bind(this);
-    this.removeSchedule = this.removeSchedule.bind(this);
-  }
-  onChange(event) {
+  }, [pro, settings, template_settings]);
+  const [form, setForm] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialState);
+  const formRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(form);
+  formRef.current = form;
+  const setSaving = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(saving => {
+    setForm(current => ({
+      ...current,
+      saving
+    }));
+  }, []);
+  const onChange = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(event => {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
     (0,_util_debug__WEBPACK_IMPORTED_MODULE_8__.debugLog)('ImporterForm change', name, value);
-    this.setState({
-      [name]: value
-    }, () => {
-      this.setState({
-        disabled: this.props.pro === false && this.state.setting_import_method === 'schedule'
-      });
+    setForm(current => {
+      const next = {
+        ...current,
+        [name]: value
+      };
+      next.disabled = pro === false && next.setting_import_method === 'schedule';
+      return next;
     });
-  }
-  onCronChange(event, i) {
+  }, [pro]);
+  const onCronChange = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((event, i) => {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
-
-    // TODO: not store state in array, makes very slow performance
-    this.setState({
-      setting_cron: [...this.state.setting_cron.slice(0, i), Object.assign({}, this.state.setting_cron[i], {
+    setForm(current => ({
+      ...current,
+      setting_cron: current.setting_cron.map((item, index) => index === i ? {
+        ...item,
         [name]: value
-      }), ...this.state.setting_cron.slice(i + 1)]
-    });
-  }
-  addNewSchedule() {
-    this.setState({
-      setting_cron: [...this.state.setting_cron, default_schedule]
-    });
-  }
-  removeSchedule(i) {
-    let current = this.state.setting_cron;
-    current.splice(i, 1);
-    this.setState({
-      setting_cron: current
-    });
-  }
-  save(callback = () => {}) {
-    const {
-      id
-    } = this.props;
-    this.setState({
-      saving: true
-    });
-    let data = Object.keys(this.state).filter(key => {
-      return key.startsWith('setting_');
-    }).reduce((obj, key) => {
-      obj[key] = this.state[key];
+      } : item)
+    }));
+  }, []);
+  const addNewSchedule = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    setForm(current => ({
+      ...current,
+      setting_cron: [...current.setting_cron, default_schedule]
+    }));
+  }, []);
+  const removeSchedule = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(i => {
+    setForm(current => ({
+      ...current,
+      setting_cron: current.setting_cron.filter((_, index) => index !== i)
+    }));
+  }, []);
+  const save = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((callback = () => {}) => {
+    const current = formRef.current;
+    setSaving(true);
+    const data = Object.keys(current).filter(key => key.startsWith('setting_')).reduce((obj, key) => {
+      obj[key] = current[key];
       return obj;
-    }, {});
-    data.id = id;
+    }, {
+      id
+    });
     _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.save(data).then(() => {
-      callback();
+      callback(current);
     }, error => {
-      this.props.onError(error);
-      this.setState({
-        saving: false
-      });
+      onError(error);
+      setSaving(false);
     });
-  }
-  onSave() {
-    this.save(() => {
-      this.setState({
-        saving: false
-      });
+  }, [id, onError, setSaving]);
+  const onSave = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    save(() => {
+      setSaving(false);
     });
-  }
-  runNow() {
-    const {
-      id
-    } = this.props;
-    this.setState({
-      saving: true
-    });
+  }, [save, setSaving]);
+  const runNow = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    setSaving(true);
     _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.init(id).then(init_response => {
-      this.setState({
-        saving: false
-      });
-      const {
-        session
-      } = init_response;
-      this.props.onRun(session);
+      setSaving(false);
+      onRun(init_response.session);
     }, error => {
-      this.props.onError(error);
-      this.setState({
-        saving: false
-      });
+      onError(error);
+      setSaving(false);
     });
-  }
-  onSubmit() {
-    const {
-      id
-    } = this.props;
-    this.save(() => {
-      // background
-      if (this.state.setting_import_method == 'background') {
-        _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.init(id).then(init_response => {
-          this.setState({
-            saving: false
-          });
+  }, [id, onError, onRun, setSaving]);
+  const onSubmit = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    save(current => {
+      if (current.setting_import_method === 'background') {
+        _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.init(id).then(() => {
+          setSaving(false);
         }, error => {
-          this.props.onError(error);
-          this.setState({
-            saving: false
-          });
+          onError(error);
+          setSaving(false);
         });
         return;
       }
-
-      // don't run if its a schedule
-      if (this.state.setting_import_method !== 'run') {
-        this.setState({
-          saving: false
-        });
+      if (current.setting_import_method !== 'run') {
+        setSaving(false);
         return;
       }
-
-      // run importer
       _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.init(id).then(init_response => {
-        this.setState({
-          saving: false
-        });
-        const {
-          session
-        } = init_response;
-        this.props.onRun(session);
+        setSaving(false);
+        onRun(init_response.session);
       }, error => {
-        this.props.onError(error);
-        this.setState({
-          saving: false
-        });
+        onError(error);
+        setSaving(false);
       });
     });
-  }
-  render() {
-    const {
-      setting_import_method,
-      disabled,
-      saving,
-      setting_start_row,
-      setting_max_row,
-      setting_cron,
-      setting_filters,
-      setting_run_fetch,
-      setting_hash_check
-    } = this.state;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading iwp-heading--has-tooltip"
-    }, "Run Importer. ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
-      href: "https://www.importwp.com/docs/run-import/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer",
-      target: "_blank",
-      className: "iwp-label__tooltip"
-    }, "?")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__grid"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row iwp-form__row--left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      label: "Start row",
-      field: "setting_start_row",
-      id: "setting_start_row",
-      tooltip: "Set the row you wish to start your import from.",
-      display: "inline-block"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "number",
-      className: "iwp-form__input",
-      id: "setting_start_row",
-      name: "setting_start_row",
-      min: "0",
-      placeholder: "Leave empty to import from the start.",
-      onChange: this.onChange,
-      value: setting_start_row
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row iwp-form__row--right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      label: "Number of rows",
-      field: "setting_max_row",
-      id: "setting_max_row",
-      tooltip: "Maximum number of rows to import, leave '0' to ignore.",
-      display: "inline-block"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "number",
-      className: "iwp-form__input",
-      id: "setting_max_row",
-      name: "setting_max_row",
-      min: "0",
-      placeholder: "Leave empty to import until the last record.",
-      onChange: this.onChange,
-      value: setting_max_row
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row iwp-form__row--right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      className: "iwp-form__label iwp-form__label--switch"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Update records only when data has changed."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_switch__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      checked: setting_hash_check,
-      name: "setting_hash_check",
-      height: 20,
-      width: 40,
-      onColor: "#22c48f",
-      onChange: checked => {
-        this.onChange({
-          target: {
-            name: 'setting_hash_check',
-            type: 'checkbox',
-            checked
-          }
-        });
-      }
-    })))), this.template_settings && this.template_settings.map(field => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_setting_field_SettingField__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      key: field.id,
-      id: field.id,
-      label: field.label,
-      type: field.type,
-      value: this.state['setting_' + field.id],
-      onChange: this.onChange
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_import_filter_ImportFilter__WEBPACK_IMPORTED_MODULE_7__["default"], {
-      ...this.props,
-      onFilterChange: filters => {
-        this.setState({
-          setting_filters: filters
-        });
-      },
-      filters: setting_filters
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-accordion__block iwp-accordion__block--first"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__handle"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "radio",
-      name: "setting_import_method",
-      value: "run",
-      checked: setting_import_method === 'run',
-      onChange: this.onChange
-    }), ' ', "Run Now - ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Start the import straight away."))), setting_import_method === 'run' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__content"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      className: "iwp-form__label iwp-form__label--switch"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Download new file before import."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_switch__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      checked: setting_run_fetch,
-      name: "setting_run_fetch",
-      height: 20,
-      width: 40,
-      onColor: "#22c48f",
-      onChange: checked => {
-        this.onChange({
-          target: {
-            name: 'setting_run_fetch',
-            type: 'checkbox',
-            checked
-          }
-        });
-      }
-    })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-accordion__block"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__handle"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "radio",
-      name: "setting_import_method",
-      value: "background",
-      checked: setting_import_method === 'background',
-      onChange: this.onChange
-    }), ' ', "Run in the background - ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Start the import and let it run in the background."))), setting_import_method === 'background' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__content"
-    }, react__WEBPACK_IMPORTED_MODULE_0___default().cloneElement(window.iwp.hooks.applyFilters('iwp_background_import_method', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_upgrade_message_UpgradeMessage__WEBPACK_IMPORTED_MODULE_5__["default"], {
-      message: "Please upgrade to Import WP Pro v2.11+ to run imports in the background."
-    })), {}, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      className: "iwp-form__label iwp-form__label--switch"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Download new file before import."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_switch__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      checked: setting_run_fetch,
-      name: "setting_run_fetch",
-      height: 20,
-      width: 40,
-      onColor: "#22c48f",
-      onChange: checked => {
-        this.onChange({
-          target: {
-            name: 'setting_run_fetch',
-            type: 'checkbox',
-            checked
-          }
-        });
-      }
-    }))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-accordion__block"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__handle"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "radio",
-      name: "setting_import_method",
-      value: "schedule",
-      checked: setting_import_method === 'schedule',
-      onChange: this.onChange
-    }), ' ', "Schedule - ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Run the import at a later date."))), setting_import_method === 'schedule' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__content"
-    }, react__WEBPACK_IMPORTED_MODULE_0___default().cloneElement(window.iwp.hooks.applyFilters('iwp_scheduler', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_upgrade_message_UpgradeMessage__WEBPACK_IMPORTED_MODULE_5__["default"], {
-      message: "Please upgrade to Import WP Pro to Schedule this importer."
-    })), {
-      setting_cron: setting_cron,
-      onCronChange: this.onCronChange,
-      removeSchedule: this.removeSchedule,
-      addNewSchedule: this.addNewSchedule
-    }))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__actions"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-buttons"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-secondary",
-      type: "button",
-      onClick: this.onSave,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : 'Save'), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-primary",
-      type: "button",
-      onClick: this.onSubmit,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : setting_import_method === 'run' || setting_import_method === 'background' ? 'Save & Run' : 'Save & Schedule'), ' ', setting_import_method == 'schedule' && this.props.pro === true && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-link",
-      type: "button",
-      onClick: this.runNow,
-      disabled: disabled
-    }, "Run manually"))));
-  }
-}
+  }, [id, onError, onRun, save, setSaving]);
+  const {
+    setting_import_method,
+    disabled,
+    saving,
+    setting_start_row,
+    setting_max_row,
+    setting_cron,
+    setting_filters,
+    setting_run_fetch,
+    setting_hash_check
+  } = form;
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading iwp-heading--has-tooltip"
+  }, "Run Importer. ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
+    href: "https://www.importwp.com/docs/run-import/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer",
+    target: "_blank",
+    className: "iwp-label__tooltip"
+  }, "?")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__grid"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row iwp-form__row--left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    label: "Start row",
+    field: "setting_start_row",
+    id: "setting_start_row",
+    tooltip: "Set the row you wish to start your import from.",
+    display: "inline-block"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "number",
+    className: "iwp-form__input",
+    id: "setting_start_row",
+    name: "setting_start_row",
+    min: "0",
+    placeholder: "Leave empty to import from the start.",
+    onChange: onChange,
+    value: setting_start_row
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row iwp-form__row--right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    label: "Number of rows",
+    field: "setting_max_row",
+    id: "setting_max_row",
+    tooltip: "Maximum number of rows to import, leave '0' to ignore.",
+    display: "inline-block"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "number",
+    className: "iwp-form__input",
+    id: "setting_max_row",
+    name: "setting_max_row",
+    min: "0",
+    placeholder: "Leave empty to import until the last record.",
+    onChange: onChange,
+    value: setting_max_row
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row iwp-form__row--right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    className: "iwp-form__label iwp-form__label--switch"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Update records only when data has changed."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_switch__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    checked: setting_hash_check,
+    name: "setting_hash_check",
+    height: 20,
+    width: 40,
+    onColor: "#22c48f",
+    onChange: checked => {
+      onChange({
+        target: {
+          name: 'setting_hash_check',
+          type: 'checkbox',
+          checked
+        }
+      });
+    }
+  })))), template_settings && template_settings.map(field => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_setting_field_SettingField__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    key: field.id,
+    id: field.id,
+    label: field.label,
+    type: field.type,
+    value: form['setting_' + field.id],
+    onChange: onChange
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_import_filter_ImportFilter__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    complete: complete,
+    id: id,
+    template: template,
+    settings: settings,
+    onRun: onRun,
+    onError: onError,
+    pro: pro,
+    templates: templates,
+    onFilterChange: filters => {
+      setForm(current => ({
+        ...current,
+        setting_filters: filters
+      }));
+    },
+    filters: setting_filters
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-accordion__block iwp-accordion__block--first"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__handle"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "radio",
+    name: "setting_import_method",
+    value: "run",
+    checked: setting_import_method === 'run',
+    onChange: onChange
+  }), ' ', "Run Now - ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Start the import straight away."))), setting_import_method === 'run' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__content"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    className: "iwp-form__label iwp-form__label--switch"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Download new file before import."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_switch__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    checked: setting_run_fetch,
+    name: "setting_run_fetch",
+    height: 20,
+    width: 40,
+    onColor: "#22c48f",
+    onChange: checked => {
+      onChange({
+        target: {
+          name: 'setting_run_fetch',
+          type: 'checkbox',
+          checked
+        }
+      });
+    }
+  })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-accordion__block"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__handle"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "radio",
+    name: "setting_import_method",
+    value: "background",
+    checked: setting_import_method === 'background',
+    onChange: onChange
+  }), ' ', "Run in the background - ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Start the import and let it run in the background."))), setting_import_method === 'background' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__content"
+  }, react__WEBPACK_IMPORTED_MODULE_0___default().cloneElement(window.iwp.hooks.applyFilters('iwp_background_import_method', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_upgrade_message_UpgradeMessage__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    message: "Please upgrade to Import WP Pro v2.11+ to run imports in the background."
+  })), {}, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    className: "iwp-form__label iwp-form__label--switch"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Download new file before import."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_switch__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    checked: setting_run_fetch,
+    name: "setting_run_fetch",
+    height: 20,
+    width: 40,
+    onColor: "#22c48f",
+    onChange: checked => {
+      onChange({
+        target: {
+          name: 'setting_run_fetch',
+          type: 'checkbox',
+          checked
+        }
+      });
+    }
+  }))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-accordion__block"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__handle"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "radio",
+    name: "setting_import_method",
+    value: "schedule",
+    checked: setting_import_method === 'schedule',
+    onChange: onChange
+  }), ' ', "Schedule - ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Run the import at a later date."))), setting_import_method === 'schedule' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__content"
+  }, react__WEBPACK_IMPORTED_MODULE_0___default().cloneElement(window.iwp.hooks.applyFilters('iwp_scheduler', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_upgrade_message_UpgradeMessage__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    message: "Please upgrade to Import WP Pro to Schedule this importer."
+  })), {
+    setting_cron: setting_cron,
+    onCronChange: onCronChange,
+    removeSchedule: removeSchedule,
+    addNewSchedule: addNewSchedule
+  }))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__actions"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-buttons"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-secondary",
+    type: "button",
+    onClick: onSave,
+    disabled: disabled
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : 'Save'), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-primary",
+    type: "button",
+    onClick: onSubmit,
+    disabled: disabled
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : setting_import_method === 'run' || setting_import_method === 'background' ? 'Save & Run' : 'Save & Schedule'), ' ', setting_import_method == 'schedule' && pro === true && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-link",
+    type: "button",
+    onClick: runNow,
+    disabled: disabled
+  }, "Run manually"))));
+};
 ImporterForm.propTypes = {
   complete: (prop_types__WEBPACK_IMPORTED_MODULE_9___default().func),
   id: (prop_types__WEBPACK_IMPORTED_MODULE_9___default().number),
@@ -10409,15 +9872,6 @@ ImporterForm.propTypes = {
   onError: (prop_types__WEBPACK_IMPORTED_MODULE_9___default().func),
   pro: (prop_types__WEBPACK_IMPORTED_MODULE_9___default().bool),
   templates: (prop_types__WEBPACK_IMPORTED_MODULE_9___default().array)
-};
-ImporterForm.defaultProps = {
-  complete: () => {},
-  template: '',
-  settings: {},
-  onRun: () => {},
-  onError: () => {},
-  pro: false,
-  templates: []
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ImporterForm);
 
@@ -10450,112 +9904,109 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
 const AJAX_BASE = window.iwp.admin_base;
-class ImporterListItem extends (react__WEBPACK_IMPORTED_MODULE_0___default().Component) {
-  render() {
-    const {
-      id,
-      parser,
-      name
-    } = this.props.importer;
-    let {
-      template
-    } = this.props.importer;
+const ImporterListItem = ({
+  importer,
+  status = {
+    s: 'loading'
+  },
+  onDelete = () => {}
+}) => {
+  const {
+    id,
+    parser,
+    name
+  } = importer;
+  let {
+    template
+  } = importer;
 
-    // TODO: remove duplication of this code with EditSteps
-    if (template === 'custom-post-type') {
-      template = 'Custom Post Type: ' + this.props.importer.settings.post_type;
-    } else if (template === 'term') {
-      template = 'Taxonomy: ' + this.props.importer.settings.taxonomy;
-    }
-
-    // rename status variables, shortened to save bytes
-    const version = this.props.status?.id ? 2 : 1;
-    const status = version === 2 ? this.props.status.status : this.props.status.s;
-    const total = this.props.status.t > 0 ? this.props.status.t : 0;
-    const counter = this.props.status.c > 0 ? this.props.status.c : 0;
-    const delete_counter = this.props.status.r > 0 ? this.props.status.r : 0;
-    const delete_total = this.props.status.a > 0 ? this.props.status.a : 0;
-    const progressBarWidth = version === 2 ? (0,_progress__WEBPACK_IMPORTED_MODULE_4__.getSectionProgressBarWidth)(this.props.status) : null;
-    let msg = 'Loading.';
-    if (version === 2) {
-      if (status === 'error') {
-        msg = 'Import Error' + (this.props.status.message !== null ? ': ' + this.props.status.message : '.');
-      } else if (status !== 'loading') {
-        msg = (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_status_message_StatusMessage__WEBPACK_IMPORTED_MODULE_3__["default"], {
-          status: {
-            msg: this.props.status.message
-          }
-        });
-      }
-    } else {
-      if (status === 'error') {
-        msg = 'Import Error' + (this.props.status.m !== null ? ': ' + this.props.status.m : '.');
-      } else if (status !== 'loading') {
-        msg = (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_status_message_StatusMessage__WEBPACK_IMPORTED_MODULE_3__["default"], {
-          status: this.props.status
-        });
-      }
-    }
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-importer-list__item"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("h2", {
-      className: "iwp-heading"
-    }, name), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Importing ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, template), " from", ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, parser), ".")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item__right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-buttons"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_router_dom__WEBPACK_IMPORTED_MODULE_5__.Link, {
-      to: AJAX_BASE + '&edit=' + id,
-      className: "button button-primary button-small"
-    }, "View"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_router_dom__WEBPACK_IMPORTED_MODULE_5__.Link, {
-      to: AJAX_BASE + '&edit=' + id + '&step=5',
-      className: "button button-secondary button-small"
-    }, "History"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      type: "button",
-      onClick: () => {
-        var result = confirm('Are you sure you want to delete Importer #' + id + ' ' + name);
-        if (result) {
-          // TODO: Move this into the archive list component.
-          _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.remove(id).then(() => this.props.onDelete(id));
-        }
-      },
-      className: "button button-link-delete button-small"
-    }, "Delete")))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item__progress"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, msg), version == 2 ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (status == 'running' || status == 'processing') && progressBarWidth !== null && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item__progress-bar",
-      style: {
-        width: progressBarWidth + '%'
-      }
-    })) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (status === 'running' || status == 'processing' || status === 'timeout') && delete_counter === 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item__progress-bar",
-      style: {
-        width: 100 - counter / total * 100 + '%'
-      }
-    }), (status === 'running' || status == 'processing' || status === 'timeout') && delete_counter > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item__progress-bar",
-      style: {
-        width: 100 - delete_counter / delete_total * 100 + '%'
-      }
-    }))));
+  // TODO: remove duplication of this code with EditSteps
+  if (template === 'custom-post-type') {
+    template = 'Custom Post Type: ' + importer.settings.post_type;
+  } else if (template === 'term') {
+    template = 'Taxonomy: ' + importer.settings.taxonomy;
   }
-}
+
+  // rename status variables, shortened to save bytes
+  const version = status?.id ? 2 : 1;
+  const statusValue = version === 2 ? status.status : status.s;
+  const total = status.t > 0 ? status.t : 0;
+  const counter = status.c > 0 ? status.c : 0;
+  const delete_counter = status.r > 0 ? status.r : 0;
+  const delete_total = status.a > 0 ? status.a : 0;
+  const progressBarWidth = version === 2 ? (0,_progress__WEBPACK_IMPORTED_MODULE_4__.getSectionProgressBarWidth)(status) : null;
+  let msg = 'Loading.';
+  if (version === 2) {
+    if (statusValue === 'error') {
+      msg = 'Import Error' + (status.message !== null ? ': ' + status.message : '.');
+    } else if (statusValue !== 'loading') {
+      msg = (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_status_message_StatusMessage__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        status: {
+          msg: status.message
+        }
+      });
+    }
+  } else {
+    if (statusValue === 'error') {
+      msg = 'Import Error' + (status.m !== null ? ': ' + status.m : '.');
+    } else if (statusValue !== 'loading') {
+      msg = (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_status_message_StatusMessage__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        status: status
+      });
+    }
+  }
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-importer-list__item"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("h2", {
+    className: "iwp-heading"
+  }, name), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Importing ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, template), " from", ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, parser), ".")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item__right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-buttons"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_router_dom__WEBPACK_IMPORTED_MODULE_5__.Link, {
+    to: AJAX_BASE + '&edit=' + id,
+    className: "button button-primary button-small"
+  }, "View"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_router_dom__WEBPACK_IMPORTED_MODULE_5__.Link, {
+    to: AJAX_BASE + '&edit=' + id + '&step=5',
+    className: "button button-secondary button-small"
+  }, "History"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    type: "button",
+    onClick: () => {
+      var result = confirm('Are you sure you want to delete Importer #' + id + ' ' + name);
+      if (result) {
+        // TODO: Move this into the archive list component.
+        _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.remove(id).then(() => onDelete(id));
+      }
+    },
+    className: "button button-link-delete button-small"
+  }, "Delete")))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item__progress"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, msg), version == 2 ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (statusValue == 'running' || statusValue == 'processing') && progressBarWidth !== null && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item__progress-bar",
+    style: {
+      width: progressBarWidth + '%'
+    }
+  })) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (statusValue === 'running' || statusValue == 'processing' || statusValue === 'timeout') && delete_counter === 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item__progress-bar",
+    style: {
+      width: 100 - counter / total * 100 + '%'
+    }
+  }), (statusValue === 'running' || statusValue == 'processing' || statusValue === 'timeout') && delete_counter > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item__progress-bar",
+    style: {
+      width: 100 - delete_counter / delete_total * 100 + '%'
+    }
+  }))));
+};
 ImporterListItem.propTypes = {
   importer: (prop_types__WEBPACK_IMPORTED_MODULE_6___default().object).isRequired,
   status: (prop_types__WEBPACK_IMPORTED_MODULE_6___default().object),
   onDelete: (prop_types__WEBPACK_IMPORTED_MODULE_6___default().func)
-};
-ImporterListItem.defaultProps = {
-  status: {
-    s: 'loading'
-  },
-  onDelete: () => {}
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ImporterListItem);
 
@@ -10631,80 +10082,63 @@ const colStyles = index => {
     width: width
   };
 };
-class ImporterLogArchive extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      logs: [],
-      loading: true
-    };
-    this.displayDate = this.displayDate.bind(this);
-    this.getLogs = this.getLogs.bind(this);
-  }
-  getLogs() {
-    this.setState({
-      loading: true
-    });
-    const {
-      id
-    } = this.props;
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.logs(id).then(data => {
-      this.setState({
-        logs: data,
-        loading: false
-      });
-    });
-  }
-  displayDate(timestamp) {
+function ImporterLogArchive(props) {
+  const [logs, setLogs] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const displayDate = timestamp => {
     var date = new Date(timestamp * 1000);
     return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + ' at ' + date.getHours() + ':' + (date.getMinutes() > 9 ? date.getMinutes() : '0' + date.getMinutes());
-  }
-  componentDidMount() {
-    this.getLogs();
-  }
-  componentWillUnmount() {
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.abort('logs');
-  }
-  render() {
+  };
+  const getLogs = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    setLoading(true);
     const {
-      logs,
-      loading
-    } = this.state;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading iwp-heading--has-tooltip"
-    }, "Importer History. ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
-      href: "https://www.importwp.com/docs/import-history/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer",
-      target: "_blank",
-      className: "iwp-label__tooltip"
-    }, "?")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-table__wrapper"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("table", {
-      className: "iwp-table iwp-table--fixed iwp-table--logs"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("thead", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
-      style: colStyles(0)
-    }, "Date"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
-      style: colStyles(1)
-    }, "Stats"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
-      style: colStyles(2)
-    }, "Action"))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tbody", null, loading && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      colSpan: 2
-    }, "Loading...")), loading === false && logs.length == 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      colSpan: 2
-    }, "No history logs found.")), logs.filter(log => log !== null).map(log => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", {
-      key: log?.id ? log.id : log.session
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      style: colStyles(0)
-    }, this.displayDate(log.timestamp)), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      style: colStyles(1)
-    }, log?.status && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Status:"), " ", log.status, ' '), log.hasOwnProperty('stats') && log.stats.inserts > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Inserts:"), " ", log.stats.inserts), log.hasOwnProperty('stats') && log.stats.updates > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Updates:"), " ", log.stats.updates), log.hasOwnProperty('stats') && log.stats.deletes > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Deletes:"), " ", log.stats.deletes), log.hasOwnProperty('stats') && log.stats.errors > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Errors:"), " ", log.stats.errors)), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      style: colStyles(2)
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
-      onClick: () => this.props.onSetLog(log?.id ? log.id : log.session),
-      className: "button button-secondary button-small"
-    }, "View")))))))));
-  }
+      id
+    } = props;
+    _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.logs(id).then(data => {
+      setLogs(data);
+      setLoading(false);
+    });
+  }, [props.id]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    getLogs();
+    return () => {
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.abort('logs');
+    };
+  }, [getLogs]);
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading iwp-heading--has-tooltip"
+  }, "Importer History. ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
+    href: "https://www.importwp.com/docs/import-history/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer",
+    target: "_blank",
+    className: "iwp-label__tooltip"
+  }, "?")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-table__wrapper"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("table", {
+    className: "iwp-table iwp-table--fixed iwp-table--logs"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("thead", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
+    style: colStyles(0)
+  }, "Date"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
+    style: colStyles(1)
+  }, "Stats"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
+    style: colStyles(2)
+  }, "Action"))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tbody", null, loading && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    colSpan: 2
+  }, "Loading...")), loading === false && logs.length == 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    colSpan: 2
+  }, "No history logs found.")), logs.filter(log => log !== null).map(log => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", {
+    key: log?.id ? log.id : log.session
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    style: colStyles(0)
+  }, displayDate(log.timestamp)), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    style: colStyles(1)
+  }, log?.status && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Status:"), " ", log.status, ' '), log.hasOwnProperty('stats') && log.stats.inserts > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Inserts:"), " ", log.stats.inserts), log.hasOwnProperty('stats') && log.stats.updates > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Updates:"), " ", log.stats.updates), log.hasOwnProperty('stats') && log.stats.deletes > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Deletes:"), " ", log.stats.deletes), log.hasOwnProperty('stats') && log.stats.errors > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Errors:"), " ", log.stats.errors)), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    style: colStyles(2)
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
+    onClick: () => props.onSetLog(log?.id ? log.id : log.session),
+    className: "button button-secondary button-small"
+  }, "View")))))))));
 }
 ImporterLogArchive.propTypes = {
   id: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().number),
@@ -10753,110 +10187,97 @@ const colStyles = index => {
     width: width
   };
 };
-class ImporterLogSingle extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      logs: [],
-      status: null,
-      isLoading: true,
-      hasMore: true,
-      page: 0
-    };
-    this.getLog = this.getLog.bind(this);
-  }
-  getLog() {
-    const page = this.state.page + 1;
-    this.setState({
-      isLoading: true,
-      page: page
-    });
+function ImporterLogSingle(props) {
+  const [logs, setLogs] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [status, setStatus] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [isLoading, setIsLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const [hasMore, setHasMore] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const [page, setPage] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const scrollBoxRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const isLoadingRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(isLoading);
+  const hasMoreRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(hasMore);
+  const pageRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(page);
+  isLoadingRef.current = isLoading;
+  hasMoreRef.current = hasMore;
+  pageRef.current = page;
+  const getLog = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    const nextPage = pageRef.current + 1;
+    setIsLoading(true);
+    setPage(nextPage);
     const {
       id,
       log
-    } = this.props;
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.log(id, log, page).then(data => {
-      const {
-        logs
-      } = this.state;
-      this.setState({
-        logs: logs.concat(data.logs),
-        status: data.status,
-        isLoading: false,
-        hasMore: data.logs.length > 0
-      });
+    } = props;
+    _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.log(id, log, nextPage).then(data => {
+      setLogs(prevLogs => prevLogs.concat(data.logs));
+      setStatus(data.status);
+      setIsLoading(false);
+      setHasMore(data.logs.length > 0);
     });
-  }
-  componentDidMount() {
-    this.setState({
-      page: 0
-    });
-    this.getLog();
-    const node = this.scrollBox;
+  }, [props.id, props.log]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    setPage(0);
+    pageRef.current = 0;
+    getLog();
+    const node = scrollBoxRef.current;
     if (node) {
-      node.addEventListener('scroll', lodash_debounce__WEBPACK_IMPORTED_MODULE_1___default()(() => {
+      const handleScroll = lodash_debounce__WEBPACK_IMPORTED_MODULE_1___default()(() => {
         window.requestAnimationFrame(() => {
-          // console.log(node.scrollTop, node.scrollHeight - node.clientHeight);
-
-          if (node.scrollTop > node.scrollHeight - node.clientHeight * 2 && this.state.isLoading === false && this.state.hasMore) {
-            this.getLog();
+          if (node.scrollTop > node.scrollHeight - node.clientHeight * 2 && isLoadingRef.current === false && hasMoreRef.current) {
+            getLog();
           }
-
-          // TODO: if we are close to the end, load the next page
-          // this.getLog();
         });
-      }, 100));
+      }, 100);
+      node.addEventListener('scroll', handleScroll);
+      return () => {
+        node.removeEventListener('scroll', handleScroll);
+        handleScroll.cancel();
+        _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.abort('log');
+      };
     }
-  }
-  componentWillUnmount() {
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.abort('log');
-  }
-  render() {
-    const {
-      log
-    } = this.props;
-    const {
-      logs,
-      status,
-      isLoading
-    } = this.state;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading"
-    }, "Importer History: ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("small", null, log), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      type: "button",
-      className: "button button-secondary button-small",
-      onClick: () => this.props.onSetLog(null)
-    }, "Back")), status && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-notices"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-mb-20 iwp-notice iwp-notice--info iwp-notice--bordered"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_status_message_StatusMessageOld__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      showStatus: true,
-      status: status
-    })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-table__wrapper"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("table", {
-      className: "iwp-table iwp-table--fixed iwp-table--logs"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("thead", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
-      style: colStyles(0)
-    }, "Record"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
-      style: colStyles(1)
-    }, "Message"))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tbody", {
-      ref: scrollBox => this.scrollBox = scrollBox
-    }, logs.map(log => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", {
-      key: log[0] + log[1]
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      className: "iwp-table-row"
-    }, log[0]), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      className: "iwp-table-content"
-    }, log[2]))), isLoading && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      colSpan: 2
-    }, "Loading...")), logs.length === 0 && !isLoading && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      colSpan: 2
-    }, "No Logs found.")))))));
-  }
+    return () => {
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.abort('log');
+    };
+  }, [getLog]);
+  const {
+    log
+  } = props;
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading"
+  }, "Importer History: ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("small", null, log), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    type: "button",
+    className: "button button-secondary button-small",
+    onClick: () => props.onSetLog(null)
+  }, "Back")), status && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-notices"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-mb-20 iwp-notice iwp-notice--info iwp-notice--bordered"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_status_message_StatusMessageOld__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    showStatus: true,
+    status: status
+  })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-table__wrapper"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("table", {
+    className: "iwp-table iwp-table--fixed iwp-table--logs"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("thead", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
+    style: colStyles(0)
+  }, "Record"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
+    style: colStyles(1)
+  }, "Message"))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tbody", {
+    ref: scrollBoxRef
+  }, logs.map(logEntry => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", {
+    key: logEntry[0] + logEntry[1]
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    className: "iwp-table-row"
+  }, logEntry[0]), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    className: "iwp-table-content"
+  }, logEntry[2]))), isLoading && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    colSpan: 2
+  }, "Loading...")), logs.length === 0 && !isLoading && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    colSpan: 2
+  }, "No Logs found.")))))));
 }
 ImporterLogSingle.propTypes = {
   id: (prop_types__WEBPACK_IMPORTED_MODULE_4___default().number).isRequired,
@@ -10904,89 +10325,77 @@ const colStyles = index => {
     width: width
   };
 };
-class ImporterLogTable extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      logs: [],
-      isLoading: true,
-      hasMore: true,
-      page: 0
-    };
-    this.getLog = this.getLog.bind(this);
-  }
-  getLog() {
-    const page = this.state.page + 1;
-    this.setState({
-      isLoading: true,
-      page: page
-    });
+function ImporterLogTable(props) {
+  const [logs, setLogs] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [isLoading, setIsLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const [hasMore, setHasMore] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const [page, setPage] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const scrollBoxRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const isLoadingRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(isLoading);
+  const hasMoreRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(hasMore);
+  const pageRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(page);
+  isLoadingRef.current = isLoading;
+  hasMoreRef.current = hasMore;
+  pageRef.current = page;
+  const getLog = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    const nextPage = pageRef.current + 1;
+    setIsLoading(true);
+    setPage(nextPage);
     const {
       id,
       log
-    } = this.props;
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.log(id, log, page).then(data => {
-      const {
-        logs
-      } = this.state;
-      this.setState({
-        logs: logs.concat(data.logs),
-        isLoading: false,
-        hasMore: data.logs.length > 0
-      });
+    } = props;
+    _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.log(id, log, nextPage).then(data => {
+      setLogs(prevLogs => prevLogs.concat(data.logs));
+      setIsLoading(false);
+      setHasMore(data.logs.length > 0);
     });
-  }
-  componentDidMount() {
-    this.setState({
-      page: 0
-    });
-    this.getLog();
-    const node = this.scrollBox;
+  }, [props.id, props.log]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    setPage(0);
+    pageRef.current = 0;
+    getLog();
+    const node = scrollBoxRef.current;
     if (node) {
-      node.addEventListener('scroll', lodash_debounce__WEBPACK_IMPORTED_MODULE_1___default()(() => {
+      const handleScroll = lodash_debounce__WEBPACK_IMPORTED_MODULE_1___default()(() => {
         window.requestAnimationFrame(() => {
-          // console.log(node.scrollTop, node.scrollHeight - node.clientHeight);
-
-          if (node.scrollTop > node.scrollHeight - node.clientHeight * 2 && this.state.isLoading === false && this.state.hasMore) {
-            this.getLog();
+          if (node.scrollTop > node.scrollHeight - node.clientHeight * 2 && isLoadingRef.current === false && hasMoreRef.current) {
+            getLog();
           }
-
-          // TODO: if we are close to the end, load the next page
-          // this.getLog();
         });
-      }, 100));
+      }, 100);
+      node.addEventListener('scroll', handleScroll);
+      return () => {
+        node.removeEventListener('scroll', handleScroll);
+        handleScroll.cancel();
+        _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.abort('log');
+      };
     }
-  }
-  componentWillUnmount() {
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.abort('log');
-  }
-  render() {
-    const {
-      logs,
-      isLoading
-    } = this.state;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-table__wrapper"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("table", {
-      className: "iwp-table iwp-table--fixed iwp-table--logs"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("thead", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
-      style: colStyles(0)
-    }, "Record"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
-      style: colStyles(1)
-    }, "Message"))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tbody", {
-      ref: scrollBox => this.scrollBox = scrollBox
-    }, logs.map(log => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", {
-      key: log[0] + log[1]
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      className: "iwp-table-row"
-    }, log[0]), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      className: "iwp-table-content"
-    }, log[2]))), isLoading && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      colSpan: 2
-    }, "Loading...")), logs.length === 0 && !isLoading && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      colSpan: 2
-    }, "No Logs found.")))));
-  }
+    return () => {
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.abort('log');
+    };
+  }, [getLog]);
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-table__wrapper"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("table", {
+    className: "iwp-table iwp-table--fixed iwp-table--logs"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("thead", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
+    style: colStyles(0)
+  }, "Record"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
+    style: colStyles(1)
+  }, "Message"))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tbody", {
+    ref: scrollBoxRef
+  }, logs.map(log => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", {
+    key: log[0] + log[1]
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    className: "iwp-table-row"
+  }, log[0]), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    className: "iwp-table-content"
+  }, log[2]))), isLoading && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    colSpan: 2
+  }, "Loading...")), logs.length === 0 && !isLoading && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    colSpan: 2
+  }, "No Logs found.")))));
 }
 ImporterLogTable.propTypes = {
   id: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().number).isRequired,
@@ -11009,15 +10418,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var react_router__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react-router */ "./node_modules/.pnpm/react-router@5.3.4_react@18.3.1/node_modules/react-router/esm/react-router.js");
-/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! prop-types */ "./node_modules/.pnpm/prop-types@15.8.1/node_modules/prop-types/index.js");
-/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var qs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! qs */ "./node_modules/.pnpm/qs@6.16.0/node_modules/qs/lib/index.js");
-/* harmony import */ var qs__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(qs__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var react_router__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! react-router */ "./node_modules/.pnpm/react-router@5.3.4_react@18.3.1/node_modules/react-router/esm/react-router.js");
+/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! prop-types */ "./node_modules/.pnpm/prop-types@15.8.1/node_modules/prop-types/index.js");
+/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var qs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! qs */ "./node_modules/.pnpm/qs@6.16.0/node_modules/qs/lib/index.js");
+/* harmony import */ var qs__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(qs__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _importer_log_archive_ImporterLogArchive__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../importer-log-archive/ImporterLogArchive */ "./src/components/importer-log-archive/ImporterLogArchive.js");
 /* harmony import */ var _importer_log_single_ImporterLogSingle__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../importer-log-single/ImporterLogSingle */ "./src/components/importer-log-single/ImporterLogSingle.js");
-/* harmony import */ var _notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../notice-list/NoticeList */ "./src/components/notice-list/NoticeList.js");
-
 
 
 
@@ -11026,75 +10433,42 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const AJAX_BASE = window.iwp.admin_base;
-class ImporterLogs extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      log: null,
-      isLoading: true
-    };
-    this.setLog = this.setLog.bind(this);
-    this.getActiveLog = this.getActiveLog.bind(this);
-  }
-  getActiveLog() {
+function ImporterLogs(props) {
+  const [log, setLogState] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => {
     const {
-      log
-    } = qs__WEBPACK_IMPORTED_MODULE_4___default().parse(this.props.location.search);
-    this.setState({
-      log: log ? log : null
-    });
-  }
-  setLog(log) {
+      log: logParam
+    } = qs__WEBPACK_IMPORTED_MODULE_3___default().parse(props.location.search);
+    return logParam ? logParam : null;
+  });
+  const setLog = nextLog => {
     const {
       id
-    } = this.props;
-    if (log) {
-      this.props.history.push(AJAX_BASE + '&edit=' + id + '&step=' + 5 + '&log=' + log);
+    } = props;
+    if (nextLog) {
+      props.history.push(AJAX_BASE + '&edit=' + id + '&step=' + 5 + '&log=' + nextLog);
     } else {
-      this.props.history.push(AJAX_BASE + '&edit=' + id + '&step=' + 5);
+      props.history.push(AJAX_BASE + '&edit=' + id + '&step=' + 5);
     }
-    this.setState({
-      log: log ? log : null
-    });
-  }
-  componentDidMount() {
-    this.getActiveLog();
-    this.setState({
-      isLoading: false
-    });
-  }
-  render() {
-    const {
-      id
-    } = this.props;
-    const {
-      log,
-      isLoading
-    } = this.state;
-    if (isLoading) {
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        notices: [{
-          message: 'Loading.',
-          type: 'info'
-        }]
-      });
-    }
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, log === null ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_importer_log_archive_ImporterLogArchive__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      id: id,
-      onSetLog: this.setLog
-    }) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_importer_log_single_ImporterLogSingle__WEBPACK_IMPORTED_MODULE_2__["default"], {
-      id: id,
-      log: log,
-      onSetLog: this.setLog
-    }));
-  }
+    setLogState(nextLog ? nextLog : null);
+  };
+  const {
+    id
+  } = props;
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, log === null ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_importer_log_archive_ImporterLogArchive__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    id: id,
+    onSetLog: setLog
+  }) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_importer_log_single_ImporterLogSingle__WEBPACK_IMPORTED_MODULE_2__["default"], {
+    id: id,
+    log: log,
+    onSetLog: setLog
+  }));
 }
 ImporterLogs.propTypes = {
-  id: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().number),
-  location: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().object),
-  history: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().object)
+  id: (prop_types__WEBPACK_IMPORTED_MODULE_4___default().number),
+  location: (prop_types__WEBPACK_IMPORTED_MODULE_4___default().object),
+  history: (prop_types__WEBPACK_IMPORTED_MODULE_4___default().object)
 };
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((0,react_router__WEBPACK_IMPORTED_MODULE_6__.withRouter)(ImporterLogs));
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((0,react_router__WEBPACK_IMPORTED_MODULE_5__.withRouter)(ImporterLogs));
 
 /***/ }),
 
@@ -11107,7 +10481,7 @@ ImporterLogs.propTypes = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ Modal)
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
@@ -11117,46 +10491,40 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-class Modal extends (react__WEBPACK_IMPORTED_MODULE_0___default().Component) {
-  constructor(props) {
-    super(props);
-    this.onClose = this.onClose.bind(this);
+const Modal = ({
+  onClose,
+  show,
+  children,
+  closable = true,
+  title = 'Importer',
+  loading = false
+}) => {
+  const handleClose = e => {
+    return onClose ? onClose(e) : () => {};
+  };
+  if (!show) {
+    return null;
   }
-  onClose(e) {
-    return this.props.onClose ? this.props.onClose(e) : () => {};
-  }
-  render() {
-    const {
-      show,
-      closable,
-      title,
-      loading
-    } = this.props;
-    if (!show) {
-      return null;
-    }
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-modal"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-modal__backdrop",
-      onClick: closable ? this.onClose : null
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-modal__wrapper"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-modal__inside"
-    }, closable && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "iwp-modal__close",
-      onClick: closable ? this.onClose : null
-    }, "x"), loading && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "spinner is-active"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("h2", {
-      className: "iwp-modal__title"
-    }, title), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-modal__content"
-    }, this.props.children))));
-  }
-}
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-modal"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-modal__backdrop",
+    onClick: closable ? handleClose : null
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-modal__wrapper"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-modal__inside"
+  }, closable && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "iwp-modal__close",
+    onClick: closable ? handleClose : null
+  }, "x"), loading && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "spinner is-active"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("h2", {
+    className: "iwp-modal__title"
+  }, title), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-modal__content"
+  }, children))));
+};
 Modal.propTypes = {
   onClose: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().func).isRequired,
   show: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().bool).isRequired,
@@ -11165,11 +10533,7 @@ Modal.propTypes = {
   title: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().string),
   loading: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().bool)
 };
-Modal.defaultProps = {
-  closable: true,
-  title: 'Importer',
-  loading: false
-};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Modal);
 
 /***/ }),
 
@@ -11190,30 +10554,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_1__);
 
 
-
-class NoticeList extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  render() {
-    const {
-      notices
-    } = this.props;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, notices.length > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-notices"
-    }, notices.map((notice, i) => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      key: `notice-${i}`,
-      className: 'iwp-notice iwp-notice--' + notice.type + ' ' + (notice.dismissed ? 'iwp-notice--dismissed' : 'iwp-notice--visible')
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, notice.message), notice.dismissible && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      onClick: () => this.props.onDismiss(i),
-      title: "Dismiss notice."
-    }, "x")))));
-  }
-}
+const NoticeList = ({
+  notices = [],
+  onDismiss = () => {}
+}) => {
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, notices.length > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-notices"
+  }, notices.map((notice, i) => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    key: `notice-${i}`,
+    className: 'iwp-notice iwp-notice--' + notice.type + ' ' + (notice.dismissed ? 'iwp-notice--dismissed' : 'iwp-notice--visible')
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, notice.message), notice.dismissible && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    onClick: () => onDismiss(i),
+    title: "Dismiss notice."
+  }, "x")))));
+};
 NoticeList.propTypes = {
   notices: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().array),
   onDismiss: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().func)
-};
-NoticeList.defaultProps = {
-  notices: [],
-  onDismiss: () => {}
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (NoticeList);
 
@@ -11328,143 +10685,88 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class PermissionForm extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      create: props.permissions.create && props.permissions.create.enabled == false ? props.permissions.create.enabled : true,
-      create_type: props.permissions.create && props.permissions.create.type ? props.permissions.create.type : '',
-      create_permissions: props.permissions.create && props.permissions.create.fields ? props.permissions.create.fields.join('\n') : '',
-      update: props.permissions.update && props.permissions.update.enabled == false ? props.permissions.update.enabled : true,
-      update_type: props.permissions.update && props.permissions.update.type ? props.permissions.update.type : '',
-      update_permissions: props.permissions.update && props.permissions.update.fields ? props.permissions.update.fields.join('\n') : '',
-      remove: props.permissions.remove && props.permissions.remove.enabled ? props.permissions.remove.enabled : false,
-      remove_trash: props.permissions.remove && props.permissions.remove.trash ? props.permissions.remove.trash : false,
-      remove_media: props.permissions.remove && props.permissions.remove.media ? props.permissions.remove.media : false,
-      setting_unique_identifier: props.permissions.remove && props.settings.unique_identifier ? props.settings.unique_identifier : '',
-      setting_unique_identifier_type: props.settings.unique_identifier_type ? props.settings.unique_identifier_type : '',
-      setting_unique_identifier_ref: props.settings.unique_identifier_ref ? props.settings.unique_identifier_ref : '',
-      saving: false,
-      disabled: true,
-      unique_identifiers: [],
-      permission_fields: [],
-      update_permission_fields: [],
-      create_permission_fields: [],
-      isLoading: false
-    };
-    this.state.update_permission_fields = this.state.update_permissions.split("\n");
-    this.state.create_permission_fields = this.state.create_permissions.split("\n");
-    this.onChange = this.onChange.bind(this);
-    this.save = this.save.bind(this);
-    this.onSave = this.onSave.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-    this.isDisabled = this.isDisabled.bind(this);
-    this.setPermissionFields = this.setPermissionFields.bind(this);
-    this.onUniqueIdentifierTypeChange = this.onUniqueIdentifierTypeChange.bind(this);
-    this.hasNewUniqueIdentifierUI = this.hasNewUniqueIdentifierUI.bind(this);
-  }
-  onChange(event) {
+const PermissionForm = ({
+  id,
+  permissions = {},
+  settings = {},
+  complete,
+  onError = () => {},
+  importer: importerData
+}) => {
+  const initialCreatePermissions = permissions.create && permissions.create.fields ? permissions.create.fields.join('\n') : '';
+  const initialUpdatePermissions = permissions.update && permissions.update.fields ? permissions.update.fields.join('\n') : '';
+  const [create, setCreate] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(permissions.create && permissions.create.enabled == false ? permissions.create.enabled : true);
+  const [create_type, setCreateType] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(permissions.create && permissions.create.type ? permissions.create.type : '');
+  const [create_permissions, setCreatePermissions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialCreatePermissions);
+  const [update, setUpdate] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(permissions.update && permissions.update.enabled == false ? permissions.update.enabled : true);
+  const [update_type, setUpdateType] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(permissions.update && permissions.update.type ? permissions.update.type : '');
+  const [update_permissions, setUpdatePermissions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialUpdatePermissions);
+  const [remove, setRemove] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(permissions.remove && permissions.remove.enabled ? permissions.remove.enabled : false);
+  const [remove_trash, setRemoveTrash] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(permissions.remove && permissions.remove.trash ? permissions.remove.trash : false);
+  const [remove_media, setRemoveMedia] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(permissions.remove && permissions.remove.media ? permissions.remove.media : false);
+  const [setting_unique_identifier, setSettingUniqueIdentifier] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings.unique_identifier ? settings.unique_identifier : '');
+  const [setting_unique_identifier_type, setSettingUniqueIdentifierType] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings.unique_identifier_type ? settings.unique_identifier_type : '');
+  const [setting_unique_identifier_ref, setSettingUniqueIdentifierRef] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings.unique_identifier_ref ? settings.unique_identifier_ref : '');
+  const [saving, setSaving] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [unique_identifiers, setUniqueIdentifiers] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [permission_fields, setPermissionFields] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [update_permission_fields, setUpdatePermissionFields] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialUpdatePermissions.split('\n'));
+  const [create_permission_fields, setCreatePermissionFields] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialCreatePermissions.split('\n'));
+  const [isLoading, setIsLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const hasNewUniqueIdentifierUI = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    const {
+      version = 0
+    } = importerData || {};
+    return version >= 2 || setting_unique_identifier_type;
+  }, [importerData, setting_unique_identifier_type]);
+  const disabled = !((create || update || remove) && (!hasNewUniqueIdentifierUI() || setting_unique_identifier_type == 'field' && setting_unique_identifier || setting_unique_identifier_type == 'custom' && setting_unique_identifier_ref));
+  const onChange = event => {
     const target = event.target;
     let value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
-    this.setState({
-      [name]: value
-    }, this.isDisabled);
-  }
-  isDisabled() {
-    if ((this.state.create || this.state.update || this.state.remove) && (!this.hasNewUniqueIdentifierUI() || this.state.setting_unique_identifier_type == 'field' && this.state.setting_unique_identifier || this.state.setting_unique_identifier_type == 'custom' && this.state.setting_unique_identifier_ref)) {
-      // can save if there are some permissions enabled
-      this.setState({
-        disabled: false
-      });
+    const setters = {
+      create: setCreate,
+      create_type: setCreateType,
+      create_permissions: setCreatePermissions,
+      update: setUpdate,
+      update_type: setUpdateType,
+      update_permissions: setUpdatePermissions,
+      remove: setRemove,
+      remove_trash: setRemoveTrash,
+      remove_media: setRemoveMedia,
+      setting_unique_identifier: setSettingUniqueIdentifier,
+      setting_unique_identifier_type: setSettingUniqueIdentifierType,
+      setting_unique_identifier_ref: setSettingUniqueIdentifierRef
+    };
+    if (setters[name]) {
+      setters[name](value);
+    }
+  };
+  const setPermissionFieldsFn = (section, fields = [], add = true) => {
+    const isUpdate = section == 'update';
+    const current = isUpdate ? update_permission_fields : create_permission_fields;
+    const next = add ? [...current, ...fields] : [...current.filter(item => !fields.includes(item))];
+    if (isUpdate) {
+      setUpdatePermissionFields(next);
     } else {
-      this.setState({
-        disabled: true
-      });
+      setCreatePermissionFields(next);
     }
-  }
-  async componentDidMount() {
-    this.isDisabled();
-    try {
-      this.setState({
-        isLoading: true
-      });
-
-      // Load list of unique identifier fields
-      const unique_identifiers_result = await _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.templateUniqueIdentifiers(this.props.id);
-      let unique_identifiers = unique_identifiers_result.options;
-      if (this.state.setting_unique_identifier.length > 0 && !unique_identifiers.find(item => item.value == this.state.setting_unique_identifier)) {
-        unique_identifiers = [...unique_identifiers, {
-          label: 'Custom: ' + this.state.setting_unique_identifier,
-          value: this.state.setting_unique_identifier
-        }];
+    const joined = next.filter(item => {
+      for (const [key, value] of Object.entries(permission_fields)) {
+        if (Object.keys(value).includes(item)) {
+          return true;
+        }
       }
-      this.setState({
-        unique_identifiers,
-        isLoading: false
-      });
-
-      // load list of permission_fields
-      const template_group = await _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.template(this.props.id);
-      this.setState({
-        permission_fields: template_group.permission_fields
-      });
-    } catch (e) {
-      this.props.onError('Error: ' + e);
-      this.setState({
-        loaded: true
-      });
-      return;
+      return false;
+    }).join('\n');
+    if (isUpdate) {
+      setUpdatePermissions(joined);
+    } else {
+      setCreatePermissions(joined);
     }
-  }
-  componentDidUpdate(prevProps) {
-    if (this.props.permissions.create && prevProps.permissions.create) {
-      const create = this.props.permissions.create.enabled;
-      const prevCreate = prevProps.permissions.create.enabled;
-      if (create !== prevCreate) {
-        this.setState({
-          create: this.props.permissions.create.enabled
-        });
-      }
-    }
-    if (this.props.permissions.update && prevProps.permissions.update) {
-      const update = this.props.permissions.update.enabled;
-      const prevUpdate = prevProps.permissions.update.enabled;
-      if (update !== prevUpdate) {
-        this.setState({
-          update: this.props.permissions.update.enabled
-        });
-      }
-    }
-    if (this.props.permissions.remove && prevProps.permissions.remove) {
-      const remove = this.props.permissions.remove.enabled;
-      const prevRemove = prevProps.permissions.remove.enabled;
-      if (remove !== prevRemove) {
-        this.setState({
-          remove: this.props.permissions.remove.enabled
-        });
-      }
-    }
-  }
-  save(callback = () => {}) {
-    const {
-      id
-    } = this.props;
-    const {
-      create,
-      create_type,
-      create_permissions,
-      update,
-      update_type,
-      update_permissions,
-      remove,
-      remove_trash,
-      remove_media,
-      setting_unique_identifier,
-      setting_unique_identifier_type,
-      setting_unique_identifier_ref
-    } = this.state;
-    const permissions = {
+  };
+  const save = (callback = () => {}) => {
+    const payload = {
       create: {
         enabled: create,
         type: create_type,
@@ -11481,16 +10783,13 @@ class PermissionForm extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
         media: remove_media
       }
     };
-    this.setState({
-      saving: true
-    });
+    setSaving(true);
     let data = {
       id: id,
-      permissions: permissions,
+      permissions: payload,
       setting_unique_identifier: setting_unique_identifier
     };
-    if (this.hasNewUniqueIdentifierUI()) {
-      // save new permission form data
+    if (hasNewUniqueIdentifierUI()) {
       data = {
         ...data,
         setting_unique_identifier_type: setting_unique_identifier_type,
@@ -11498,434 +10797,416 @@ class PermissionForm extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       };
     }
     _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.save(data).then(() => {
-      this.setState({
-        saving: false
-      });
+      setSaving(false);
       callback();
     }).catch(error => {
-      this.props.onError(error);
-      this.setState({
-        saving: false
-      });
+      onError(error);
+      setSaving(false);
     });
-  }
-  onSave() {
-    this.save();
-  }
-  onSubmit() {
-    this.save(() => {
-      this.props.complete();
+  };
+  const onSave = () => {
+    save();
+  };
+  const onSubmit = () => {
+    save(() => {
+      complete();
     });
-  }
-  setPermissionFields(section, fields = [], add = true) {
-    const name = section == 'update' ? 'update_permission_fields' : 'create_permission_fields';
-    const onStateSet = () => {
-      this.setState({
-        [section == 'update' ? 'update_permissions' : 'create_permissions']: this.state[name].filter(item => {
-          for (const [key, value] of Object.entries(this.state.permission_fields)) {
-            if (Object.keys(value).includes(item)) {
-              return true;
-            }
-          }
-          return false;
-        }).join("\n")
-      });
+  };
+  const onUniqueIdentifierTypeChange = e => {
+    setSettingUniqueIdentifierType(e.target.value);
+  };
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        setIsLoading(true);
+        const unique_identifiers_result = await _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.templateUniqueIdentifiers(id);
+        let nextIdentifiers = unique_identifiers_result.options;
+        if (setting_unique_identifier.length > 0 && !nextIdentifiers.find(item => item.value == setting_unique_identifier)) {
+          nextIdentifiers = [...nextIdentifiers, {
+            label: 'Custom: ' + setting_unique_identifier,
+            value: setting_unique_identifier
+          }];
+        }
+        if (!cancelled) {
+          setUniqueIdentifiers(nextIdentifiers);
+          setIsLoading(false);
+        }
+        const template_group = await _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.template(id);
+        if (!cancelled) {
+          setPermissionFields(template_group.permission_fields);
+        }
+      } catch (e) {
+        onError('Error: ' + e);
+      }
     };
-    if (add) {
-      this.setState({
-        [name]: [...this.state[name], ...fields]
-      }, onStateSet);
-    } else {
-      this.setState({
-        [name]: [...this.state[name].filter(item => !fields.includes(item))]
-      }, onStateSet);
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  // Adjust local permission toggles when parent importer permissions change.
+  const [prevPermissions, setPrevPermissions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(permissions);
+  if (permissions !== prevPermissions) {
+    setPrevPermissions(permissions);
+    if (permissions.create) {
+      setCreate(permissions.create.enabled);
+    }
+    if (permissions.update) {
+      setUpdate(permissions.update.enabled);
+    }
+    if (permissions.remove) {
+      setRemove(permissions.remove.enabled);
     }
   }
-  onUniqueIdentifierTypeChange(e) {
-    this.setState({
-      setting_unique_identifier_type: e.target.value
-    }, this.isDisabled);
-  }
-  hasNewUniqueIdentifierUI() {
-    const {
-      version = 0
-    } = this.props.importer;
-    return version >= 2 || this.state.setting_unique_identifier_type;
-  }
-  render() {
-    const {
-      create,
-      create_type,
-      create_permissions,
-      update,
-      update_type,
-      update_permissions,
-      remove,
-      saving,
-      disabled,
-      setting_unique_identifier,
-      remove_trash,
-      remove_media
-    } = this.state;
-    const permission_field_selector = (section, active_fields = []) => {
-      const btn_styles = {
-        background: 'none',
-        border: 'none',
-        textDecoration: 'underline'
-      };
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, Object.keys(this.state.permission_fields).map(group => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, group !== 'core' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-        style: {
-          fontWeight: 'bold'
-        }
-      }, group, " "), "(", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-        style: btn_styles,
-        type: "button",
-        onClick: () => {
-          this.setPermissionFields(section, Object.keys(this.state.permission_fields[group]), true);
-        }
-      }, "Check All"), ",", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-        style: btn_styles,
-        type: "button",
-        onClick: () => {
-          this.setPermissionFields(section, Object.keys(this.state.permission_fields[group]), false);
-        }
-      }, "Uncheck All"), ")"), Object.keys(this.state.permission_fields[group]).map(field => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-        style: {
-          display: 'block'
-        }
-      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-        type: "checkbox",
-        checked: active_fields.includes(field),
-        onChange: () => {
-          this.setPermissionFields(section, [field], !active_fields.includes(field));
-        }
-      }), " ", this.state.permission_fields[group][field])))));
+  const permission_field_selector = (section, active_fields = []) => {
+    const btn_styles = {
+      background: 'none',
+      border: 'none',
+      textDecoration: 'underline'
     };
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form iwp-form--mb"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading iwp-heading--has-tooltip"
-    }, "Permissions. ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
-      href: "https://www.importwp.com/docs/permissions/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer",
-      target: "_blank",
-      className: "iwp-label__tooltip"
-    }, "?")), this.hasNewUniqueIdentifierUI() ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-form__label iwp-label--has-tooltip iwp-label--inline-block",
+    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, Object.keys(permission_fields).map(group => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+      key: group
+    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, group !== 'core' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
       style: {
-        marginBlock: '10px',
-        paddingBottom: 0
+        fontWeight: 'bold'
       }
-    }, "Unique identifier:", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "iwp-label__tooltip",
-      "data-tooltip-id": 'iwp-tooltip_uid_heading'
-    }, "?")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_tooltip__WEBPACK_IMPORTED_MODULE_9__.Tooltip, {
-      id: "iwp-tooltip_uid_heading",
-      effect: "solid",
-      delayHide: 300,
-      className: "iwp-react-tooltip"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Set how each record in the import file should be identified during the import process, either by using a previously populated template field, or by creating a custom identifier made from one or more sections of the import file."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "This unique identifier is then used to either create new records if no match is found, update existing records, or delete records no longer found in the import file"))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-permissions"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-permission__block iwp-permission__block--first"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__handle"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "radio",
-      id: "setting_unique_identifier_type__field",
-      name: "setting_unique_identifier_type",
-      value: "field",
-      defaultChecked: this.state.setting_unique_identifier_type === 'field',
-      onChange: this.onUniqueIdentifierTypeChange
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      htmlFor: "setting_unique_identifier_type__field"
-    }, "Select a template field to be used as the unique identifier for each record.")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__content",
-      style: {
-        display: this.state.setting_unique_identifier_type === 'field' ? 'block' : 'none',
-        paddingBottom: '10px',
-        paddingTop: '10px'
-      }
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      label: "Template Field",
-      field: "setting_unique_identifier",
-      id: "setting_unique_identifier",
-      tooltip: "Select from the predefined list of fields or manually type to a field name."
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_select_creatable__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      id: "setting_unique_identifier",
-      name: "setting_unique_identifier",
-      isClearable: true,
-      isLoading: this.state.isLoading,
-      options: this.state.unique_identifiers,
-      value: this.state.unique_identifiers.find(item => item.value == setting_unique_identifier),
-      onChange: data => {
-        let value = data?.value;
-        if (value) {
-          if (!this.state.unique_identifiers.find(item => item.value == value)) {
-            this.setState({
-              unique_identifiers: [...this.state.unique_identifiers, {
-                label: 'Custom: ' + value,
-                value
-              }]
-            });
-          }
-        } else {
-          value = '';
-        }
-        this.setState({
-          setting_unique_identifier: value
-        }, this.isDisabled);
-      },
-      className: "iwp-form__select",
-      placeholder: "Select a field from the importer template."
-    }), setting_unique_identifier === 'ID' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_8__["default"], {
-      notices: [{
-        message: 'Using ID as the unqiue identifier field will match against existing wordpress ID\'s. Please note that the importer cannot create records with a specific ID and in that case may create duplicate records. (If you want to use ID as a unique identfier and it does not need to match the WordPress ID, i would suggest instead using the "Select data from your import file" option and reference the ID that way). ',
-        type: 'info'
-      }]
-    })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-permission__block"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__handle"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "radio",
-      id: "setting_unique_identifier_type__custom",
-      name: "setting_unique_identifier_type",
-      value: "custom",
-      defaultChecked: this.state.setting_unique_identifier_type === 'custom',
-      onChange: this.onUniqueIdentifierTypeChange
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      htmlFor: "setting_unique_identifier_type__custom"
-    }, "Select data from your import file to be used as the unique identifier per record.")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__content",
-      style: {
-        display: this.state.setting_unique_identifier_type === 'custom' ? 'block' : 'none',
-        paddingBottom: '10px',
-        paddingTop: '10px'
-      }
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      label: "Identifier",
-      id: "setting_unique_identifier_ref",
-      field: "setting_unique_identifier_ref",
-      tooltip: "Select one or more sections of your import file that can be combined to create an identifier for each row / record being imported."
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputField_InputField__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      name: "setting_unique_identifier_ref",
-      value: this.state.setting_unique_identifier_ref,
-      onChange: val => this.setState({
-        setting_unique_identifier_ref: val
-      }, this.isDisabled)
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputFieldDataSelector_InputFieldDataSelector__WEBPACK_IMPORTED_MODULE_7__["default"], {
-      value: this.state.setting_unique_identifier_ref,
-      onClose: selection => {
-        this.setState({
-          setting_unique_identifier_ref: selection !== null ? selection : this.state.setting_unique_identifier_ref
-        }, this.isDisabled);
-      }
-    }))))))) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__grid"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row iwp-form__row--left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      label: "Unique Identifier",
-      field: "setting_unique_identifier",
-      id: "setting_unique_identifier",
-      tooltip: "Set which field should be used to uniquely identify each record, Either select from the predefined list of fields, manually type to set a custom identifier, or Leave empty to use the template default.",
-      display: "inline-block"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_select_creatable__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      id: "setting_unique_identifier",
-      name: "setting_unique_identifier",
-      isClearable: true,
-      isLoading: this.state.isLoading,
-      options: this.state.unique_identifiers,
-      value: this.state.unique_identifiers.find(item => item.value == setting_unique_identifier),
-      onChange: data => {
-        let value = data?.value;
-        if (value) {
-          if (!this.state.unique_identifiers.find(item => item.value == value)) {
-            this.setState({
-              unique_identifiers: [...this.state.unique_identifiers, {
-                label: 'Custom: ' + value,
-                value
-              }]
-            });
-          }
-        } else {
-          value = '';
-        }
-        this.setState({
-          setting_unique_identifier: value
-        }, this.isDisabled);
-      },
-      className: "iwp-form__select",
-      placeholder: "Leave empty to use the templates default."
-    }))), this.state.setting_unique_identifier.length > 0 && this.props.importer.template !== 'jet-engine-cct' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_8__["default"], {
-      notices: [{
-        message: 'Please backup your site database before enabling the new unique identifier Interface, The new unique identifier interface is not required for the importer to still run, and if enabled may change how your importer currently finds existing records.',
-        type: 'error'
-      }]
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    }, group, " "), "(", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+      style: btn_styles,
       type: "button",
-      className: "button button-primary",
       onClick: () => {
-        this.setState({
-          setting_unique_identifier_type: 'field'
-        });
+        setPermissionFieldsFn(section, Object.keys(permission_fields[group]), true);
       }
-    }, "Enable new unique identifier interface"))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-form__label"
-    }, "Restrict which fields can be imported:"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-permissions"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-permission__block iwp-permission__block--create"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__handle"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "checkbox",
-      name: "create",
-      checked: create,
-      onChange: this.onChange
-    }), ' ', "Create - ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Allow the creation of new records when no unique identifer match has been found."))), create && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__content"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Allow / Disallow which fields are imported when a new record is created."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      label: "Import",
-      field: "create_type",
-      id: "create_type"
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
-      id: "create_type",
-      name: "create_type",
-      onChange: this.onChange,
-      value: create_type
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: ""
-    }, "All Fields"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: "include"
-    }, "Only the following Fields"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: "exclude"
-    }, "None of the following Fields")))), create_type !== '' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      label: "Fields",
-      field: "create_permissions",
-      id: "create_permissions"
-      // tooltip="Enter each field name on a new line, use * to match field names. E.g. 'field_name', starts with 'field_*', ends with '*_field', or match all '*'"
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__right"
-    }, Object.keys(this.state.permission_fields).length > 0 && permission_field_selector('create', this.state.create_permission_fields), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("textarea", {
-      id: "create_permissions",
-      name: "create_permissions",
-      onChange: this.onChange,
-      value: create_permissions,
-      style: Object.keys(this.state.permission_fields).length ? {
-        display: 'none'
-      } : {}
-    }))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-permission__block iwp-permission__block--edit"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__handle"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "checkbox",
-      name: "update",
-      checked: update,
-      onChange: this.onChange
-    }), ' ', "Update - ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Allow updating of existing records when a unique identifier match has been found."))), update && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__content"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Restrict which fields are imported when updating existing records."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      label: "Import",
-      field: "update_type",
-      id: "update_type"
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
-      id: "update_type",
-      name: "update_type",
-      onChange: this.onChange,
-      value: update_type
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: ""
-    }, "All Fields"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: "include"
-    }, "Only the following Fields"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: "exclude"
-    }, "None of the following Fields")))), update_type !== '' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      label: "Fields",
-      field: "update_permissions",
-      id: "update_permissions"
-      // tooltip="Enter each field name on a new line, use * to match field names. E.g. 'field_name', starts with 'field_*', ends with '*_field', or match all '*'"
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__right"
-    }, Object.keys(this.state.permission_fields).length > 0 && permission_field_selector('update', this.state.update_permission_fields), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("textarea", {
-      id: "update_permissions",
-      name: "update_permissions",
-      onChange: this.onChange,
-      value: update_permissions,
-      style: Object.keys(this.state.permission_fields).length ? {
-        display: 'none'
-      } : {}
-    }))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-permission__block iwp-permission__block--delete"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__handle"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "checkbox",
-      name: "remove",
-      checked: remove,
-      onChange: this.onChange
-    }), ' ', "Delete -", ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Allow deletion of previously imported records that are no longer in the import file."))), remove && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-block__content"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "checkbox",
-      name: "remove_trash",
-      checked: remove_trash,
-      onChange: this.onChange
-    }), ' ', "Move items to trash - ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Only if trash is enabled"), ".")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "checkbox",
-      name: "remove_media",
-      checked: remove_media,
-      onChange: this.onChange
-    }), ' ', "Remove related media - ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Removes attached media, does not work with trash"), "."))))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__actions"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-buttons"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-secondary",
+    }, "Check All"), ",", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+      style: btn_styles,
       type: "button",
-      onClick: this.onSave,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : 'Save'), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-primary",
-      type: "button",
-      onClick: this.onSubmit,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : 'Save & Continue'))));
-  }
-}
+      onClick: () => {
+        setPermissionFieldsFn(section, Object.keys(permission_fields[group]), false);
+      }
+    }, "Uncheck All"), ")"), Object.keys(permission_fields[group]).map(field => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+      key: field,
+      style: {
+        display: 'block'
+      }
+    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+      type: "checkbox",
+      checked: active_fields.includes(field),
+      onChange: () => {
+        setPermissionFieldsFn(section, [field], !active_fields.includes(field));
+      }
+    }), " ", permission_fields[group][field])))));
+  };
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form iwp-form--mb"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading iwp-heading--has-tooltip"
+  }, "Permissions. ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
+    href: "https://www.importwp.com/docs/permissions/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer",
+    target: "_blank",
+    className: "iwp-label__tooltip"
+  }, "?")), hasNewUniqueIdentifierUI() ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-form__label iwp-label--has-tooltip iwp-label--inline-block",
+    style: {
+      marginBlock: '10px',
+      paddingBottom: 0
+    }
+  }, "Unique identifier:", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "iwp-label__tooltip",
+    "data-tooltip-id": 'iwp-tooltip_uid_heading'
+  }, "?")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_tooltip__WEBPACK_IMPORTED_MODULE_9__.Tooltip, {
+    id: "iwp-tooltip_uid_heading",
+    effect: "solid",
+    delayHide: 300,
+    className: "iwp-react-tooltip"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Set how each record in the import file should be identified during the import process, either by using a previously populated template field, or by creating a custom identifier made from one or more sections of the import file."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "This unique identifier is then used to either create new records if no match is found, update existing records, or delete records no longer found in the import file"))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-permissions"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-permission__block iwp-permission__block--first"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__handle"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "radio",
+    id: "setting_unique_identifier_type__field",
+    name: "setting_unique_identifier_type",
+    value: "field",
+    defaultChecked: setting_unique_identifier_type === 'field',
+    onChange: onUniqueIdentifierTypeChange
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    htmlFor: "setting_unique_identifier_type__field"
+  }, "Select a template field to be used as the unique identifier for each record.")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__content",
+    style: {
+      display: setting_unique_identifier_type === 'field' ? 'block' : 'none',
+      paddingBottom: '10px',
+      paddingTop: '10px'
+    }
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    label: "Template Field",
+    field: "setting_unique_identifier",
+    id: "setting_unique_identifier",
+    tooltip: "Select from the predefined list of fields or manually type to a field name."
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_select_creatable__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    id: "setting_unique_identifier",
+    name: "setting_unique_identifier",
+    isClearable: true,
+    isLoading: isLoading,
+    options: unique_identifiers,
+    value: unique_identifiers.find(item => item.value == setting_unique_identifier),
+    onChange: data => {
+      let value = data?.value;
+      if (value) {
+        if (!unique_identifiers.find(item => item.value == value)) {
+          setUniqueIdentifiers([...unique_identifiers, {
+            label: 'Custom: ' + value,
+            value
+          }]);
+        }
+      } else {
+        value = '';
+      }
+      setSettingUniqueIdentifier(value);
+    },
+    className: "iwp-form__select",
+    placeholder: "Select a field from the importer template."
+  }), setting_unique_identifier === 'ID' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    notices: [{
+      message: 'Using ID as the unqiue identifier field will match against existing wordpress ID\'s. Please note that the importer cannot create records with a specific ID and in that case may create duplicate records. (If you want to use ID as a unique identfier and it does not need to match the WordPress ID, i would suggest instead using the "Select data from your import file" option and reference the ID that way). ',
+      type: 'info'
+    }]
+  })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-permission__block"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__handle"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "radio",
+    id: "setting_unique_identifier_type__custom",
+    name: "setting_unique_identifier_type",
+    value: "custom",
+    defaultChecked: setting_unique_identifier_type === 'custom',
+    onChange: onUniqueIdentifierTypeChange
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    htmlFor: "setting_unique_identifier_type__custom"
+  }, "Select data from your import file to be used as the unique identifier per record.")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__content",
+    style: {
+      display: setting_unique_identifier_type === 'custom' ? 'block' : 'none',
+      paddingBottom: '10px',
+      paddingTop: '10px'
+    }
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    label: "Identifier",
+    id: "setting_unique_identifier_ref",
+    field: "setting_unique_identifier_ref",
+    tooltip: "Select one or more sections of your import file that can be combined to create an identifier for each row / record being imported."
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputField_InputField__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    name: "setting_unique_identifier_ref",
+    value: setting_unique_identifier_ref,
+    onChange: val => setSettingUniqueIdentifierRef(val)
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputFieldDataSelector_InputFieldDataSelector__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    value: setting_unique_identifier_ref,
+    onClose: selection => {
+      setSettingUniqueIdentifierRef(selection !== null ? selection : setting_unique_identifier_ref);
+    }
+  }))))))) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__grid"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row iwp-form__row--left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    label: "Unique Identifier",
+    field: "setting_unique_identifier",
+    id: "setting_unique_identifier",
+    tooltip: "Set which field should be used to uniquely identify each record, Either select from the predefined list of fields, manually type to set a custom identifier, or Leave empty to use the template default.",
+    display: "inline-block"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_select_creatable__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    id: "setting_unique_identifier",
+    name: "setting_unique_identifier",
+    isClearable: true,
+    isLoading: isLoading,
+    options: unique_identifiers,
+    value: unique_identifiers.find(item => item.value == setting_unique_identifier),
+    onChange: data => {
+      let value = data?.value;
+      if (value) {
+        if (!unique_identifiers.find(item => item.value == value)) {
+          setUniqueIdentifiers([...unique_identifiers, {
+            label: 'Custom: ' + value,
+            value
+          }]);
+        }
+      } else {
+        value = '';
+      }
+      setSettingUniqueIdentifier(value);
+    },
+    className: "iwp-form__select",
+    placeholder: "Leave empty to use the templates default."
+  }))), setting_unique_identifier.length > 0 && importerData.template !== 'jet-engine-cct' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    notices: [{
+      message: 'Please backup your site database before enabling the new unique identifier Interface, The new unique identifier interface is not required for the importer to still run, and if enabled may change how your importer currently finds existing records.',
+      type: 'error'
+    }]
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    type: "button",
+    className: "button button-primary",
+    onClick: () => {
+      setSettingUniqueIdentifierType('field');
+    }
+  }, "Enable new unique identifier interface"))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-form__label"
+  }, "Restrict which fields can be imported:"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-permissions"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-permission__block iwp-permission__block--create"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__handle"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "checkbox",
+    name: "create",
+    checked: create,
+    onChange: onChange
+  }), ' ', "Create - ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Allow the creation of new records when no unique identifer match has been found."))), create && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__content"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Allow / Disallow which fields are imported when a new record is created."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    label: "Import",
+    field: "create_type",
+    id: "create_type"
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
+    id: "create_type",
+    name: "create_type",
+    onChange: onChange,
+    value: create_type
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: ""
+  }, "All Fields"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: "include"
+  }, "Only the following Fields"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: "exclude"
+  }, "None of the following Fields")))), create_type !== '' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    label: "Fields",
+    field: "create_permissions",
+    id: "create_permissions"
+    // tooltip="Enter each field name on a new line, use * to match field names. E.g. 'field_name', starts with 'field_*', ends with '*_field', or match all '*'"
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__right"
+  }, Object.keys(permission_fields).length > 0 && permission_field_selector('create', create_permission_fields), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("textarea", {
+    id: "create_permissions",
+    name: "create_permissions",
+    onChange: onChange,
+    value: create_permissions,
+    style: Object.keys(permission_fields).length ? {
+      display: 'none'
+    } : {}
+  }))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-permission__block iwp-permission__block--edit"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__handle"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "checkbox",
+    name: "update",
+    checked: update,
+    onChange: onChange
+  }), ' ', "Update - ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Allow updating of existing records when a unique identifier match has been found."))), update && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__content"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Restrict which fields are imported when updating existing records."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    label: "Import",
+    field: "update_type",
+    id: "update_type"
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
+    id: "update_type",
+    name: "update_type",
+    onChange: onChange,
+    value: update_type
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: ""
+  }, "All Fields"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: "include"
+  }, "Only the following Fields"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: "exclude"
+  }, "None of the following Fields")))), update_type !== '' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    label: "Fields",
+    field: "update_permissions",
+    id: "update_permissions"
+    // tooltip="Enter each field name on a new line, use * to match field names. E.g. 'field_name', starts with 'field_*', ends with '*_field', or match all '*'"
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__right"
+  }, Object.keys(permission_fields).length > 0 && permission_field_selector('update', update_permission_fields), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("textarea", {
+    id: "update_permissions",
+    name: "update_permissions",
+    onChange: onChange,
+    value: update_permissions,
+    style: Object.keys(permission_fields).length ? {
+      display: 'none'
+    } : {}
+  }))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-permission__block iwp-permission__block--delete"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__handle"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "checkbox",
+    name: "remove",
+    checked: remove,
+    onChange: onChange
+  }), ' ', "Delete -", ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Allow deletion of previously imported records that are no longer in the import file."))), remove && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-block__content"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "checkbox",
+    name: "remove_trash",
+    checked: remove_trash,
+    onChange: onChange
+  }), ' ', "Move items to trash - ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Only if trash is enabled"), ".")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "checkbox",
+    name: "remove_media",
+    checked: remove_media,
+    onChange: onChange
+  }), ' ', "Remove related media - ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("em", null, "Removes attached media, does not work with trash"), "."))))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__actions"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-buttons"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-secondary",
+    type: "button",
+    onClick: onSave,
+    disabled: disabled
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : 'Save'), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-primary",
+    type: "button",
+    onClick: onSubmit,
+    disabled: disabled
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : 'Save & Continue'))));
+};
 PermissionForm.propTypes = {
   id: (prop_types__WEBPACK_IMPORTED_MODULE_10___default().number),
   permissions: (prop_types__WEBPACK_IMPORTED_MODULE_10___default().object),
@@ -11933,11 +11214,6 @@ PermissionForm.propTypes = {
   complete: (prop_types__WEBPACK_IMPORTED_MODULE_10___default().func),
   onError: (prop_types__WEBPACK_IMPORTED_MODULE_10___default().func),
   template: (prop_types__WEBPACK_IMPORTED_MODULE_10___default().string)
-};
-PermissionForm.defaultProps = {
-  permissions: {},
-  settings: {},
-  onError: () => {}
 };
 const mapStateToProps = (state, props) => ({
   importer: state.importer.importer
@@ -11964,53 +11240,50 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
 const PLUGIN_URL = window.iwp.plugin_url;
-class PremiumPage extends (react__WEBPACK_IMPORTED_MODULE_0___default().Component) {
-  render() {
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-list iwp-list--premium"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-list__item"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("img", {
-      src: PLUGIN_URL.replace(/\/$/, '') + _iwp_premium_placeholder_png__WEBPACK_IMPORTED_MODULE_2__,
-      className: "iwp-img__responsive"
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item__right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item__content"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("h2", null, "Import into custom Post-Types and Taxonomies"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Import WP PRO allows you to import into any custom post type or taxonomy that has been registered by any WordPress theme or plugin.")))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-list__item iwp-list__item--flip"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("img", {
-      src: PLUGIN_URL.replace(/\/$/, '') + _iwp_premium_placeholder_png__WEBPACK_IMPORTED_MODULE_2__,
-      className: "iwp-img__responsive"
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item__right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item__content"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("h2", null, "Import custom fields."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Unlock the ability to import custom fields into post types, taxonomies, posts, pages and users. We offer some built in manipulation of data, such as image downloading, data serialization, or modify it yourself using WordPress filters.")))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-list__item"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("img", {
-      src: PLUGIN_URL.replace(/\/$/, '') + _iwp_premium_placeholder_png__WEBPACK_IMPORTED_MODULE_2__,
-      className: "iwp-img__responsive"
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item__right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-item__content"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("h2", null, "Schedule imports."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Dont want to run your import right away, you can schedule the import to run at a specific time and run the import on a set interval, allowing you to easily keep your website content upto date."))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-buttons iwp-buttons--center"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
-      href: "https://www.importwp.com/pricing/?utm_source=plugin&utm_medium=upgrade",
-      className: "iwp-button iwp-button--buy"
-    }, "Buy Now")));
-  }
-}
+const PremiumPage = () => {
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-list iwp-list--premium"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-list__item"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("img", {
+    src: PLUGIN_URL.replace(/\/$/, '') + _iwp_premium_placeholder_png__WEBPACK_IMPORTED_MODULE_2__,
+    className: "iwp-img__responsive"
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item__right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item__content"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("h2", null, "Import into custom Post-Types and Taxonomies"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Import WP PRO allows you to import into any custom post type or taxonomy that has been registered by any WordPress theme or plugin.")))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-list__item iwp-list__item--flip"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("img", {
+    src: PLUGIN_URL.replace(/\/$/, '') + _iwp_premium_placeholder_png__WEBPACK_IMPORTED_MODULE_2__,
+    className: "iwp-img__responsive"
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item__right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item__content"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("h2", null, "Import custom fields."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Unlock the ability to import custom fields into post types, taxonomies, posts, pages and users. We offer some built in manipulation of data, such as image downloading, data serialization, or modify it yourself using WordPress filters.")))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-list__item"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("img", {
+    src: PLUGIN_URL.replace(/\/$/, '') + _iwp_premium_placeholder_png__WEBPACK_IMPORTED_MODULE_2__,
+    className: "iwp-img__responsive"
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item__right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-item__content"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("h2", null, "Schedule imports."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Dont want to run your import right away, you can schedule the import to run at a specific time and run the import on a set interval, allowing you to easily keep your website content upto date."))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-buttons iwp-buttons--center"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
+    href: "https://www.importwp.com/pricing/?utm_source=plugin&utm_medium=upgrade",
+    className: "iwp-button iwp-button--buy"
+  }, "Buy Now")));
+};
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (PremiumPage);
 
 /***/ }),
@@ -12048,51 +11321,44 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const ENCODINGS = window.iwp.encodings;
-class PreviewCsvForm extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    var _props$settings$escap;
-    super(props);
-    this.state = {
-      delimiter: props.settings.delimiter,
-      enclosure: props.settings.enclosure,
-      escape: (_props$settings$escap = props.settings.escape) !== null && _props$settings$escap !== void 0 ? _props$settings$escap : '\\',
-      show_headings: props.settings.show_headings,
-      file_encoding: props.settings.file_encoding,
-      processing: false,
-      saving: false,
-      disabled: false
-    };
-    this.onChange = this.onChange.bind(this);
-    this.save = this.save.bind(this);
-    this.onSave = this.onSave.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-    this.isDisabled = this.isDisabled.bind(this);
-    this.isFileProcessed = this.isFileProcessed.bind(this);
-  }
-  onChange(event) {
+function PreviewCsvForm({
+  complete,
+  id,
+  settings = {
+    show_headings: true,
+    delimiter: ',',
+    enclosure: '"',
+    file_encoding: ''
+  },
+  onError = () => {}
+}) {
+  var _settings$escape;
+  const [delimiter, setDelimiter] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings.delimiter);
+  const [enclosure, setEnclosure] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings.enclosure);
+  const [escape, setEscape] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)((_settings$escape = settings.escape) !== null && _settings$escape !== void 0 ? _settings$escape : '\\');
+  const [show_headings, setShowHeadings] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings.show_headings);
+  const [file_encoding, setFileEncoding] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings.file_encoding);
+  const [processing, setProcessing] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [saving, setSaving] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const disabled = delimiter === '' || enclosure === '';
+  const onChange = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(event => {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
-    const name = target.name;
-    this.setState({
-      [name]: value
-    }, () => {
-      this.isDisabled();
-    });
-  }
-  save(callback = () => {}) {
-    this.setState({
-      saving: true
-    });
-    const {
-      id
-    } = this.props;
-    const {
-      delimiter,
-      enclosure,
-      escape,
-      show_headings,
-      file_encoding
-    } = this.state;
+    const fieldName = target.name;
+    if (fieldName === 'delimiter') {
+      setDelimiter(value);
+    } else if (fieldName === 'enclosure') {
+      setEnclosure(value);
+    } else if (fieldName === 'escape') {
+      setEscape(value);
+    } else if (fieldName === 'show_headings') {
+      setShowHeadings(value);
+    } else if (fieldName === 'file_encoding') {
+      setFileEncoding(value);
+    }
+  }, []);
+  const save = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((callback = () => {}) => {
+    setSaving(true);
     _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.save({
       id: id,
       file_settings_delimiter: delimiter,
@@ -12102,225 +11368,176 @@ class PreviewCsvForm extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
       file_settings_setup: true,
       file_settings_encoding: file_encoding
     }).then(() => {
-      this.setState({
-        saving: false
-      });
+      setSaving(false);
       callback();
     }).catch(error => {
-      this.props.onError(error);
-      this.setState({
-        saving: false
-      });
+      onError(error);
+      setSaving(false);
     });
-  }
-  onSave() {
-    this.save();
-  }
-  onSubmit() {
-    this.save(() => {
-      this.props.complete();
+  }, [delimiter, enclosure, escape, file_encoding, id, onError, show_headings]);
+  const onSave = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    save();
+  }, [save]);
+  const onSubmit = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    save(() => {
+      complete();
     });
-  }
-  isDisabled() {
-    if (this.state.delimiter !== '' && this.state.enclosure !== '') {
-      this.setState({
-        disabled: false
-      });
-    } else {
-      this.setState({
-        disabled: true
-      });
-    }
-  }
-  isFileProcessed() {
-    if (this.props.settings.processed === false) {
-      this.setState({
-        processing: true
-      });
-      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.process(this.props.id).promise.then(() => {
-        this.setState({
-          processing: false
-        });
+  }, [complete, save]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (settings.processed === false) {
+      setProcessing(true);
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.process(id).promise.then(() => {
+        setProcessing(false);
       }, error => {
-        this.setState({
-          processing: false
-        });
-        this.props.onError(error);
+        setProcessing(false);
+        onError(error);
       });
     }
-  }
-  componentDidMount() {
-    this.isDisabled();
-    this.isFileProcessed();
-  }
-  render() {
-    const {
-      delimiter,
-      enclosure,
-      escape,
-      show_headings,
-      saving,
-      disabled,
-      processing,
-      file_encoding
-    } = this.state;
-    const {
-      id
-    } = this.props;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, processing && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      notices: [{
-        message: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, "We are Processing your file."),
-        type: 'warn'
-      }]
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading iwp-heading--has-tooltip"
-    }, "File Settings. ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
-      href: "https://www.importwp.com/docs/importer-file-settings/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer",
-      target: "_blank",
-      className: "iwp-label__tooltip"
-    }, "?")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Configure how the importer reads a record from your file, a preview showing the first record is available at the bottom of the page."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FormRow_FormRow__WEBPACK_IMPORTED_MODULE_5__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FormField_FormField__WEBPACK_IMPORTED_MODULE_6__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      label: "Delimiter Character",
-      id: "delimiter",
-      field: "delimiter",
-      tooltip: "The character which separates the CSV record elements.",
-      display: "inline-block"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputField_InputField__WEBPACK_IMPORTED_MODULE_7__["default"], {
-      type: "text",
-      id: "delimiter",
-      className: "iwp-form__input",
-      name: "delimiter",
-      maxLength: 1,
-      onChange: value => this.onChange({
-        target: {
-          name: 'delimiter',
-          value: value
-        }
-      }),
-      value: delimiter
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FormField_FormField__WEBPACK_IMPORTED_MODULE_6__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      label: "Enclosure Character",
-      id: "enclosure",
-      field: "enclosure",
-      tooltip: "The character which is wrapper around the CSV record elements.",
-      display: "inline-block"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputField_InputField__WEBPACK_IMPORTED_MODULE_7__["default"], {
-      type: "text",
-      id: "enclosure",
-      className: "iwp-form__input",
-      name: "enclosure",
-      maxLength: 1,
-      onChange: value => this.onChange({
-        target: {
-          name: 'enclosure',
-          value: value
-        }
-      }),
-      value: enclosure
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FormField_FormField__WEBPACK_IMPORTED_MODULE_6__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      label: "Escape Character",
-      id: "escape",
-      field: "escape",
-      tooltip: "Allow for the use of an extra escape character, alongside the escaping of the enclosure character by doubling it, leave empty to disable.",
-      display: "inline-block"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputField_InputField__WEBPACK_IMPORTED_MODULE_7__["default"], {
-      type: "text",
-      id: "escape",
-      className: "iwp-form__input",
-      maxLength: 1,
-      name: "escape",
-      onChange: value => this.onChange({
-        target: {
-          name: 'escape',
-          value: value
-        }
-      }),
-      value: escape
-    }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__grid"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row iwp-form__row--left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      label: "Column Headings",
-      id: "show_headings",
-      field: "show_headings",
-      tooltip: "Display column headings as numeric index or first row of csv file.",
-      display: "inline-block"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      id: "show_headings",
-      type: "checkbox",
-      name: "show_headings",
-      onChange: this.onChange,
-      checked: show_headings
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      htmlFor: "show_headings"
-    }, "First record is column headings?"))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row iwp-form__row--right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      label: "Encoding",
-      id: "file_encoding",
-      field: "file_encoding",
-      tooltip: "Set the file encoding, check this if you see unexpected ? in the preview text",
-      display: "inline-block"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
-      className: "iwp-form__input",
-      onChange: this.onChange,
-      id: "file_encoding",
-      name: "file_encoding",
-      value: file_encoding
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: ""
-    }, "Default Encoding"), Object.keys(ENCODINGS).map(key => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      key: key,
-      value: key
-    }, ENCODINGS[key]))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      label: "Record CSV Preview"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_record_csv_RecordCsv__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      id: id,
-      file_encoding: file_encoding,
-      show_headings: show_headings,
-      delimiter: delimiter,
-      enclosure: enclosure,
-      escape: escape,
-      onError: this.props.onError
-    })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__actions"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-buttons"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-secondary",
-      type: "button",
-      onClick: this.onSave,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : 'Save'), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-primary",
-      type: "button",
-      onClick: this.onSubmit,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : 'Save & Continue'))));
-  }
+  }, [id, onError, settings.processed]);
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, processing && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    notices: [{
+      message: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, "We are Processing your file."),
+      type: 'warn'
+    }]
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading iwp-heading--has-tooltip"
+  }, "File Settings. ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
+    href: "https://www.importwp.com/docs/importer-file-settings/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer",
+    target: "_blank",
+    className: "iwp-label__tooltip"
+  }, "?")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Configure how the importer reads a record from your file, a preview showing the first record is available at the bottom of the page."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FormRow_FormRow__WEBPACK_IMPORTED_MODULE_5__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FormField_FormField__WEBPACK_IMPORTED_MODULE_6__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    label: "Delimiter Character",
+    id: "delimiter",
+    field: "delimiter",
+    tooltip: "The character which separates the CSV record elements.",
+    display: "inline-block"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputField_InputField__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    type: "text",
+    id: "delimiter",
+    className: "iwp-form__input",
+    name: "delimiter",
+    maxLength: 1,
+    onChange: value => onChange({
+      target: {
+        name: 'delimiter',
+        value: value
+      }
+    }),
+    value: delimiter
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FormField_FormField__WEBPACK_IMPORTED_MODULE_6__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    label: "Enclosure Character",
+    id: "enclosure",
+    field: "enclosure",
+    tooltip: "The character which is wrapper around the CSV record elements.",
+    display: "inline-block"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputField_InputField__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    type: "text",
+    id: "enclosure",
+    className: "iwp-form__input",
+    name: "enclosure",
+    maxLength: 1,
+    onChange: value => onChange({
+      target: {
+        name: 'enclosure',
+        value: value
+      }
+    }),
+    value: enclosure
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_FormField_FormField__WEBPACK_IMPORTED_MODULE_6__["default"], null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    label: "Escape Character",
+    id: "escape",
+    field: "escape",
+    tooltip: "Allow for the use of an extra escape character, alongside the escaping of the enclosure character by doubling it, leave empty to disable.",
+    display: "inline-block"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputField_InputField__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    type: "text",
+    id: "escape",
+    className: "iwp-form__input",
+    maxLength: 1,
+    name: "escape",
+    onChange: value => onChange({
+      target: {
+        name: 'escape',
+        value: value
+      }
+    }),
+    value: escape
+  }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__grid"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row iwp-form__row--left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    label: "Column Headings",
+    id: "show_headings",
+    field: "show_headings",
+    tooltip: "Display column headings as numeric index or first row of csv file.",
+    display: "inline-block"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    id: "show_headings",
+    type: "checkbox",
+    name: "show_headings",
+    onChange: onChange,
+    checked: show_headings
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    htmlFor: "show_headings"
+  }, "First record is column headings?"))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row iwp-form__row--right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    label: "Encoding",
+    id: "file_encoding",
+    field: "file_encoding",
+    tooltip: "Set the file encoding, check this if you see unexpected ? in the preview text",
+    display: "inline-block"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
+    className: "iwp-form__input",
+    onChange: onChange,
+    id: "file_encoding",
+    name: "file_encoding",
+    value: file_encoding
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: ""
+  }, "Default Encoding"), Object.keys(ENCODINGS).map(key => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    key: key,
+    value: key
+  }, ENCODINGS[key]))))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    label: "Record CSV Preview"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_record_csv_RecordCsv__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    id: id,
+    file_encoding: file_encoding,
+    show_headings: show_headings,
+    delimiter: delimiter,
+    enclosure: enclosure,
+    escape: escape,
+    onError: onError
+  })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__actions"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-buttons"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-secondary",
+    type: "button",
+    onClick: onSave,
+    disabled: disabled
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : 'Save'), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-primary",
+    type: "button",
+    onClick: onSubmit,
+    disabled: disabled
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : 'Save & Continue'))));
 }
 PreviewCsvForm.propTypes = {
   complete: (prop_types__WEBPACK_IMPORTED_MODULE_8___default().func),
   id: (prop_types__WEBPACK_IMPORTED_MODULE_8___default().number),
   settings: (prop_types__WEBPACK_IMPORTED_MODULE_8___default().object),
   onError: (prop_types__WEBPACK_IMPORTED_MODULE_8___default().func)
-};
-PreviewCsvForm.defaultProps = {
-  settings: {
-    show_headings: true,
-    delimiter: ',',
-    enclosure: '"',
-    file_encoding: ''
-  },
-  onError: () => {}
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (PreviewCsvForm);
 
@@ -12496,215 +11713,154 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const ENCODINGS = window.iwp.encodings;
-class PreviewJsonForm extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      base_path: props.settings.base_path !== null ? props.settings.base_path : '',
-      nodes: props.settings.nodes,
-      file_encoding: props.settings.file_encoding,
-      processing: false,
-      saving: false,
-      disabled: true
-    };
-    this.onChange = this.onChange.bind(this);
-    this.save = this.save.bind(this);
-    this.onSave = this.onSave.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-    this.isDisabled = this.isDisabled.bind(this);
-    this.isFileProcessed = this.isFileProcessed.bind(this);
+function PreviewJsonForm({
+  complete,
+  id = null,
+  settings = {
+    base_path: '',
+    nodes: {}
+  },
+  onError = () => {}
+}) {
+  const [base_path, setBasePath] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings.base_path !== null ? settings.base_path : '');
+  const [nodes, setNodes] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings.nodes);
+  const [file_encoding, setFileEncoding] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings.file_encoding);
+  const [processing, setProcessing] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [saving, setSaving] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [prevSettings, setPrevSettings] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings);
+  if (settings !== prevSettings) {
+    setPrevSettings(settings);
+    setBasePath(settings.base_path !== null ? settings.base_path : '');
+    setNodes(settings.nodes);
+    setFileEncoding(settings.file_encoding);
   }
-  onChange(event) {
+  const disabled = !base_path;
+  const onChange = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(event => {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
-    const name = target.name;
-    this.setState({
-      [name]: value
-    }, () => {
-      if (this.state.base_path.length > 0) {
-        this.setState({
-          disabled: false
-        });
-      }
-    });
-  }
-  save(callback = () => {}) {
-    this.setState({
-      saving: true
-    });
-    const {
-      id
-    } = this.props;
-    const {
-      base_path,
-      file_encoding
-    } = this.state;
+    const fieldName = target.name;
+    if (fieldName === 'base_path') {
+      setBasePath(value);
+    } else if (fieldName === 'file_encoding') {
+      setFileEncoding(value);
+    }
+  }, []);
+  const save = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((callback = () => {}) => {
+    setSaving(true);
     _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.save({
       id: id,
       file_settings_base_path: base_path,
       file_settings_setup: true,
       file_settings_encoding: file_encoding
     }).then(() => {
-      this.setState({
-        saving: false
-      });
+      setSaving(false);
       callback();
     }).catch(error => {
-      this.props.onError(error);
-      this.setState({
-        saving: false
-      });
+      onError(error);
+      setSaving(false);
     });
-  }
-  onSave() {
-    this.save();
-  }
-  onSubmit() {
-    this.save(() => {
-      this.props.complete();
+  }, [base_path, file_encoding, id, onError]);
+  const onSave = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    save();
+  }, [save]);
+  const onSubmit = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    save(() => {
+      complete();
     });
-  }
-  isDisabled() {
-    if (this.state.base_path) {
-      this.setState({
-        disabled: false
-      });
-    } else {
-      this.setState({
-        disabled: true
-      });
+  }, [complete, save]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (settings.processed === false) {
+      setProcessing(true);
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.process(id).promise.then(() => {
+        setProcessing(false);
+      }, error => onError(error));
     }
-  }
-  isFileProcessed() {
-    if (this.props.settings.processed === false) {
-      this.setState({
-        processing: true
-      });
-      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.process(this.props.id).promise.then(() => {
-        this.setState({
-          processing: false
-        });
-      }, error => this.props.onError(error));
-    }
-  }
-  componentDidMount() {
-    this.isDisabled();
-    this.isFileProcessed();
-  }
-  componentDidUpdate(prevProps) {
-    if (this.props.settings.processed !== prevProps.settings.processed) {
-      this.setState({
-        base_path: this.props.settings.base_path,
-        nodes: this.props.settings.nodes
-      });
-    }
-  }
-  render() {
-    const {
-      disabled,
-      saving,
-      base_path,
-      nodes,
-      processing,
-      file_encoding
-    } = this.state;
-    const {
-      id
-    } = this.props;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, processing && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      notices: [{
-        message: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, "We are Processing your file."),
-        type: 'warn'
-      }]
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading iwp-heading--has-tooltip"
-    }, "File Settings.", ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
-      href: "https://www.importwp.com/docs/importer-file-settings/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer",
-      target: "_blank",
-      rel: "noreferrer",
-      className: "iwp-label__tooltip"
-    }, "?")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Configure how the importer reads a record from your file, a preview showing the first record is available at the bottom of the page."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      label: "Base Path",
-      id: "base_path",
-      field: "base_path",
-      tooltip: "This Record Base is the path to the JSON array of records that you want to import. Use / for a root array.",
-      display: "inline-block"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
-      className: "iwp-form__input",
-      onChange: this.onChange,
-      id: "base_path",
-      name: "base_path",
-      value: base_path
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: ""
-    }, "Choose a record base."), nodes && Object.keys(nodes).map(key => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      key: key,
-      value: key
-    }, key)))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      label: "Encoding",
-      id: "file_encoding",
-      field: "file_encoding",
-      tooltip: "Set the file encoding, check this if you see unexpected ? in the preview text",
-      display: "inline-block"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
-      className: "iwp-form__input",
-      onChange: this.onChange,
-      id: "file_encoding",
-      name: "file_encoding",
-      value: file_encoding
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: ""
-    }, "Default Encoding"), Object.keys(ENCODINGS).map(key => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      key: key,
-      value: key
-    }, ENCODINGS[key])))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      className: "iwp-form__label"
-    }, "Record JSON Preview:"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_record_json_RecordJson__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      id: id,
-      base_path: base_path,
-      onError: this.props.onError
-    })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__actions"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-buttons"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-secondary",
-      type: "button",
-      onClick: this.onSave,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : 'Save'), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-primary",
-      type: "button",
-      onClick: this.onSubmit,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : 'Save & Continue'))));
-  }
+  }, [id, onError, settings.processed]);
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, processing && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    notices: [{
+      message: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, "We are Processing your file."),
+      type: 'warn'
+    }]
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading iwp-heading--has-tooltip"
+  }, "File Settings.", ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
+    href: "https://www.importwp.com/docs/importer-file-settings/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer",
+    target: "_blank",
+    rel: "noreferrer",
+    className: "iwp-label__tooltip"
+  }, "?")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Configure how the importer reads a record from your file, a preview showing the first record is available at the bottom of the page."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    label: "Base Path",
+    id: "base_path",
+    field: "base_path",
+    tooltip: "This Record Base is the path to the JSON array of records that you want to import. Use / for a root array.",
+    display: "inline-block"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
+    className: "iwp-form__input",
+    onChange: onChange,
+    id: "base_path",
+    name: "base_path",
+    value: base_path
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: ""
+  }, "Choose a record base."), nodes && Object.keys(nodes).map(key => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    key: key,
+    value: key
+  }, key)))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    label: "Encoding",
+    id: "file_encoding",
+    field: "file_encoding",
+    tooltip: "Set the file encoding, check this if you see unexpected ? in the preview text",
+    display: "inline-block"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
+    className: "iwp-form__input",
+    onChange: onChange,
+    id: "file_encoding",
+    name: "file_encoding",
+    value: file_encoding
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: ""
+  }, "Default Encoding"), Object.keys(ENCODINGS).map(key => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    key: key,
+    value: key
+  }, ENCODINGS[key])))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    className: "iwp-form__label"
+  }, "Record JSON Preview:"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_record_json_RecordJson__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    id: id,
+    base_path: base_path,
+    onError: onError
+  })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__actions"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-buttons"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-secondary",
+    type: "button",
+    onClick: onSave,
+    disabled: disabled
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : 'Save'), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-primary",
+    type: "button",
+    onClick: onSubmit,
+    disabled: disabled
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : 'Save & Continue'))));
 }
 PreviewJsonForm.propTypes = {
   complete: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().func),
   id: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().number),
   settings: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().object),
   onError: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().func)
-};
-PreviewJsonForm.defaultProps = {
-  id: null,
-  settings: {
-    base_path: '',
-    nodes: {}
-  },
-  onError: () => {}
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (PreviewJsonForm);
 
@@ -12737,214 +11893,155 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const ENCODINGS = window.iwp.encodings;
-class PreviewXmlForm extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      base_path: props.settings.base_path !== null ? props.settings.base_path : '',
-      nodes: props.settings.nodes,
-      file_encoding: props.settings.file_encoding,
-      processing: false,
-      saving: false,
-      disabled: true
-    };
-    this.onChange = this.onChange.bind(this);
-    this.save = this.save.bind(this);
-    this.onSave = this.onSave.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-    this.isDisabled = this.isDisabled.bind(this);
-    this.isFileProcessed = this.isFileProcessed.bind(this);
+function PreviewXmlForm({
+  complete,
+  id = null,
+  settings = {
+    base_path: '',
+    nodes: {}
+  },
+  onError = () => {}
+}) {
+  const [base_path, setBasePath] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings.base_path !== null ? settings.base_path : '');
+  const [nodes, setNodes] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings.nodes);
+  const [file_encoding, setFileEncoding] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings.file_encoding);
+  const [processing, setProcessing] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [saving, setSaving] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [prevSettings, setPrevSettings] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(settings);
+
+  // Keep editable fields in sync when parent settings change (e.g. after processing).
+  if (settings !== prevSettings) {
+    setPrevSettings(settings);
+    setBasePath(settings.base_path !== null ? settings.base_path : '');
+    setNodes(settings.nodes);
+    setFileEncoding(settings.file_encoding);
   }
-  onChange(event) {
+  const disabled = !base_path;
+  const onChange = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(event => {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
-    const name = target.name;
-    this.setState({
-      [name]: value
-    }, () => {
-      if (this.state.base_path.length > 0) {
-        this.setState({
-          disabled: false
-        });
-      }
-    });
-  }
-  save(callback = () => {}) {
-    this.setState({
-      saving: true
-    });
-    const {
-      id
-    } = this.props;
-    const {
-      base_path,
-      file_encoding
-    } = this.state;
+    const fieldName = target.name;
+    if (fieldName === 'base_path') {
+      setBasePath(value);
+    } else if (fieldName === 'file_encoding') {
+      setFileEncoding(value);
+    }
+  }, []);
+  const save = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((callback = () => {}) => {
+    setSaving(true);
     _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.save({
       id: id,
       file_settings_base_path: base_path,
       file_settings_setup: true,
       file_settings_encoding: file_encoding
     }).then(() => {
-      this.setState({
-        saving: false
-      });
+      setSaving(false);
       callback();
     }).catch(error => {
-      this.props.onError(error);
-      this.setState({
-        saving: false
-      });
+      onError(error);
+      setSaving(false);
     });
-  }
-  onSave() {
-    this.save();
-  }
-  onSubmit() {
-    this.save(() => {
-      this.props.complete();
+  }, [base_path, file_encoding, id, onError]);
+  const onSave = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    save();
+  }, [save]);
+  const onSubmit = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    save(() => {
+      complete();
     });
-  }
-  isDisabled() {
-    if (this.state.base_path) {
-      this.setState({
-        disabled: false
-      });
-    } else {
-      this.setState({
-        disabled: true
-      });
+  }, [complete, save]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (settings.processed === false) {
+      setProcessing(true);
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.process(id).promise.then(() => {
+        setProcessing(false);
+      }, error => onError(error));
     }
-  }
-  isFileProcessed() {
-    if (this.props.settings.processed === false) {
-      this.setState({
-        processing: true
-      });
-      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.process(this.props.id).promise.then(() => {
-        this.setState({
-          processing: false
-        });
-      }, error => this.props.onError(error));
-    }
-  }
-  componentDidMount() {
-    this.isDisabled();
-    this.isFileProcessed();
-  }
-  componentDidUpdate(prevProps) {
-    if (this.props.settings.processed !== prevProps.settings.processed) {
-      this.setState({
-        base_path: this.props.settings.base_path,
-        nodes: this.props.settings.nodes
-      });
-    }
-  }
-  render() {
-    const {
-      disabled,
-      saving,
-      base_path,
-      nodes,
-      processing,
-      file_encoding
-    } = this.state;
-    const {
-      id
-    } = this.props;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, processing && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      notices: [{
-        message: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, "We are Processing your file."),
-        type: 'warn'
-      }]
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading iwp-heading--has-tooltip"
-    }, "File Settings. ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
-      href: "https://www.importwp.com/docs/importer-file-settings/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer",
-      target: "_blank",
-      className: "iwp-label__tooltip"
-    }, "?")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Configure how the importer reads a record from your file, a preview showing the first record is available at the bottom of the page."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      label: "Base Path",
-      id: "base_path",
-      field: "base_path",
-      tooltip: "This Record Base is the path to the XML records that you want to import.",
-      display: "inline-block"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
-      className: "iwp-form__input",
-      onChange: this.onChange,
-      id: "base_path",
-      name: "base_path",
-      value: base_path
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: ""
-    }, "Choose a record base."), nodes && Object.keys(nodes).map(key => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      key: key,
-      value: key
-    }, key)))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      label: "Encoding",
-      id: "file_encoding",
-      field: "file_encoding",
-      tooltip: "Set the file encoding, check this if you see unexpected ? in the preview text",
-      display: "inline-block"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
-      className: "iwp-form__input",
-      onChange: this.onChange,
-      id: "file_encoding",
-      name: "file_encoding",
-      value: file_encoding
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      value: ""
-    }, "Default Encoding"), Object.keys(ENCODINGS).map(key => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-      key: key,
-      value: key
-    }, ENCODINGS[key])))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      className: "iwp-form__label"
-    }, "Record XML Preview:"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_record_xml_RecordXml__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      id: id,
-      base_path: base_path,
-      onError: this.props.onError
-    })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__actions"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-buttons"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-secondary",
-      type: "button",
-      onClick: this.onSave,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : 'Save'), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-primary",
-      type: "button",
-      onClick: this.onSubmit,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : 'Save & Continue'))));
-  }
+  }, [id, onError, settings.processed]);
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, processing && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    notices: [{
+      message: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, "We are Processing your file."),
+      type: 'warn'
+    }]
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading iwp-heading--has-tooltip"
+  }, "File Settings. ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("a", {
+    href: "https://www.importwp.com/docs/importer-file-settings/?utm_campaign=support%2Bdocs&utm_source=Import%2BWP%2BFree&utm_medium=importer",
+    target: "_blank",
+    className: "iwp-label__tooltip"
+  }, "?")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Configure how the importer reads a record from your file, a preview showing the first record is available at the bottom of the page."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    label: "Base Path",
+    id: "base_path",
+    field: "base_path",
+    tooltip: "This Record Base is the path to the XML records that you want to import.",
+    display: "inline-block"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
+    className: "iwp-form__input",
+    onChange: onChange,
+    id: "base_path",
+    name: "base_path",
+    value: base_path
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: ""
+  }, "Choose a record base."), nodes && Object.keys(nodes).map(key => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    key: key,
+    value: key
+  }, key)))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    label: "Encoding",
+    id: "file_encoding",
+    field: "file_encoding",
+    tooltip: "Set the file encoding, check this if you see unexpected ? in the preview text",
+    display: "inline-block"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("select", {
+    className: "iwp-form__input",
+    onChange: onChange,
+    id: "file_encoding",
+    name: "file_encoding",
+    value: file_encoding
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    value: ""
+  }, "Default Encoding"), Object.keys(ENCODINGS).map(key => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+    key: key,
+    value: key
+  }, ENCODINGS[key])))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    className: "iwp-form__label"
+  }, "Record XML Preview:"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_record_xml_RecordXml__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    id: id,
+    base_path: base_path,
+    onError: onError
+  })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__actions"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-buttons"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-secondary",
+    type: "button",
+    onClick: onSave,
+    disabled: disabled
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : 'Save'), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-primary",
+    type: "button",
+    onClick: onSubmit,
+    disabled: disabled
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : 'Save & Continue'))));
 }
 PreviewXmlForm.propTypes = {
   complete: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().func),
   id: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().number),
   settings: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().object),
   onError: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().func)
-};
-PreviewXmlForm.defaultProps = {
-  id: null,
-  settings: {
-    base_path: '',
-    nodes: {}
-  },
-  onError: () => {}
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (PreviewXmlForm);
 
@@ -12969,33 +12066,27 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-class ProgressBar extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  render() {
-    const {
-      progress,
-      text
-    } = this.props;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-progress__wrapper"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-progress__inner"
-    }, text && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-progress__text"
-    }, text), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-progress__bar",
-      style: {
-        width: progress + '%'
-      }
-    })));
-  }
-}
+const ProgressBar = ({
+  progress = -1,
+  text
+}) => {
+  const progressValue = Number(progress);
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-progress__wrapper"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-progress__inner"
+  }, text && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-progress__text"
+  }, text), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-progress__bar",
+    style: {
+      width: progressValue + '%'
+    }
+  })));
+};
 ProgressBar.propTypes = {
   progress: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().number),
   text: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().string)
-};
-ProgressBar.defaultProps = {
-  progress: -1
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (ProgressBar);
 
@@ -13024,34 +12115,70 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class RecordCsv extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      loading: true,
-      headings: [],
-      row: [],
-      error: false
-    };
-    this.getPreview = lodash_debounce__WEBPACK_IMPORTED_MODULE_1___default()(this.getPreview, 300);
-    this.display = this.display.bind(this);
-    this.displayNodeClick = this.displayNodeClick.bind(this);
+const RecordCsv = ({
+  id,
+  onSelect = () => {},
+  show_headings = true,
+  delimiter,
+  enclosure,
+  escape,
+  onError = () => {},
+  file_encoding = ''
+}) => {
+  const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const [headings, setHeadings] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [row, setRow] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [error, setError] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const propsRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)();
+  propsRef.current = {
+    id,
+    delimiter,
+    enclosure,
+    escape,
+    show_headings,
+    file_encoding,
+    onError
+  };
+  const getPreviewRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)();
+  if (!getPreviewRef.current) {
+    getPreviewRef.current = lodash_debounce__WEBPACK_IMPORTED_MODULE_1___default()(() => {
+      const current = propsRef.current;
+      if (current.id && current.delimiter && current.enclosure) {
+        const data = {
+          delimiter: current.delimiter,
+          enclosure: current.enclosure,
+          escape: current.escape,
+          show_headings: current.show_headings,
+          file_encoding: current.file_encoding
+        };
+        setError(false);
+        _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.filePreview(current.id, data).then(record => {
+          if (record.headings.length == record.row.length) {
+            setHeadings(record.headings);
+            setRow(record.row);
+          } else {
+            setHeadings([]);
+            setRow([]);
+            setError(`Inconsistent num of fields, header: ${record.headings.length}, this line: ${record.row.length} `);
+          }
+        }).catch(e => {
+          setHeadings([]);
+          setRow([]);
+          setError(e);
+          current.onError(e);
+        }).finally(() => {
+          setLoading(false);
+        });
+      }
+    }, 300);
   }
-  displayNodeClick(content, xpath = '') {
+  const displayNodeClick = (content, xpath = '') => {
     return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
       title: xpath,
-      onClick: () => this.props.onSelect(xpath)
+      onClick: () => onSelect(xpath)
     }, content.length > 0 ? content : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, "\xA0"));
-  }
-  display() {
-    const {
-      show_headings
-    } = this.props;
-    const {
-      headings,
-      row,
-      error
-    } = this.state;
+  };
+  const display = () => {
     if (error) {
       return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tbody", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
         colspan: "2"
@@ -13059,97 +12186,25 @@ class RecordCsv extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
     }
     return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tbody", null, headings.map((heading, index) => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", {
       key: index
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", null, this.displayNodeClick(false === show_headings ? index : heading, '{' + index + '}')), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", null, this.displayNodeClick(row[index], '{' + index + '}')))));
-  }
-  getPreview() {
-    if (this.props.id && this.props.delimiter && this.props.enclosure) {
-      const {
-        id
-      } = this.props;
-      const data = {
-        delimiter: this.props.delimiter,
-        enclosure: this.props.enclosure,
-        escape: this.props.escape,
-        show_headings: this.props.show_headings,
-        file_encoding: this.props.file_encoding
-      };
-      this.setState({
-        error: false
-      });
-      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.filePreview(id, data).then(record => {
-        if (record.headings.length == record.row.length) {
-          this.setState({
-            headings: record.headings,
-            row: record.row
-          });
-        } else {
-          this.setState({
-            headings: [],
-            row: [],
-            error: `Inconsistent num of fields, header: ${record.headings.length}, this line: ${record.row.length} `
-          });
-        }
-      }).catch(e => {
-        this.setState({
-          headings: [],
-          row: [],
-          error: e
-        });
-        this.props.onError(e);
-      }).finally(() => {
-        this.setState({
-          loading: false
-        });
-      });
-    }
-  }
-  componentDidMount() {
-    this.getPreview();
-  }
-  componentDidUpdate(prevProps) {
-    let reload = false;
-    if (prevProps.delimiter !== this.props.delimiter && this.props.delimiter !== '') {
-      reload = true;
-    }
-    if (prevProps.enclosure !== this.props.enclosure && this.props.enclosure !== '') {
-      reload = true;
-    }
-    if (prevProps.escape !== this.props.escape) {
-      reload = true;
-    }
-    if (prevProps.file_encoding !== this.props.file_encoding) {
-      reload = true;
-    }
-    if (prevProps.show_headings !== this.props.show_headings) {
-      reload = true;
-    }
-    if (reload) {
-      this.setState({
-        loading: true
-      });
-      this.getPreview();
-    }
-  }
-  componentWillUnmount() {
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.abort();
-  }
-  render() {
-    const {
-      show_headings
-    } = this.props;
-    const {
-      loading
-    } = this.state;
-    const record = this.display();
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-preview iwp-preview--csv"
-    }, loading ? 'Loading' : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("table", {
-      border: "1",
-      cellPadding: "0",
-      cellSpacing: "0"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("thead", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, false === show_headings ? 'Column Number' : 'Heading')), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Value")))), record));
-  }
-}
+    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", null, displayNodeClick(false === show_headings ? index : heading, '{' + index + '}')), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", null, displayNodeClick(row[index], '{' + index + '}')))));
+  };
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    setLoading(true);
+    getPreviewRef.current();
+    return () => {
+      getPreviewRef.current.cancel();
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.abort();
+    };
+  }, [delimiter, enclosure, escape, file_encoding, show_headings, id]);
+  const record = display();
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-preview iwp-preview--csv"
+  }, loading ? 'Loading' : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("table", {
+    border: "1",
+    cellPadding: "0",
+    cellSpacing: "0"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("thead", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, false === show_headings ? 'Column Number' : 'Heading')), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Value")))), record));
+};
 RecordCsv.propTypes = {
   id: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().number),
   onSelect: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().func),
@@ -13158,12 +12213,6 @@ RecordCsv.propTypes = {
   enclosure: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().string),
   onError: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().func),
   file_encoding: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().string)
-};
-RecordCsv.defaultProps = {
-  file_encoding: '',
-  show_headings: true,
-  onSelect: () => {},
-  onError: () => {}
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (RecordCsv);
 
@@ -13192,93 +12241,67 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class RecordJson extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      loading: true,
-      record: null
-    };
-    this.getPreview = lodash_debounce__WEBPACK_IMPORTED_MODULE_1___default()(this.getPreview, 300);
-  }
-  displayNodeClick(content, xpath = '') {
+const RecordJson = ({
+  id,
+  onSelect = () => {},
+  base_path,
+  onError = () => {}
+}) => {
+  const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const [record, setRecord] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const displayNodeClick = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((content, xpath = '') => {
     return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
       title: xpath,
-      onClick: () => this.props.onSelect(xpath),
+      onClick: () => onSelect(xpath),
       dangerouslySetInnerHTML: {
         __html: content
       }
     });
-  }
-  displayNode(currentNode) {
+  }, [onSelect]);
+  const displayNode = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(currentNode => {
     const node_name = currentNode.node;
     const node_xpath = currentNode.xpath ? '{' + currentNode.xpath + '}' : '';
     if (currentNode.type === 'text') {
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", null, this.displayNodeClick(currentNode.value, node_xpath));
+      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", null, displayNodeClick(currentNode.value, node_xpath));
     }
     const hasChildren = Array.isArray(currentNode.value);
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", null, this.displayNodeClick('"' + node_name + '"', node_xpath), hasChildren ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, this.displayNodeClick(': {', node_xpath), currentNode.value.length > 0 ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", null, currentNode.value.map((node, i) => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), {
+    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", null, displayNodeClick('"' + node_name + '"', node_xpath), hasChildren ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, displayNodeClick(': {', node_xpath), currentNode.value.length > 0 ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", null, currentNode.value.map((node, i) => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
       key: i
-    }, this.displayNode(node)))) : null, this.displayNodeClick('}', node_xpath)) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, this.displayNodeClick(': ', node_xpath), this.displayNodeClick(typeof currentNode.value === 'string' ? '"' + currentNode.value + '"' : String(currentNode.value), node_xpath)));
-  }
-  getPreview() {
-    if (this.props.id && this.props.base_path) {
-      this.setState({
-        loading: true
-      });
-      const {
-        id
-      } = this.props;
-      const data = {
-        base_path: this.props.base_path
-      };
-      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.filePreview(id, data).then(record => {
-        this.setState({
-          record: record
-        });
-      }).catch(e => this.props.onError(e)).finally(() => {
-        this.setState({
-          loading: false
-        });
+    }, displayNode(node)))) : null, displayNodeClick('}', node_xpath)) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, displayNodeClick(': ', node_xpath), displayNodeClick(typeof currentNode.value === 'string' ? '"' + currentNode.value + '"' : String(currentNode.value), node_xpath)));
+  }, [displayNodeClick]);
+  const getPreview = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => lodash_debounce__WEBPACK_IMPORTED_MODULE_1___default()(() => {
+    if (id && base_path) {
+      setLoading(true);
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.filePreview(id, {
+        base_path
+      }).then(nextRecord => {
+        setRecord(nextRecord);
+      }).catch(e => onError(e)).finally(() => {
+        setLoading(false);
       });
     } else {
-      this.setState({
-        loading: false,
-        record: null
-      });
+      setLoading(false);
+      setRecord(null);
     }
-  }
-  componentDidMount() {
-    this.getPreview();
-  }
-  componentDidUpdate(prevProps) {
-    if (prevProps.base_path !== this.props.base_path) {
-      this.setState({
-        loading: true
-      });
-      this.getPreview();
-    }
-  }
-  render() {
-    const {
-      loading,
-      record
-    } = this.state;
-    const output = record ? this.displayNode(record) : 'No data to preview, please try changing the base_path.';
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-preview iwp-preview--json"
-    }, loading ? 'Loading' : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", null, output));
-  }
-}
+  }, 300), [id, base_path, onError]);
+  const getPreviewRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(getPreview);
+  getPreviewRef.current = getPreview;
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    getPreviewRef.current();
+    return () => {
+      getPreviewRef.current.cancel();
+    };
+  }, [id, base_path]);
+  const output = record ? displayNode(record) : 'No data to preview, please try changing the base_path.';
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-preview iwp-preview--json"
+  }, loading ? 'Loading' : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", null, output));
+};
 RecordJson.propTypes = {
   id: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().number),
   onSelect: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().func),
   base_path: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().string),
   onError: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().func)
-};
-RecordJson.defaultProps = {
-  onSelect: () => {},
-  onError: () => {}
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (RecordJson);
 
@@ -13307,102 +12330,72 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class RecordXml extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      loading: true,
-      record: null
-    };
-    this.getPreview = lodash_debounce__WEBPACK_IMPORTED_MODULE_1___default()(this.getPreview, 300);
-  }
-  displayNodeClick(content, xpath = "") {
+const RecordXml = ({
+  id,
+  onSelect = () => {},
+  base_path,
+  onError = () => {}
+}) => {
+  const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const [record, setRecord] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const displayNodeClick = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((content, xpath = '') => {
     return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
       title: xpath,
-      onClick: () => this.props.onSelect(xpath),
+      onClick: () => onSelect(xpath),
       dangerouslySetInnerHTML: {
         __html: content
       }
     });
-  }
-  displayNodeAttributes(attributes) {
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, typeof attributes === "object" && attributes.map(attribute => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), {
+  }, [onSelect]);
+  const displayNodeAttributes = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(attributes => {
+    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, typeof attributes === 'object' && attributes.map(attribute => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
       key: attribute.name
-    }, " ", this.displayNodeClick(attribute.name + '="' + attribute.value + '"', "{" + attribute.xpath + "}"))));
-  }
-  displayNode(currentNode) {
+    }, ' ', displayNodeClick(attribute.name + '="' + attribute.value + '"', '{' + attribute.xpath + '}'))));
+  }, [displayNodeClick]);
+  const displayNode = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(currentNode => {
     const node_name = currentNode.node;
-    const node_xpath = currentNode.xpath ? "{" + currentNode.xpath + "}" : "";
-    if (currentNode.type === "text") {
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", null, this.displayNodeClick(currentNode.value, node_xpath));
+    const node_xpath = currentNode.xpath ? '{' + currentNode.xpath + '}' : '';
+    if (currentNode.type === 'text') {
+      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", null, displayNodeClick(currentNode.value, node_xpath));
     }
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", null, this.displayNodeClick("&lt;" + node_name, node_xpath), this.displayNodeAttributes(currentNode.attr), this.displayNodeClick("&gt;", node_xpath), typeof currentNode.value === "object" ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", {
-      className: Object.keys(currentNode.value).length === 1 && currentNode.value["0"] && currentNode.value["0"].type ? "iwp-preview__" + currentNode.value["0"].type : ""
-    }, currentNode.value.map((node, i) => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), {
+    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", null, displayNodeClick('&lt;' + node_name, node_xpath), displayNodeAttributes(currentNode.attr), displayNodeClick('&gt;', node_xpath), typeof currentNode.value === 'object' ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", {
+      className: Object.keys(currentNode.value).length === 1 && currentNode.value['0'] && currentNode.value['0'].type ? 'iwp-preview__' + currentNode.value['0'].type : ''
+    }, currentNode.value.map((node, i) => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
       key: i
-    }, this.displayNode(node)))) : this.displayNodeClick(currentNode.value, node_xpath), this.displayNodeClick("&lt;/" + node_name + "&gt;</li>", node_xpath));
-  }
-  getPreview() {
-    if (this.props.id && this.props.base_path) {
-      this.setState({
-        loading: true
-      });
-      const {
-        id
-      } = this.props;
-      const data = {
-        base_path: this.props.base_path
-      };
-      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.filePreview(id, data).then(record => {
-        this.setState({
-          record: record
-        });
-      }).catch(e => this.props.onError(e)).finally(() => {
-        this.setState({
-          loading: false
-        });
+    }, displayNode(node)))) : displayNodeClick(currentNode.value, node_xpath), displayNodeClick('&lt;/' + node_name + '&gt;</li>', node_xpath));
+  }, [displayNodeAttributes, displayNodeClick]);
+  const getPreview = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => lodash_debounce__WEBPACK_IMPORTED_MODULE_1___default()(() => {
+    if (id && base_path) {
+      setLoading(true);
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.filePreview(id, {
+        base_path
+      }).then(nextRecord => {
+        setRecord(nextRecord);
+      }).catch(e => onError(e)).finally(() => {
+        setLoading(false);
       });
     } else {
-      this.setState({
-        loading: false
-      });
+      setLoading(false);
     }
-  }
-  componentDidMount() {
-    this.getPreview();
-  }
-  componentDidUpdate(prevProps) {
-    let reload = false;
-    if (prevProps.base_path !== this.props.base_path) {
-      reload = true;
-    }
-    if (reload) {
-      this.setState({
-        loading: true
-      });
-      this.getPreview();
-    }
-  }
-  render() {
-    const {
-      loading,
-      record
-    } = this.state;
-    const output = record ? this.displayNode(record) : "No data to preview, please try changing the base_path.";
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-preview iwp-preview--xml"
-    }, loading ? "Loading" : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", null, output));
-  }
-}
+  }, 300), [id, base_path, onError]);
+  const getPreviewRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(getPreview);
+  getPreviewRef.current = getPreview;
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    getPreviewRef.current();
+    return () => {
+      getPreviewRef.current.cancel();
+    };
+  }, [id, base_path]);
+  const output = record ? displayNode(record) : 'No data to preview, please try changing the base_path.';
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-preview iwp-preview--xml"
+  }, loading ? 'Loading' : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", null, output));
+};
 RecordXml.propTypes = {
   id: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().number),
   onSelect: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().func),
   base_path: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().string),
   onError: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().func)
-};
-RecordXml.defaultProps = {
-  onSelect: () => {},
-  onError: () => {}
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (RecordXml);
 
@@ -13425,53 +12418,45 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_1__);
 
 
-
-class SettingField extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  render() {
-    const {
-      value,
-      onChange,
-      label,
-      id,
-      type
-    } = this.props;
-    if (type === 'checkbox') {
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-        className: "iwp-form__row"
-      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-        className: "iwp-form__label"
-      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-        type: "checkbox",
-        className: "iwp-form__input",
-        name: 'setting_' + id,
-        onChange: onChange,
-        checked: value,
-        value: "yes"
-      }), label));
-    }
+const SettingField = ({
+  value = '',
+  onChange = () => {},
+  label,
+  id,
+  type
+}) => {
+  if (type === 'checkbox') {
     return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
       className: "iwp-form__row"
     }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
       className: "iwp-form__label"
-    }, label), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "text",
+    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+      type: "checkbox",
       className: "iwp-form__input",
       name: 'setting_' + id,
       onChange: onChange,
-      value: value
-    }));
+      checked: value,
+      value: "yes"
+    }), label));
   }
-}
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    className: "iwp-form__label"
+  }, label), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "text",
+    className: "iwp-form__input",
+    name: 'setting_' + id,
+    onChange: onChange,
+    value: value
+  }));
+};
 SettingField.propTypes = {
   value: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().any),
   onChange: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().func),
   label: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().string),
   id: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().number),
   type: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().string)
-};
-SettingField.defaultProps = {
-  onChange: () => {},
-  value: ''
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (SettingField);
 
@@ -13519,75 +12504,137 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class SettingsPage extends (react__WEBPACK_IMPORTED_MODULE_0___default().Component) {
-  constructor(props) {
-    super(props);
-    this.state = {
-      loading: true,
-      setting_debug: false,
-      setting_cleanup: false,
-      setting_file_rotation: 5,
-      setting_log_rotation: -1,
-      setting_timeout: 30,
-      saving: false,
-      disabled: false,
-      compatibility: {},
-      notices: []
-    };
-    this.onSwitchChange = this.onSwitchChange.bind(this);
-    this.onSave = this.onSave.bind(this);
-    this.onSaveCompatibility = this.onSaveCompatibility.bind(this);
-    this.logError = this.logError.bind(this);
-  }
-  logError(error) {
+function SettingsPage(props) {
+  const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const [setting_debug, setSettingDebug] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [setting_cleanup, setSettingCleanup] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [setting_file_rotation, setSettingFileRotation] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(5);
+  const [setting_log_rotation, setSettingLogRotation] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(-1);
+  const [setting_timeout, setSettingTimeout] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(30);
+  const [saving, setSaving] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [disabled, setDisabled] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [compatibility, setCompatibility] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({});
+  const [notices, setNotices] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const settingsSubjectRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const compatibilitySubjectRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const savingRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+  const logError = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(error => {
     const message = (0,_util_ajax_error__WEBPACK_IMPORTED_MODULE_8__.logAjaxError)(error, 'SettingsPage');
-    this.setState({
-      notices: [...this.state.notices, {
-        message,
-        type: 'error',
-        dismissible: true
-      }]
+    setNotices(prevNotices => [...prevNotices, {
+      message,
+      type: 'error',
+      dismissible: true
+    }]);
+  }, []);
+  const saveSettings = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(settings => {
+    if (savingRef.current) {
+      return;
+    }
+    savingRef.current = true;
+    setSaving(true);
+    _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.saveSettings(settings).then(() => {
+      (0,_util_debug__WEBPACK_IMPORTED_MODULE_9__.setDebug)(settings.debug);
+      savingRef.current = false;
+      setSaving(false);
+    }).catch(error => {
+      savingRef.current = false;
+      setSaving(false);
+      logError(error);
     });
-  }
-  componentDidMount() {
-    this.settingsSubject = _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.getSettings().subscribe({
+  }, [logError]);
+  const onSave = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    saveSettings({
+      debug: setting_debug,
+      cleanup: setting_cleanup,
+      file_rotation: setting_file_rotation,
+      log_rotation: setting_log_rotation,
+      timeout: setting_timeout
+    });
+  }, [saveSettings, setting_debug, setting_cleanup, setting_file_rotation, setting_log_rotation, setting_timeout]);
+  const onSaveCompatibility = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    const enabled = Object.keys(compatibility).reduce((prev, cur) => {
+      return compatibility[cur].enabled === 'yes' ? [...prev, cur] : prev;
+    }, []);
+    if (savingRef.current) {
+      return;
+    }
+    savingRef.current = true;
+    setSaving(true);
+    _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.saveCompatibility({
+      plugins: enabled
+    }).then(() => {
+      savingRef.current = false;
+      setSaving(false);
+    }).catch(error => {
+      savingRef.current = false;
+      setSaving(false);
+      logError(error);
+    });
+  }, [compatibility, logError]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    settingsSubjectRef.current = _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.getSettings().subscribe({
       next: data => {
-        let settings = {};
-        Object.keys(data).forEach(setting => settings['setting_' + setting] = data[setting]);
-        this.setState(settings);
-        this.setState({
-          loading: false
+        Object.keys(data).forEach(setting => {
+          const value = data[setting];
+          switch (setting) {
+            case 'debug':
+              setSettingDebug(value);
+              break;
+            case 'cleanup':
+              setSettingCleanup(value);
+              break;
+            case 'file_rotation':
+              setSettingFileRotation(value);
+              break;
+            case 'log_rotation':
+              setSettingLogRotation(value);
+              break;
+            case 'timeout':
+              setSettingTimeout(value);
+              break;
+            default:
+              break;
+          }
         });
+        setLoading(false);
       },
       error: error => {
-        this.setState({
-          loading: false
-        });
-        this.logError(error);
+        setLoading(false);
+        logError(error);
       }
     });
-    this.compatibilitySubject = _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.getCompatibility().subscribe({
+    compatibilitySubjectRef.current = _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.getCompatibility().subscribe({
       next: data => {
-        let compatibility = {};
-        Object.keys(data).forEach(setting => compatibility[setting] = data[setting]);
-        this.setState({
-          loading: false,
-          compatibility
-        });
+        let nextCompatibility = {};
+        Object.keys(data).forEach(setting => nextCompatibility[setting] = data[setting]);
+        setLoading(false);
+        setCompatibility(nextCompatibility);
       },
       error: error => {
-        this.setState({
-          loading: false
-        });
-        this.logError(error);
+        setLoading(false);
+        logError(error);
       }
     });
-  }
-  componentWillUnmount() {
-    this.settingsSubject.unsubscribe();
-  }
-  getActiveSection() {
-    const values = qs__WEBPACK_IMPORTED_MODULE_10___default().parse(this.props.location.search);
+    return () => {
+      settingsSubjectRef.current.unsubscribe();
+    };
+  }, [logError]);
+  const onSwitchChange = (name, checked) => {
+    if (name === 'setting_debug') {
+      setSettingDebug(checked);
+    } else if (name === 'setting_cleanup') {
+      setSettingCleanup(checked);
+    }
+    saveSettings({
+      debug: name === 'setting_debug' ? checked : setting_debug,
+      cleanup: name === 'setting_cleanup' ? checked : setting_cleanup,
+      file_rotation: setting_file_rotation,
+      log_rotation: setting_log_rotation,
+      timeout: setting_timeout
+    });
+  };
+  const getActiveSection = () => {
+    const values = qs__WEBPACK_IMPORTED_MODULE_10___default().parse(props.location.search);
     if (typeof values.section !== 'undefined') {
       const {
         section
@@ -13601,253 +12648,179 @@ class SettingsPage extends (react__WEBPACK_IMPORTED_MODULE_0___default().Compone
       }
     }
     return 'general';
-  }
-  onSwitchChange(name, checked) {
-    this.setState({
-      [name]: checked
-    }, this.onSave);
-  }
-  onSave() {
-    if (this.state.saving) {
-      return;
-    }
-    this.setState({
-      saving: true
-    });
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.saveSettings({
-      debug: this.state.setting_debug,
-      cleanup: this.state.setting_cleanup,
-      file_rotation: this.state.setting_file_rotation,
-      log_rotation: this.state.setting_log_rotation,
-      timeout: this.state.setting_timeout
-    }).then(() => {
-      (0,_util_debug__WEBPACK_IMPORTED_MODULE_9__.setDebug)(this.state.setting_debug);
-      this.setState({
-        saving: false
-      });
-    }).catch(error => {
-      this.setState({
-        saving: false
-      });
-      this.logError(error);
-    });
-  }
-  onSaveCompatibility() {
-    const enabled = Object.keys(this.state.compatibility).reduce((prev, cur) => {
-      return this.state.compatibility[cur].enabled === 'yes' ? [...prev, cur] : prev;
-    }, []);
-    if (this.state.saving) {
-      return;
-    }
-    this.setState({
-      saving: true
-    });
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.saveCompatibility({
-      plugins: enabled
-    }).then(() => {
-      this.setState({
-        saving: false
-      });
-    }).catch(error => {
-      this.setState({
-        saving: false
-      });
-      this.logError(error);
-    });
-  }
-  render() {
-    const {
-      saving,
-      disabled,
-      loading,
-      notices
-    } = this.state;
-    const switch_height = 20;
-    const switch_width = 40;
-    const base = this.props.location.pathname + '?page=importwp&tab=settings';
-    const active = this.getActiveSection();
-    if (loading === true) {
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_4__["default"], {
-        notices: [{
-          message: 'Loading',
-          type: 'info'
-        }]
-      });
-    }
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_global_notice_GlobalNotice__WEBPACK_IMPORTED_MODULE_7__["default"], null), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      notices: notices,
-      onDismiss: i => {
-        this.setState({
-          notices: notices.map((item, item_i) => item_i === i ? {
-            ...item,
-            dismissed: true
-          } : item)
-        });
-      }
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", {
-      className: "iwp-tabs iwp-tabs--center iwp-tabs--pills"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
-      className: 'iwp-tabs__tab ' + (active === 'general' ? 'iwp-tabs__tab--active' : '')
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_router_dom__WEBPACK_IMPORTED_MODULE_11__.Link, {
-      to: base
-    }, "General Settings")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
-      className: 'iwp-tabs__tab ' + (active === 'compat' ? 'iwp-tabs__tab--active' : '')
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_router_dom__WEBPACK_IMPORTED_MODULE_11__.Link, {
-      to: base + '&section=compat'
-    }, "Compatibility")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
-      className: 'iwp-tabs__tab ' + (active === 'import-export' ? 'iwp-tabs__tab--active' : '')
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_router_dom__WEBPACK_IMPORTED_MODULE_11__.Link, {
-      to: base + '&section=import-export'
-    }, "Import / Export"))), active === 'import-export' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_tools_page_ToolsPage__WEBPACK_IMPORTED_MODULE_5__["default"], null), active === 'general' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form iwp-form--mb"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading"
-    }, "General Settings"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row iwp-form__row--small"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      className: "iwp-form__label iwp-form__label--switch"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Enable Debug Mode."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_switch__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      checked: this.state.setting_debug,
-      height: switch_height,
-      width: switch_width,
-      onColor: "#22c48f",
-      onChange: checked => this.onSwitchChange('setting_debug', checked)
-    }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row iwp-form__row--small"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      className: "iwp-form__label iwp-form__label--switch"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Cleanup plugin data on uninstall."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_switch__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      checked: this.state.setting_cleanup,
-      height: switch_height,
-      width: switch_width,
-      onColor: "#22c48f",
-      onChange: checked => this.onSwitchChange('setting_cleanup', checked)
-    }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading"
-    }, "Import Settings"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row iwp-form__row--small iwp-form__row--inline"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      label: "File Rotation",
-      id: "file_rotation",
-      field: "file_rotation",
-      tooltip: "The maximum number of files to be kept per scheduled importer, files will be deleted at the end of an import (-1 to keep all)."
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "number",
-      name: "file_rotation",
-      onChange: e => {
-        this.setState({
-          ['setting_' + e.target.name]: e.target.value
-        });
-      },
-      value: this.state.setting_file_rotation,
-      min: -1,
-      step: 1
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row iwp-form__row--small iwp-form__row--inline"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      label: "Log Rotation",
-      id: "log_rotation",
-      field: "log_rotation",
-      tooltip: "The maximum number of logs to be kept per scheduled importer, logs will be deleted at the end of an import (-1 to keep all)."
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "number",
-      name: "log_rotation",
-      onChange: e => {
-        this.setState({
-          ['setting_' + e.target.name]: e.target.value
-        });
-      },
-      value: this.state.setting_log_rotation,
-      min: -1,
-      step: 1
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row iwp-form__row--small iwp-form__row--inline"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      label: "Timeout",
-      id: "timeout",
-      field: "timeout",
-      tooltip: "Maximum time in seconds that an importer can run for."
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "number",
-      name: "timeout",
-      onChange: e => {
-        this.setState({
-          ['setting_' + e.target.name]: e.target.value
-        });
-      },
-      value: this.state.setting_timeout,
-      min: -1,
-      step: 1
-    }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__actions"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-buttons"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-primary",
-      type: "button",
-      onClick: this.onSave,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : ' Save Settings')))), active === 'compat' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form iwp-form--mb"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading"
-    }, "Compatibility Settings"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Select which plugins should be disabled during the import process."), this.state.loading ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_4__["default"], {
+  };
+  const switch_height = 20;
+  const switch_width = 40;
+  const base = props.location.pathname + '?page=importwp&tab=settings';
+  const active = getActiveSection();
+  if (loading === true) {
+    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_4__["default"], {
       notices: [{
         message: 'Loading',
         type: 'info'
       }]
-    }) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      style: {
-        background: '#f9f9f9',
-        padding: '10px',
-        border: '1px solid #efefef'
-      }
-    }, Object.keys(this.state.compatibility).length === 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      style: {
-        padding: '0',
-        margin: '0'
-      }
-    }, "No plugins have been found"), Object.keys(this.state.compatibility).map(plugin_id => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
-      style: {
-        display: 'block',
-        marginBottom: '5px'
-      }
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
-      type: "checkbox",
-      checked: this.state.compatibility[plugin_id].enabled === 'yes',
-      onChange: e => {
-        this.setState({
-          compatibility: {
-            ...this.state.compatibility,
-            [plugin_id]: {
-              ...this.state.compatibility[plugin_id],
-              enabled: this.state.compatibility[plugin_id].enabled === 'yes' ? 'no' : 'yes'
-            }
-          }
-        });
-      }
-    }), this.state.compatibility[plugin_id].name)))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__actions"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-buttons"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-primary",
-      type: "button",
-      onClick: this.onSaveCompatibility,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : ' Save Settings')))));
+    });
   }
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_global_notice_GlobalNotice__WEBPACK_IMPORTED_MODULE_7__["default"], null), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    notices: notices,
+    onDismiss: i => {
+      setNotices(prevNotices => prevNotices.map((item, item_i) => item_i === i ? {
+        ...item,
+        dismissed: true
+      } : item));
+    }
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("ul", {
+    className: "iwp-tabs iwp-tabs--center iwp-tabs--pills"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
+    className: 'iwp-tabs__tab ' + (active === 'general' ? 'iwp-tabs__tab--active' : '')
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_router_dom__WEBPACK_IMPORTED_MODULE_11__.Link, {
+    to: base
+  }, "General Settings")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
+    className: 'iwp-tabs__tab ' + (active === 'compat' ? 'iwp-tabs__tab--active' : '')
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_router_dom__WEBPACK_IMPORTED_MODULE_11__.Link, {
+    to: base + '&section=compat'
+  }, "Compatibility")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("li", {
+    className: 'iwp-tabs__tab ' + (active === 'import-export' ? 'iwp-tabs__tab--active' : '')
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_router_dom__WEBPACK_IMPORTED_MODULE_11__.Link, {
+    to: base + '&section=import-export'
+  }, "Import / Export"))), active === 'import-export' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_tools_page_ToolsPage__WEBPACK_IMPORTED_MODULE_5__["default"], null), active === 'general' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form iwp-form--mb"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading"
+  }, "General Settings"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row iwp-form__row--small"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    className: "iwp-form__label iwp-form__label--switch"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Enable Debug Mode."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_switch__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    checked: setting_debug,
+    height: switch_height,
+    width: switch_width,
+    onColor: "#22c48f",
+    onChange: checked => onSwitchChange('setting_debug', checked)
+  }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row iwp-form__row--small"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    className: "iwp-form__label iwp-form__label--switch"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, "Cleanup plugin data on uninstall."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_switch__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    checked: setting_cleanup,
+    height: switch_height,
+    width: switch_width,
+    onColor: "#22c48f",
+    onChange: checked => onSwitchChange('setting_cleanup', checked)
+  }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading"
+  }, "Import Settings"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row iwp-form__row--small iwp-form__row--inline"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    label: "File Rotation",
+    id: "file_rotation",
+    field: "file_rotation",
+    tooltip: "The maximum number of files to be kept per scheduled importer, files will be deleted at the end of an import (-1 to keep all)."
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "number",
+    name: "file_rotation",
+    onChange: e => {
+      setSettingFileRotation(e.target.value);
+    },
+    value: setting_file_rotation,
+    min: -1,
+    step: 1
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row iwp-form__row--small iwp-form__row--inline"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    label: "Log Rotation",
+    id: "log_rotation",
+    field: "log_rotation",
+    tooltip: "The maximum number of logs to be kept per scheduled importer, logs will be deleted at the end of an import (-1 to keep all)."
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "number",
+    name: "log_rotation",
+    onChange: e => {
+      setSettingLogRotation(e.target.value);
+    },
+    value: setting_log_rotation,
+    min: -1,
+    step: 1
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row iwp-form__row--small iwp-form__row--inline"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    label: "Timeout",
+    id: "timeout",
+    field: "timeout",
+    tooltip: "Maximum time in seconds that an importer can run for."
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "number",
+    name: "timeout",
+    onChange: e => {
+      setSettingTimeout(e.target.value);
+    },
+    value: setting_timeout,
+    min: -1,
+    step: 1
+  }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__actions"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-buttons"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-primary",
+    type: "button",
+    onClick: onSave,
+    disabled: disabled
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : ' Save Settings')))), active === 'compat' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form iwp-form--mb"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading"
+  }, "Compatibility Settings"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Select which plugins should be disabled during the import process."), loading ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    notices: [{
+      message: 'Loading',
+      type: 'info'
+    }]
+  }) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    style: {
+      background: '#f9f9f9',
+      padding: '10px',
+      border: '1px solid #efefef'
+    }
+  }, Object.keys(compatibility).length === 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    style: {
+      padding: '0',
+      margin: '0'
+    }
+  }, "No plugins have been found"), Object.keys(compatibility).map(plugin_id => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
+    style: {
+      display: 'block',
+      marginBottom: '5px'
+    }
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    type: "checkbox",
+    checked: compatibility[plugin_id].enabled === 'yes',
+    onChange: e => {
+      setCompatibility(prevCompatibility => ({
+        ...prevCompatibility,
+        [plugin_id]: {
+          ...prevCompatibility[plugin_id],
+          enabled: prevCompatibility[plugin_id].enabled === 'yes' ? 'no' : 'yes'
+        }
+      }));
+    }
+  }), compatibility[plugin_id].name)))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__actions"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-buttons"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-primary",
+    type: "button",
+    onClick: onSaveCompatibility,
+    disabled: disabled
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : ' Save Settings')))));
 }
 SettingsPage.propTypes = {
   location: (prop_types__WEBPACK_IMPORTED_MODULE_12___default().object)
 };
-
-// export default SettingsPage;
-
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ((0,react_router_dom__WEBPACK_IMPORTED_MODULE_13__.withRouter)(SettingsPage));
 
 /***/ }),
@@ -13888,323 +12861,293 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class SetupForm extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    let template_options = {};
-    this.templates = this.props.templates.reduce((obj, key) => {
+function SetupForm({
+  complete,
+  onError = () => {},
+  templates = []
+}) {
+  const {
+    templatesList,
+    initialTemplateOptions
+  } = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
+    const templateOptions = {};
+    const list = templates.reduce((obj, key) => {
       obj.push({
         value: key.id,
         label: key.label,
         options: key.options
       });
       key.options.forEach(field => {
-        template_options['option_' + key.id + '_' + field.id] = '';
+        templateOptions['option_' + key.id + '_' + field.id] = '';
       });
       return obj;
     }, []);
-    this.state = {
-      name: '',
-      template: '',
-      template_type: '',
-      exporter: '',
-      setup_type: 'manual',
-      ...template_options,
-      saving: false,
-      disabled: true,
-      upgrade: false,
-      exporters: [],
-      exporter_config_file: null
+    return {
+      templatesList: list,
+      initialTemplateOptions: templateOptions
     };
-    this.onSubmit = this.onSubmit.bind(this);
-    this.onChange = this.onChange.bind(this);
-  }
-  componentDidMount() {
-    _services_exporter_service__WEBPACK_IMPORTED_MODULE_3__.exporter.exporters().then(exporters => {
-      this.setState({
-        exporters: exporters.filter(item => item.type?.length > 0 && item.unique_identifier?.length > 0 && item.file_type?.length > 0).reduce((carry, item) => {
-          return [...carry, {
-            value: item.id,
-            label: item.name
-          }];
-        }, [])
-      });
-    });
-  }
-  componentWillUnmount() {
-    _services_exporter_service__WEBPACK_IMPORTED_MODULE_3__.exporter.abort('exporters');
-  }
-  isDisabled() {
-    const {
-      template,
-      name,
-      setup_type,
-      exporter,
-      exporter_config_file
-    } = this.state;
-    let disabled = true;
-    let upgrade = false;
+  }, [templates]);
+  const [name, setName] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  const [template, setTemplate] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  const [template_type, setTemplateType] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  const [exporterValue, setExporterValue] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  const [setup_type, setSetupType] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('manual');
+  const [templateOptions, setTemplateOptions] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialTemplateOptions);
+  const [saving, setSaving] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [exporters, setExporters] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [exporter_config_file, setExporterConfigFile] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const {
+    disabled,
+    upgrade
+  } = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
+    let nextDisabled = true;
+    let nextUpgrade = false;
     if (template) {
-      disabled = template.length > 0 ? false : true;
-      const current_template = this.templates.find(template_data => template_data.value === template);
-      const template_options = current_template ? current_template.options : [];
+      nextDisabled = template.length > 0 ? false : true;
+      const current_template = templatesList.find(template_data => template_data.value === template);
+      const currentTemplateOptions = current_template ? current_template.options : [];
 
       // TODO: make sure all template options are filled out, show pro message if value is 'iwp_pro'
-      template_options.forEach(template_data => {
-        const val = this.state['option_' + template_data.id];
+      currentTemplateOptions.forEach(template_data => {
+        const val = templateOptions['option_' + template_data.id];
         if (!val || val === 'iwp_pro') {
-          disabled = true;
+          nextDisabled = true;
           if (val === 'iwp_pro') {
-            upgrade = true;
+            nextUpgrade = true;
           }
         }
       });
     }
     if (setup_type === 'generate') {
-      disabled = exporter.length > 0 ? disabled : true;
+      nextDisabled = exporterValue.length > 0 ? nextDisabled : true;
     }
     if (setup_type === 'upload') {
-      disabled = !exporter_config_file ? true : disabled;
+      nextDisabled = !exporter_config_file ? true : nextDisabled;
     }
     if (name === '') {
-      disabled = true;
+      nextDisabled = true;
     }
-    this.setState({
-      disabled: disabled,
-      upgrade: upgrade
-    });
-  }
-  onChange(name, value) {
-    let stateChange = {
-      [name]: value
+    return {
+      disabled: nextDisabled,
+      upgrade: nextUpgrade
     };
-
-    // reset template_type on template change
-    if (name === 'template') {
-      stateChange = {
-        ...stateChange,
-        template_type: ''
-      };
-    } else if (name === 'setup_type') {
-      stateChange = {
-        ...stateChange,
-        // template: '',
-        // template_type: '',
-        exporter: ''
-      };
-    }
-    this.setState(stateChange, this.isDisabled);
-  }
-  onSubmit() {
-    this.setState({
-      saving: true
+  }, [exporterValue, exporter_config_file, name, setup_type, template, templateOptions, templatesList]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    _services_exporter_service__WEBPACK_IMPORTED_MODULE_3__.exporter.exporters().then(exporterList => {
+      setExporters(exporterList.filter(item => item.type?.length > 0 && item.unique_identifier?.length > 0 && item.file_type?.length > 0).reduce((carry, item) => {
+        return [...carry, {
+          value: item.id,
+          label: item.name
+        }];
+      }, []));
     });
+    return () => {
+      _services_exporter_service__WEBPACK_IMPORTED_MODULE_3__.exporter.abort('exporters');
+    };
+  }, []);
+  const onChange = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((fieldName, value) => {
+    if (fieldName === 'name') {
+      setName(value);
+    } else if (fieldName === 'template') {
+      setTemplate(value);
+      setTemplateType('');
+    } else if (fieldName === 'setup_type') {
+      setSetupType(value);
+      setExporterValue('');
+    } else if (fieldName === 'exporter') {
+      setExporterValue(value);
+    } else {
+      setTemplateOptions(prev => ({
+        ...prev,
+        [fieldName]: value
+      }));
+    }
+  }, []);
+  const onSubmit = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    setSaving(true);
 
     // TODO: only save fields from current template
-    const template = this.props.templates.find(item => item.id === this.state.template);
-    let template_options = {};
-    if (template && template.options) {
-      template_options = template.options.reduce((obj, key) => {
-        obj[key.id] = this.state['option_' + key.id];
+    const currentTemplate = templates.find(item => item.id === template);
+    let savedTemplateOptions = {};
+    if (currentTemplate && currentTemplate.options) {
+      savedTemplateOptions = currentTemplate.options.reduce((obj, key) => {
+        obj[key.id] = templateOptions['option_' + key.id];
         return obj;
       }, {});
     }
-    let exporter_config_file = null;
+    let savedExporterConfigFile = null;
     new Promise((resolve, reject) => {
-      if (this.state.setup_type !== 'upload') {
+      if (setup_type !== 'upload') {
         resolve();
         return;
       }
       let form_data = new FormData();
-      form_data.append('file', this.state.exporter_config_file);
+      form_data.append('file', exporter_config_file);
       _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.readExporterConfig(form_data).then(data => {
-        exporter_config_file = JSON.stringify(data.exporter);
+        savedExporterConfigFile = JSON.stringify(data.exporter);
         resolve();
       }).catch(error => {
         reject(error);
       });
     }).then(() => {
       let data = {
-        name: this.state.name,
-        template: this.state.template,
-        template_type: this.state.template_type,
-        template_options: template_options,
-        setup_type: this.state.setup_type,
-        exporter: this.state.exporter
+        name: name,
+        template: template,
+        template_type: template_type,
+        template_options: savedTemplateOptions,
+        setup_type: setup_type,
+        exporter: exporterValue
       };
-      if (exporter_config_file !== null) {
+      if (savedExporterConfigFile !== null) {
         data = {
           ...data,
-          exporter_config_file
+          exporter_config_file: savedExporterConfigFile
         };
       }
-      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.save(data).then(data => {
-        this.setState({
-          saving: false
-        });
-        this.props.complete(data.id);
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.save(data).then(savedData => {
+        setSaving(false);
+        complete(savedData.id);
       }).catch(error => {
-        this.props.onError(error);
-        this.setState({
-          saving: false
-        });
+        onError(error);
+        setSaving(false);
       });
     }).catch(error => {
-      this.props.onError(error);
-      this.setState({
-        saving: false
-      });
+      onError(error);
+      setSaving(false);
     });
-  }
-  render() {
-    const {
-      name,
-      template,
-      saving,
-      disabled,
-      upgrade,
-      exporters,
-      exporter
-    } = this.state;
-    const current_template = this.templates.find(template_data => template_data.value === template);
-    const template_options = current_template ? current_template.options : [];
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading"
-    }, "Create Importer"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+  }, [complete, exporterValue, exporter_config_file, name, onError, setup_type, template, templateOptions, template_type, templates]);
+  const current_template = templatesList.find(template_data => template_data.value === template);
+  const currentTemplateOptions = current_template ? current_template.options : [];
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("form", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading"
+  }, "Create Importer"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    id: "name",
+    field: "name",
+    label: "Name the importer",
+    tooltip: "Enter the name of the importer, the name is only used to help find your importer.",
+    display: "inline-block"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputField_InputField__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    id: "name",
+    name: "name",
+    type: "text",
+    className: "iwp-form__input",
+    value: name,
+    onChange: value => onChange('name', value),
+    placeholder: "importer name"
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputRadioAccordion_InputRadioAccordion__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    name: "setup_type",
+    defaultActive: "manual",
+    onChange: value => onChange('setup_type', value)
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputRadioAccordionPanel_InputRadioAccordionPanel__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    value: "generate",
+    label: "Use an existing exporter to populate importer fields."
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    id: "exporter",
+    field: "exporter",
+    label: "Choose exiting Exporter",
+    display: "inline-block"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_SelectField_SelectField__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    id: "exporter",
+    name: "exporter",
+    placeholder: "Choose Exporter",
+    onChange: value => onChange('exporter', value),
+    value: exporterValue,
+    options: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+      value: ""
+    }, "Choose Exporter"), exporters.map(row => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+      key: row.value,
+      value: row.value
+    }, `#${row.value} - ${row.label}`)))
+  }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputRadioAccordionPanel_InputRadioAccordionPanel__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    value: "upload",
+    label: "Upload importer config file from an exporter"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__left"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    field: "upload_file",
+    id: "upload_file",
+    label: "Upload File",
+    tooltip: "Select the file you wish to import via the file upload input."
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-field__right"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    className: "iwp-form__input",
+    id: "upload_file",
+    name: "file",
+    type: "file",
+    onChange: event => {
+      setExporterConfigFile(event.target.files[0]);
+    }
+  })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputRadioAccordionPanel_InputRadioAccordionPanel__WEBPACK_IMPORTED_MODULE_6__["default"], {
+    value: "manual",
+    label: "Manually configure the importer."
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__row"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    id: "template",
+    field: "template",
+    label: "What are you wanting to import?",
+    tooltip: "Select from the dropdown what import template you want to use for your import file.",
+    display: "inline-block"
+  }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_SelectField_SelectField__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    id: "template",
+    name: "template",
+    placeholder: "Choose Template",
+    onChange: value => onChange('template', value),
+    value: template,
+    options: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+      value: ""
+    }, "Choose Template"), templatesList.map(row => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+      key: row.value,
+      value: row.value
+    }, row.label)))
+  })), template && currentTemplateOptions.map(template_data => {
+    const field_id = `option_${template_data.id}`;
+    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+      key: template_data.id,
       className: "iwp-form__row"
     }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      id: "name",
-      field: "name",
-      label: "Name the importer",
-      tooltip: "Enter the name of the importer, the name is only used to help find your importer.",
-      display: "inline-block"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputField_InputField__WEBPACK_IMPORTED_MODULE_8__["default"], {
-      id: "name",
-      name: "name",
-      type: "text",
-      className: "iwp-form__input",
-      value: name,
-      onChange: value => this.onChange('name', value),
-      placeholder: "importer name"
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputRadioAccordion_InputRadioAccordion__WEBPACK_IMPORTED_MODULE_5__["default"], {
-      name: "setup_type",
-      defaultActive: "manual",
-      onChange: value => this.onChange('setup_type', value)
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputRadioAccordionPanel_InputRadioAccordionPanel__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      value: "generate",
-      label: "Use an existing exporter to populate importer fields."
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      id: "exporter",
-      field: "exporter",
-      label: "Choose exiting Exporter",
-      display: "inline-block"
+      id: field_id,
+      field: field_id,
+      label: template_data.label
     }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_SelectField_SelectField__WEBPACK_IMPORTED_MODULE_7__["default"], {
-      id: "exporter",
-      name: "exporter",
-      placeholder: "Choose Exporter",
-      onChange: value => this.onChange('exporter', value),
-      value: exporter,
-      options: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-        value: ""
-      }, "Choose Exporter"), exporters.map(row => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-        key: row.value,
-        value: row.value
-      }, `#${row.value} - ${row.label}`)))
-    }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputRadioAccordionPanel_InputRadioAccordionPanel__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      value: "upload",
-      label: "Upload importer config file from an exporter"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__left"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      field: "upload_file",
-      id: "upload_file",
-      label: "Upload File",
-      tooltip: "Select the file you wish to import via the file upload input."
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-field__right"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+      id: field_id,
+      name: field_id,
       className: "iwp-form__input",
-      id: "upload_file",
-      name: "file",
-      type: "file",
-      onChange: event => {
-        this.setState({
-          exporter_config_file: event.target.files[0]
-        }, this.isDisabled);
-      }
-    })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputRadioAccordionPanel_InputRadioAccordionPanel__WEBPACK_IMPORTED_MODULE_6__["default"], {
-      value: "manual",
-      label: "Manually configure the importer."
-    })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__row"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      id: "template",
-      field: "template",
-      label: "What are you wanting to import?",
-      tooltip: "Select from the dropdown what import template you want to use for your import file.",
-      display: "inline-block"
-    }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_SelectField_SelectField__WEBPACK_IMPORTED_MODULE_7__["default"], {
-      id: "template",
-      name: "template",
-      placeholder: "Choose Template",
-      onChange: value => this.onChange('template', value),
-      value: template,
-      options: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-        value: ""
-      }, "Choose Template"), this.templates.map(row => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-        key: row.value,
+      onChange: value => onChange(field_id, value),
+      value: templateOptions['option_' + template_data.id],
+      options: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, template_data.options.map((row, i) => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
+        key: row.value === 'iwp_pro' ? i : row.value,
         value: row.value
       }, row.label)))
-    })), template && template_options.map(template_data => {
-      const field_id = `option_${template_data.id}`;
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-        key: template_data.id,
-        className: "iwp-form__row"
-      }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_label_FieldLabel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-        id: field_id,
-        field: field_id,
-        label: template_data.label
-      }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_SelectField_SelectField__WEBPACK_IMPORTED_MODULE_7__["default"], {
-        id: field_id,
-        name: field_id,
-        className: "iwp-form__input",
-        onChange: value => this.onChange(field_id, value),
-        value: this.state['option_' + template_data.id],
-        options: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, template_data.options.map((row, i) => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("option", {
-          key: row.value === 'iwp_pro' ? i : row.value,
-          value: row.value
-        }, row.label)))
-      }));
-    }), window.iwp.hooks.applyFilters('iwp_after_template_select', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_upgrade_message_UpgradeMessage__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      message: "Please upgrade to Import WP Pro into import Custom Post Types."
-    })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__actions"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-buttons"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputButton_InputButton__WEBPACK_IMPORTED_MODULE_9__["default"], {
-      theme: "primary",
-      type: "button",
-      onClick: this.onSubmit,
-      disabled: disabled,
-      loading: saving
-    }, saving ? 'Saving' : 'Create Importer'))));
-  }
+    }));
+  }), window.iwp.hooks.applyFilters('iwp_after_template_select', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_upgrade_message_UpgradeMessage__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    message: "Please upgrade to Import WP Pro into import Custom Post Types."
+  })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__actions"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-buttons"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputButton_InputButton__WEBPACK_IMPORTED_MODULE_9__["default"], {
+    theme: "primary",
+    type: "button",
+    onClick: onSubmit,
+    disabled: disabled,
+    loading: saving
+  }, saving ? 'Saving' : 'Create Importer'))));
 }
 SetupForm.propTypes = {
   template: (prop_types__WEBPACK_IMPORTED_MODULE_10___default().string),
   complete: (prop_types__WEBPACK_IMPORTED_MODULE_10___default().func),
   onError: (prop_types__WEBPACK_IMPORTED_MODULE_10___default().func),
   templates: (prop_types__WEBPACK_IMPORTED_MODULE_10___default().array)
-};
-SetupForm.defaultProps = {
-  onError: () => {},
-  templates: []
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (SetupForm);
 
@@ -14246,164 +13189,133 @@ const colStyles = index => {
     width: '45%'
   };
 };
-class SetupWizard extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      rest_enabled: -1,
-      system: {},
-      migrated: -2,
-      complete: false,
-      show: true,
-      loading: true,
-      error: ''
-    };
-    this.checkRestStatus = this.checkRestStatus.bind(this);
-    this.checkMigrationStatus = this.checkMigrationStatus.bind(this);
-    this.setupComplete = this.setupComplete.bind(this);
-    this.requirementsMet = this.requirementsMet.bind(this);
-  }
-  checkRestStatus() {
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.check().then(data => {
-      this.setState({
-        rest_enabled: 1,
-        system: data
-      });
-      if (this.requirementsMet()) {
-        this.checkMigrationStatus();
-      } else {
-        this.setState({
-          loading: false,
-          error: 'System Requirements have not been met.'
-        });
-      }
-    }, () => {
-      this.setState({
-        rest_enabled: 0,
-        loading: false,
-        error: 'Plugin is unable to communicate with your websites WordPress REST API, please make sure this has not been disabled.'
-      });
-    });
-  }
-  checkMigrationStatus() {
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.migrate().then(() => {
-      this.setState({
-        migrated: 1
-      });
-      this.setupComplete();
-    }, () => {
-      this.setState({
-        migrated: 0
-      });
-    });
-  }
-  setupComplete() {
-    this.setState({
-      complete: true,
-      loading: false
-    });
-  }
-  requirementsMet() {
-    if (!this.state.system.rest_enabled || this.state.system.rest_enabled.status !== 'yes') {
+function SetupWizard({
+  onComplete = () => {}
+}) {
+  const [rest_enabled, setRestEnabled] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(-1);
+  const [system, setSystem] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({});
+  const [migrated, setMigrated] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(-2);
+  const [complete, setComplete] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [show, setShow] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const [error, setError] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  const requirementsMet = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(currentSystem => {
+    if (!currentSystem.rest_enabled || currentSystem.rest_enabled.status !== 'yes') {
       return false;
     }
-    if (!this.state.system.php_version || this.state.system.php_version.status !== 'yes') {
+    if (!currentSystem.php_version || currentSystem.php_version.status !== 'yes') {
       return false;
     }
-    if (!this.state.system.tmp_writable || this.state.system.tmp_writable.status !== 'yes') {
+    if (!currentSystem.tmp_writable || currentSystem.tmp_writable.status !== 'yes') {
       return false;
     }
     return true;
-  }
-  componentDidMount() {
-    this.checkRestStatus();
-  }
-  render() {
-    const {
-      complete,
-      loading,
-      error
-    } = this.state;
-    const system_checks = [{
-      label: 'Rest API Enabled',
-      key: 'rest_enabled'
-    }, {
-      label: 'Temp directory writable',
-      key: 'tmp_writable'
-    }, {
-      label: 'PHP Version >= 5.5',
-      key: 'php_version'
-    }, {
-      label: 'PHP Module: SimpleXML',
-      key: 'ext_simplexml'
-    }, {
-      label: 'PHP Module: mbstring',
-      key: 'ext_mbstring'
-    }, {
-      label: 'PHP Module: XML Reader',
-      key: 'ext_xmlreader'
-    }, {
-      label: 'PHP Module: Zip Archive',
-      key: 'zip_archive'
-    }];
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_modal_Modal__WEBPACK_IMPORTED_MODULE_1__["default"], {
-      title: "Import WP: Setup Wizard",
-      onClose: this.props.onComplete,
-      loading: loading,
-      closable: false,
-      show: this.state.show
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "wizard-section"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("h4", null, "1. System Check."), this.state.rest_enabled === -1 ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Checking...") : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-table__wrapper"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("table", {
-      className: "iwp-table iwp-table--fixed iwp-table--logs"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("thead", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
-      style: colStyles(0)
-    }, "Module"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
-      style: colStyles(1)
-    }, "Status"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
-      style: colStyles(2)
-    }, "Message"))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tbody", null, system_checks.map(data => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", {
-      key: data.key
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      style: colStyles(0)
-    }, data.label), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      style: colStyles(1)
-    }, this.state.system[data.key] && this.state.system[data.key].status === 'yes' ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      style: {
-        color: 'green'
+  }, []);
+  const setupComplete = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    setComplete(true);
+    setLoading(false);
+  }, []);
+  const checkMigrationStatus = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.migrate().then(() => {
+      setMigrated(1);
+      setupComplete();
+    }, () => {
+      setMigrated(0);
+    });
+  }, [setupComplete]);
+  const checkRestStatus = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    _services_importer_service__WEBPACK_IMPORTED_MODULE_2__.importer.check().then(data => {
+      setRestEnabled(1);
+      setSystem(data);
+      if (requirementsMet(data)) {
+        checkMigrationStatus();
+      } else {
+        setLoading(false);
+        setError('System Requirements have not been met.');
       }
-    }, "Yes") : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      style: {
-        color: 'red'
-      }
-    }, "No")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
-      style: colStyles(2)
-    }, this.state.system[data.key] && this.state.system[data.key].message)))))))), this.state.rest_enabled > -1 && this.state.migrated >= -1 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "wizard-section"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("h4", null, "2. Data migration."), this.state.migrated === -1 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Migrating data."), this.state.migrated === 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Unable to migrate data."), this.state.migrated === 1 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Data migration complete.")), error && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      notices: [{
-        message: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, error),
-        type: 'error'
-      }]
-    }), complete && this.requirementsMet() && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      type: "button",
-      onClick: () => {
-        this.setState({
-          show: false
-        });
-        this.props.onComplete();
-      },
-      className: "button button-secondary"
-    }, "Close & Continue")));
-  }
+    }, () => {
+      setRestEnabled(0);
+      setLoading(false);
+      setError('Plugin is unable to communicate with your websites WordPress REST API, please make sure this has not been disabled.');
+    });
+  }, [checkMigrationStatus, requirementsMet]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    checkRestStatus();
+  }, [checkRestStatus]);
+  const system_checks = [{
+    label: 'Rest API Enabled',
+    key: 'rest_enabled'
+  }, {
+    label: 'Temp directory writable',
+    key: 'tmp_writable'
+  }, {
+    label: 'PHP Version >= 5.5',
+    key: 'php_version'
+  }, {
+    label: 'PHP Module: SimpleXML',
+    key: 'ext_simplexml'
+  }, {
+    label: 'PHP Module: mbstring',
+    key: 'ext_mbstring'
+  }, {
+    label: 'PHP Module: XML Reader',
+    key: 'ext_xmlreader'
+  }, {
+    label: 'PHP Module: Zip Archive',
+    key: 'zip_archive'
+  }];
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_modal_Modal__WEBPACK_IMPORTED_MODULE_1__["default"], {
+    title: "Import WP: Setup Wizard",
+    onClose: onComplete,
+    loading: loading,
+    closable: false,
+    show: show
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "wizard-section"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("h4", null, "1. System Check."), rest_enabled === -1 ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Checking...") : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-table__wrapper"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("table", {
+    className: "iwp-table iwp-table--fixed iwp-table--logs"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("thead", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
+    style: colStyles(0)
+  }, "Module"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
+    style: colStyles(1)
+  }, "Status"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", {
+    style: colStyles(2)
+  }, "Message"))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tbody", null, system_checks.map(data => (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("tr", {
+    key: data.key
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    style: colStyles(0)
+  }, data.label), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    style: colStyles(1)
+  }, system[data.key] && system[data.key].status === 'yes' ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    style: {
+      color: 'green'
+    }
+  }, "Yes") : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    style: {
+      color: 'red'
+    }
+  }, "No")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", {
+    style: colStyles(2)
+  }, system[data.key] && system[data.key].message)))))))), rest_enabled > -1 && migrated >= -1 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "wizard-section"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("h4", null, "2. Data migration."), migrated === -1 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Migrating data."), migrated === 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Unable to migrate data."), migrated === 1 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Data migration complete.")), error && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    notices: [{
+      message: (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, error),
+      type: 'error'
+    }]
+  }), complete && requirementsMet(system) && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    type: "button",
+    onClick: () => {
+      setShow(false);
+      onComplete();
+    },
+    className: "button button-secondary"
+  }, "Close & Continue")));
 }
 SetupWizard.propTypes = {
   onComplete: (prop_types__WEBPACK_IMPORTED_MODULE_5___default().func)
-};
-SetupWizard.defaultProps = {
-  onComplete: () => {}
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (SetupWizard);
 
@@ -14426,21 +13338,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_1__);
 
 
-
-class StatusMessage extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  render() {
-    const {
-      status
-    } = this.props;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, status?.version == 2 ? status.message : status.msg);
-  }
-}
+const StatusMessage = ({
+  status,
+  showStatus = false
+}) => {
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, status?.version == 2 ? status.message : status.msg);
+};
 StatusMessage.propTypes = {
   status: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().object).isRequired,
   showStatus: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().bool)
-};
-StatusMessage.defaultProps = {
-  showStatus: false
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (StatusMessage);
 
@@ -14463,33 +13369,27 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_1__);
 
 
-
-class StatusMessageOld extends react__WEBPACK_IMPORTED_MODULE_0__.Component {
-  render() {
-    const {
-      status
-    } = this.props;
-    if (status?.id) {
-      if (status.status === 'error') {
-        return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, status.message);
-      }
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, status.status && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Status"), ": ", status.status), status.stats.inserts > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Inserts"), ": ", status.stats.inserts), status.stats.updates > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Updates"), ": ", status.stats.updates), status.stats.deletes > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Deletes"), ": ", status.stats.deletes), status.stats.errors > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Errors"), ": ", status.stats.errors), status.duration > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Time"), ": ", Math.ceil(status.duration), "s"));
+const StatusMessageOld = ({
+  status,
+  showStatus = false
+}) => {
+  if (status?.id) {
+    if (status.status === 'error') {
+      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, status.message);
     }
-    let time = status.z;
-    let hours = Math.floor(time / 3600);
-    time = time - hours * 3600;
-    let minutes = Math.floor(time / 60);
-    let seconds = time - minutes * 60;
-    let status_txt = status.s;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, status_txt && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Status"), ": ", status_txt + ', '), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Records"), ": ", status.c, " / ", status.t), status.i > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Inserts"), ": ", status.i), status.u > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Updates"), ": ", status.u), status.r > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Deletes"), ": ", status.r), status.e > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Errors"), ": ", status.e), status.z >= 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Time:"), hours > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, " ", hours, "h "), minutes > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, " ", minutes, "m "), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, " ", seconds, "s")), status.x && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Peak Memory:"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, " ", status.x)));
+    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, status.status && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Status"), ": ", status.status), status.stats.inserts > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Inserts"), ": ", status.stats.inserts), status.stats.updates > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Updates"), ": ", status.stats.updates), status.stats.deletes > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Deletes"), ": ", status.stats.deletes), status.stats.errors > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Errors"), ": ", status.stats.errors), status.duration > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Time"), ": ", Math.ceil(status.duration), "s"));
   }
-}
+  let time = status.z;
+  let hours = Math.floor(time / 3600);
+  time = time - hours * 3600;
+  let minutes = Math.floor(time / 60);
+  let seconds = time - minutes * 60;
+  let status_txt = status.s;
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, status_txt && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Status"), ": ", status_txt + ', '), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Records"), ": ", status.c, " / ", status.t), status.i > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Inserts"), ": ", status.i), status.u > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Updates"), ": ", status.u), status.r > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Deletes"), ": ", status.r), status.e > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Errors"), ": ", status.e), status.z >= 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Time:"), hours > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, " ", hours, "h "), minutes > 0 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, " ", minutes, "m "), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, " ", seconds, "s")), status.x && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, ", ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Peak Memory:"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", null, " ", status.x)));
+};
 StatusMessageOld.propTypes = {
   status: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().object).isRequired,
   showStatus: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().bool)
-};
-StatusMessageOld.defaultProps = {
-  showStatus: false
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (StatusMessageOld);
 
@@ -14533,37 +13433,45 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class TemplateForm extends react__WEBPACK_IMPORTED_MODULE_0__.PureComponent {
-  constructor(props) {
-    super(props);
-    this.repeaterTemplates = {};
-    this.defaultValues = {};
-    this.state = {
-      showSelectModal: false,
-      showSelectModalSubPath: '',
-      selectModalField: '',
-      saving: false,
-      disabled: false,
-      loaded: false
-    };
-    this.save = this.save.bind(this);
-    this.onSave = this.onSave.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-    this.getGroupValues = this.getGroupValues.bind(this);
-    this.showSelectModal = this.showSelectModal.bind(this);
-    this.closeSelectModal = this.closeSelectModal.bind(this);
-    this.setAndCloseSelectModal = this.setAndCloseSelectModal.bind(this);
-  }
-  generateRepeaterTemplates(templateFields, group) {
+const TemplateForm = ({
+  id,
+  complete,
+  parser,
+  settings,
+  map = {},
+  enabled = {},
+  onError = () => {},
+  template,
+  dispatch
+}) => {
+  const repeaterTemplates = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)({});
+  const defaultValues = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)({});
+  const [showSelectModal, setShowSelectModal] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [showSelectModalSubPath, setShowSelectModalSubPath] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  const [selectModalField, setSelectModalField] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  const [saving, setSaving] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const disabled = false;
+  const [loaded, setLoaded] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const [groups, setGroups] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const enabledRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(enabled);
+  const mapRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(map);
+  const parserRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(parser);
+  const onErrorRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(onError);
+  const templateRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(template);
+  enabledRef.current = enabled;
+  mapRef.current = map;
+  parserRef.current = parser;
+  onErrorRef.current = onError;
+  templateRef.current = template;
+  const generateRepeaterTemplates = (templateFields, group) => {
     const prefix = group + '.{iwpr_template}.';
-    const templateKeys = Object.keys(templateFields).filter(fieldKey => fieldKey.startsWith(prefix)).reduce((obj, key) => {
+    return Object.keys(templateFields).filter(fieldKey => fieldKey.startsWith(prefix)).reduce((obj, key) => {
       obj[key.substring(prefix.length)] = templateFields[key];
       delete templateFields[key];
       return obj;
     }, {});
-    return templateKeys;
-  }
-  recursiveFieldSearch(data, path = [], output = [], join = '') {
+  };
+  const recursiveFieldSearch = (data, path = [], output = [], join = '') => {
     let result = [];
     const keys = Object.keys(data);
     let basePath = [...path];
@@ -14576,273 +13484,218 @@ class TemplateForm extends react__WEBPACK_IMPORTED_MODULE_0__.PureComponent {
       let tempPath = [...basePath];
       tempPath.push(record.id);
       if (record.hasOwnProperty('type') && record.type === 'repeatable') {
-        result.push(...this.recursiveFieldSearch(record.fields, tempPath, output, '{iwpr_template}'));
-        this.repeaterTemplates[[...tempPath].join()] = null;
+        result.push(...recursiveFieldSearch(record.fields, tempPath, output, '{iwpr_template}'));
+        repeaterTemplates.current[[...tempPath].join()] = null;
         tempPath.push('_index');
         result.push(tempPath);
       } else if (record.hasOwnProperty('fields')) {
-        result.push(...this.recursiveFieldSearch(record.fields, tempPath, output));
+        result.push(...recursiveFieldSearch(record.fields, tempPath, output));
       } else {
         result.push(tempPath);
         if (record.default) {
-          this.defaultValues[[...tempPath].join('.')] = record.default;
+          defaultValues.current[[...tempPath].join('.')] = record.default;
         }
       }
     }
     return result;
-  }
-  getGroupValues(groupName) {
-    const keyPrefix = 'value_' + groupName + '.';
-    const result = Object.keys(this.state).filter(key => key.startsWith(keyPrefix)).reduce((obj, key) => {
-      obj[key.substring('value_'.length)] = this.state[key];
-      return obj;
-    }, {});
-    return result;
-  }
-  showSelectModal(fieldName, sub_path = '') {
+  };
+  const closeSelectModal = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    setShowSelectModal(false);
+    setSelectModalField('');
+  }, []);
+  const showSelectModalFn = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((fieldName, sub_path = '') => {
     (0,_util_debug__WEBPACK_IMPORTED_MODULE_10__.debugLog)('showSelectModal', fieldName, sub_path);
-    this.setState({
-      showSelectModal: !this.state.showSelectModal,
-      showSelectModalSubPath: sub_path,
-      selectModalField: fieldName
-    });
-  }
-  setAndCloseSelectModal(selection) {
-    this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.setTemplate)({
-      [this.state.selectModalField]: selection
+    setShowSelectModal(current => !current);
+    setShowSelectModalSubPath(sub_path);
+    setSelectModalField(fieldName);
+  }, []);
+  const setAndCloseSelectModal = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(selection => {
+    dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.setTemplate)({
+      [selectModalField]: selection
     }));
-
-    // TODO: why doesnt this update?
-    this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.fetchFieldPreview)({
-      id: this.props.id,
+    dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.fetchFieldPreview)({
+      id,
       fields: {
-        [this.state.selectModalField]: selection
+        [selectModalField]: selection
       }
     }));
-    this.closeSelectModal();
-  }
-  closeSelectModal() {
-    this.setState({
-      showSelectModal: false,
-      selectModalField: ''
-    });
-  }
-  save(callback = () => {}) {
-    this.setState({
-      saving: true
-    });
-    const {
-      id
-    } = this.props;
+    closeSelectModal();
+  }, [closeSelectModal, dispatch, id, selectModalField]);
+  const save = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((callback = () => {}) => {
+    setSaving(true);
     const data = _store__WEBPACK_IMPORTED_MODULE_9__.store.getState();
     const map_data = Object.keys(data.importer.template).filter(key => {
-      // Skip template placeholders and nulls left by deleted repeater rows
       return !key.includes('{iwpr_template}') && data.importer.template[key] !== null && typeof data.importer.template[key] !== 'undefined';
     }).reduce((obj, key) => {
       obj[key] = data.importer.template[key];
       return obj;
     }, {});
-
-    // TODO: enable data is currently stored in FieldGroup
     const enable_data = Object.keys(data.importer.enabled).reduce((obj, key) => {
       obj[key] = data.importer.enabled[key];
       return obj;
     }, {});
     _services_importer_service__WEBPACK_IMPORTED_MODULE_6__.importer.save({
-      id: id,
+      id,
       map: map_data,
       enabled: enable_data
     }).then(() => {
-      this.setState({
-        saving: false
-      });
+      setSaving(false);
       callback();
     }).catch(error => {
-      // console.log('ERROR', error);
-
-      this.props.onError(error);
-      this.setState({
-        saving: false
-        // errors: [
-        //   ...this.state.errors,
-        //   {
-        //     section: 'setup',
-        //     message: error.responseText,
-        //   },
-        // ],
-      });
+      onError(error);
+      setSaving(false);
     });
-  }
-  onSave() {
-    this.save();
-  }
-  onSubmit() {
-    this.save(() => {
-      this.props.complete();
+  }, [id, onError]);
+  const onSave = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    save();
+  }, [save]);
+  const onSubmit = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
+    save(() => {
+      complete();
     });
-  }
-  async componentDidMount() {
-    // TODO: Get Template from rest
-    try {
-      const template_group = await _services_importer_service__WEBPACK_IMPORTED_MODULE_6__.importer.template(this.props.id);
-      if (!template_group) {
-        // TODO: Add error message
-        this.props.onError('Importer Template could not be found: ' + this.props.template);
-      }
-      this.template_groups = template_group ? template_group.map : [];
-      let templateState = {};
-      let enabledFields = {};
-      if (this.template_groups) {
-        this.recursiveFieldSearch(this.template_groups).map(field => {
-          const fieldKey = field.join('.');
-          if (field[field.length - 1] === '_index') {
-            templateState[fieldKey] = 0;
-          } else {
-            templateState[fieldKey] = this.defaultValues[fieldKey] ? this.defaultValues[fieldKey] : '';
-          }
-        });
-
-        // Generate repeater templates
-        Object.keys(this.repeaterTemplates).map(group => {
-          this.repeaterTemplates[group] = this.generateRepeaterTemplates(templateState, group);
-        });
-        let tmp = [];
-        this.template_groups.forEach(group => {
-          if (group.type === 'group') {
-            group.fields.forEach(field => {
-              if (!field.hasOwnProperty('core') || field.core === false) {
-                enabledFields = {
-                  ...enabledFields,
-                  [`${group.id}.${field.id}`]: false
-                };
-              }
-            });
-          }
-
-          // Clone: https://scotch.io/bar-talk/copying-objects-in-javascript
-          let group_clone = JSON.parse(JSON.stringify(group));
-
-          // Remove row_base field for non xml/json imports
-          if (this.props.parser !== 'xml' && this.props.parser !== 'json') {
-            const tmp_fields = group_clone.fields;
-            group_clone.fields = tmp_fields.filter(field => field.id !== 'row_base');
-          }
-          tmp = [...tmp, group_clone];
-        });
-        this.template_groups = [...tmp];
-      }
-
-      // setup enabled field state
-
-      enabledFields = {
-        ...enabledFields,
-        ...Object.keys(this.props.enabled).reduce((obj, key) => {
-          obj[key] = this.props.enabled[key];
+  }, [complete, save]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const template_group = await _services_importer_service__WEBPACK_IMPORTED_MODULE_6__.importer.template(id);
+        if (!template_group) {
+          onErrorRef.current('Importer Template could not be found: ' + templateRef.current);
+        }
+        let nextGroups = template_group ? template_group.map : [];
+        let templateState = {};
+        let enabledFields = {};
+        if (nextGroups) {
+          recursiveFieldSearch(nextGroups).map(field => {
+            const fieldKey = field.join('.');
+            if (field[field.length - 1] === '_index') {
+              templateState[fieldKey] = 0;
+            } else {
+              templateState[fieldKey] = defaultValues.current[fieldKey] ? defaultValues.current[fieldKey] : '';
+            }
+          });
+          Object.keys(repeaterTemplates.current).map(group => {
+            repeaterTemplates.current[group] = generateRepeaterTemplates(templateState, group);
+          });
+          let tmp = [];
+          nextGroups.forEach(group => {
+            if (group.type === 'group') {
+              group.fields.forEach(field => {
+                if (!field.hasOwnProperty('core') || field.core === false) {
+                  enabledFields = {
+                    ...enabledFields,
+                    [`${group.id}.${field.id}`]: false
+                  };
+                }
+              });
+            }
+            let group_clone = JSON.parse(JSON.stringify(group));
+            if (parserRef.current !== 'xml' && parserRef.current !== 'json') {
+              const tmp_fields = group_clone.fields;
+              group_clone.fields = tmp_fields.filter(field => field.id !== 'row_base');
+            }
+            tmp = [...tmp, group_clone];
+          });
+          nextGroups = [...tmp];
+        }
+        enabledFields = {
+          ...enabledFields,
+          ...Object.keys(enabledRef.current).reduce((obj, key) => {
+            obj[key] = enabledRef.current[key];
+            return obj;
+          }, {})
+        };
+        if (cancelled) {
+          return;
+        }
+        dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.resetEnabled)(enabledFields));
+        const nextTemplate = Object.keys(mapRef.current).reduce((obj, key) => {
+          obj[key] = mapRef.current[key];
           return obj;
-        }, {})
-      };
-      this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.resetEnabled)(enabledFields));
-
-      // setup template field value state
-      const template = Object.keys(this.props.map).reduce((obj, key) => {
-        obj[key] = this.props.map[key];
-        return obj;
-      }, {});
-      this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.resetTemplate)({
-        ...templateState,
-        ...template
-      }));
-      this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.clearPreview)());
-
-      // trigger field previews
-      this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.fetchFieldPreview)({
-        id: this.props.id,
-        fields: template
-      }));
-
-      // store field group templates
-      this.props.dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.resetRepeater)({
-        ...this.repeaterTemplates
-      }));
-      this.setState({
-        loaded: true
-      });
-    } catch (e) {
-      this.props.onError('Error: ' + e);
-      this.setState({
-        loaded: true
-      });
-      return;
-    }
+        }, {});
+        dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.resetTemplate)({
+          ...templateState,
+          ...nextTemplate
+        }));
+        dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.clearPreview)());
+        dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.fetchFieldPreview)({
+          id,
+          fields: nextTemplate
+        }));
+        dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.resetRepeater)({
+          ...repeaterTemplates.current
+        }));
+        setGroups(nextGroups);
+        setLoaded(true);
+      } catch (e) {
+        onErrorRef.current('Error: ' + e);
+        if (!cancelled) {
+          setLoaded(true);
+        }
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+      _services_importer_service__WEBPACK_IMPORTED_MODULE_6__.importer.abort();
+    };
+    // Template bootstrap should run once per mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+  const title = parser === 'csv' ? 'CSV Data Selector' : parser === 'xml' ? 'XML Data Selector' : parser === 'json' ? 'JSON Data Selector' : 'Data Selector';
+  if (!loaded) {
+    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_8__["default"], {
+      notices: [{
+        message: 'Loading',
+        type: 'info'
+      }]
+    });
   }
-  componentWillUnmount() {
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_6__.importer.abort();
-  }
-  render() {
-    const {
-      id,
-      parser,
-      settings
-    } = this.props;
-    const {
-      disabled,
-      saving
-    } = this.state;
-    const title = parser === 'csv' ? 'CSV Data Selector' : parser === 'xml' ? 'XML Data Selector' : parser === 'json' ? 'JSON Data Selector' : 'Data Selector';
-    if (!this.state.loaded) {
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_8__["default"], {
-        notices: [{
-          message: 'Loading',
-          type: 'info'
-        }]
-      });
-    }
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_modal_Modal__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      onClose: this.closeSelectModal,
-      show: this.state.showSelectModal,
-      title: title
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_data_selector_DataSelector__WEBPACK_IMPORTED_MODULE_7__["default"], {
-      onSelect: this.setAndCloseSelectModal,
-      onError: this.props.onError,
-      id: id,
-      parser: parser,
-      settings: settings,
-      selection: this.state['value_' + this.state.selectModalField],
-      subPath: this.state.showSelectModalSubPath
-    })), this.template_groups.length > 0 && this.template_groups.map(group => {
-      return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_group_FieldGroup__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        key: group.id,
-        group: group,
-        showSelectModal: this.showSelectModal,
-        importer_id: id
-      });
-    }), window.iwp.hooks.applyFilters('iwp_template_form_end', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form iwp-form--mb"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
-      className: "iwp-heading"
-    }, "Custom Fields"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_upgrade_message_UpgradeMessage__WEBPACK_IMPORTED_MODULE_5__["default"], {
-      message: "Please upgrade to Import WP Pro to import custom fields."
-    }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-form__actions"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-buttons"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-secondary",
-      type: "button",
-      onClick: this.onSave,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : 'Save'), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
-      className: "button button-primary",
-      type: "button",
-      onClick: this.onSubmit,
-      disabled: disabled
-    }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
-      className: "spinner is-active"
-    }), saving ? 'Saving' : 'Save & Continue'))));
-  }
-}
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_modal_Modal__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    onClose: closeSelectModal,
+    show: showSelectModal,
+    title: title
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_data_selector_DataSelector__WEBPACK_IMPORTED_MODULE_7__["default"], {
+    onSelect: setAndCloseSelectModal,
+    onError: onError,
+    id: id,
+    parser: parser,
+    settings: settings,
+    selection: undefined,
+    subPath: showSelectModalSubPath
+  })), groups.length > 0 && groups.map(group => {
+    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_group_FieldGroup__WEBPACK_IMPORTED_MODULE_3__["default"], {
+      key: group.id,
+      group: group,
+      showSelectModal: showSelectModalFn,
+      importer_id: id
+    });
+  }), window.iwp.hooks.applyFilters('iwp_template_form_end', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form iwp-form--mb"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
+    className: "iwp-heading"
+  }, "Custom Fields"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_upgrade_message_UpgradeMessage__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    message: "Please upgrade to Import WP Pro to import custom fields."
+  }))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-form__actions"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-buttons"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-secondary",
+    type: "button",
+    onClick: onSave,
+    disabled: disabled
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : 'Save'), ' ', (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
+    className: "button button-primary",
+    type: "button",
+    onClick: onSubmit,
+    disabled: disabled
+  }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "spinner is-active"
+  }), saving ? 'Saving' : 'Save & Continue'))));
+};
 TemplateForm.propTypes = {
   id: (prop_types__WEBPACK_IMPORTED_MODULE_11___default().number),
   complete: (prop_types__WEBPACK_IMPORTED_MODULE_11___default().func),
@@ -14854,13 +13707,6 @@ TemplateForm.propTypes = {
   template: (prop_types__WEBPACK_IMPORTED_MODULE_11___default().string),
   pro: (prop_types__WEBPACK_IMPORTED_MODULE_11___default().bool),
   templates: (prop_types__WEBPACK_IMPORTED_MODULE_11___default().array)
-};
-TemplateForm.defaultProps = {
-  map: {},
-  enabled: {},
-  onError: () => {},
-  pro: false,
-  templates: []
 };
 const mapStateToProps = state => ({
   map: (0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_2__.selectMap)(state)
@@ -15018,17 +13864,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_1__);
 
 
-
-class UpgradeMessage extends (react__WEBPACK_IMPORTED_MODULE_0___default().Component) {
-  render() {
-    const {
-      message
-    } = this.props;
-    return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
-      className: "iwp-notice iwp-notice--premium"
-    }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, message));
-  }
-}
+const UpgradeMessage = ({
+  message
+}) => {
+  return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+    className: "iwp-notice iwp-notice--premium"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, message));
+};
 UpgradeMessage.propTypes = {
   message: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().string).isRequired
 };

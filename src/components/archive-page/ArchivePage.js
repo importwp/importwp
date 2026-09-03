@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ImporterListItem from '../importer-list-item/ImporterListItem';
 import { importer } from '../../services/importer.service';
 import NoticeList from '../notice-list/NoticeList';
@@ -7,134 +7,119 @@ import GlobalNotice from '../global-notice/GlobalNotice';
 
 const AJAX_BASE = window.iwp.admin_base;
 
-class ArchivePage extends React.Component {
-  constructor(props) {
-    super(props);
+function ArchivePage() {
+  const [loaded, setLoaded] = useState(false);
+  const [errors, setErrors] = useState([]);
+  const [importers, setImporters] = useState([]);
+  const [status, setStatus] = useState([]);
+  const [init, setInit] = useState(false);
 
-    this.state = {
-      loaded: false,
-      errors: [],
-      importers: [],
-      status: [],
-      init: false,
-    };
+  const statusXHRRef = useRef(null);
 
-    this.statusXHR = null;
+  const getStatus = useCallback(() => {
+    statusXHRRef.current = importer.status();
+    statusXHRRef.current.request.subscribe(
+      (response) => {
+        setStatus(response);
+      },
+      () => { }
+    );
+  }, []);
 
-    this.getImporters = this.getImporters.bind(this);
-    this.getStatus = this.getStatus.bind(this);
-    this.onDelete = this.onDelete.bind(this);
-  }
-
-  getImporters() {
+  const getImporters = useCallback(() => {
     importer
       .importers()
       .then((data) => {
-        this.setState({
-          importers: data,
-          loaded: true,
-          init: true,
-        });
+        setImporters(data);
+        setLoaded(true);
+        setInit(true);
 
-        if (this.statusXHR !== null) {
-          this.statusXHR.abort();
+        if (statusXHRRef.current !== null) {
+          statusXHRRef.current.abort();
         }
-        this.getStatus();
+        getStatus();
       })
       .catch((data) => {
         if (data.statusText === 'abort') {
           return;
         }
 
-        this.setState({
-          errors: [
-            ...this.state.errors,
-            {
-              section: 'archive',
-              message: data.responseJSON.message,
-            },
-          ],
-          loaded: true,
-          init: true,
-        });
+        setErrors((prevErrors) => [
+          ...prevErrors,
+          {
+            section: 'archive',
+            message: data.responseJSON.message,
+          },
+        ]);
+        setLoaded(true);
+        setInit(true);
       });
+  }, [getStatus]);
+
+  const onDelete = useCallback(
+    (id) => {
+      setImporters((prevImporters) =>
+        prevImporters.filter((data) => data.id !== id)
+      );
+      getImporters();
+    },
+    [getImporters]
+  );
+
+  useEffect(() => {
+    getImporters();
+
+    return () => {
+      importer.abort('importers');
+
+      if (statusXHRRef.current) {
+        statusXHRRef.current.abort();
+      }
+    };
+  }, [getImporters]);
+
+  if (init === false) {
+    return <NoticeList notices={[{ message: 'Loading', type: 'info' }]} />;
   }
 
-  onDelete(id) {
-    this.setState({
-      importers: this.state.importers.filter((data) => data.id !== id),
-    });
-    this.getImporters();
-  }
+  return (
+    <React.Fragment>
 
-  getStatus() {
-    this.statusXHR = importer.status();
-    this.statusXHR.request.subscribe(
-      (response) => {
-        this.setState({ status: response });
-      },
-      () => { }
-    );
-  }
+      <GlobalNotice />
 
-  componentDidMount() {
-    this.getImporters();
-  }
-
-  componentWillUnmount() {
-    importer.abort('importers');
-
-    if (this.statusXHR) {
-      this.statusXHR.abort();
-    }
-  }
-
-  render() {
-    const { importers, status, init } = this.state;
-
-    if (init === false) {
-      return <NoticeList notices={[{ message: 'Loading', type: 'info' }]} />;
-    }
-
-    return (
-      <React.Fragment>
-
-        <GlobalNotice />
-
-        <div className="iwp-archive-header">
-          <Link to={AJAX_BASE + '&new'} className="iwp-add-new">
-            Add Importer +
-          </Link>
-        </div>
-        {importers.length > 0 &&
-          importers.map((importer) => (
-            <ImporterListItem
-              key={importer.id}
-              importer={importer}
-              status={
-                Array.isArray(status)
-                  ? status.find((item) => {
-                    return item?.version == 2 ? item.importer == importer.id : item.id === importer.id;
-                  })
-                  : {}
-              }
-              onDelete={this.onDelete}
-            />
-          ))}
-        {importers.length === 0 && (
-          <NoticeList
-            notices={[
-              {
-                message:
-                  'No Importers have been created, click add importer to create one.',
-                type: 'info',
-              },
-            ]}
+      <div className="iwp-archive-header">
+        <Link to={AJAX_BASE + '&new'} className="iwp-add-new">
+          Add Importer +
+        </Link>
+      </div>
+      {importers.length > 0 &&
+        importers.map((importerItem) => (
+          <ImporterListItem
+            key={importerItem.id}
+            importer={importerItem}
+            status={
+              Array.isArray(status)
+                ? status.find((item) => {
+                  return item?.version == 2 ? item.importer == importerItem.id : item.id === importerItem.id;
+                })
+                : {}
+            }
+            onDelete={onDelete}
           />
-        )}
-      </React.Fragment>
-    );
-  }
+        ))}
+      {importers.length === 0 && (
+        <NoticeList
+          notices={[
+            {
+              message:
+                'No Importers have been created, click add importer to create one.',
+              type: 'info',
+            },
+          ]}
+        />
+      )}
+    </React.Fragment>
+  );
 }
 
 export default ArchivePage;

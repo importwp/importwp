@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './App.scss';
 import PageHeader from './page-header/PageHeader';
 import qs from 'qs';
@@ -14,19 +14,11 @@ const IS_SETUP = window.iwp.is_setup;
 const IS_PRO = window.iwp.is_pro === 'yes' ? true : false;
 const IWP_TEMPLATES = window.iwp.templates;
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
+function App(props) {
+  const [isSetup, setIsSetup] = useState(IS_SETUP === 'no' ? false : true);
 
-    this.state = {
-      isSetup: IS_SETUP === 'no' ? false : true,
-    };
-
-    this.onSetupComplete = this.onSetupComplete.bind(this);
-  }
-
-  getActiveSection() {
-    const values = qs.parse(this.props.location.search);
+  const getActiveSection = () => {
+    const values = qs.parse(props.location.search);
     if (typeof values.new !== 'undefined') {
       return 'new';
     } else if (typeof values['new-exporter'] !== 'undefined') {
@@ -46,10 +38,10 @@ class App extends React.Component {
       }
     }
     return 'archive';
-  }
+  };
 
-  getPage(section) {
-    const values = qs.parse(this.props.location.search);
+  const getPage = (section) => {
+    const values = qs.parse(props.location.search);
     switch (section) {
       case 'new':
       case 'edit':
@@ -72,31 +64,24 @@ class App extends React.Component {
       default:
         return <ArchivePage />;
     }
+  };
+
+  const onSetupComplete = () => {
+    setIsSetup(true);
+  };
+
+  const active = getActiveSection();
+
+  if (isSetup === false) {
+    return <SetupWizard onComplete={onSetupComplete} />;
   }
 
-  onSetupComplete() {
-    this.setState({ isSetup: true });
-  }
-
-  render() {
-    const active = this.getActiveSection();
-    const { isSetup } = this.state;
-
-    if (isSetup === false) {
-      return <SetupWizard onComplete={this.onSetupComplete} />;
-    }
-
-    return (
-      <React.Fragment>
-        <PageHeader active={active} pro={IS_PRO} />
-        <div className="iwp-body">{this.getPage(active)}</div>
-      </React.Fragment>
-    );
-  }
+  return (
+    <React.Fragment>
+      <PageHeader active={active} pro={IS_PRO} />
+      <div className="iwp-body">{getPage(active)}</div>
+    </React.Fragment>
+  );
 }
-
-App.defaultProps = {
-  heading: 'React Page',
-};
 
 export default App;

@@ -1,150 +1,133 @@
-import React, { Component } from "react";
-import PropTypes from "prop-types";
-import debounce from "lodash.debounce";
+import { useCallback, useEffect, useMemo, useRef, useState, Fragment } from 'react';
+import PropTypes from 'prop-types';
+import debounce from 'lodash.debounce';
 
-import { importer } from "../../../services/importer.service";
+import { importer } from '../../../services/importer.service';
 
-class RecordXml extends Component {
-  constructor(props) {
-    super(props);
+const RecordXml = ({
+  id,
+  onSelect = () => {},
+  base_path,
+  onError = () => {},
+}) => {
+  const [loading, setLoading] = useState(true);
+  const [record, setRecord] = useState(null);
 
-    this.state = {
-      loading: true,
-      record: null,
-    };
-
-    this.getPreview = debounce(this.getPreview, 300);
-  }
-
-  displayNodeClick(content, xpath = "") {
+  const displayNodeClick = useCallback((content, xpath = '') => {
     return (
       <span
         title={xpath}
-        onClick={() => this.props.onSelect(xpath)}
+        onClick={() => onSelect(xpath)}
         dangerouslySetInnerHTML={{
           __html: content,
         }}
       ></span>
     );
-  }
+  }, [onSelect]);
 
-  displayNodeAttributes(attributes) {
+  const displayNodeAttributes = useCallback((attributes) => {
     return (
-      <React.Fragment>
-        {typeof attributes === "object" &&
+      <>
+        {typeof attributes === 'object' &&
           attributes.map((attribute) => (
-            <React.Fragment key={attribute.name}>
-              {" "}
-              {this.displayNodeClick(
+            <Fragment key={attribute.name}>
+              {' '}
+              {displayNodeClick(
                 attribute.name + '="' + attribute.value + '"',
-                "{" + attribute.xpath + "}"
+                '{' + attribute.xpath + '}'
               )}
-            </React.Fragment>
+            </Fragment>
           ))}
-      </React.Fragment>
+      </>
     );
-  }
+  }, [displayNodeClick]);
 
-  displayNode(currentNode) {
+  const displayNode = useCallback((currentNode) => {
     const node_name = currentNode.node;
-    const node_xpath = currentNode.xpath ? "{" + currentNode.xpath + "}" : "";
+    const node_xpath = currentNode.xpath ? '{' + currentNode.xpath + '}' : '';
 
-    if (currentNode.type === "text") {
-      return <li>{this.displayNodeClick(currentNode.value, node_xpath)}</li>;
+    if (currentNode.type === 'text') {
+      return <li>{displayNodeClick(currentNode.value, node_xpath)}</li>;
     }
 
     return (
       <li>
-        {this.displayNodeClick("&lt;" + node_name, node_xpath)}
-        {this.displayNodeAttributes(currentNode.attr)}
-        {this.displayNodeClick("&gt;", node_xpath)}
-        {typeof currentNode.value === "object" ? (
+        {displayNodeClick('&lt;' + node_name, node_xpath)}
+        {displayNodeAttributes(currentNode.attr)}
+        {displayNodeClick('&gt;', node_xpath)}
+        {typeof currentNode.value === 'object' ? (
           <ul
             className={
               Object.keys(currentNode.value).length === 1 &&
-                currentNode.value["0"] &&
-                currentNode.value["0"].type
-                ? "iwp-preview__" + currentNode.value["0"].type
-                : ""
+              currentNode.value['0'] &&
+              currentNode.value['0'].type
+                ? 'iwp-preview__' + currentNode.value['0'].type
+                : ''
             }
           >
             {currentNode.value.map((node, i) => (
-              <React.Fragment key={i}>{this.displayNode(node)}</React.Fragment>
+              <Fragment key={i}>{displayNode(node)}</Fragment>
             ))}
           </ul>
         ) : (
-          this.displayNodeClick(currentNode.value, node_xpath)
+          displayNodeClick(currentNode.value, node_xpath)
         )}
-        {this.displayNodeClick("&lt;/" + node_name + "&gt;</li>", node_xpath)}
+        {displayNodeClick('&lt;/' + node_name + '&gt;</li>', node_xpath)}
       </li>
     );
-  }
+  }, [displayNodeAttributes, displayNodeClick]);
 
-  getPreview() {
-    if (this.props.id && this.props.base_path) {
-      this.setState({ loading: true });
+  const getPreview = useMemo(
+    () =>
+      debounce(() => {
+        if (id && base_path) {
+          setLoading(true);
 
-      const { id } = this.props;
-      const data = {
-        base_path: this.props.base_path,
-      };
-      importer
-        .filePreview(id, data)
-        .then((record) => {
-          this.setState({
-            record: record,
-          });
-        })
-        .catch((e) => this.props.onError(e))
-        .finally(() => {
-          this.setState({ loading: false });
-        });
-    } else {
-      this.setState({ loading: false });
-    }
-  }
+          importer
+            .filePreview(id, {
+              base_path,
+            })
+            .then((nextRecord) => {
+              setRecord(nextRecord);
+            })
+            .catch((e) => onError(e))
+            .finally(() => {
+              setLoading(false);
+            });
+        } else {
+          setLoading(false);
+        }
+      }, 300),
+    [id, base_path, onError]
+  );
 
-  componentDidMount() {
-    this.getPreview();
-  }
+  const getPreviewRef = useRef(getPreview);
+  getPreviewRef.current = getPreview;
 
-  componentDidUpdate(prevProps) {
-    let reload = false;
+  useEffect(() => {
+    getPreviewRef.current();
 
-    if (prevProps.base_path !== this.props.base_path) {
-      reload = true;
-    }
+    return () => {
+      getPreviewRef.current.cancel();
+    };
+  }, [id, base_path]);
 
-    if (reload) {
-      this.setState({ loading: true });
-      this.getPreview();
-    }
-  }
+  const output = record
+    ? displayNode(record)
+    : 'No data to preview, please try changing the base_path.';
 
-  render() {
-    const { loading, record } = this.state;
-    const output = record
-      ? this.displayNode(record)
-      : "No data to preview, please try changing the base_path.";
-
-    return (
-      <div className="iwp-preview iwp-preview--xml">
-        {loading ? "Loading" : <ul>{output}</ul>}
-      </div>
-    );
-  }
-}
+  return (
+    <div className="iwp-preview iwp-preview--xml">
+      {loading ? 'Loading' : <ul>{output}</ul>}
+    </div>
+  );
+};
 
 RecordXml.propTypes = {
   id: PropTypes.number,
   onSelect: PropTypes.func,
   base_path: PropTypes.string,
   onError: PropTypes.func,
-};
-
-RecordXml.defaultProps = {
-  onSelect: () => { },
-  onError: () => { },
 };
 
 export default RecordXml;
