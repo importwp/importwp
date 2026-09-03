@@ -265,8 +265,8 @@ class TemplateForm extends PureComponent {
           // Clone: https://scotch.io/bar-talk/copying-objects-in-javascript
           let group_clone = JSON.parse(JSON.stringify(group));
 
-          // Remove row_base file for none xml imports
-          if (this.props.parser !== 'xml') {
+          // Remove row_base field for non xml/json imports
+          if (this.props.parser !== 'xml' && this.props.parser !== 'json') {
             const tmp_fields = group_clone.fields;
             group_clone.fields = tmp_fields.filter(
               (field) => field.id !== 'row_base'
@@ -338,7 +338,9 @@ class TemplateForm extends PureComponent {
         ? 'CSV Data Selector'
         : parser === 'xml'
           ? 'XML Data Selector'
-          : 'Data Selector';
+          : parser === 'json'
+            ? 'JSON Data Selector'
+            : 'Data Selector';
 
     if (!this.state.loaded) {
       return <NoticeList notices={[{ message: 'Loading', type: 'info' }]} />;

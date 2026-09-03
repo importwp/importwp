@@ -1,0 +1,36 @@
+{
+  "results": {
+    "items": [
+      {
+        "id": 10,
+        "name": "Nested One",
+        "author": {
+          "name": "Alice"
+        },
+        "meta": [
+          {
+            "key": "color",
+            "value": "blue"
+          },
+          {
+            "key": "size",
+            "value": "large"
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "name": "Nested Two",
+        "author": {
+          "name": "Bob"
+        },
+        "meta": [
+          {
+            "key": "color",
+            "value": "red"
+          }
+        ]
+      }
+    ]
+  }
+}

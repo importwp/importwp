@@ -127,6 +127,10 @@ class Filesystem
             if (preg_match('/\.(csv|zip|gz)$/', $filename) === 0) {
                 $filename .= '.csv';
             }
+        } elseif ($filetype === 'json') {
+            if (preg_match('/\.(json|zip|gz)$/', $filename) === 0) {
+                $filename .= '.json';
+            }
         }
 
         $dest    = wp_unique_filename($wp_upload_dir['path'], $filename);
@@ -145,6 +149,9 @@ class Filesystem
         } elseif ($filetype === 'csv') {
             $headers['Content-Type'] = 'text/csv';
             $headers['Accept'] = 'text/csv';
+        } elseif ($filetype === 'json') {
+            $headers['Content-Type'] = 'application/json';
+            $headers['Accept'] = 'application/json';
         }
 
         $result = $http->download_file_stream($remote_url, $wp_dest, $headers);
@@ -387,6 +394,9 @@ class Filesystem
             case 'application/xml':
             case 'application/x-xml':
                 return 'xml';
+            case 'application/json':
+            case 'text/json':
+                return 'json';
         }
 
         return $this->event_handler->run('importer.allowed_mime_types', [false, $mime]);
@@ -416,6 +426,8 @@ class Filesystem
             $filetype = 'csv';
         } elseif (stripos($file, '.xml')) {
             $filetype = 'xml';
+        } elseif (stripos($file, '.json')) {
+            $filetype = 'json';
         }
 
         $filetype = apply_filters('iwp/get_filetype_from_ext', $filetype, $file);

@@ -138,6 +138,11 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 == Changelog ==
 
+= 2.15.0 =
+
+* ADD - JSON file importer with record base path selection, nested field mapping, and preview support.
+* ADD - Allow JSON exports to be used when setting up a new importer from an exporter.
+
 = 2.14.25 =
 
 * ADD - Improve admin UI error handling with a root error boundary, shared AJAX error formatting, and debug-gated console logging.

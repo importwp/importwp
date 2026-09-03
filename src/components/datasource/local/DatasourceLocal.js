@@ -95,6 +95,7 @@ class DatasourceLocal extends Component {
                 <option value="">Choose file type</option>
                 <option value="csv">CSV File</option>
                 <option value="xml">XML File</option>
+                <option value="json">JSON File</option>
                 {extra_file_types && extra_file_types.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
               </select>
             </div>

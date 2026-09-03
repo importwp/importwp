@@ -188,7 +188,16 @@ class Config implements ConfigInterface
 
     public function readIndexes($key)
     {
-        return $this->hasIndexed($key);
+        if (!$this->hasIndexed($key)) {
+            return false;
+        }
+
+        // Treat a zero-record index as missing so it can be rebuilt
+        if (!isset($this->config['count'][$key]) || intval($this->config['count'][$key]) < 1) {
+            return false;
+        }
+
+        return true;
     }
 
     public function storeIndexes($key, $buffer = false)
@@ -234,7 +243,11 @@ class Config implements ConfigInterface
 
     public function getRecordCount($key)
     {
-        return $this->config['count'][$key];
+        if (!isset($this->config['count'][$key])) {
+            return 0;
+        }
+
+        return intval($this->config['count'][$key]);
     }
 
     public function getIndexFile($key)
