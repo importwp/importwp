@@ -168,8 +168,4 @@ EditSteps.propTypes = {
   form: PropTypes.string,
 };
 
-EditSteps.defaultProps = {
-  gotoStep: () => {},
-};
-
 export default EditSteps;

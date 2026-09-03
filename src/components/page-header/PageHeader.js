@@ -9,7 +9,7 @@ import "./PageHeader.scss";
 const ADMIN_BASE = window.iwp.admin_base;
 const PLUGIN_VERSION = window.iwp.version;
 
-const PageHeader = ({ active, pro }) => {
+const PageHeader = ({ active = "archive", pro = false }) => {
   return (
     <React.Fragment>
       <div className="iwp-header">
@@ -82,11 +82,6 @@ const PageHeader = ({ active, pro }) => {
 PageHeader.propTypes = {
   active: PropTypes.string,
   pro: PropTypes.bool,
-};
-
-PageHeader.defaultProps = {
-  active: "archive",
-  pro: false,
 };
 
 export default PageHeader;

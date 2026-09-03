@@ -6766,9 +6766,6 @@ EditSteps.propTypes = {
   importer: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().object),
   form: (prop_types__WEBPACK_IMPORTED_MODULE_3___default().string)
 };
-EditSteps.defaultProps = {
-  gotoStep: () => {}
-};
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (EditSteps);
 
 /***/ }),
@@ -11249,8 +11246,8 @@ __webpack_require__.r(__webpack_exports__);
 const ADMIN_BASE = window.iwp.admin_base;
 const PLUGIN_VERSION = window.iwp.version;
 const PageHeader = ({
-  active,
-  pro
+  active = "archive",
+  pro = false
 }) => {
   return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
     className: "iwp-header"
@@ -11290,10 +11287,6 @@ const PageHeader = ({
 PageHeader.propTypes = {
   active: (prop_types__WEBPACK_IMPORTED_MODULE_4___default().string),
   pro: (prop_types__WEBPACK_IMPORTED_MODULE_4___default().bool)
-};
-PageHeader.defaultProps = {
-  active: "archive",
-  pro: false
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (PageHeader);
 
@@ -39822,7 +39815,8 @@ const routes = (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_redux_
 })))));
 
 // domReady(() => {
-(0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.render)(routes, document.getElementById('importwp-root'));
+const root = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.createRoot)(document.getElementById('importwp-root'));
+root.render(routes);
 // });
 })();
 

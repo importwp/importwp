@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@wordpress/element';
+import { createRoot } from '@wordpress/element';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
 import App from './components/App';
 import { createHooks } from '@wordpress/hooks';
@@ -27,5 +27,6 @@ const routes = (
 );
 
 // domReady(() => {
-render(routes, document.getElementById('importwp-root'));
+const root = createRoot(document.getElementById('importwp-root'));
+root.render(routes);
 // });
