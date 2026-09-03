@@ -74,25 +74,38 @@ function FieldSet({
 
   const getRowSummary = useCallback((record, key, index) => {
     const prefix = `${key}.${index}.`;
-    const fieldKey = record[`${prefix}key`] || '';
-    const fieldType = record[`${prefix}_field_type`] || '';
-    const value = record[`${prefix}value`] || '';
+    const truncate = (text) =>
+      text.length > 60 ? `${text.substring(0, 57)}…` : text;
+    const summaryFields = Array.isArray(group.row_summary)
+      ? group.row_summary
+      : [];
 
     const parts = [];
-    if (fieldKey) {
-      parts.push(fieldKey);
-    }
-    if (fieldType && fieldType !== 'text') {
-      parts.push(`(${fieldType})`);
-    }
-    if (value) {
-      const shortValue =
-        value.length > 60 ? `${value.substring(0, 57)}…` : value;
-      parts.push(`→ ${shortValue}`);
-    }
+
+    summaryFields.forEach((entry) => {
+      const fieldId = typeof entry === 'string' ? entry : entry?.field;
+      if (!fieldId) {
+        return;
+      }
+
+      const value = record[`${prefix}${fieldId}`] || '';
+      const hideIf = typeof entry === 'object' ? entry.hide_if : undefined;
+      const format = typeof entry === 'object' ? entry.format : null;
+
+      if (!value || (hideIf !== undefined && value === hideIf)) {
+        return;
+      }
+
+      if (format === 'paren') {
+        parts.push(`(${value})`);
+        return;
+      }
+
+      parts.push(parts.length === 0 ? value : `→ ${truncate(value)}`);
+    });
 
     return parts.length > 0 ? parts.join(' ') : `Row ${index + 1}`;
-  }, []);
+  }, [group.row_summary]);
 
   const checkConditions = useCallback((condition, groupData) => {
     let relation = 'AND';

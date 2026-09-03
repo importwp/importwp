@@ -120,6 +120,40 @@ class AbstractMapperTest extends \WP_UnitTestCase
         $this->assertCount(1, $meta_args);
         $this->assertEquals('_iwp_ref_uid', $meta_args[0]['key']);
         $this->assertTrue($meta_args[0]['value'] === '', 'string is not empty');
+
+        // Zero string Ref ID must be preserved (not treated as empty)
+
+        /**
+         * @var ParsedData | \PHPUnit\Framework\MockObject\MockObject $data
+         */
+        $data = $this->createPartialMock(ParsedData::class, []);
+        $data->add([
+            '_iwp_ref_uid' => '0'
+        ], 'iwp');
+
+        $mapper = $this->create_abstract_mapper_mock(true, true);
+        list($unique_fields, $meta_args, $has_unique_field) = $mapper->exists_get_identifier($data);
+        $this->assertEmpty($unique_fields);
+        $this->assertTrue($has_unique_field);
+        $this->assertCount(1, $meta_args);
+        $this->assertEquals('_iwp_ref_uid', $meta_args[0]['key']);
+        $this->assertSame('0', $meta_args[0]['value']);
+        $this->assertEquals(['field' => '_iwp_ref_uid', 'value' => '0'], $mapper->get_unqiue_identifier_settings());
+
+        // Integer zero Ref ID must be preserved
+
+        /**
+         * @var ParsedData | \PHPUnit\Framework\MockObject\MockObject $data
+         */
+        $data = $this->createPartialMock(ParsedData::class, []);
+        $data->add([
+            '_iwp_ref_uid' => 0
+        ], 'iwp');
+
+        $mapper = $this->create_abstract_mapper_mock(true, true);
+        list($unique_fields, $meta_args, $has_unique_field) = $mapper->exists_get_identifier($data);
+        $this->assertTrue($has_unique_field);
+        $this->assertSame(0, $meta_args[0]['value']);
     }
 
     public function test_exists_get_identifier_with_field()

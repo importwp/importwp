@@ -39,14 +39,23 @@ function ImporterLogTable(props) {
     setIsLoading(true);
     setPage(nextPage);
     const { id, log } = props;
-    importer.log(id, log, nextPage).then((data) => {
-      setLogs((prevLogs) => prevLogs.concat(data.logs));
-      setIsLoading(false);
-      setHasMore(data.logs.length > 0);
-    });
+    importer
+      .log(id, log, nextPage)
+      .then((data) => {
+        setLogs((prevLogs) => prevLogs.concat(data.logs));
+        setIsLoading(false);
+        setHasMore(data.logs.length > 0);
+      })
+      .catch(() => {
+        setIsLoading(false);
+        setHasMore(false);
+      });
   }, [props.id, props.log]);
 
   useEffect(() => {
+    setLogs([]);
+    setHasMore(true);
+    setIsLoading(true);
     setPage(0);
     pageRef.current = 0;
     getLog();

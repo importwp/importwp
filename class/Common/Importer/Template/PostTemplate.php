@@ -256,7 +256,7 @@ class PostTemplate extends Template implements TemplateInterface
                     'type' => 'select'
                 ]),
             ], ['type' => 'settings'])
-        ], ['type' => 'repeatable', 'row_base' => true, 'link' => 'https://www.importwp.com/docs/how-to-import-wordpress-taxonomies-onto-a-post-type/']);
+        ], ['type' => 'repeatable', 'row_base' => true, 'row_summary' => ['tax', 'term'], 'link' => 'https://www.importwp.com/docs/how-to-import-wordpress-taxonomies-onto-a-post-type/']);
     }
 
     public function register_settings() {}

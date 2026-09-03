@@ -49,8 +49,9 @@ const EditSteps = ({
       {step > -1 && (
         <p className="iwp-importer-header">
           {isEditingName ? (
-            <>
+            <span className="iwp-importer-header__edit">
               <input
+                className="iwp-importer-header__input"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 onKeyDown={(e) => {
@@ -58,11 +59,10 @@ const EditSteps = ({
                     saveNameChange();
                   }
                 }}
-                style={{ height: '30px' }}
               />
               <button
                 type="button"
-                className="button button-secondary"
+                className="button button-secondary iwp-importer-header__button"
                 onClick={saveNameChange}
               >
                 {saving && <span className="spinner is-active"></span>}
@@ -70,7 +70,7 @@ const EditSteps = ({
               </button>
               <button
                 type="button"
-                className="button button-link-delete"
+                className="button button-link-delete iwp-importer-header__button"
                 onClick={() => {
                   setEditingName(false);
                   setEditName(name);
@@ -78,7 +78,7 @@ const EditSteps = ({
               >
                 Cancel
               </button>
-            </>
+            </span>
           ) : (
             <span
               onClick={() => setEditingName((state) => !state)}

@@ -84,7 +84,7 @@ class AttachmentMapper extends PostMapper
                 // check all groups for a unique value
                 $unique_value = $this->find_unique_field_in_data($data, $field);
 
-                if (!empty($unique_value)) {
+                if ($this->has_identifier_value($unique_value)) {
                     $has_unique_field = true;
 
                     if (in_array($field, $this->_post_fields, true)) {

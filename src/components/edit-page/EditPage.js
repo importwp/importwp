@@ -68,6 +68,9 @@ const EditPage = ({
   const importerSubject = useRef(null);
   const statusSubject = useRef(null);
   const getImporterRef = useRef(null);
+  const hasRestoredStepRef = useRef(false);
+  const locationSearchRef = useRef(location.search);
+  locationSearchRef.current = location.search;
 
   const logError = useCallback((error) => {
     const message = logAjaxError(error, 'EditPage');
@@ -78,9 +81,9 @@ const EditPage = ({
     window.scrollTo(0, 0);
   }, []);
 
-  const getActiveStep = useCallback((maxStepValue) => {
-    setStep(getStepFromSearch(location.search, maxStepValue));
-  }, [location.search]);
+  const restoreStepFromUrl = useCallback((maxStepValue) => {
+    setStep(getStepFromSearch(locationSearchRef.current, maxStepValue));
+  }, []);
 
   const setMaxStep = useCallback((importerData) => {
     const max = computeMaxStep(importerData);
@@ -116,7 +119,14 @@ const EditPage = ({
           setDatasourceSettings(data.datasource.settings);
           setImporterAction(data);
           const max = setMaxStep(data);
-          getActiveStep(max);
+
+          // Only restore step from the URL on first load. Later emissions
+          // (e.g. after Save) update maxStep but must not advance the step —
+          // only Save & Continue / nextStep should move forward.
+          if (!hasRestoredStepRef.current) {
+            hasRestoredStepRef.current = true;
+            restoreStepFromUrl(max);
+          }
 
           if (statusXHR.current === null) {
             getStatus();
@@ -127,7 +137,7 @@ const EditPage = ({
         logError(error);
       },
     });
-  }, [getActiveStep, getStatus, id, logError, setImporterAction, setMaxStep]);
+  }, [getStatus, id, logError, restoreStepFromUrl, setImporterAction, setMaxStep]);
 
   const nextStep = useCallback(() => {
     setStep((current) => {
@@ -156,6 +166,9 @@ const EditPage = ({
       statusXHR.current.abort();
       statusXHR.current = null;
     }
+    // Clear previous run status so ImportRunner does not treat an old
+    // "complete" status as belonging to this new session.
+    setStatus(null);
     setRunImporter(session);
   }, []);
 
@@ -164,6 +177,7 @@ const EditPage = ({
   useEffect(() => {
     const nextId = parseInt(id, 10) || 0;
     debugLog('EditPage load', nextId);
+    hasRestoredStepRef.current = false;
 
     if (nextId > 0) {
       getImporterRef.current();

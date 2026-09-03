@@ -29,24 +29,48 @@ const customReactSelectStyles = {
     height: '30px',
     boxShadow: state.isFocused ? null : null,
     borderRadius: 0,
+    alignItems: 'center',
   }),
 
-  valueContainer: (provided, state) => ({
+  valueContainer: (provided) => ({
     ...provided,
     height: '30px',
-    padding: '0 6px',
+    padding: '0 8px',
   }),
 
-  input: (provided, state) => ({
+  input: (provided) => ({
     ...provided,
-    margin: '0px',
+    margin: 0,
+    padding: 0,
   }),
-  indicatorSeparator: (state) => ({
+
+  singleValue: (provided) => ({
+    ...provided,
+    margin: 0,
+  }),
+
+  placeholder: (provided) => ({
+    ...provided,
+    margin: 0,
+  }),
+
+  indicatorSeparator: () => ({
     display: 'none',
   }),
-  indicatorsContainer: (provided, state) => ({
+
+  indicatorsContainer: (provided) => ({
     ...provided,
     height: '30px',
+  }),
+
+  clearIndicator: (provided) => ({
+    ...provided,
+    padding: '4px',
+  }),
+
+  dropdownIndicator: (provided) => ({
+    ...provided,
+    padding: '4px',
   }),
 };
 
@@ -204,7 +228,8 @@ const Field = (props) => {
               id={name + '.' + id}
               onChange={onSelectChange}
               isSearchable={true}
-              className="iwp-form__input"
+              className="iwp-field__react-select"
+              classNamePrefix="iwp-select"
               styles={customReactSelectStyles}
             />
           </div>
@@ -240,7 +265,8 @@ const Field = (props) => {
                   id={name + '.' + id}
                   onChange={onSelectChange}
                   isSearchable={true}
-                  className="iwp-form__input"
+                  className="iwp-field__react-select"
+                  classNamePrefix="iwp-select"
                   styles={customReactSelectStyles}
                 />
               </>

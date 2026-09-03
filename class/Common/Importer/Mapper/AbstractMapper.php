@@ -68,7 +68,8 @@ class AbstractMapper
             $key = $this->importer->get_iwp_reference_meta_key();
 
             $value = $data->getValue($key, 'iwp');
-            if (!$value) {
+            // 0 / "0" are valid identifiers — only treat missing/blank as empty.
+            if (!$this->has_identifier_value($value)) {
                 $value = '';
             }
 
@@ -120,6 +121,18 @@ class AbstractMapper
         return $this->unique_indentifier_data;
     }
 
+    /**
+     * Whether a unique identifier value is present.
+     * Note: 0 and "0" are valid identifiers (PHP empty()/falsy checks treat them as empty).
+     *
+     * @param mixed $value
+     * @return bool
+     */
+    public function has_identifier_value($value)
+    {
+        return !(null === $value || false === $value || '' === $value);
+    }
+
     public function getUniqueIdentifiers($unique_fields = [])
     {
 
@@ -149,7 +162,7 @@ class AbstractMapper
     {
         // TODO: this should only be done once per update
         $unique_value = $data->getValue($field, '*');
-        if (empty($unique_value)) {
+        if (!$this->has_identifier_value($unique_value)) {
             $cf = $data->getData('custom_fields');
             if (!empty($cf)) {
                 $cf_index = intval($cf['custom_fields._index']);

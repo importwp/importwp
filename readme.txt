@@ -142,6 +142,7 @@ A full list of available addons can be found [here](https://www.importwp.com/int
 
 * ADD - JSON file importer with record base path selection, nested field mapping, and preview support.
 * ADD - Allow JSON exports to be used when setting up a new importer from an exporter.
+* FIX - allow for 0 to be used as a reference as empty cleared it.
 
 = 2.14.25 =
 

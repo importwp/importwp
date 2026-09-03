@@ -6027,6 +6027,9 @@ const EditPage = ({
   const importerSubject = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const statusSubject = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   const getImporterRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const hasRestoredStepRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(false);
+  const locationSearchRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(location.search);
+  locationSearchRef.current = location.search;
   const logError = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(error => {
     const message = (0,_util_ajax_error__WEBPACK_IMPORTED_MODULE_22__.logAjaxError)(error, 'EditPage');
     setNotices(current => [...current, {
@@ -6036,9 +6039,9 @@ const EditPage = ({
     }]);
     window.scrollTo(0, 0);
   }, []);
-  const getActiveStep = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(maxStepValue => {
-    setStep((0,_step__WEBPACK_IMPORTED_MODULE_24__.getStepFromSearch)(location.search, maxStepValue));
-  }, [location.search]);
+  const restoreStepFromUrl = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(maxStepValue => {
+    setStep((0,_step__WEBPACK_IMPORTED_MODULE_24__.getStepFromSearch)(locationSearchRef.current, maxStepValue));
+  }, []);
   const setMaxStep = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(importerData => {
     const max = (0,_step__WEBPACK_IMPORTED_MODULE_24__.computeMaxStep)(importerData);
     setMaxStepState(max);
@@ -6063,7 +6066,14 @@ const EditPage = ({
           setDatasourceSettings(data.datasource.settings);
           setImporterAction(data);
           const max = setMaxStep(data);
-          getActiveStep(max);
+
+          // Only restore step from the URL on first load. Later emissions
+          // (e.g. after Save) update maxStep but must not advance the step —
+          // only Save & Continue / nextStep should move forward.
+          if (!hasRestoredStepRef.current) {
+            hasRestoredStepRef.current = true;
+            restoreStepFromUrl(max);
+          }
           if (statusXHR.current === null) {
             getStatus();
           }
@@ -6073,7 +6083,7 @@ const EditPage = ({
         logError(error);
       }
     });
-  }, [getActiveStep, getStatus, id, logError, setImporterAction, setMaxStep]);
+  }, [getStatus, id, logError, restoreStepFromUrl, setImporterAction, setMaxStep]);
   const nextStep = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
     setStep(current => {
       let next = current + 1;
@@ -6098,12 +6108,16 @@ const EditPage = ({
       statusXHR.current.abort();
       statusXHR.current = null;
     }
+    // Clear previous run status so ImportRunner does not treat an old
+    // "complete" status as belonging to this new session.
+    setStatus(null);
     setRunImporter(session);
   }, []);
   getImporterRef.current = getImporter;
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     const nextId = parseInt(id, 10) || 0;
     (0,_util_debug__WEBPACK_IMPORTED_MODULE_23__.debugLog)('EditPage load', nextId);
+    hasRestoredStepRef.current = false;
     if (nextId > 0) {
       getImporterRef.current();
     } else {
@@ -6447,26 +6461,26 @@ const EditSteps = ({
   };
   return (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, step > -1 && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
     className: "iwp-importer-header"
-  }, isEditingName ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+  }, isEditingName ? (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
+    className: "iwp-importer-header__edit"
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("input", {
+    className: "iwp-importer-header__input",
     value: editName,
     onChange: e => setEditName(e.target.value),
     onKeyDown: e => {
       if (e.key === 'Enter') {
         saveNameChange();
       }
-    },
-    style: {
-      height: '30px'
     }
   }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
     type: "button",
-    className: "button button-secondary",
+    className: "button button-secondary iwp-importer-header__button",
     onClick: saveNameChange
   }, saving && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("span", {
     className: "spinner is-active"
   }), saving ? 'Saving' : 'Save'), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
     type: "button",
-    className: "button button-link-delete",
+    className: "button button-link-delete iwp-importer-header__button",
     onClick: () => {
       setEditingName(false);
       setEditName(name);
@@ -7702,23 +7716,41 @@ const customReactSelectStyles = {
     minHeight: '30px',
     height: '30px',
     boxShadow: state.isFocused ? null : null,
-    borderRadius: 0
+    borderRadius: 0,
+    alignItems: 'center'
   }),
-  valueContainer: (provided, state) => ({
+  valueContainer: provided => ({
     ...provided,
     height: '30px',
-    padding: '0 6px'
+    padding: '0 8px'
   }),
-  input: (provided, state) => ({
+  input: provided => ({
     ...provided,
-    margin: '0px'
+    margin: 0,
+    padding: 0
   }),
-  indicatorSeparator: state => ({
+  singleValue: provided => ({
+    ...provided,
+    margin: 0
+  }),
+  placeholder: provided => ({
+    ...provided,
+    margin: 0
+  }),
+  indicatorSeparator: () => ({
     display: 'none'
   }),
-  indicatorsContainer: (provided, state) => ({
+  indicatorsContainer: provided => ({
     ...provided,
     height: '30px'
+  }),
+  clearIndicator: provided => ({
+    ...provided,
+    padding: '4px'
+  }),
+  dropdownIndicator: provided => ({
+    ...provided,
+    padding: '4px'
   })
 };
 const ExporterFieldSelectorRow = ({
@@ -8203,22 +8235,28 @@ function FieldSet({
   }, []);
   const getRowSummary = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((record, key, index) => {
     const prefix = `${key}.${index}.`;
-    const fieldKey = record[`${prefix}key`] || '';
-    const fieldType = record[`${prefix}_field_type`] || '';
-    const value = record[`${prefix}value`] || '';
+    const truncate = text => text.length > 60 ? `${text.substring(0, 57)}…` : text;
+    const summaryFields = Array.isArray(group.row_summary) ? group.row_summary : [];
     const parts = [];
-    if (fieldKey) {
-      parts.push(fieldKey);
-    }
-    if (fieldType && fieldType !== 'text') {
-      parts.push(`(${fieldType})`);
-    }
-    if (value) {
-      const shortValue = value.length > 60 ? `${value.substring(0, 57)}…` : value;
-      parts.push(`→ ${shortValue}`);
-    }
+    summaryFields.forEach(entry => {
+      const fieldId = typeof entry === 'string' ? entry : entry?.field;
+      if (!fieldId) {
+        return;
+      }
+      const value = record[`${prefix}${fieldId}`] || '';
+      const hideIf = typeof entry === 'object' ? entry.hide_if : undefined;
+      const format = typeof entry === 'object' ? entry.format : null;
+      if (!value || hideIf !== undefined && value === hideIf) {
+        return;
+      }
+      if (format === 'paren') {
+        parts.push(`(${value})`);
+        return;
+      }
+      parts.push(parts.length === 0 ? value : `→ ${truncate(value)}`);
+    });
     return parts.length > 0 ? parts.join(' ') : `Row ${index + 1}`;
-  }, []);
+  }, [group.row_summary]);
   const checkConditions = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((condition, groupData) => {
     let relation = 'AND';
     let currentCondition = condition;
@@ -8514,23 +8552,41 @@ const customReactSelectStyles = {
     minHeight: '30px',
     height: '30px',
     boxShadow: state.isFocused ? null : null,
-    borderRadius: 0
+    borderRadius: 0,
+    alignItems: 'center'
   }),
-  valueContainer: (provided, state) => ({
+  valueContainer: provided => ({
     ...provided,
     height: '30px',
-    padding: '0 6px'
+    padding: '0 8px'
   }),
-  input: (provided, state) => ({
+  input: provided => ({
     ...provided,
-    margin: '0px'
+    margin: 0,
+    padding: 0
   }),
-  indicatorSeparator: state => ({
+  singleValue: provided => ({
+    ...provided,
+    margin: 0
+  }),
+  placeholder: provided => ({
+    ...provided,
+    margin: 0
+  }),
+  indicatorSeparator: () => ({
     display: 'none'
   }),
-  indicatorsContainer: (provided, state) => ({
+  indicatorsContainer: provided => ({
     ...provided,
     height: '30px'
+  }),
+  clearIndicator: provided => ({
+    ...provided,
+    padding: '4px'
+  }),
+  dropdownIndicator: provided => ({
+    ...provided,
+    padding: '4px'
   })
 };
 const Field = props => {
@@ -8651,7 +8707,8 @@ const Field = props => {
         id: name + '.' + id,
         onChange: onSelectChange,
         isSearchable: true,
-        className: "iwp-form__input",
+        className: "iwp-field__react-select",
+        classNamePrefix: "iwp-select",
         styles: customReactSelectStyles
       })));
     default:
@@ -8673,7 +8730,8 @@ const Field = props => {
         id: name + '.' + id,
         onChange: onSelectChange,
         isSearchable: true,
-        className: "iwp-form__input",
+        className: "iwp-field__react-select",
+        classNamePrefix: "iwp-select",
         styles: customReactSelectStyles
       })) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_field_map_FieldMap__WEBPACK_IMPORTED_MODULE_10__["default"], {
         show: show_map,
@@ -9238,6 +9296,11 @@ const ImportRunner = ({
     setShowModal(false);
   }, []);
   const updateStatus = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(response => {
+    // Ignore stale status from a previous session — otherwise the modal can
+    // jump to "Complete" immediately and fetch logs before this run has any.
+    if (response?.version == 2 && response.id && session && response.id !== session) {
+      return;
+    }
     const nextModalContent = (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", {
       className: "iwp-import__stats"
     }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_status_message_StatusMessage__WEBPACK_IMPORTED_MODULE_4__["default"], {
@@ -9261,6 +9324,8 @@ const ImportRunner = ({
       setComplete(true);
       return;
     }
+    setComplete(false);
+    setModalClosable(false);
     if (response.section === 'import') {
       if (response.status === 'init') {
         const counter = +response.process;
@@ -9284,7 +9349,7 @@ const ImportRunner = ({
       setProgress(Math.round(counter / total * 100));
       setModalContent(nextModalContent);
     }
-  }, []);
+  }, [session]);
   const run = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
     runnerRef.current = _services_importer_service__WEBPACK_IMPORTED_MODULE_1__.importer.run(id, session);
     documentTitleRef.current = document.title;
@@ -9375,6 +9440,7 @@ const ImportRunner = ({
       marginBottom: '20px'
     }
   }, "Close"), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_importer_log_table_ImporterLogTable__WEBPACK_IMPORTED_MODULE_5__["default"], {
+    key: session,
     id: id,
     log: session
   }))) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("button", {
@@ -10349,9 +10415,15 @@ function ImporterLogTable(props) {
       setLogs(prevLogs => prevLogs.concat(data.logs));
       setIsLoading(false);
       setHasMore(data.logs.length > 0);
+    }).catch(() => {
+      setIsLoading(false);
+      setHasMore(false);
     });
   }, [props.id, props.log]);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    setLogs([]);
+    setHasMore(true);
+    setIsLoading(true);
     setPage(0);
     pageRef.current = 0;
     getLog();

@@ -77,7 +77,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
                 // check all groups for a unique value
                 $unique_value = $this->find_unique_field_in_data($data, $field);
 
-                if (!empty($unique_value)) {
+                if ($this->has_identifier_value($unique_value)) {
                     $has_unique_field = true;
 
                     if (in_array($field, $this->_post_fields, true)) {
@@ -114,7 +114,7 @@ class PostMapper extends AbstractMapper implements MapperInterface
 
             // fallback to post_title
             $unique_value = $data->getValue('post_title');
-            if (empty($unique_value) || !$this->importer->has_legacy_unique_identifier()) {
+            if (!$this->has_identifier_value($unique_value) || !$this->importer->has_legacy_unique_identifier()) {
                 throw new MapperException(__("No Unique fields present.", 'jc-importer'));
             }
 

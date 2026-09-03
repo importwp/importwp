@@ -8,6 +8,38 @@
   line-height: 1.3;
   color: #23282d;
 
+  &__edit {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 4px;
+    vertical-align: middle;
+  }
+
+  &__input,
+  &__button {
+    box-sizing: border-box !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
+    line-height: 28px !important;
+    margin: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    vertical-align: middle;
+  }
+
+  &__input {
+    font-size: 16px;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  &__button {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
   small {
     color: #7b8288;
     font-size: 0.6em;
@@ -16,6 +48,19 @@
     margin-bottom: 0.5em;
   }
 }
+
+@media screen and (max-width: 782px) {
+  .iwp-importer-header {
+    &__input,
+    &__button {
+      height: 40px !important;
+      min-height: 40px !important;
+      max-height: 40px !important;
+      line-height: 38px !important;
+    }
+  }
+}
+
 .iwp- {
   &steps {
     text-align: center;

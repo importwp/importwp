@@ -235,6 +235,11 @@ class Template extends AbstractTemplate
             $tmp['settings'] = $args['settings'];
         }
 
+        // Field ids used to build the collapsed repeater row summary in the UI.
+        if (isset($args['row_summary']) && !empty($args['row_summary'])) {
+            $tmp['row_summary'] = array_values((array) $args['row_summary']);
+        }
+
         return $tmp;
     }
 
@@ -373,7 +378,9 @@ class Template extends AbstractTemplate
     public function register_attachment_fields($label = 'Images & Attachments', $name = 'attachments', $field_label = 'Location', $group_args = null, $attachment_args = [])
     {
         if (is_null($group_args)) {
-            $group_args = ['type' => 'repeatable', 'row_base' => true, 'link' => 'https://www.importwp.com/docs/how-to-import-wordpress-attachments-onto-a-post-type/'];
+            $group_args = ['type' => 'repeatable', 'row_base' => true, 'row_summary' => ['location'], 'link' => 'https://www.importwp.com/docs/how-to-import-wordpress-attachments-onto-a-post-type/'];
+        } else if (!isset($group_args['row_summary'])) {
+            $group_args['row_summary'] = ['location'];
         }
 
         $display_conditions = isset($attachment_args['conditions']) ? $attachment_args['conditions'] : [];

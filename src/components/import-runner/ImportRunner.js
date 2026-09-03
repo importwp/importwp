@@ -30,6 +30,17 @@ const ImportRunner = ({
   }, []);
 
   const updateStatus = useCallback((response) => {
+    // Ignore stale status from a previous session — otherwise the modal can
+    // jump to "Complete" immediately and fetch logs before this run has any.
+    if (
+      response?.version == 2 &&
+      response.id &&
+      session &&
+      response.id !== session
+    ) {
+      return;
+    }
+
     const nextModalContent = (
       <p className="iwp-import__stats">
         <StatusMessage status={response} />
@@ -56,6 +67,9 @@ const ImportRunner = ({
       return;
     }
 
+    setComplete(false);
+    setModalClosable(false);
+
     if (response.section === 'import') {
       if (response.status === 'init') {
         const counter = +response.process;
@@ -79,7 +93,7 @@ const ImportRunner = ({
       setProgress(Math.round((counter / total) * 100));
       setModalContent(nextModalContent);
     }
-  }, []);
+  }, [session]);
 
   const run = useCallback(() => {
     runnerRef.current = importer.run(id, session);
@@ -202,7 +216,7 @@ const ImportRunner = ({
               >
                 Close
               </button>
-              <ImporterLogTable id={id} log={session} />
+              <ImporterLogTable key={session} id={id} log={session} />
             </>
           )}
         </>
