@@ -1,6 +1,6 @@
-=== Import WP – Export and Import CSV and XML files to WordPress ===
-Contributors: jcollings,importwp  
-Tags: wordpress csv import, wordpress xml import, xml, csv, datafeed
+=== Import WP – CSV & XML Import Export for WordPress ===
+Contributors: jcollings  
+Tags: csv xml importer, export csv xml, google sheets import, import from ftp, import users csv
 Requires at least: 4.0  
 Tested up to: 7.1  
 Requires PHP: 5.6  
@@ -9,132 +9,154 @@ License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
 
-Import WP, a simple, fast and powerful XML and CSV import solution, Making it easy to import posts, pages, categories, tags, users and attachments.
+Import and export WordPress posts, pages, users and media from any CSV or XML file, URL, FTP or Google Sheets — with visual field mapping.
 
 == Description ==
 
-Import and Export WordPress data with ease using Import WP, a WordPress import export plugin that  works with any XML or CSV file, there are no special requirements for how your csv file is laid out, or the structure of your xml file. Import WP’s xml and csv import process can handle it all.
+Import WP makes it straightforward to **import and export WordPress data** from CSV and XML files — no fixed file layout required. Map any column or XML node to WordPress fields with a visual selector, then run the import.
 
-XML and CSV import files can be fetched from a remote URL, datafeed or FTP server, downloaded from Google Sheets, or manually uploaded to the importer.
+Bring files in from a local upload, remote URL, data feed, FTP server, or Google Sheets. Export back out to CSV, XML, or JSON when you need a clean data dump or a migration bundle.
 
-Import WP comes with an intuitive data selection tool that makes it simple to select and map any WordPress field to any part of your xml or csv file.
+_This is a fantastic plugin. It allows an incredible amount of flexibility but the best part about it is the support, each question I had was answered near instantly and any problems were addressed and fixed immediately. I am impressed. I highly recommend the pro version, it is a relatively small cost for a really helpful tool. — WordPress.org review by nzstefan_
 
-Import WP allows you to import into all core WordPress data types from WordPress posts, pages, categories, tags, users and attachments, we offer many free addons that allow integration for third party plugins, and a premium upgrade to import into any custom post type, custom taxonomy, or custom fields.
+= How to import CSV or XML into WordPress =
 
-Our optimised **WordPress importer** makes it easy to **export and import CSV and XML files** into WordPress posts, pages, categories, and tags. We have simplified the process to **Import attachments, images, and any WordPress data** using our custom visual data selection tools that make it straightforward to import XML or CSV files from any **data feed**.
+1. **Choose your file** — Upload a CSV/XML file, or fetch it from a remote URL, FTP, or Google Sheets.
+2. **Map your data** — Use the visual selector to connect file fields to WordPress posts, pages, categories, tags, users, or attachments.
+3. **Set permissions** — Choose how records are matched, and whether the importer can insert, update, or delete.
+4. **Run the importer** — Review the log and history when the run finishes.
 
-Our **WordPress exporter** allows you to **export CSV, XML or JSON files** with data from any wordpress post type or taxonomy, including exporting custom fields, images, attachments, and related terms. This means you can easily export CSV, XML or JSON files containing only the WordPress data and structure you need.
+= Import from URL, FTP, data feeds and Google Sheets =
 
-= Import CSV and XML files to WordPress posts, categories and users =
+Import WP is built for recurring and remote data sources, not only one-off uploads:
 
-To create a **csv importer** or **xml importer** the steps are the same, except that xml files contain a nested data structure, instead of csv files that containing rows and headings.
+* Import CSV and XML from a remote URL or data feed
+* Import from an FTP server
+* Import from Google Sheets (via a published / downloadable sheet URL)
+* Import from files already on your web server
+* Skip unchanged records to speed up repeat imports
 
-1. **Choose Import file** - Import an XML or CSV file by either uploading a file, downloading from a remote url, or from a remote FTP.
-2. **Map data** - Select what parts of your import file should be used to create and update a WordPress record.
-3. **Set Permissions** - Set what is used to identify each record, and select what the importer can insert, update and delete.
-4. **Run the importer**.
+= Export WordPress data to CSV, XML or JSON =
 
-= Import WordPress Attachments from XML / CSV files =
+The built-in **WordPress exporter** lets you export the fields you need:
 
-**Import WordPress attachments** from CSV and XML files from either a **remote url**, an **ftp server**, the **websites filesystem**, or the **WordPress media library**. 
+* Export posts, pages, taxonomies and related data
+* Export custom fields, images, attachments and terms
+* Export to CSV, XML or JSON
+* Customise CSV headings and XML node / attribute names
+* Create nested XML for repeating data
+* Filter which records are included in the export
 
-Attachments can be downloaded every time the importer runs, or can check the media library to **use an existing version** if it exists already, saving media from downloading duplicate images.
+= Import WordPress attachments and media =
 
-= WordPress CSV and XML Importer features =
+Import images and other attachments from CSV or XML:
 
-* Simple XML data selection tool to Import XML files.
-* Easy to use CSV data selection tool to import CSV files.
-* Import data from remote urls and data feeds.
-* Import data from an FTP server
-* Import data from files stored on the web server.
-* Import data to WordPress posts and pages
-* Import categories and tags.
-* Import Attachments from Remote URL
-* Import Attachments from  FTP server
-* Import Attachments from local filesystem
-* Import Attachments from Media Library.
-* Import Attachment title, caption, alt tag metadata.
+* Remote URL
+* FTP server
+* Local filesystem
+* WordPress media library (reuse existing files to avoid duplicates)
+* Attachment title, caption, alt text and description
 
-= WordPress Exporter features =
+= Free version features =
 
-* Export all available fields, or select which WordPress data to export.
-* Create nested XML files containing repeating data.
-* Customise CSV file headings
-* Customise XML node names and attribute labels.
-* Filter which records are exported
+* Visual CSV and XML field mapping
+* Import posts, pages, categories, tags, users and attachments
+* Import from upload, URL, FTP, server path or Google Sheets
+* Export to CSV, XML or JSON
+* Unique identifiers for insert / update matching
+* Insert, update and delete controls per import
+* Import history and logging
 
-= Product Import Export for WooCommerce Add-on =
+= Free add-ons =
 
-The free [Import WP WooCommerce add-on extends](https://www.importwp.com/integrations/import-export-woocommerce-plugin/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting) Import WP's XML and CSV import capabilities allowing to Export and Import WooCommerce products.
+Extend Import WP with free integrations:
 
-- Export WooCommerce products into CSV, XML or JSON files
-- Import WooCommerce products from CSV and XML
-- Import and Export simple, grouped, external, variable and variation products.
-- Export and import WooCommerce products and images including featured product images and gallery images.
-- Export and Import product categories including hierarchy.
-- Export and Import WooCommerce product attributes, categories and tags
-- Export and import product prices and stock levels.
+* [WooCommerce](https://www.importwp.com/integrations/import-export-woocommerce-plugin/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting) — import and export products, variations, images, attributes, categories, prices and stock
+* [Yoast SEO](https://www.importwp.com/integrations/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting) and [Rank Math SEO](https://www.importwp.com/integrations/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting) — import SEO metadata
+* [Polylang](https://www.importwp.com/integrations/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting) and [WPML](https://www.importwp.com/integrations/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting) — import translations
+* [BLM file importer](https://www.importwp.com/integrations/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting) — property / BLM feeds
 
-A number of add-ons are available to add functionality to the importer / exporter.
+See all [Import WP add-ons](https://www.importwp.com/integrations/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting).
 
-* **Advanced Custom Fields ACF Add-on** - ACF XML & CSV data importer and exporter.
-* **JetEngine Add-on** - JetEngine XML & CSV data importer and exporter.
-* **WooCommerce Add-on** - XML & CSV Importer and Exporter for all WooCommerce product types.
-* **Rank Math SEO Add-on** - XML & CSV Importer for Rank Math SEO metadata.
-* **Yoast SEO Add-on** - XML & CSV Importer for Yoast SEO metadata.
-* **Polylang Add-on** - XML & CSV Importer for Polylang translations.
-* **BLM file importer Add-on** - BLM file and media Importer.
+= WooCommerce product import and export =
 
-Find out more [about Import WP Add-ons](https://www.importwp.com/integrations/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting).
+With the free WooCommerce add-on you can:
 
-= What is Import WP Pro? =
+* Import and export simple, grouped, external, variable and variation products
+* Import and export product images (featured and gallery)
+* Import and export categories (including hierarchy), attributes and tags
+* Import and export prices and stock levels
+* Export products to CSV, XML or JSON
 
-Import WP Pro is a paid upgrade that includes premium support and adds the following extra features:
+= Import WP Pro =
 
-* Import data to custom fields - used by themes and plugins to store custom data associated with posts.
-* Import data to WordPress custom post types.
-* Import data to WordPress custom taxonomies
+[Import WP Pro](https://www.importwp.com/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting) adds premium support plus:
+
+* Import to custom fields
+* Import to custom post types
+* Import to custom taxonomies
 * Schedule importers
+* [Advanced Custom Fields (ACF) add-on](https://www.importwp.com/integrations/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting) — import and export ACF fields (requires Pro)
+* [JetEngine add-on](https://www.importwp.com/integrations/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting) — import and export JetEngine data (requires Pro)
 
-Find out more [about Import WP Pro on our website](https://www.importwp.com/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting).
+A flexible, well-supported alternative when you need CSV/XML import and export without enterprise pricing.
 
 == Installation ==
 
-1. Upload 'jc-importer' to the '/wp-content/plugins/' directory
-2. Activate the plugin through the 'Plugins' menu in WordPress
-3. A new menu item under Tools > Import WP should appear where you can access the plugin.
+1. Upload the `jc-importer` folder to the `/wp-content/plugins/` directory, or install via **Plugins → Add New**.
+2. Activate the plugin through the **Plugins** menu in WordPress.
+3. Open **Tools → Import WP** to create an importer or exporter.
 
-For further documentation on installing and using Import WP features can be found [here](https://www.importwp.com/documentation/).
+Full documentation: [importwp.com/documentation](https://www.importwp.com/documentation/).
 
 == Frequently Asked Questions ==
 
-= How to Import XML files using our XML Importer =
+= How do I import a CSV file into WordPress? =
 
-Our **XML importer** allows you to easily **import xml files** made up from any XML schema / structure. 
+Create a new importer, upload your CSV (or load it from a URL / FTP / Google Sheets), map each column to the WordPress fields you need, set how records should be matched, then run the import. You can set the CSV delimiter, enclosure and character encoding under file settings.
 
-When **importing XML files** you first need to set the document base path, the XML base path defines what makes up a record and is used when calculating how many records will be imported.
+= How do I import an XML file into WordPress? =
 
-Using our XML visual data selector you can choose what data to be imported from each record's XML nodes attributes or text, or you can manually select data using custom written XPath queries.
+Create a new importer and choose your XML file. Set the document base path so Import WP knows what counts as one record, then map XML nodes or attributes with the visual selector (or use XPath). Any XML structure is supported — the file does not need a fixed schema.
 
-= How to Import CSV files using our CSV Importer =
-Our **CSV importer** makes it possible to **import CSV files** containing any number of columns or rows, with settings to set the CSV delimiter character that is used to separate each data cells defaulting to a comma, set the CSV enclosure character that is used to wrap around each data cell defaulting to a quotation mark, and set what character encoding was used when creating the csv.
+= Can I import from Google Sheets? =
 
-Using our CSV data selector you can visually choose what columns should be used when importing each record.
+Yes. Publish or share the sheet so it can be downloaded as CSV/XML, then use the remote URL option in Import WP to fetch it.
 
-= What documentation is available =
+= Can I import from FTP or a remote data feed? =
 
-Documentation can be found online on [importwp.com](https://www.importwp.com/docs/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting).
+Yes. Import WP can pull CSV or XML files from an FTP server, a remote URL, or a data feed, as well as from files already on your server.
 
-= What add-ons are available =
+= What WordPress data can I import? =
 
-A full list of available addons can be found [here](https://www.importwp.com/integrations/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting).
+The free plugin imports posts, pages, categories, tags, users and attachments (including image metadata). Custom post types, custom taxonomies and custom fields are available in [Import WP Pro](https://www.importwp.com/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting). Free add-ons extend imports for WooCommerce, Yoast, Rank Math, Polylang and more. ACF and JetEngine add-ons require Import WP Pro.
+
+= Can I export WordPress data to CSV, XML or JSON? =
+
+Yes. The exporter is included in the free plugin. Choose the post type or taxonomy, pick the fields to include, optionally filter records, and export to CSV, XML or JSON.
+
+= Does Import WP work with WooCommerce? =
+
+Yes, via the free [WooCommerce add-on](https://www.importwp.com/integrations/import-export-woocommerce-plugin/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting). You can import and export products, variations, images, attributes, categories, prices and stock.
+
+= What is the difference between free and Pro? =
+
+Free covers core WordPress types (posts, pages, taxonomies, users, attachments), CSV/XML import from multiple sources, and CSV/XML/JSON export. Pro adds custom fields, custom post types, custom taxonomies, scheduled imports, premium support, and unlocks the ACF and JetEngine add-ons.
+
+= Where is the documentation? =
+
+Documentation is on [importwp.com](https://www.importwp.com/docs/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting).
+
+= How do I get support? =
+
+Use the [WordPress.org support forum](https://wordpress.org/support/plugin/jc-importer/) for the free plugin. Pro customers receive premium support via [importwp.com](https://www.importwp.com/?utm_campaign=Import%2BWP%2BPro%2BUpgrade&utm_source=wordpress.org&utm_medium=free%2Bplugin%2Blisting).
 
 == Screenshots ==
 
-1. Import WP, New importer screen
-2. Import WP, Post template setup screen
-3. Import WP, Run import page
-4. Import WP, Import history page
+1. Create a new importer — choose CSV or XML and your data source
+2. Map file fields to WordPress posts, pages, users or taxonomies
+3. Run the import and monitor progress
+4. Review import history and logs
 
 == Changelog ==
 
