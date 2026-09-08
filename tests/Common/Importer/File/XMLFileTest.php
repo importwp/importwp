@@ -198,6 +198,18 @@ class XMLFileTest extends \WP_UnitTestCase
         $this->assertEquals(2, $record_count);
     }
 
+    public function test_processing_mode_indexes_more_than_one_record()
+    {
+        $config_file = tempnam(sys_get_temp_dir(), 'config');
+        $file = new XMLFile(IWP_TEST_ROOT . '/data/xml/data-posts.xml', new Config($config_file));
+        $file->setRecordPath('/posts/post');
+        $file->processing(true);
+
+        // Previously processing mode stopped after the first record.
+        $this->assertEquals(3, $file->getRecordCount());
+        $this->assertStringContainsString('Post Three', $file->getRecord(2));
+    }
+
     public function test_broken_xml()
     {
         $config_file = tempnam(sys_get_temp_dir(), 'config');

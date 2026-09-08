@@ -87,4 +87,71 @@ class XMLPreviewTest extends \WP_UnitTestCase
 
         $this->assertEquals('Child', $preview_data[0]['value'][0]['value'][0]['value'][1]['node']);
     }
+
+    public function test_xml_preview_second_record()
+    {
+        $config_file = tempnam(sys_get_temp_dir(), 'config');
+        $file = new XMLFile(IWP_TEST_ROOT . '/data/xml/data-posts.xml', new Config($config_file));
+        $preview = new XMLPreview($file, 'posts/post');
+
+        $first = $preview->data(0);
+        $this->assertEquals('record', $first[0]['node']);
+        $this->assertEquals('Post One', $this->findXmlTextValue($first[0], 'title'));
+
+        $second = $preview->data(1);
+        $this->assertEquals('Post Two', $this->findXmlTextValue($second[0], 'title'));
+
+        $third = $preview->data(2);
+        $this->assertEquals('Post Three', $this->findXmlTextValue($third[0], 'title'));
+    }
+
+    public function test_xml_preview_indexes_all_records_without_processing_limit()
+    {
+        $config_file = tempnam(sys_get_temp_dir(), 'config');
+        $file = new XMLFile(IWP_TEST_ROOT . '/data/xml/data-posts.xml', new Config($config_file));
+        $file->setRecordPath('posts/post');
+
+        // Preview must see all records even if processing mode was previously enabled.
+        $file->processing(true);
+        $preview = new XMLPreview($file, 'posts/post');
+        $preview->data(0);
+
+        $this->assertEquals(3, $file->getRecordCount());
+    }
+
+    /**
+     * @param array $node
+     * @param string $name
+     * @return string|null
+     */
+    private function findXmlTextValue($node, $name)
+    {
+        if (!isset($node['value']) || !is_array($node['value'])) {
+            return null;
+        }
+
+        foreach ($node['value'] as $child) {
+            if (!isset($child['node'])) {
+                continue;
+            }
+            if ($child['node'] === $name) {
+                if (is_string($child['value'])) {
+                    return $child['value'];
+                }
+                if (is_array($child['value'])) {
+                    foreach ($child['value'] as $text_node) {
+                        if (isset($text_node['type']) && $text_node['type'] === 'text') {
+                            return $text_node['value'];
+                        }
+                    }
+                }
+            }
+            $nested = $this->findXmlTextValue($child, $name);
+            if ($nested !== null) {
+                return $nested;
+            }
+        }
+
+        return null;
+    }
 }

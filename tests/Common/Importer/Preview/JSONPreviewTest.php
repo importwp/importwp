@@ -52,4 +52,35 @@ class JSONPreviewTest extends \WP_UnitTestCase
         $this->assertEquals('Alice', $nodes['author']['value'][0]['value']);
         $this->assertEquals('/author/name', $nodes['author']['value'][0]['xpath']);
     }
+
+    public function test_preview_second_record()
+    {
+        $config = new Config(tempnam(sys_get_temp_dir(), 'json-config'));
+        $file = new JSONFile(IWP_TEST_ROOT . '/data/json/basic.json', $config);
+        $preview = new JSONPreview($file, 'data');
+
+        $data = $preview->data(1);
+        $nodes = [];
+        foreach ($data[0]['value'] as $child) {
+            $nodes[$child['node']] = $child;
+        }
+
+        $this->assertEquals('2', $nodes['id']['value']);
+    }
+
+    public function test_preview_clamps_via_record_count()
+    {
+        $config = new Config(tempnam(sys_get_temp_dir(), 'json-config'));
+        $file = new JSONFile(IWP_TEST_ROOT . '/data/json/basic.json', $config);
+        $this->assertEquals(5, $file->getRecordCount());
+
+        $preview = new JSONPreview($file, 'data');
+        $data = $preview->data(4);
+        $nodes = [];
+        foreach ($data[0]['value'] as $child) {
+            $nodes[$child['node']] = $child;
+        }
+
+        $this->assertEquals('5', $nodes['id']['value']);
+    }
 }

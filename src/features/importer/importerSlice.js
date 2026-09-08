@@ -12,13 +12,15 @@ const initialState = {
   template: {},
   enabled: {},
   repeater: {},
+  previewRecord: 0,
 };
 
 // https://redux-toolkit.js.org/usage/usage-guide#async-requests-with-createasyncthunk
 export const fetchFieldPreview = createAsyncThunk(
   'importer/fetchFieldPreview',
-  async (data) => {
+  async (data, { getState }) => {
     const { id, fields } = data;
+    const record = getState().importer.previewRecord ?? 0;
 
     // transform keys to preview_ids
     let input = {};
@@ -30,7 +32,7 @@ export const fetchFieldPreview = createAsyncThunk(
     });
 
     try {
-      const response = await importer.recordPreview(id, { ...input });
+      const response = await importer.recordPreview(id, { ...input, record });
 
       // transform preview_ids to keys
       let output = {};
@@ -62,6 +64,11 @@ export const importerSlice = createSlice({
   reducers: {
     setImporter: (state, action) => {
       state.importer = action.payload;
+      state.previewRecord = 0;
+    },
+    setPreviewRecord: (state, action) => {
+      const next = parseInt(action.payload, 10);
+      state.previewRecord = Number.isNaN(next) || next < 0 ? 0 : next;
     },
     setPreview: (state, action) => {
       state.previews = {
@@ -177,6 +184,7 @@ export const {
   test,
   setImporter,
   setPreview,
+  setPreviewRecord,
   setTemplate,
   setEnabled,
   resetRepeater,
@@ -189,6 +197,7 @@ export const {
 
 export const selectMap = (state) => state.importer.importer.map;
 export const selectPreviews = (state) => state.importer.previews;
+export const selectPreviewRecord = (state) => state.importer.previewRecord ?? 0;
 export const seletValues = (state) => state.importer.template;
 export const seletEnabled = (state) => state.importer.enabled;
 export const seletRepeaterTemplates = (state) => state.importer.repeater;

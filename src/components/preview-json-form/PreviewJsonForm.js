@@ -119,7 +119,7 @@ function PreviewJsonForm({
           </p>
           <p>
             Configure how the importer reads a record from your file, a
-            preview showing the first record is available at the bottom of the
+            preview is available at the bottom of the
             page.
           </p>
           <div className="iwp-form__row">

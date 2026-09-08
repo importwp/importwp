@@ -49,8 +49,8 @@ class XMLPreview implements PreviewInterface
     public function __construct(XMLFile $file, $record_path, $args = array())
     {
         $this->file = $file;
-        $this->file->processing(true);
         $this->record_path = $record_path;
+        // Do not enable processing mode — preview navigation needs the full record index.
 
         if (!empty($record_path) && strpos($record_path, '/') !== false) {
             $this->record_path_parts = explode('/', $record_path);
@@ -62,10 +62,10 @@ class XMLPreview implements PreviewInterface
         }
     }
 
-    public function data()
+    public function data($record_index = 0)
     {
         $this->file->setRecordPath($this->record_path);
-        $record = $this->file->getRecord();
+        $record = $this->file->getRecord(intval($record_index));
 
         $xml = new \XMLReader();
         $xml->xml($record);

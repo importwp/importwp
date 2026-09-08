@@ -87,7 +87,7 @@ class CSVFile extends AbstractIndexedFile implements FileInterface
 				$record++;
 			}
 
-			if ($this->is_processing && ($record >= 2 || $startIndex > $this->process_max_size)) {
+			if ($this->is_processing && $startIndex > $this->process_max_size) {
 				break;
 			}
 

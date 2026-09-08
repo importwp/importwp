@@ -1316,9 +1316,19 @@ class RestManager extends \WP_REST_Controller
                 $importer->setFileSetting('file_encoding', $post_data['file_encoding']);
             }
 
+            $record_index = intval($record_index);
+
+            // Rebuild a complete temp index once for preview navigation.
+            // file-process may have stored a partial sample index (e.g. header + 1 row).
+            $config = $this->importer_manager->get_config($importer, true);
+            if (!$config->get('preview_full_index')) {
+                $this->importer_manager->clear_config_files($id, true);
+                $config = $this->importer_manager->get_config($importer, true);
+                $config->set('preview_full_index', true);
+            }
+
             if ($importer->getParser() === 'xml') {
 
-                $config = $this->importer_manager->get_config($importer, true);
                 $file = $this->importer_manager->get_xml_file($importer, $config);
 
                 $base_path = $post_data['base_path'];
@@ -1326,16 +1336,26 @@ class RestManager extends \WP_REST_Controller
                     $file->setRecordPath($base_path);
                 }
 
+                $total = $file->getRecordCount();
+                if ($total > 0) {
+                    $record_index = max(0, min($record_index, $total - 1));
+                } else {
+                    $record_index = 0;
+                }
+
                 $preview = new XMLPreview($file, $base_path);
-                $result = $preview->data();
+                $result = $preview->data($record_index);
                 if (is_wp_error($result)) {
                     return $this->http->end_rest_error($result);
                 }
 
-                return $this->http->end_rest_success($result[0]);
+                return $this->http->end_rest_success([
+                    'data' => $result[0],
+                    'record' => $record_index,
+                    'total' => $total,
+                ]);
             } elseif ($importer->getParser() === 'json') {
 
-                $config = $this->importer_manager->get_config($importer, true);
                 $file = $this->importer_manager->get_json_file($importer, $config);
 
                 $base_path = isset($post_data['base_path']) ? $post_data['base_path'] : $importer->getFileSetting('base_path');
@@ -1343,16 +1363,26 @@ class RestManager extends \WP_REST_Controller
                     $file->setRecordPath($base_path);
                 }
 
+                $total = $file->getRecordCount();
+                if ($total > 0) {
+                    $record_index = max(0, min($record_index, $total - 1));
+                } else {
+                    $record_index = 0;
+                }
+
                 $preview = new JSONPreview($file, $base_path);
-                $result = $preview->data();
+                $result = $preview->data($record_index);
                 if (is_wp_error($result)) {
                     return $this->http->end_rest_error($result);
                 }
 
-                return $this->http->end_rest_success($result[0]);
+                return $this->http->end_rest_success([
+                    'data' => $result[0],
+                    'record' => $record_index,
+                    'total' => $total,
+                ]);
             } elseif ($importer->getParser() === 'csv') {
 
-                $config = $this->importer_manager->get_config($importer, true);
                 $file = $this->importer_manager->get_csv_file($importer, $config);
 
                 $clear_config = false;
@@ -1367,6 +1397,7 @@ class RestManager extends \WP_REST_Controller
                 if ($clear_config) {
                     $this->importer_manager->clear_config_files($importer->getId(), true);
                     $config = $this->importer_manager->get_config($importer, true);
+                    $config->set('preview_full_index', true);
                     $file = $this->importer_manager->get_csv_file($importer, $config);
                 }
 
@@ -1430,18 +1461,23 @@ class RestManager extends \WP_REST_Controller
             $parser = $importer->getParser();
 
             $fields = $this->sanitize($request->get_body_params());
+            $record_index = 0;
+            if (isset($fields['record'])) {
+                $record_index = intval($fields['record']);
+                unset($fields['record']);
+            }
             if (is_null($fields) || empty($fields)) {
                 $fields = $importer->getMap();
             }
 
             if ('xml' === $parser) {
-                $result = $this->importer_manager->preview_xml_file($importer, $fields);
+                $result = $this->importer_manager->preview_xml_file($importer, $fields, $record_index);
             } elseif ('json' === $parser) {
-                $result = $this->importer_manager->preview_json_file($importer, $fields);
+                $result = $this->importer_manager->preview_json_file($importer, $fields, $record_index);
             } elseif ('csv' === $parser) {
-                $row = 0;
+                $row = $record_index;
                 if ($importer->getFileSetting('show_headings') === true) {
-                    $row = 1;
+                    $row = $record_index + 1;
                 }
                 $result = $this->importer_manager->preview_csv_file($importer, $fields, $row);
             } else {

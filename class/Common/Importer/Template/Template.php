@@ -113,8 +113,23 @@ class Template extends AbstractTemplate
         $file->setRecordPath($base_path);
         $nodes = $file->get_node_list();
 
+        // Nodes that appear as a parent of another path have selectable children.
+        $parents = [];
+        foreach ($nodes as $node) {
+            $parent = $node;
+            while (($pos = strrpos($parent, '/')) !== false && $pos > 0) {
+                $parent = substr($parent, 0, $pos);
+                $parents[$parent] = true;
+            }
+        }
+
         foreach ($nodes as $node) {
             if (strpos($node, $base_path) !== 0) {
+                continue;
+            }
+
+            // Skip leaf nodes (e.g. /categories/category) — they have no selectable child nodes.
+            if (!isset($parents[$node])) {
                 continue;
             }
 

@@ -203,8 +203,8 @@ class XMLFile extends AbstractIndexedFile implements FileInterface
             $this->chunk .= $this->getChunk();
             $this->chunk = $this->read_chunk_xml_nodes($this->chunk);
 
-            // only read the first 1mb of file
-            if ($this->is_processing && ($this->record_counter > 0 || ftell($this->getFileHandle()) > $this->process_max_size)) {
+            // only read the first 1mb of file when sampling
+            if ($this->is_processing && ftell($this->getFileHandle()) > $this->process_max_size) {
                 break;
             }
 

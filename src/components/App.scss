@@ -259,9 +259,64 @@
   &preview {
     background: #fafafa;
     border: 1px solid #e2e4e7;
-    padding: 1em;
-    max-height: 240px;
-    overflow: auto;
+    padding: 0;
+    max-height: 280px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    &__nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+      padding: 6px 8px;
+      background: #f0f0f1;
+      border-bottom: 1px solid #e2e4e7;
+
+      .button {
+        min-width: 32px;
+        height: 30px;
+        line-height: 28px;
+        padding: 0 8px;
+        margin: 0;
+      }
+    }
+
+    &__nav-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0 4px;
+      font-weight: normal;
+    }
+
+    &__nav-input {
+      width: 64px;
+      height: 30px;
+      margin: 0;
+      text-align: center;
+      -moz-appearance: textfield;
+
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+    }
+
+    &__nav-total {
+      white-space: nowrap;
+      color: #50575e;
+      font-size: 12px;
+    }
+
+    &__body {
+      padding: 1em;
+      overflow: auto;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
 
     &--xml {
       ul {

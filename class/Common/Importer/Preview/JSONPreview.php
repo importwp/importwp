@@ -25,7 +25,7 @@ class JSONPreview implements PreviewInterface
     {
         $this->file = $file;
         $this->record_path = $record_path;
-        $this->file->processing(true);
+        // Do not enable processing mode — preview navigation needs the full record index.
     }
 
     public function output()
@@ -35,31 +35,22 @@ class JSONPreview implements PreviewInterface
     }
 
     /**
-     * Build a preview tree for the first record under the given path.
+     * Build a preview tree for a record under the given path.
      *
      * Shape mirrors XMLPreview nodes so the React tree can reuse similar rendering:
      * [ { node, xpath, attr, value } ]
      *
+     * @param int $record_index
      * @return array
      */
-    public function data()
+    public function data($record_index = 0)
     {
         $this->file->setRecordPath($this->record_path);
+        $record_index = max(0, intval($record_index));
 
-        // Prefer decoded JSON for preview — avoids sticky/empty stream indexes.
-        $records = $this->file->getDecodedRecords(1);
-        if (!empty($records) && is_array($records[0])) {
-            return [[
-                'node' => 'record',
-                'xpath' => '',
-                'attr' => [],
-                'value' => $this->buildNodes($records[0], ''),
-            ]];
-        }
-
-        // Fallback to stream-indexed record
-        if ($this->file->getRecordCount() > 0) {
-            $raw = $this->file->getRecord(0);
+        // Prefer stream-indexed record so any preview index can be loaded.
+        if ($this->file->getRecordCount() > $record_index) {
+            $raw = $this->file->getRecord($record_index);
             $decoded = json_decode($raw, true);
             if (is_array($decoded)) {
                 return [[
@@ -67,6 +58,19 @@ class JSONPreview implements PreviewInterface
                     'xpath' => '',
                     'attr' => [],
                     'value' => $this->buildNodes($decoded, ''),
+                ]];
+            }
+        }
+
+        // Fallback to decoded JSON for the first record — avoids sticky/empty stream indexes.
+        if ($record_index === 0) {
+            $records = $this->file->getDecodedRecords(1);
+            if (!empty($records) && is_array($records[0])) {
+                return [[
+                    'node' => 'record',
+                    'xpath' => '',
+                    'attr' => [],
+                    'value' => $this->buildNodes($records[0], ''),
                 ]];
             }
         }

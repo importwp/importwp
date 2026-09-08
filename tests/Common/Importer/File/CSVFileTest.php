@@ -19,6 +19,17 @@ class CSVFileTest extends \WP_UnitTestCase
         $this->assertEquals("1,2,3", trim($file->getNextRecord()));
     }
 
+    public function test_processing_mode_indexes_more_than_two_records()
+    {
+        $config_file = tempnam(sys_get_temp_dir(), 'config_CSVFileTest_processing.json');
+        $file = new CSVFile(IWP_TEST_ROOT . '/data/csv/data-posts.csv', new Config($config_file));
+        $file->processing(true);
+
+        // Previously processing mode stopped after 2 records (header + first data row).
+        $this->assertEquals(4, $file->getRecordCount());
+        $this->assertStringContainsString('Post Three', $file->getRecord(3));
+    }
+
     public function normalize_line_endings($input_filepath, $output_filepath = null)
     {
         if (is_null($output_filepath)) {

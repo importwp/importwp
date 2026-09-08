@@ -1,17 +1,40 @@
-import { useCallback, useEffect, useMemo, useRef, useState, Fragment } from 'react';
+import { useCallback, useEffect, useRef, useState, Fragment } from 'react';
 import PropTypes from 'prop-types';
 import debounce from 'lodash.debounce';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { importer } from '../../../services/importer.service';
+import {
+  selectPreviewRecord,
+  setPreviewRecord,
+} from '../../../features/importer/importerSlice';
+import RecordNavigator from '../RecordNavigator';
 
 const RecordXml = ({
   id,
   onSelect = () => {},
   base_path,
   onError = () => {},
+  onRecordChange = () => {},
 }) => {
+  const dispatch = useDispatch();
+  const storedRecord = useSelector(selectPreviewRecord);
   const [loading, setLoading] = useState(true);
-  const [record, setRecord] = useState(null);
+  const [recordData, setRecordData] = useState(null);
+  const [record, setRecord] = useState(storedRecord);
+  const [total, setTotal] = useState(0);
+
+  const propsRef = useRef();
+  propsRef.current = {
+    id,
+    base_path,
+    onError,
+    onRecordChange,
+    record,
+  };
+
+  const settingsKey = [id, base_path].join('|');
+  const prevSettingsKeyRef = useRef();
 
   const displayNodeClick = useCallback((content, xpath = '') => {
     return (
@@ -77,48 +100,87 @@ const RecordXml = ({
     );
   }, [displayNodeAttributes, displayNodeClick]);
 
-  const getPreview = useMemo(
-    () =>
-      debounce(() => {
-        if (id && base_path) {
-          setLoading(true);
+  const fetchPreview = () => {
+    const current = propsRef.current;
+    if (!(current.id && current.base_path)) {
+      setLoading(false);
+      return;
+    }
 
-          importer
-            .filePreview(id, {
-              base_path,
-            })
-            .then((nextRecord) => {
-              setRecord(nextRecord);
-            })
-            .catch((e) => onError(e))
-            .finally(() => {
-              setLoading(false);
-            });
-        } else {
-          setLoading(false);
+    importer
+      .filePreview(current.id, {
+        base_path: current.base_path,
+        record: current.record,
+      })
+      .then((response) => {
+        const nextRecordData = response && response.data ? response.data : response;
+        setRecordData(nextRecordData);
+        if (typeof response?.record === 'number') {
+          setRecord(response.record);
+          if (response.record !== current.record) {
+            dispatch(setPreviewRecord(response.record));
+            current.onRecordChange(response.record);
+          }
         }
-      }, 300),
-    [id, base_path, onError]
-  );
+        if (typeof response?.total === 'number') {
+          setTotal(response.total);
+        }
+      })
+      .catch((e) => current.onError(e))
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
-  const getPreviewRef = useRef(getPreview);
-  getPreviewRef.current = getPreview;
+  const debouncedFetchRef = useRef();
+  if (!debouncedFetchRef.current) {
+    debouncedFetchRef.current = debounce(fetchPreview, 300);
+  }
 
   useEffect(() => {
-    getPreviewRef.current();
+    setLoading(true);
+    const settingsChanged =
+      prevSettingsKeyRef.current !== undefined &&
+      prevSettingsKeyRef.current !== settingsKey;
+    prevSettingsKeyRef.current = settingsKey;
+
+    if (settingsChanged) {
+      debouncedFetchRef.current();
+    } else {
+      fetchPreview();
+    }
 
     return () => {
-      getPreviewRef.current.cancel();
+      debouncedFetchRef.current.cancel();
+      importer.abort('filePreview');
     };
-  }, [id, base_path]);
+  }, [settingsKey, record]);
 
-  const output = record
-    ? displayNode(record)
+  const onNavigate = (nextRecord) => {
+    if (nextRecord === record) {
+      return;
+    }
+    setLoading(true);
+    setRecord(nextRecord);
+    dispatch(setPreviewRecord(nextRecord));
+    onRecordChange(nextRecord);
+  };
+
+  const output = recordData
+    ? displayNode(recordData)
     : 'No data to preview, please try changing the base_path.';
 
   return (
     <div className="iwp-preview iwp-preview--xml">
-      {loading ? 'Loading' : <ul>{output}</ul>}
+      <RecordNavigator
+        record={record}
+        total={total}
+        onChange={onNavigate}
+        disabled={loading}
+      />
+      <div className="iwp-preview__body">
+        {loading ? 'Loading' : <ul>{output}</ul>}
+      </div>
     </div>
   );
 };
@@ -128,6 +190,7 @@ RecordXml.propTypes = {
   onSelect: PropTypes.func,
   base_path: PropTypes.string,
   onError: PropTypes.func,
+  onRecordChange: PropTypes.func,
 };
 
 export default RecordXml;

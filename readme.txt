@@ -164,10 +164,14 @@ Use the [WordPress.org support forum](https://wordpress.org/support/plugin/jc-im
 
 * ADD - JSON file importer with record base path selection, nested field mapping, and preview support.
 * ADD - Allow JSON exports to be used when setting up a new importer from an exporter.
+* ADD - Navigate file and data-selector previews by record (first, previous, next, last, and record number), with the chosen record remembered for the session and used by field previews.
 * FIX - Custom method calls are now prefixed with iwp , e.g. [strtoupper("x")] → [iwp:strtoupper("x")]
 * FIX - allow for 0 to be used as a reference as empty cleared it.
 * FIX - Clarify unique identifier Permissions UI: template field vs file-column Import WP reference (_iwp_ref_uid), with guidance for updates and custom field limits.
 * FIX - Improve unique identifier and create/update permission error messages.
+* FIX - File preview no longer limits CSV/XML indexes to a single sample record, so multi-record files show the correct preview total.
+* FIX - Speed up data selector preview loading by fetching immediately on open and avoiding aborting unrelated preview requests.
+* FIX - XML Repeater Node options exclude leaf paths with no selectable child nodes (e.g. /categories/category).
 
 = 2.14.25 =
 
