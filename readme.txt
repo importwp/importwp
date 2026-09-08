@@ -164,6 +164,7 @@ Use the [WordPress.org support forum](https://wordpress.org/support/plugin/jc-im
 
 * ADD - JSON file importer with record base path selection, nested field mapping, and preview support.
 * ADD - Allow JSON exports to be used when setting up a new importer from an exporter.
+* FIX - Custom method calls are now prefixed with iwp , e.g. [strtoupper("x")] → [iwp:strtoupper("x")]
 * FIX - allow for 0 to be used as a reference as empty cleared it.
 
 = 2.14.25 =

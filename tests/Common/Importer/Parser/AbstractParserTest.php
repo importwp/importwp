@@ -52,11 +52,13 @@ class AbstractParserTest extends \WP_UnitTestCase
     public function provide_handle_custom_methods()
     {
         return [
-            'Basic custom method' => ['HELLO', '[strtoupper("hello")]'],
-            'Multiple custom methods' => ['HELLO WORLD', '[strtoupper("hello")] [strtoupper("world")]'],
-            'Multi line argument' => ["HE\nLLO", "[strtoupper(\"he\nllo\")]"],
-            'Multi line argument with ()' => ["(HE\nLLO)", "[strtoupper(\"(he\nllo)\")]"],
-            'Multiple custom methods with multiple arguments' => [str_pad("he\nllo", 12, "0") . ' WORLD', "[str_pad(\"he\nllo\", \"12\",\"0\")] [strtoupper(\"world\")]"]
+            'Basic custom method' => ['HELLO', '[iwp:strtoupper("hello")]'],
+            'Multiple custom methods' => ['HELLO WORLD', '[iwp:strtoupper("hello")] [iwp:strtoupper("world")]'],
+            'Multi line argument' => ["HE\nLLO", "[iwp:strtoupper(\"he\nllo\")]"],
+            'Multi line argument with ()' => ["(HE\nLLO)", "[iwp:strtoupper(\"(he\nllo)\")]"],
+            'Multiple custom methods with multiple arguments' => [str_pad("he\nllo", 12, "0") . ' WORLD', "[iwp:str_pad(\"he\nllo\", \"12\",\"0\")] [iwp:strtoupper(\"world\")]"],
+            'Unprefixed custom method is left unchanged' => ['[strtoupper("hello")]', '[strtoupper("hello")]'],
+            'Shortcode-like content is left unchanged' => ['[gallery ids="1,2,3"]', '[gallery ids="1,2,3"]'],
         ];
     }
 

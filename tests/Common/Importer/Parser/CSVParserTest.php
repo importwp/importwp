@@ -61,8 +61,8 @@ class CSVParserTest extends \WP_UnitTestCase
         $parser = new CSVParser($file);
         $result = $parser->getRecord(0)->queryGroup([
             'fields' => [
-                'one' => '[strtoupper("{0}")]',
-                'two' => '[strtoupper("{0}")] [strtoupper("{0}")]',
+                'one' => '[iwp:strtoupper("{0}")]',
+                'two' => '[iwp:strtoupper("{0}")] [iwp:strtoupper("{0}")]',
             ]
         ]);
         $this->assertEquals(strtoupper('One'), $result['one']);
@@ -75,8 +75,8 @@ class CSVParserTest extends \WP_UnitTestCase
         $file        = new CSVFile(IWP_TEST_ROOT . "/data/csv/test.csv", new Config($config_file));
 
         $parser = new CSVParser($file);
-        $this->assertEquals(strtoupper('One'), $parser->handle_custom_methods("[strtoupper(\"One\")]"));
-        $this->assertEquals(strtoupper('(One)'), $parser->handle_custom_methods("[strtoupper(\"(One)\")]"));
-        $this->assertEquals(strtoupper('(One) (Two)'), $parser->handle_custom_methods("[strtoupper(\"(One)\")] [strtoupper(\"(Two)\")]"));
+        $this->assertEquals(strtoupper('One'), $parser->handle_custom_methods("[iwp:strtoupper(\"One\")]"));
+        $this->assertEquals(strtoupper('(One)'), $parser->handle_custom_methods("[iwp:strtoupper(\"(One)\")]"));
+        $this->assertEquals(strtoupper('(One) (Two)'), $parser->handle_custom_methods("[iwp:strtoupper(\"(One)\")] [iwp:strtoupper(\"(Two)\")]"));
     }
 }

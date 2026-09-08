@@ -109,7 +109,7 @@ class XMLParserTest extends \WP_UnitTestCase
 
         $result = $parser->getRecord(0)->queryGroup([
             'fields' => [
-                'one' => '[strtoupper("{/title}")]',
+                'one' => '[iwp:strtoupper("{/title}")]',
             ]
         ]);
 

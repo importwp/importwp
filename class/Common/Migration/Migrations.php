@@ -38,6 +38,7 @@ class Migrations
         $this->_migrations[] = array($this, 'migration_08_migrate_taxonomy_settings');
         $this->_migrations[] = array($this, 'migration_09_migrate_attachment_settings');
         $this->_migrations[] = array($this, 'migration_10_relative_importer_file_paths');
+        $this->_migrations[] = array($this, 'migration_11_prefix_custom_methods');
 
         $this->_version = count($this->_migrations);
     }
@@ -994,5 +995,70 @@ class Migrations
 
             update_post_meta((int) $row['post_id'], $row['meta_key'], $relative);
         }
+    }
+
+    /**
+     * Prefix custom method calls with [iwp:...] so they do not collide with
+     * shortcodes or Gutenberg content that uses [name(...)].
+     *
+     * Rewrites [strtoupper("x")] → [iwp:strtoupper("x")] in importer maps,
+     * filters, and other stored string settings. Already-prefixed calls are left alone.
+     *
+     * @param bool $migrate_data
+     * @return void
+     */
+    public function migration_11_prefix_custom_methods($migrate_data = true)
+    {
+        if (!$migrate_data) {
+            return;
+        }
+
+        /**
+         * @var \wpdb $wpdb
+         */
+        global $wpdb;
+
+        $importers = $wpdb->get_results("SELECT * FROM {$wpdb->posts} WHERE post_type='" . IWP_POST_TYPE . "'", ARRAY_A);
+        if (empty($importers)) {
+            return;
+        }
+
+        foreach ($importers as $importer) {
+            $data = maybe_unserialize($importer['post_content']);
+            if (!is_array($data)) {
+                continue;
+            }
+
+            $migrated = $this->migration_11_prefix_custom_methods_in_value($data);
+            if ($migrated === $data) {
+                continue;
+            }
+
+            remove_filter('content_save_pre', 'wp_filter_post_kses');
+            wp_update_post(['ID' => $importer['ID'], 'post_content' => serialize($migrated)]);
+            add_filter('content_save_pre', 'wp_filter_post_kses');
+        }
+    }
+
+    /**
+     * Recursively rewrite [method( → [iwp:method( in strings.
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    private function migration_11_prefix_custom_methods_in_value($value)
+    {
+        if (is_array($value)) {
+            foreach ($value as $key => $item) {
+                $value[$key] = $this->migration_11_prefix_custom_methods_in_value($item);
+            }
+            return $value;
+        }
+
+        if (!is_string($value) || $value === '' || strpos($value, '[') === false) {
+            return $value;
+        }
+
+        return preg_replace('/\[(?!iwp:)(\w+)\(/', '[iwp:$1(', $value);
     }
 }

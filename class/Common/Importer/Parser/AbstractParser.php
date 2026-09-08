@@ -163,9 +163,10 @@ abstract class AbstractParser
 
     public function handle_custom_methods($input)
     {
+        // Prefixed [iwp:method(...)] to avoid colliding with shortcodes / Gutenberg content.
         // m: Multiline modifier
         // s: matches all characters including newlines
-        $input = preg_replace_callback('/\[([\w]+)\((.*?)\)\]/ms', function ($matches) {
+        $input = preg_replace_callback('/\[iwp:([\w]+)\((.*?)\)\]/ms', function ($matches) {
 
             $method = $matches[1];
 
