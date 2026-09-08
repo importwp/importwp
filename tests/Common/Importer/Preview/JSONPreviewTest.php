@@ -72,6 +72,7 @@ class JSONPreviewTest extends \WP_UnitTestCase
     {
         $config = new Config(tempnam(sys_get_temp_dir(), 'json-config'));
         $file = new JSONFile(IWP_TEST_ROOT . '/data/json/basic.json', $config);
+        $file->setRecordPath('data');
         $this->assertEquals(5, $file->getRecordCount());
 
         $preview = new JSONPreview($file, 'data');
