@@ -28,6 +28,12 @@ class Permission implements PermissionInterface
         }
 
         if (false === $this->allowed_method($permission_method)) {
+            if ('create' === $permission_method) {
+                throw new MapperException(__('Not enough permissions to create record. No existing record matched the unique identifier, and Create is disabled. Enable Create, or check that the unique identifier can find the existing record.', 'jc-importer'));
+            }
+            if ('update' === $permission_method) {
+                throw new MapperException(__('Not enough permissions to update record. An existing record matched the unique identifier, and Update is disabled. Enable Update if you intended to modify existing records.', 'jc-importer'));
+            }
             throw new MapperException(sprintf(__('Not enough permissions to %s record.', 'jc-importer'), $permission_method));
         }
 

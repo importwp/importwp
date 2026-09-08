@@ -4,7 +4,7 @@ Tags: csv xml importer, export csv xml, google sheets import, import from ftp, i
 Requires at least: 4.0  
 Tested up to: 7.1  
 Requires PHP: 5.6  
-Stable tag: 2.14.25  
+Stable tag: 2.15.0  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -166,6 +166,8 @@ Use the [WordPress.org support forum](https://wordpress.org/support/plugin/jc-im
 * ADD - Allow JSON exports to be used when setting up a new importer from an exporter.
 * FIX - Custom method calls are now prefixed with iwp , e.g. [strtoupper("x")] → [iwp:strtoupper("x")]
 * FIX - allow for 0 to be used as a reference as empty cleared it.
+* FIX - Clarify unique identifier Permissions UI: template field vs file-column Import WP reference (_iwp_ref_uid), with guidance for updates and custom field limits.
+* FIX - Improve unique identifier and create/update permission error messages.
 
 = 2.14.25 =
 

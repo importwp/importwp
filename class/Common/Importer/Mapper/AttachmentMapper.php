@@ -115,7 +115,7 @@ class AttachmentMapper extends PostMapper
         }
 
         if (!$has_unique_field) {
-            throw new MapperException(__("No Unique fields present.", 'jc-importer'));
+            throw new MapperException(__('No unique identifier value present. Check that Permissions has a unique identifier set and this row has a non-empty value. File column references are stored as _iwp_ref_uid.', 'jc-importer'));
         }
 
         if (!empty($meta_args)) {

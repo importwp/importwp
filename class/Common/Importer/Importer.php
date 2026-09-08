@@ -550,7 +550,7 @@ class Importer
 
             $unique_identifier_str = ' using unique identifier ';
             if ($unqiue_identifier_settings['field'] === '_iwp_ref_uid') {
-                $unique_identifier_str .= sprintf('("%s")', $unqiue_identifier_settings['value']);
+                $unique_identifier_str .= sprintf('("_iwp_ref_uid" = "%s")', $unqiue_identifier_settings['value']);
             } else {
                 $unique_identifier_str .= sprintf('("%s" = "%s")', $unqiue_identifier_settings['field'], $unqiue_identifier_settings['value']);
             }

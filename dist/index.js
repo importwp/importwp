@@ -10792,6 +10792,11 @@ const PermissionForm = ({
     return version >= 2 || setting_unique_identifier_type;
   }, [importerData, setting_unique_identifier_type]);
   const disabled = !((create || update || remove) && (!hasNewUniqueIdentifierUI() || setting_unique_identifier_type == 'field' && setting_unique_identifier || setting_unique_identifier_type == 'custom' && setting_unique_identifier_ref));
+  const FRAGILE_UID_FIELDS = ['post_title', 'title', 'name', 'post_content', 'post_excerpt', 'post_status'];
+  const PREFERRED_UID_FIELDS = ['_sku', '_global_unique_id', 'user_email', 'user_login', 'user_nicename'];
+  const preferredUidOption = unique_identifiers.find(item => PREFERRED_UID_FIELDS.includes(item.value));
+  const isFragileTemplateUid = setting_unique_identifier_type === 'field' && FRAGILE_UID_FIELDS.includes(setting_unique_identifier);
+  const shouldSuggestPreferredUid = isFragileTemplateUid && preferredUidOption && preferredUidOption.value !== setting_unique_identifier;
   const onChange = event => {
     const target = event.target;
     let value = target.type === 'checkbox' ? target.checked : target.value;
@@ -10991,7 +10996,7 @@ const PermissionForm = ({
     effect: "solid",
     delayHide: 300,
     className: "iwp-react-tooltip"
-  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Set how each record in the import file should be identified during the import process, either by using a previously populated template field, or by creating a custom identifier made from one or more sections of the import file."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "This unique identifier is then used to either create new records if no match is found, update existing records, or delete records no longer found in the import file"))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+  }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, "Choose how Import WP finds existing records so it can create, update, or delete them."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "Template field"), " (recommended for updates): match on a field you are importing, such as Product SKU, email, or ID."), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("strong", null, "File column reference"), ": match using a column from your file, stored privately as ", (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("code", null, "_iwp_ref_uid"), ". Use this when your unique key is not available as a template field \u2014 for example without Import WP Pro custom fields."))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
     className: "iwp-permissions"
   }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
     className: "iwp-permission__block iwp-permission__block--first"
@@ -11006,7 +11011,7 @@ const PermissionForm = ({
     onChange: onUniqueIdentifierTypeChange
   }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
     htmlFor: "setting_unique_identifier_type__field"
-  }, "Select a template field to be used as the unique identifier for each record.")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+  }, "Match existing records using a template field you are importing (recommended for updates).")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
     className: "iwp-block__content",
     style: {
       display: setting_unique_identifier_type === 'field' ? 'block' : 'none',
@@ -11019,7 +11024,7 @@ const PermissionForm = ({
     label: "Template Field",
     field: "setting_unique_identifier",
     id: "setting_unique_identifier",
-    tooltip: "Select from the predefined list of fields or manually type to a field name."
+    tooltip: "Select a mapped template field such as Product SKU, email, slug, or ID. Prefer a stable unique value over the title."
   })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
     className: "iwp-field__right"
   }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react_select_creatable__WEBPACK_IMPORTED_MODULE_4__["default"], {
@@ -11047,7 +11052,17 @@ const PermissionForm = ({
     placeholder: "Select a field from the importer template."
   }), setting_unique_identifier === 'ID' && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_8__["default"], {
     notices: [{
-      message: 'Using ID as the unqiue identifier field will match against existing wordpress ID\'s. Please note that the importer cannot create records with a specific ID and in that case may create duplicate records. (If you want to use ID as a unique identfier and it does not need to match the WordPress ID, i would suggest instead using the "Select data from your import file" option and reference the ID that way). ',
+      message: 'Using ID matches against existing WordPress IDs. Import WP cannot create records with a specific ID, so unmatched rows may create duplicates. If your file ID is not a WordPress ID, use “Match using a column from your file” instead — that stores the value as _iwp_ref_uid.',
+      type: 'info'
+    }]
+  }), shouldSuggestPreferredUid && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    notices: [{
+      message: `“${setting_unique_identifier}” can change or collide between imports. A more reliable unique identifier is available: ${preferredUidOption.label}. Switch to that field for safer updates.`,
+      type: 'info'
+    }]
+  }), isFragileTemplateUid && !shouldSuggestPreferredUid && (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    notices: [{
+      message: `Matching on “${setting_unique_identifier}” is fragile for updates because titles and similar fields often change or are not unique. Prefer a stable key such as post_name/slug, SKU, GTIN, email, or ID when available.`,
       type: 'info'
     }]
   })))), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
@@ -11063,7 +11078,7 @@ const PermissionForm = ({
     onChange: onUniqueIdentifierTypeChange
   }), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("label", {
     htmlFor: "setting_unique_identifier_type__custom"
-  }, "Select data from your import file to be used as the unique identifier per record.")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+  }, "Match using a column from your file (Import WP reference \u2014 no Pro custom field needed).")), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
     className: "iwp-block__content",
     style: {
       display: setting_unique_identifier_type === 'custom' ? 'block' : 'none',
@@ -11076,7 +11091,7 @@ const PermissionForm = ({
     label: "Identifier",
     id: "setting_unique_identifier_ref",
     field: "setting_unique_identifier_ref",
-    tooltip: "Select one or more sections of your import file that can be combined to create an identifier for each row / record being imported."
+    tooltip: "Select one or more columns/nodes from your import file. Import WP combines them into a private reference stored as _iwp_ref_uid on each record."
   })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
     className: "iwp-field__right"
   }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_InputField_InputField__WEBPACK_IMPORTED_MODULE_6__["default"], {
@@ -11088,7 +11103,12 @@ const PermissionForm = ({
     onClose: selection => {
       setSettingUniqueIdentifierRef(selection !== null ? selection : setting_unique_identifier_ref);
     }
-  }))))))) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
+  })), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(_notice_list_NoticeList__WEBPACK_IMPORTED_MODULE_8__["default"], {
+    notices: [{
+      message: 'Records are matched using a private Import WP reference stored as “_iwp_ref_uid” (not a normal template field like SKU or title). Updates will find the same records as long as you keep this option and the same file column(s). Use this when your unique key is not available as a template field — for example without Import WP Pro custom fields. If you later switch to a template field instead, existing records will not match unless that field already has the same value.',
+      type: 'info'
+    }]
+  })))))) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
     className: "iwp-form__grid"
   }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", {
     className: "iwp-form__row iwp-form__row--left"

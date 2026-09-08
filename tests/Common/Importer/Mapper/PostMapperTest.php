@@ -390,7 +390,7 @@ class PostMapperTest extends \WP_UnitTestCase
             $mapper->exists($data);
             $this->fail('MapperException was not thrown');
         } catch (MapperException $e) {
-            $this->assertSame('No Unique fields present.', $e->getMessage());
+            $this->assertSame('No unique identifier value present. Check that Permissions has a unique identifier set and this row has a non-empty value. File column references are stored as _iwp_ref_uid.', $e->getMessage());
         }
 
         // if unique_identifier has a value, but it is not found in the template
@@ -409,7 +409,7 @@ class PostMapperTest extends \WP_UnitTestCase
             $mapper->exists($data);
             $this->fail('MapperException was not thrown');
         } catch (MapperException $e) {
-            $this->assertSame('No Unique fields present.', $e->getMessage());
+            $this->assertSame('No unique identifier value present. Check that Permissions has a unique identifier set and this row has a non-empty value. File column references are stored as _iwp_ref_uid.', $e->getMessage());
         }
 
         // Match post_title
@@ -467,7 +467,7 @@ class PostMapperTest extends \WP_UnitTestCase
             $mapper->exists($data);
             $this->fail('MapperException was not thrown');
         } catch (MapperException $e) {
-            $this->assertSame('No Unique fields present.', $e->getMessage());
+            $this->assertSame('No unique identifier value present. Check that Permissions has a unique identifier set and this row has a non-empty value. File column references are stored as _iwp_ref_uid.', $e->getMessage());
         }
 
         // field but no match
