@@ -31,19 +31,18 @@ function FieldSet({
       : [];
   }, [group, repeaterMap]);
 
-  const [show_settings, setShowSettings] = useState([]);
   const [expandedRows, setExpandedRows] = useState(initialRows);
 
-  const addRow = useCallback((id) => {
+  const addRow = useCallback((nextId) => {
     const newIndex = Array.isArray(repeaterMap) ? repeaterMap.length : 0;
-    dispatch(addMapFieldRow(id));
+    dispatch(addMapFieldRow(nextId));
     setExpandedRows((current) =>
       current.includes(newIndex) ? current : [...current, newIndex]
     );
   }, [dispatch, repeaterMap]);
 
-  const removeRow = useCallback((id, index) => {
-    dispatch(removeMapFieldRow({ id, index }));
+  const removeRow = useCallback((nextId, index) => {
+    dispatch(removeMapFieldRow({ id: nextId, index }));
     setExpandedRows((current) =>
       current
         .filter((rowIndex) => rowIndex !== index)
@@ -122,7 +121,9 @@ function FieldSet({
 
     if (
       Array.isArray(currentCondition[0]) ||
-      currentCondition[0].hasOwnProperty('relation')
+      (currentCondition[0] &&
+        typeof currentCondition[0] === 'object' &&
+        currentCondition[0].hasOwnProperty('relation'))
     ) {
       if (currentCondition.length === 0) {
         return true;
@@ -143,42 +144,43 @@ function FieldSet({
         return false;
       }
       return true;
-    } else {
-      const operator = currentCondition[1];
-      switch (operator) {
-        case '*=': // Contains
-          if (
-            groupData[currentCondition[0]] && true ===
-            groupData[currentCondition[0]].includes(currentCondition[2])
-          ) {
-            return true;
-          }
-          break;
-        case '!*': // Not Contains
-          if (
-            groupData[currentCondition[0]] && false ===
-            groupData[currentCondition[0]].includes(currentCondition[2])
-          ) {
-            return true;
-          }
-          break;
-        case '==': // Equals
-          if (groupData[currentCondition[0]] === currentCondition[2]) {
-            return true;
-          }
-          break;
-        case '!=': // Not Equals
-          if (groupData[currentCondition[0]] !== currentCondition[2]) {
-            return true;
-          }
-          break;
-      }
+    }
+
+    const operator = currentCondition[1];
+    const left = groupData[currentCondition[0]];
+    switch (operator) {
+      case '*=': // Contains
+        if (
+          typeof left === 'string' &&
+          true === left.includes(currentCondition[2])
+        ) {
+          return true;
+        }
+        break;
+      case '!*': // Not Contains
+        if (
+          typeof left === 'string' &&
+          false === left.includes(currentCondition[2])
+        ) {
+          return true;
+        }
+        break;
+      case '==': // Equals
+        if (left === currentCondition[2]) {
+          return true;
+        }
+        break;
+      case '!=': // Not Equals
+        if (left !== currentCondition[2]) {
+          return true;
+        }
+        break;
     }
 
     return false;
   }, []);
 
-  const displayFieldSet = useCallback((content, groupData, groupItem, parentList) => {
+  const displayFieldSet = useCallback((panel, groupData, groupItem, parentList) => {
     const parent_path = [...parentList, groupItem.id].join('.');
 
     if (
@@ -194,10 +196,10 @@ function FieldSet({
       }
     }
 
-    return content;
+    return panel;
   }, [checkConditions, enabledFields]);
 
-  const display = useCallback((content, groupData, field, parentList) => {
+  const display = useCallback((panel, groupData, field, parentList) => {
     const parent_path = [...parentList, field.id].join('.');
     if (
       enabledFields.hasOwnProperty(parent_path) &&
@@ -212,7 +214,7 @@ function FieldSet({
       }
     }
 
-    return content;
+    return panel;
   }, [checkConditions, enabledFields]);
 
   const removeGroupIndex = useCallback((data, offset = 1) => {
@@ -224,10 +226,10 @@ function FieldSet({
   }, []);
 
   const content = useCallback((groupData, name, parentList) => {
-    const { fields, type } = group;
+    const { fields, type: groupType } = group;
 
     const liClass =
-      type !== 'repeatable' ? 'iwp-field--border' : 'iwp-field--repeater';
+      groupType !== 'repeatable' ? 'iwp-field--border' : 'iwp-field--repeater';
 
     const resolvedGroupData =
       !groupData.hasOwnProperty('row_base') &&
@@ -238,51 +240,20 @@ function FieldSet({
     return (
       <ul className="iwp-fields">
         {fields.map((field) => {
-          const field_set_id = `${parentList.join('.')}.${field.id}`;
-
           if (
             field.type === 'settings' &&
             typeof field.fields !== 'undefined'
           ) {
             return (
               <React.Fragment key={field.id}>
-                {displayFieldSet(
-                  <li className="iwp-field-settings">
-                    <button
-                      type="button"
-                      className="button button-primary"
-                      onClick={() => {
-                        if (show_settings.indexOf(field_set_id) > -1) {
-                          setShowSettings([
-                            ...show_settings.filter(
-                              (item) => item !== field_set_id
-                            ),
-                          ]);
-                        } else {
-                          setShowSettings([...show_settings, field_set_id]);
-                        }
-                      }}
-                    >
-                      {show_settings.indexOf(field_set_id) !== -1
-                        ? 'Hide '
-                        : 'Show '}
-                      Settings
-                    </button>
-
-                    {show_settings.indexOf(field_set_id) !== -1 && (
-                      <FieldSet
-                        id={`${parentList.join('.')}`}
-                        group={field}
-                        parents={parentList}
-                        showSelectModal={showSelectModal}
-                        importer_id={importer_id}
-                      />
-                    )}
-                  </li>,
-                  resolvedGroupData,
-                  field,
-                  parentList
-                )}
+                <FieldSettingsPanel
+                  field={field}
+                  parents={parentList}
+                  groupData={resolvedGroupData}
+                  showSelectModal={showSelectModal}
+                  importer_id={importer_id}
+                  displayFieldSet={displayFieldSet}
+                />
               </React.Fragment>
             );
           }
@@ -296,10 +267,10 @@ function FieldSet({
                       'iwp-field iwp-field--template ' +
                       liClass +
                       ' iwp-field--' +
-                      type
+                      groupType
                     }
                   >
-                    <FieldSet
+                    <ConnectedFieldSet
                       id={`${parentList.join('.')}`}
                       group={field}
                       parents={parentList}
@@ -329,7 +300,7 @@ function FieldSet({
         })}
       </ul>
     );
-  }, [display, displayFieldSet, group, importer_id, map, showSelectModal, show_settings]);
+  }, [display, displayFieldSet, group, importer_id, map, showSelectModal]);
 
   const { type, id } = group;
 
@@ -337,8 +308,8 @@ function FieldSet({
 
   if (type === 'repeatable') {
     currentParents.push(id);
-    let key = currentParents.join('.');
-    const rowCount = repeaterMap.length;
+    const key = currentParents.join('.');
+    const rowCount = Array.isArray(repeaterMap) ? repeaterMap.length : 0;
     return (
       <div className="iwp-repeater__wrapper">
         {rowCount > 5 && (
@@ -360,7 +331,7 @@ function FieldSet({
           </div>
         )}
         <ul className="iwp-repeater">
-          {repeaterMap.map((record, index) => {
+          {(repeaterMap || []).map((record, index) => {
             const tempParents = [...currentParents, index];
             const expanded = isRowExpanded(index);
             return (
@@ -432,31 +403,30 @@ function FieldSet({
         </div>
       </div>
     );
-  } else {
-    currentParents.push(id);
+  }
 
-    let field_key = currentParents.join('.');
+  currentParents.push(id);
 
-    if (typeof map === 'undefined') {
-      return '';
+  const field_key = currentParents.join('.');
+
+  if (typeof map === 'undefined') {
+    return '';
+  }
+
+  const tmp = Object.keys(map).filter((value) => {
+    return value.startsWith(field_key + '.');
+  });
+
+  const groupData = tmp.reduce((obj, key) => {
+    const pos = key.indexOf(id);
+    if (pos > -1) {
+      obj[key.substring(pos)] = map[key];
     }
 
-    let tmp = Object.keys(map).filter((value) => {
-      return value.startsWith(field_key + '.');
-    });
+    return obj;
+  }, {});
 
-    const groupData = tmp.reduce((obj, key) => {
-
-      const pos = key.indexOf(id);
-      if (pos > -1) {
-        obj[key.substring(pos)] = map[key];
-      }
-
-      return obj;
-    }, {});
-
-    return content(removeGroupIndex(groupData, 1), field_key, currentParents);
-  }
+  return content(removeGroupIndex(groupData, 1), field_key, currentParents);
 }
 
 FieldSet.propTypes = {
@@ -473,4 +443,59 @@ const mapStateToProps = (state, props) => ({
   repeaterMap: getRepeaterFields(state, props.id),
 });
 
-export default connect(mapStateToProps)(FieldSet);
+// Nested FieldSet / settings panels must use the connected component so Redux
+// injects map/enabledFields. The class version did this via const FieldSet = connect(...).
+const ConnectedFieldSet = connect(mapStateToProps)(FieldSet);
+
+function FieldSettingsPanel({
+  field,
+  parents,
+  groupData,
+  showSelectModal,
+  importer_id,
+  displayFieldSet,
+}) {
+  const [open, setOpen] = useState(false);
+  const parentPath = parents.join('.');
+
+  return displayFieldSet(
+    <li className="iwp-field-settings">
+      <button
+        type="button"
+        className="button button-primary"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          setOpen((current) => !current);
+        }}
+      >
+        {open ? 'Hide ' : 'Show '}
+        Settings
+      </button>
+
+      {open && (
+        <ConnectedFieldSet
+          id={parentPath}
+          group={field}
+          parents={parents}
+          showSelectModal={showSelectModal}
+          importer_id={importer_id}
+        />
+      )}
+    </li>,
+    groupData,
+    field,
+    parents
+  );
+}
+
+FieldSettingsPanel.propTypes = {
+  field: PropTypes.object.isRequired,
+  parents: PropTypes.array.isRequired,
+  groupData: PropTypes.object.isRequired,
+  showSelectModal: PropTypes.func,
+  importer_id: PropTypes.number,
+  displayFieldSet: PropTypes.func.isRequired,
+};
+
+export default ConnectedFieldSet;

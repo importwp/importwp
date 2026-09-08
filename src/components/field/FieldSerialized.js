@@ -1,6 +1,10 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getFieldMap, setTemplate } from '../../features/importer/importerSlice';
+import {
+  getFieldMap,
+  getNearestRowBase,
+  setTemplate,
+} from '../../features/importer/importerSlice';
 
 const FieldSerialized = function ({
   field,
@@ -9,6 +13,7 @@ const FieldSerialized = function ({
 }) {
 
   const map = useSelector((state) => getFieldMap(state, name));
+  const rowBase = useSelector((state) => getNearestRowBase(state, name));
   const dispatch = useDispatch();
 
   const index_key = `${name}.${field.id}._index`;
@@ -65,7 +70,7 @@ const FieldSerialized = function ({
                 onClick={() =>
                   showSelectModal(
                     `${name}._serialized.${i}.key`,
-                    map.hasOwnProperty('row_base') ? map.row_base : ''
+                    rowBase || ''
                   )
                 }
               >
@@ -87,7 +92,7 @@ const FieldSerialized = function ({
                 onClick={() =>
                   showSelectModal(
                     `${name}._serialized.${i}.value`,
-                    map.hasOwnProperty('row_base') ? map.row_base : ''
+                    rowBase || ''
                   )
                 }
               >

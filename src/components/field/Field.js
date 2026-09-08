@@ -4,6 +4,7 @@ import AsyncSelect from 'react-select/async';
 import { connect } from 'react-redux';
 import {
   getFieldMap,
+  getNearestRowBase,
   getPreview,
   getValue,
   setTemplate,
@@ -78,6 +79,7 @@ const Field = (props) => {
   const {
     field,
     map,
+    rowBase,
     value,
     name,
     showSelectModal,
@@ -302,12 +304,7 @@ const Field = (props) => {
                     className="iwp-field__select"
                     type="button"
                     onClick={() =>
-                      showSelectModal(
-                        name + '.' + id,
-                        map.hasOwnProperty(`${name}.row_base`)
-                          ? map[`${name}.row_base`]
-                          : ''
-                      )
+                      showSelectModal(name + '.' + id, rowBase || '')
                     }
                   >
                     Select Data
@@ -346,6 +343,7 @@ const Field = (props) => {
 Field.propTypes = {
   field: PropTypes.object.isRequired,
   map: PropTypes.object,
+  rowBase: PropTypes.string,
   value: PropTypes.string,
   name: PropTypes.string.isRequired,
   showSelectModal: PropTypes.func,
@@ -355,6 +353,7 @@ Field.propTypes = {
 
 const mapStateToProps = (state, props) => ({
   map: getFieldMap(state, props.name),
+  rowBase: getNearestRowBase(state, props.name),
   preview: getPreview(state, `${props.name}.${props.field.id}`),
   value: getValue(state, `${props.name}.${props.field.id}`),
 });

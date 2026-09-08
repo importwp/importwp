@@ -283,4 +283,33 @@ export const getRepeaterFields = createSelector(
   selectorSettings
 );
 
+/**
+ * Walk up a field path and return the nearest ancestor row_base value.
+ * e.g. attachments.0.settings._meta → attachments.0.row_base
+ */
+export function findNearestRowBase(template = {}, path = '') {
+  if (!path) {
+    return '';
+  }
+
+  const parts = String(path).split('.');
+  while (parts.length > 0) {
+    const candidate = `${parts.join('.')}.row_base`;
+    if (
+      Object.prototype.hasOwnProperty.call(template, candidate) &&
+      template[candidate]
+    ) {
+      return template[candidate];
+    }
+    parts.pop();
+  }
+
+  return '';
+}
+
+export const getNearestRowBase = createSelector(
+  [seletValues, selectId],
+  (items, itemId) => findNearestRowBase(items, itemId)
+);
+
 export default importerSlice.reducer;
