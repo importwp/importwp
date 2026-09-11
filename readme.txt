@@ -172,6 +172,7 @@ Use the [WordPress.org support forum](https://wordpress.org/support/plugin/jc-im
 * FIX - File preview no longer limits CSV/XML indexes to a single sample record, so multi-record files show the correct preview total.
 * FIX - Speed up data selector preview loading by fetching immediately on open and avoiding aborting unrelated preview requests.
 * FIX - XML Repeater Node options exclude leaf paths with no selectable child nodes (e.g. /categories/category).
+* FIX - cache data preview selector, so subsequent clicks use a cache.
 
 = 2.14.25 =
 

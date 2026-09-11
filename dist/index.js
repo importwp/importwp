@@ -5138,14 +5138,16 @@ const DataSelector = ({
   preview: previewProp = '',
   subPath = ''
 }) => {
-  var _settings$escape;
+  var _store$getState$impor, _settings$escape;
   const dispatch = (0,react_redux__WEBPACK_IMPORTED_MODULE_1__.useDispatch)();
   const [selection, setSelection] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(selectionProp);
-  const [preview, setPreview] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(previewProp);
-  const [record, setRecord] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => {
-    var _store$getState$impor;
-    return (_store$getState$impor = _store__WEBPACK_IMPORTED_MODULE_7__.store.getState().importer.previewRecord) !== null && _store$getState$impor !== void 0 ? _store$getState$impor : 0;
+  const initialRecord = (_store$getState$impor = _store__WEBPACK_IMPORTED_MODULE_7__.store.getState().importer.previewRecord) !== null && _store$getState$impor !== void 0 ? _store$getState$impor : 0;
+  const initialPreviewCache = _services_importer_service__WEBPACK_IMPORTED_MODULE_5__.importer.getCachedRecordPreview(id, {
+    selection: selectionProp,
+    record: initialRecord
   });
+  const [preview, setPreview] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => initialPreviewCache ? initialPreviewCache.selection : previewProp);
+  const [record, setRecord] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initialRecord);
   const refreshFieldPreviews = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
     const state = _store__WEBPACK_IMPORTED_MODULE_7__.store.getState();
     const fields = state.importer.template;
@@ -5158,11 +5160,17 @@ const DataSelector = ({
     }));
   }, [dispatch, id]);
   const refreshPreview = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)((nextSelection = selection, nextRecord = record) => {
-    setPreview('Loading.');
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_5__.importer.recordPreview(id, {
+    const fields = {
       selection: nextSelection,
       record: nextRecord
-    }).then(response => {
+    };
+    const cached = _services_importer_service__WEBPACK_IMPORTED_MODULE_5__.importer.getCachedRecordPreview(id, fields);
+    if (cached) {
+      setPreview(cached.selection);
+      return;
+    }
+    setPreview('Loading.');
+    _services_importer_service__WEBPACK_IMPORTED_MODULE_5__.importer.recordPreview(id, fields).then(response => {
       setPreview(response.selection);
     }).catch(error => {
       setPreview('');
@@ -12398,12 +12406,20 @@ const RecordCsv = ({
 }) => {
   const dispatch = (0,react_redux__WEBPACK_IMPORTED_MODULE_2__.useDispatch)();
   const storedRecord = (0,react_redux__WEBPACK_IMPORTED_MODULE_2__.useSelector)(_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.selectPreviewRecord);
-  const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
-  const [headings, setHeadings] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
-  const [row, setRow] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const initialCache = id && delimiter && enclosure ? _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.getCachedFilePreview(id, {
+    delimiter,
+    enclosure,
+    escape,
+    show_headings,
+    file_encoding,
+    record: storedRecord
+  }) : undefined;
+  const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => !initialCache);
+  const [headings, setHeadings] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => initialCache ? initialCache.headings : []);
+  const [row, setRow] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => initialCache ? initialCache.row : []);
   const [error, setError] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
-  const [record, setRecord] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(storedRecord);
-  const [total, setTotal] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const [record, setRecord] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => typeof initialCache?.record === 'number' ? initialCache.record : storedRecord);
+  const [total, setTotal] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => typeof initialCache?.total === 'number' ? initialCache.total : 0);
   const propsRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)();
   propsRef.current = {
     id,
@@ -12418,6 +12434,25 @@ const RecordCsv = ({
   };
   const settingsKey = [id, delimiter, enclosure, escape, show_headings, file_encoding].join('|');
   const prevSettingsKeyRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)();
+  const applyResponse = (response, current) => {
+    if (response.headings.length == response.row.length) {
+      setHeadings(response.headings);
+      setRow(response.row);
+      const nextRecord = typeof response.record === 'number' ? response.record : current.record;
+      const nextTotal = typeof response.total === 'number' ? response.total : 0;
+      setRecord(nextRecord);
+      setTotal(nextTotal);
+      if (nextRecord !== current.record) {
+        dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.setPreviewRecord)(nextRecord));
+        current.onRecordChange(nextRecord);
+      }
+      setError(false);
+    } else {
+      setHeadings([]);
+      setRow([]);
+      setError(`Inconsistent num of fields, header: ${response.headings.length}, this line: ${response.row.length} `);
+    }
+  };
   const fetchPreview = () => {
     const current = propsRef.current;
     if (!(current.id && current.delimiter && current.enclosure)) {
@@ -12432,24 +12467,16 @@ const RecordCsv = ({
       file_encoding: current.file_encoding,
       record: current.record
     };
+    const cached = _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.getCachedFilePreview(current.id, data);
+    if (cached) {
+      applyResponse(cached, current);
+      setLoading(false);
+      return;
+    }
     setError(false);
+    setLoading(true);
     _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.filePreview(current.id, data).then(response => {
-      if (response.headings.length == response.row.length) {
-        setHeadings(response.headings);
-        setRow(response.row);
-        const nextRecord = typeof response.record === 'number' ? response.record : current.record;
-        const nextTotal = typeof response.total === 'number' ? response.total : 0;
-        setRecord(nextRecord);
-        setTotal(nextTotal);
-        if (nextRecord !== current.record) {
-          dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.setPreviewRecord)(nextRecord));
-          current.onRecordChange(nextRecord);
-        }
-      } else {
-        setHeadings([]);
-        setRow([]);
-        setError(`Inconsistent num of fields, header: ${response.headings.length}, this line: ${response.row.length} `);
-      }
+      applyResponse(response, current);
     }).catch(e => {
       setHeadings([]);
       setRow([]);
@@ -12480,10 +12507,10 @@ const RecordCsv = ({
     }, (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("th", null, displayNodeClick(false === show_headings ? index : heading, '{' + index + '}')), (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)("td", null, displayNodeClick(row[index], '{' + index + '}')))));
   };
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    setLoading(true);
     const settingsChanged = prevSettingsKeyRef.current !== undefined && prevSettingsKeyRef.current !== settingsKey;
     prevSettingsKeyRef.current = settingsKey;
     if (settingsChanged) {
+      setLoading(true);
       debouncedFetchRef.current();
     } else {
       fetchPreview();
@@ -12570,10 +12597,19 @@ const RecordJson = ({
 }) => {
   const dispatch = (0,react_redux__WEBPACK_IMPORTED_MODULE_2__.useDispatch)();
   const storedRecord = (0,react_redux__WEBPACK_IMPORTED_MODULE_2__.useSelector)(_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.selectPreviewRecord);
-  const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
-  const [recordData, setRecordData] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const [record, setRecord] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(storedRecord);
-  const [total, setTotal] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const initialCache = id && base_path ? _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.getCachedFilePreview(id, {
+    base_path,
+    record: storedRecord
+  }) : undefined;
+  const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => !initialCache);
+  const [recordData, setRecordData] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => {
+    if (!initialCache) {
+      return null;
+    }
+    return initialCache.data ? initialCache.data : initialCache;
+  });
+  const [record, setRecord] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => typeof initialCache?.record === 'number' ? initialCache.record : storedRecord);
+  const [total, setTotal] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => typeof initialCache?.total === 'number' ? initialCache.total : 0);
   const propsRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)();
   propsRef.current = {
     id,
@@ -12604,6 +12640,20 @@ const RecordJson = ({
       key: i
     }, displayNode(node)))) : null, displayNodeClick('}', node_xpath)) : (0,react__WEBPACK_IMPORTED_MODULE_0__.createElement)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, displayNodeClick(': ', node_xpath), displayNodeClick(typeof currentNode.value === 'string' ? '"' + currentNode.value + '"' : String(currentNode.value), node_xpath)));
   }, [displayNodeClick]);
+  const applyResponse = (response, current) => {
+    const nextRecordData = response && response.data ? response.data : response;
+    setRecordData(nextRecordData);
+    if (typeof response?.record === 'number') {
+      setRecord(response.record);
+      if (response.record !== current.record) {
+        dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.setPreviewRecord)(response.record));
+        current.onRecordChange(response.record);
+      }
+    }
+    if (typeof response?.total === 'number') {
+      setTotal(response.total);
+    }
+  };
   const fetchPreview = () => {
     const current = propsRef.current;
     if (!(current.id && current.base_path)) {
@@ -12611,22 +12661,19 @@ const RecordJson = ({
       setRecordData(null);
       return;
     }
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.filePreview(current.id, {
+    const data = {
       base_path: current.base_path,
       record: current.record
-    }).then(response => {
-      const nextRecordData = response && response.data ? response.data : response;
-      setRecordData(nextRecordData);
-      if (typeof response?.record === 'number') {
-        setRecord(response.record);
-        if (response.record !== current.record) {
-          dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.setPreviewRecord)(response.record));
-          current.onRecordChange(response.record);
-        }
-      }
-      if (typeof response?.total === 'number') {
-        setTotal(response.total);
-      }
+    };
+    const cached = _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.getCachedFilePreview(current.id, data);
+    if (cached) {
+      applyResponse(cached, current);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.filePreview(current.id, data).then(response => {
+      applyResponse(response, current);
     }).catch(e => current.onError(e)).finally(() => {
       setLoading(false);
     });
@@ -12636,10 +12683,10 @@ const RecordJson = ({
     debouncedFetchRef.current = lodash_debounce__WEBPACK_IMPORTED_MODULE_1___default()(fetchPreview, 300);
   }
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    setLoading(true);
     const settingsChanged = prevSettingsKeyRef.current !== undefined && prevSettingsKeyRef.current !== settingsKey;
     prevSettingsKeyRef.current = settingsKey;
     if (settingsChanged) {
+      setLoading(true);
       debouncedFetchRef.current();
     } else {
       fetchPreview();
@@ -12719,10 +12766,19 @@ const RecordXml = ({
 }) => {
   const dispatch = (0,react_redux__WEBPACK_IMPORTED_MODULE_2__.useDispatch)();
   const storedRecord = (0,react_redux__WEBPACK_IMPORTED_MODULE_2__.useSelector)(_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.selectPreviewRecord);
-  const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
-  const [recordData, setRecordData] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const [record, setRecord] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(storedRecord);
-  const [total, setTotal] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const initialCache = id && base_path ? _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.getCachedFilePreview(id, {
+    base_path,
+    record: storedRecord
+  }) : undefined;
+  const [loading, setLoading] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => !initialCache);
+  const [recordData, setRecordData] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => {
+    if (!initialCache) {
+      return null;
+    }
+    return initialCache.data ? initialCache.data : initialCache;
+  });
+  const [record, setRecord] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => typeof initialCache?.record === 'number' ? initialCache.record : storedRecord);
+  const [total, setTotal] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(() => typeof initialCache?.total === 'number' ? initialCache.total : 0);
   const propsRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)();
   propsRef.current = {
     id,
@@ -12759,28 +12815,39 @@ const RecordXml = ({
       key: i
     }, displayNode(node)))) : displayNodeClick(currentNode.value, node_xpath), displayNodeClick('&lt;/' + node_name + '&gt;</li>', node_xpath));
   }, [displayNodeAttributes, displayNodeClick]);
+  const applyResponse = (response, current) => {
+    const nextRecordData = response && response.data ? response.data : response;
+    setRecordData(nextRecordData);
+    if (typeof response?.record === 'number') {
+      setRecord(response.record);
+      if (response.record !== current.record) {
+        dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.setPreviewRecord)(response.record));
+        current.onRecordChange(response.record);
+      }
+    }
+    if (typeof response?.total === 'number') {
+      setTotal(response.total);
+    }
+  };
   const fetchPreview = () => {
     const current = propsRef.current;
     if (!(current.id && current.base_path)) {
       setLoading(false);
       return;
     }
-    _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.filePreview(current.id, {
+    const data = {
       base_path: current.base_path,
       record: current.record
-    }).then(response => {
-      const nextRecordData = response && response.data ? response.data : response;
-      setRecordData(nextRecordData);
-      if (typeof response?.record === 'number') {
-        setRecord(response.record);
-        if (response.record !== current.record) {
-          dispatch((0,_features_importer_importerSlice__WEBPACK_IMPORTED_MODULE_4__.setPreviewRecord)(response.record));
-          current.onRecordChange(response.record);
-        }
-      }
-      if (typeof response?.total === 'number') {
-        setTotal(response.total);
-      }
+    };
+    const cached = _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.getCachedFilePreview(current.id, data);
+    if (cached) {
+      applyResponse(cached, current);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    _services_importer_service__WEBPACK_IMPORTED_MODULE_3__.importer.filePreview(current.id, data).then(response => {
+      applyResponse(response, current);
     }).catch(e => current.onError(e)).finally(() => {
       setLoading(false);
     });
@@ -12790,10 +12857,10 @@ const RecordXml = ({
     debouncedFetchRef.current = lodash_debounce__WEBPACK_IMPORTED_MODULE_1___default()(fetchPreview, 300);
   }
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    setLoading(true);
     const settingsChanged = prevSettingsKeyRef.current !== undefined && prevSettingsKeyRef.current !== settingsKey;
     prevSettingsKeyRef.current = settingsKey;
     if (settingsChanged) {
+      setLoading(true);
       debouncedFetchRef.current();
     } else {
       fetchPreview();
@@ -14981,7 +15048,11 @@ const importer = {
   importers,
   upload,
   filePreview,
+  getCachedFilePreview,
+  clearFilePreviewCache,
   recordPreview,
+  getCachedRecordPreview,
+  clearRecordPreviewCache,
   process,
   getAndSubscribe,
   run,
@@ -15249,9 +15320,57 @@ function process(id, data = {}) {
 //   });
 // }
 
+let filePreviewCache = {};
+let recordPreviewCache = {};
+function getFilePreviewCacheKey(id, data = {}) {
+  return id + '_' + JSON.stringify(data);
+}
+function getRecordPreviewCacheKey(id, fields = {}) {
+  return id + '_' + JSON.stringify(fields);
+}
+function getCachedFilePreview(id, data = {}) {
+  const cached = filePreviewCache[getFilePreviewCacheKey(id, data)];
+  return cached && Object.prototype.hasOwnProperty.call(cached, 'data') ? cached.data : undefined;
+}
+function getCachedRecordPreview(id, fields = {}) {
+  const cached = recordPreviewCache[getRecordPreviewCacheKey(id, fields)];
+  return cached && Object.prototype.hasOwnProperty.call(cached, 'data') ? cached.data : undefined;
+}
+function clearFilePreviewCache(id = null) {
+  if (id === null) {
+    filePreviewCache = {};
+    return;
+  }
+  const prefix = id + '_';
+  Object.keys(filePreviewCache).forEach(key => {
+    if (key.startsWith(prefix)) {
+      delete filePreviewCache[key];
+    }
+  });
+}
+function clearRecordPreviewCache(id = null) {
+  if (id === null) {
+    recordPreviewCache = {};
+    return;
+  }
+  const prefix = id + '_';
+  Object.keys(recordPreviewCache).forEach(key => {
+    if (key.startsWith(prefix)) {
+      delete recordPreviewCache[key];
+    }
+  });
+}
 function filePreview(id, data = {}) {
+  const cacheKey = getFilePreviewCacheKey(id, data);
+  const cached = filePreviewCache[cacheKey];
+  if (cached && Object.prototype.hasOwnProperty.call(cached, 'data')) {
+    return Promise.resolve(cached.data);
+  }
+  if (cached && cached.promise) {
+    return cached.promise;
+  }
   const abortToken = abort('filePreview');
-  return new Promise((resolve, reject) => {
+  const promise = new Promise((resolve, reject) => {
     service_xhr.filePreview = window.jQuery.ajax({
       url: AJAX_BASE + '/importer/' + id + '/file-preview',
       dataType: 'json',
@@ -15262,22 +15381,39 @@ function filePreview(id, data = {}) {
       },
       success: function (response) {
         if (response.status === 'S') {
+          filePreviewCache[cacheKey] = {
+            data: response.data
+          };
           resolve(response.data);
         } else {
+          delete filePreviewCache[cacheKey];
           reject(response.data);
         }
       },
       error: function (response) {
+        delete filePreviewCache[cacheKey];
         if (!aborted(abortToken)) {
           reject(response.statusText);
         }
       }
     });
   });
+  filePreviewCache[cacheKey] = {
+    promise
+  };
+  return promise;
 }
 function recordPreview(id, fields = {}) {
+  const cacheKey = getRecordPreviewCacheKey(id, fields);
+  const cached = recordPreviewCache[cacheKey];
+  if (cached && Object.prototype.hasOwnProperty.call(cached, 'data')) {
+    return Promise.resolve(cached.data);
+  }
+  if (cached && cached.promise) {
+    return cached.promise;
+  }
   const abortToken = abort('recordPreview' + Object.keys(fields).join('-'));
-  return new Promise((resolve, reject) => {
+  const promise = new Promise((resolve, reject) => {
     service_xhr.recordPreview = window.jQuery.ajax({
       url: AJAX_BASE + '/importer/' + id + '/preview',
       dataType: 'json',
@@ -15288,18 +15424,27 @@ function recordPreview(id, fields = {}) {
       },
       success: function (response) {
         if (response.status === 'S') {
+          recordPreviewCache[cacheKey] = {
+            data: response.data
+          };
           resolve(response.data);
         } else {
+          delete recordPreviewCache[cacheKey];
           reject(response.data);
         }
       },
       error: function (response) {
+        delete recordPreviewCache[cacheKey];
         if (!aborted(abortToken)) {
           reject(response.statusText);
         }
       }
     });
   });
+  recordPreviewCache[cacheKey] = {
+    promise
+  };
+  return promise;
 }
 function upload(id, form_data) {
   const abortToken = abort('upload');
@@ -15317,6 +15462,8 @@ function upload(id, form_data) {
       },
       success: function (response) {
         if (response.status === 'S') {
+          clearFilePreviewCache(id);
+          clearRecordPreviewCache(id);
           importerSubject.next(response.data);
           resolve(response.data);
         } else {

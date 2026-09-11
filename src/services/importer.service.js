@@ -15,7 +15,11 @@ export const importer = {
   importers,
   upload,
   filePreview,
+  getCachedFilePreview,
+  clearFilePreviewCache,
   recordPreview,
+  getCachedRecordPreview,
+  clearRecordPreviewCache,
   process,
   getAndSubscribe,
   run,
@@ -305,10 +309,71 @@ function process(id, data = {}) {
 //   });
 // }
 
+let filePreviewCache = {};
+let recordPreviewCache = {};
+
+function getFilePreviewCacheKey(id, data = {}) {
+  return id + '_' + JSON.stringify(data);
+}
+
+function getRecordPreviewCacheKey(id, fields = {}) {
+  return id + '_' + JSON.stringify(fields);
+}
+
+function getCachedFilePreview(id, data = {}) {
+  const cached = filePreviewCache[getFilePreviewCacheKey(id, data)];
+  return cached && Object.prototype.hasOwnProperty.call(cached, 'data')
+    ? cached.data
+    : undefined;
+}
+
+function getCachedRecordPreview(id, fields = {}) {
+  const cached = recordPreviewCache[getRecordPreviewCacheKey(id, fields)];
+  return cached && Object.prototype.hasOwnProperty.call(cached, 'data')
+    ? cached.data
+    : undefined;
+}
+
+function clearFilePreviewCache(id = null) {
+  if (id === null) {
+    filePreviewCache = {};
+    return;
+  }
+  const prefix = id + '_';
+  Object.keys(filePreviewCache).forEach((key) => {
+    if (key.startsWith(prefix)) {
+      delete filePreviewCache[key];
+    }
+  });
+}
+
+function clearRecordPreviewCache(id = null) {
+  if (id === null) {
+    recordPreviewCache = {};
+    return;
+  }
+  const prefix = id + '_';
+  Object.keys(recordPreviewCache).forEach((key) => {
+    if (key.startsWith(prefix)) {
+      delete recordPreviewCache[key];
+    }
+  });
+}
+
 function filePreview(id, data = {}) {
+  const cacheKey = getFilePreviewCacheKey(id, data);
+  const cached = filePreviewCache[cacheKey];
+
+  if (cached && Object.prototype.hasOwnProperty.call(cached, 'data')) {
+    return Promise.resolve(cached.data);
+  }
+  if (cached && cached.promise) {
+    return cached.promise;
+  }
+
   const abortToken = abort('filePreview');
 
-  return new Promise((resolve, reject) => {
+  const promise = new Promise((resolve, reject) => {
     service_xhr.filePreview = window.jQuery.ajax({
       url: AJAX_BASE + '/importer/' + id + '/file-preview',
       dataType: 'json',
@@ -319,24 +384,40 @@ function filePreview(id, data = {}) {
       },
       success: function (response) {
         if (response.status === 'S') {
+          filePreviewCache[cacheKey] = { data: response.data };
           resolve(response.data);
         } else {
+          delete filePreviewCache[cacheKey];
           reject(response.data);
         }
       },
       error: function (response) {
+        delete filePreviewCache[cacheKey];
         if (!aborted(abortToken)) {
           reject(response.statusText);
         }
       },
     });
   });
+
+  filePreviewCache[cacheKey] = { promise };
+  return promise;
 }
 
 function recordPreview(id, fields = {}) {
+  const cacheKey = getRecordPreviewCacheKey(id, fields);
+  const cached = recordPreviewCache[cacheKey];
+
+  if (cached && Object.prototype.hasOwnProperty.call(cached, 'data')) {
+    return Promise.resolve(cached.data);
+  }
+  if (cached && cached.promise) {
+    return cached.promise;
+  }
+
   const abortToken = abort('recordPreview' + Object.keys(fields).join('-'));
 
-  return new Promise((resolve, reject) => {
+  const promise = new Promise((resolve, reject) => {
     service_xhr.recordPreview = window.jQuery.ajax({
       url: AJAX_BASE + '/importer/' + id + '/preview',
       dataType: 'json',
@@ -347,18 +428,24 @@ function recordPreview(id, fields = {}) {
       },
       success: function (response) {
         if (response.status === 'S') {
+          recordPreviewCache[cacheKey] = { data: response.data };
           resolve(response.data);
         } else {
+          delete recordPreviewCache[cacheKey];
           reject(response.data);
         }
       },
       error: function (response) {
+        delete recordPreviewCache[cacheKey];
         if (!aborted(abortToken)) {
           reject(response.statusText);
         }
       },
     });
   });
+
+  recordPreviewCache[cacheKey] = { promise };
+  return promise;
 }
 
 function upload(id, form_data) {
@@ -378,6 +465,8 @@ function upload(id, form_data) {
       },
       success: function (response) {
         if (response.status === 'S') {
+          clearFilePreviewCache(id);
+          clearRecordPreviewCache(id);
           importerSubject.next(response.data);
           resolve(response.data);
         } else {

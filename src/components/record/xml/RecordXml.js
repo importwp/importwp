@@ -19,10 +19,28 @@ const RecordXml = ({
 }) => {
   const dispatch = useDispatch();
   const storedRecord = useSelector(selectPreviewRecord);
-  const [loading, setLoading] = useState(true);
-  const [recordData, setRecordData] = useState(null);
-  const [record, setRecord] = useState(storedRecord);
-  const [total, setTotal] = useState(0);
+  const initialCache =
+    id && base_path
+      ? importer.getCachedFilePreview(id, {
+          base_path,
+          record: storedRecord,
+        })
+      : undefined;
+  const [loading, setLoading] = useState(() => !initialCache);
+  const [recordData, setRecordData] = useState(() => {
+    if (!initialCache) {
+      return null;
+    }
+    return initialCache.data ? initialCache.data : initialCache;
+  });
+  const [record, setRecord] = useState(() =>
+    typeof initialCache?.record === 'number'
+      ? initialCache.record
+      : storedRecord
+  );
+  const [total, setTotal] = useState(() =>
+    typeof initialCache?.total === 'number' ? initialCache.total : 0
+  );
 
   const propsRef = useRef();
   propsRef.current = {
@@ -100,6 +118,21 @@ const RecordXml = ({
     );
   }, [displayNodeAttributes, displayNodeClick]);
 
+  const applyResponse = (response, current) => {
+    const nextRecordData = response && response.data ? response.data : response;
+    setRecordData(nextRecordData);
+    if (typeof response?.record === 'number') {
+      setRecord(response.record);
+      if (response.record !== current.record) {
+        dispatch(setPreviewRecord(response.record));
+        current.onRecordChange(response.record);
+      }
+    }
+    if (typeof response?.total === 'number') {
+      setTotal(response.total);
+    }
+  };
+
   const fetchPreview = () => {
     const current = propsRef.current;
     if (!(current.id && current.base_path)) {
@@ -107,24 +140,22 @@ const RecordXml = ({
       return;
     }
 
+    const data = {
+      base_path: current.base_path,
+      record: current.record,
+    };
+    const cached = importer.getCachedFilePreview(current.id, data);
+    if (cached) {
+      applyResponse(cached, current);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     importer
-      .filePreview(current.id, {
-        base_path: current.base_path,
-        record: current.record,
-      })
+      .filePreview(current.id, data)
       .then((response) => {
-        const nextRecordData = response && response.data ? response.data : response;
-        setRecordData(nextRecordData);
-        if (typeof response?.record === 'number') {
-          setRecord(response.record);
-          if (response.record !== current.record) {
-            dispatch(setPreviewRecord(response.record));
-            current.onRecordChange(response.record);
-          }
-        }
-        if (typeof response?.total === 'number') {
-          setTotal(response.total);
-        }
+        applyResponse(response, current);
       })
       .catch((e) => current.onError(e))
       .finally(() => {
@@ -138,13 +169,13 @@ const RecordXml = ({
   }
 
   useEffect(() => {
-    setLoading(true);
     const settingsChanged =
       prevSettingsKeyRef.current !== undefined &&
       prevSettingsKeyRef.current !== settingsKey;
     prevSettingsKeyRef.current = settingsKey;
 
     if (settingsChanged) {
+      setLoading(true);
       debouncedFetchRef.current();
     } else {
       fetchPreview();

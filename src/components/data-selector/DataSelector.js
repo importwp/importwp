@@ -25,10 +25,15 @@ const DataSelector = ({
 }) => {
   const dispatch = useDispatch();
   const [selection, setSelection] = useState(selectionProp);
-  const [preview, setPreview] = useState(previewProp);
-  const [record, setRecord] = useState(
-    () => store.getState().importer.previewRecord ?? 0
+  const initialRecord = store.getState().importer.previewRecord ?? 0;
+  const initialPreviewCache = importer.getCachedRecordPreview(id, {
+    selection: selectionProp,
+    record: initialRecord,
+  });
+  const [preview, setPreview] = useState(
+    () => (initialPreviewCache ? initialPreviewCache.selection : previewProp)
   );
+  const [record, setRecord] = useState(initialRecord);
 
   const refreshFieldPreviews = useCallback(() => {
     const state = store.getState();
@@ -46,12 +51,19 @@ const DataSelector = ({
 
   const refreshPreview = useCallback(
     (nextSelection = selection, nextRecord = record) => {
+      const fields = {
+        selection: nextSelection,
+        record: nextRecord,
+      };
+      const cached = importer.getCachedRecordPreview(id, fields);
+      if (cached) {
+        setPreview(cached.selection);
+        return;
+      }
+
       setPreview('Loading.');
       importer
-        .recordPreview(id, {
-          selection: nextSelection,
-          record: nextRecord,
-        })
+        .recordPreview(id, fields)
         .then((response) => {
           setPreview(response.selection);
         })

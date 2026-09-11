@@ -23,12 +23,31 @@ const RecordCsv = ({
 }) => {
   const dispatch = useDispatch();
   const storedRecord = useSelector(selectPreviewRecord);
-  const [loading, setLoading] = useState(true);
-  const [headings, setHeadings] = useState([]);
-  const [row, setRow] = useState([]);
+  const initialCache =
+    id && delimiter && enclosure
+      ? importer.getCachedFilePreview(id, {
+          delimiter,
+          enclosure,
+          escape,
+          show_headings,
+          file_encoding,
+          record: storedRecord,
+        })
+      : undefined;
+  const [loading, setLoading] = useState(() => !initialCache);
+  const [headings, setHeadings] = useState(() =>
+    initialCache ? initialCache.headings : []
+  );
+  const [row, setRow] = useState(() => (initialCache ? initialCache.row : []));
   const [error, setError] = useState(false);
-  const [record, setRecord] = useState(storedRecord);
-  const [total, setTotal] = useState(0);
+  const [record, setRecord] = useState(() =>
+    typeof initialCache?.record === 'number'
+      ? initialCache.record
+      : storedRecord
+  );
+  const [total, setTotal] = useState(() =>
+    typeof initialCache?.total === 'number' ? initialCache.total : 0
+  );
 
   const propsRef = useRef();
   propsRef.current = {
@@ -53,6 +72,32 @@ const RecordCsv = ({
   ].join('|');
   const prevSettingsKeyRef = useRef();
 
+  const applyResponse = (response, current) => {
+    if (response.headings.length == response.row.length) {
+      setHeadings(response.headings);
+      setRow(response.row);
+      const nextRecord =
+        typeof response.record === 'number'
+          ? response.record
+          : current.record;
+      const nextTotal =
+        typeof response.total === 'number' ? response.total : 0;
+      setRecord(nextRecord);
+      setTotal(nextTotal);
+      if (nextRecord !== current.record) {
+        dispatch(setPreviewRecord(nextRecord));
+        current.onRecordChange(nextRecord);
+      }
+      setError(false);
+    } else {
+      setHeadings([]);
+      setRow([]);
+      setError(
+        `Inconsistent num of fields, header: ${response.headings.length}, this line: ${response.row.length} `
+      );
+    }
+  };
+
   const fetchPreview = () => {
     const current = propsRef.current;
     if (!(current.id && current.delimiter && current.enclosure)) {
@@ -68,32 +113,20 @@ const RecordCsv = ({
       file_encoding: current.file_encoding,
       record: current.record,
     };
+
+    const cached = importer.getCachedFilePreview(current.id, data);
+    if (cached) {
+      applyResponse(cached, current);
+      setLoading(false);
+      return;
+    }
+
     setError(false);
+    setLoading(true);
     importer
       .filePreview(current.id, data)
       .then((response) => {
-        if (response.headings.length == response.row.length) {
-          setHeadings(response.headings);
-          setRow(response.row);
-          const nextRecord =
-            typeof response.record === 'number'
-              ? response.record
-              : current.record;
-          const nextTotal =
-            typeof response.total === 'number' ? response.total : 0;
-          setRecord(nextRecord);
-          setTotal(nextTotal);
-          if (nextRecord !== current.record) {
-            dispatch(setPreviewRecord(nextRecord));
-            current.onRecordChange(nextRecord);
-          }
-        } else {
-          setHeadings([]);
-          setRow([]);
-          setError(
-            `Inconsistent num of fields, header: ${response.headings.length}, this line: ${response.row.length} `
-          );
-        }
+        applyResponse(response, current);
       })
       .catch((e) => {
         setHeadings([]);
@@ -150,13 +183,13 @@ const RecordCsv = ({
   };
 
   useEffect(() => {
-    setLoading(true);
     const settingsChanged =
       prevSettingsKeyRef.current !== undefined &&
       prevSettingsKeyRef.current !== settingsKey;
     prevSettingsKeyRef.current = settingsKey;
 
     if (settingsChanged) {
+      setLoading(true);
       debouncedFetchRef.current();
     } else {
       fetchPreview();
