@@ -72,6 +72,13 @@ const DatasourceLocal = forwardRef(function DatasourceLocal({
             value={local_url}
             onChange={onChange}
           />
+          <div className="iwp-notice iwp-notice--info iwp-notice--bordered" style={{ marginTop: 10 }}>
+            <p>
+              Paths outside of the WordPress content directory must be added to
+              the allow list using the{' '}
+              <code>iwp/importer/local_file/allowed_directories</code> filter.
+            </p>
+          </div>
         </div>
       </div>
       {filetype_enabled && (
