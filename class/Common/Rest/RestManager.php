@@ -628,6 +628,7 @@ class RestManager extends \WP_REST_Controller
 
                 $setup_type = $post_data['setup_type'] === 'upload' ? 'upload' : 'generate';
                 $file_type = null;
+                $exporter_unique_identifier = '';
 
                 if ($setup_type === 'upload') {
                     $config = json_decode($post_data['exporter_config_file'], true);
@@ -635,6 +636,7 @@ class RestManager extends \WP_REST_Controller
                     $fields = $config['fields'];
                     $formatted_fields = $config['formatted_fields'];
                     $file_settings = $config['data']['file_settings'];
+                    $exporter_unique_identifier = isset($config['data']['unique_identifier']) ? $config['data']['unique_identifier'] : '';
                 } else {
 
                     /**
@@ -646,6 +648,7 @@ class RestManager extends \WP_REST_Controller
                     $formatted_fields = $mapper->get_fields();
                     $file_type = $exporter_data->getFileType();
                     $file_settings = $exporter_data->getFileSettings();
+                    $exporter_unique_identifier = $exporter_data->getUniqueIdentifier();
                 }
 
                 if (is_null($file_type) || !in_array($file_type, ['xml', 'csv', 'json'])) {
@@ -811,6 +814,22 @@ class RestManager extends \WP_REST_Controller
                     $post_data['map'] = $field_map['map'];
                     $post_data['enabled'] = $field_map['enabled'];
                 }
+
+                // Prefill Permissions unique identifier from the exporter when available.
+                if (!empty($exporter_unique_identifier)) {
+                    $importer_unique_identifier = apply_filters(
+                        'iwp/importer/from_exporter/unique_identifier',
+                        $exporter_unique_identifier,
+                        $exporter_unique_identifier,
+                        $importer,
+                        $setup_type === 'upload' ? $config : $exporter_data
+                    );
+
+                    if (!empty($importer_unique_identifier)) {
+                        $post_data['setting_unique_identifier_type'] = 'field';
+                        $post_data['setting_unique_identifier'] = $importer_unique_identifier;
+                    }
+                }
             }
         }
 
@@ -905,6 +924,13 @@ class RestManager extends \WP_REST_Controller
 
         if (isset($post_data['enabled']) && is_array($post_data['enabled'])) {
             foreach ($post_data['enabled'] as $key => $value) {
+                // generate_field_map() returns a list of field ids: [0 => 'billing.first_name', ...]
+                // The UI saves an object map: ['billing.first_name' => true, ...]
+                if (is_int($key) && is_string($value) && $value !== '') {
+                    $importer->setEnabled($value);
+                    continue;
+                }
+
                 if ($this->is_truthy($value)) {
                     $importer->setEnabled($key);
                 } else {

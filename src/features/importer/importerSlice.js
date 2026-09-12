@@ -221,11 +221,18 @@ export const getValue = createSelector(
   (items, itemId) => (items.hasOwnProperty(itemId) ? items[itemId] : '')
 );
 
+/**
+ * Match group keys on an exact id or id + '.' boundary.
+ * Avoids `order` matching `order_totals.*`.
+ */
+const matchesGroupPrefix = (fieldKey, itemId) =>
+  fieldKey === itemId || fieldKey.startsWith(`${itemId}.`);
+
 export const getFieldMap = createSelector(
   [seletValues, selectId],
   (items, itemId) => {
     const result = Object.keys(items)
-      .filter((fieldKey) => fieldKey.startsWith(itemId))
+      .filter((fieldKey) => matchesGroupPrefix(fieldKey, itemId))
       .reduce((obj, key) => {
         // obj[key.substring(itemId.length + 1)] = items[key];
         obj[key] = items[key];
@@ -241,7 +248,7 @@ export const getEnabledMap = createSelector(
   [seletEnabled, selectId],
   (items, itemId) => {
     return Object.keys(items)
-      .filter((fieldKey) => fieldKey.startsWith(itemId))
+      .filter((fieldKey) => matchesGroupPrefix(fieldKey, itemId))
       .reduce((obj, key) => {
         obj[key] = items[key];
         return obj;
@@ -254,7 +261,7 @@ export const getRepeaterFields = createSelector(
   [seletValues, selectId],
   (items, itemId) => {
     const result = Object.keys(items)
-      .filter((fieldKey) => fieldKey.startsWith(itemId))
+      .filter((fieldKey) => matchesGroupPrefix(fieldKey, itemId))
       .reduce((obj, key) => {
         // obj[key.substring(itemId.length + 1)] = items[key];
         obj[key] = items[key];

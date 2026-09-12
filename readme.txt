@@ -173,6 +173,7 @@ Use the [WordPress.org support forum](https://wordpress.org/support/plugin/jc-im
 * FIX - Speed up data selector preview loading by fetching immediately on open and avoiding aborting unrelated preview requests.
 * FIX - XML Repeater Node options exclude leaf paths with no selectable child nodes (e.g. /categories/category).
 * FIX - cache data preview selector, so subsequent clicks use a cache.
+* FIX - importers created from exporters now pre populate the unique identifier.
 
 = 2.14.25 =
 
