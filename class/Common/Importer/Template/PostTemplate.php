@@ -957,26 +957,48 @@ class PostTemplate extends Template implements TemplateInterface
                 'settings._delimiter' => '',
                 'settings._hierarchy' => 'no',
                 'settings._hierarchy_character' => '>',
+                'settings._type' => 'name',
             ];
 
             foreach ($taxonomies as $taxonomy => $taxonomy_data) {
+                $term_map = isset($taxonomy_data['map']) && is_array($taxonomy_data['map']) ? $taxonomy_data['map'] : [];
                 $data = [];
 
-                if (isset($taxonomy_data['map']['hierarchy::name'])) {
-                    $data['term'] = $taxonomy_data['map']['hierarchy::name'];
+                // Prefer name/slug over hierarchy::* (those extra columns are always
+                // present on a full CSV export). Always store term type so IDs are
+                // not imported as names.
+                if (isset($term_map['name'])) {
+                    $data['term'] = $term_map['name'];
+                    $data['settings._type'] = 'name';
+                } elseif (isset($term_map['slug'])) {
+                    $data['term'] = $term_map['slug'];
+                    $data['settings._type'] = 'slug';
+                } elseif (isset($term_map['hierarchy::name'])) {
+                    $data['term'] = $term_map['hierarchy::name'];
                     $data['settings._hierarchy'] = 'yes';
-                } elseif (isset($taxonomy_data['map']['hierarchy::slug'])) {
-                    $data['term'] = $taxonomy_data['map']['hierarchy::slug'];
+                    $data['settings._type'] = 'name';
+                } elseif (isset($term_map['hierarchy::slug'])) {
+                    $data['term'] = $term_map['hierarchy::slug'];
                     $data['settings._hierarchy'] = 'yes';
-                } elseif (isset($taxonomy_data['map']['name'])) {
-                    $data['term'] = $taxonomy_data['map']['name'];
-                } elseif (isset($taxonomy_data['map']['slug'])) {
-                    $data['term'] = $taxonomy_data['map']['slug'];
+                    $data['settings._type'] = 'slug';
+                } elseif (isset($term_map['id'])) {
+                    $data['term'] = $term_map['id'];
+                    $data['settings._type'] = 'term_id';
+                } elseif (isset($term_map['hierarchy::id'])) {
+                    $data['term'] = $term_map['hierarchy::id'];
+                    $data['settings._hierarchy'] = 'yes';
+                    $data['settings._type'] = 'term_id';
                 } else {
                     continue;
                 }
 
                 $data['tax'] = $taxonomy;
+
+                $row_base = $this->find_exporter_loop_row_base($fields, 'tax_' . $taxonomy);
+                if ($row_base !== '') {
+                    $data['row_base'] = $row_base;
+                    $data['term'] = $this->relative_exporter_map($data['term'], $row_base);
+                }
 
                 $data = wp_parse_args($data, $defaults);
 
@@ -1164,5 +1186,78 @@ class PostTemplate extends Template implements TemplateInterface
             $output,
             $this->get_unique_identifier_options_from_map($importer_model, $unique_fields, $this->field_map, $this->optional_fields)
         );
+    }
+
+    /**
+     * XML/JSON from-exporter headings are path => selection; CSV is a numeric list.
+     *
+     * @param array $fields
+     * @return bool
+     */
+    protected function headings_are_paths($fields)
+    {
+        if (!is_array($fields) || empty($fields)) {
+            return false;
+        }
+
+        foreach (array_keys($fields) as $key) {
+            if (is_string($key) && $key !== '' && !is_numeric($key) && strpos($key, '/') !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Loop node path used as row_base when creating an importer from an XML/JSON export.
+     *
+     * @param array $fields
+     * @param string $loop_selection
+     * @return string
+     */
+    protected function find_exporter_loop_row_base($fields, $loop_selection)
+    {
+        if ($loop_selection === '' || !$this->headings_are_paths($fields)) {
+            return '';
+        }
+
+        foreach ($fields as $path => $selection) {
+            if ($selection === $loop_selection && is_string($path) && strpos($path, '/') !== false) {
+                return $path;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Rewrite a mapped path so it is relative to the exporter loop node.
+     *
+     * @param string $mapped
+     * @param string $row_base
+     * @return string
+     */
+    protected function relative_exporter_map($mapped, $row_base)
+    {
+        if ($row_base === '' || !is_string($mapped) || $mapped === '') {
+            return $mapped;
+        }
+
+        if (preg_match('/^\{(.*)\}$/', $mapped, $matches) !== 1) {
+            return $mapped;
+        }
+
+        $path = $matches[1];
+        if (strpos($path, $row_base) !== 0 || $path === $row_base) {
+            return $mapped;
+        }
+
+        $relative = substr($path, strlen($row_base));
+        if ($relative !== '' && $relative[0] !== '/') {
+            $relative = '/' . $relative;
+        }
+
+        return '{' . $relative . '}';
     }
 }

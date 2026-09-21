@@ -434,6 +434,9 @@ class RestManager extends \WP_REST_Controller
     /**
      * Decode map/enabled when sent as a single JSON string (avoids max_input_vars).
      *
+     * Do not wp_unslash() first: REST body params are already unslashed, and a
+     * second pass strips JSON escapes inside quoted modifier args.
+     *
      * @param array $post_data
      * @return array
      */
@@ -444,7 +447,14 @@ class RestManager extends \WP_REST_Controller
                 continue;
             }
 
-            $decoded = json_decode(wp_unslash($post_data[$field]), true);
+            $raw = $post_data[$field];
+            $decoded = json_decode($raw, true);
+
+            // Fallback for callers that still pass slashed form data.
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+                $decoded = json_decode(wp_unslash($raw), true);
+            }
+
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                 $post_data[$field] = $decoded;
             }

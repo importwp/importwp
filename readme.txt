@@ -174,6 +174,7 @@ Use the [WordPress.org support forum](https://wordpress.org/support/plugin/jc-im
 * FIX - XML Repeater Node options exclude leaf paths with no selectable child nodes (e.g. /categories/category).
 * FIX - cache data preview selector, so subsequent clicks use a cache.
 * FIX - importers created from exporters now pre populate the unique identifier.
+* FIX - Saving field maps with quoted modifier arguments (e.g. [fn("{9}", "0")]) no longer silently fails to persist.
 
 = 2.14.25 =
 
