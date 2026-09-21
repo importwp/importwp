@@ -712,9 +712,7 @@ class Migrations
 
             $data['settings']['cron'] = $cron;
 
-            remove_filter('content_save_pre', 'wp_filter_post_kses');
-            wp_update_post(['ID' => $id, 'post_content' => serialize($data)]);
-            add_filter('content_save_pre', 'wp_filter_post_kses');
+            $this->update_importer_post_content($id, $data);
         }
     }
 
@@ -883,10 +881,7 @@ class Migrations
 
             $data['map'] = $tmp;
 
-
-            remove_filter('content_save_pre', 'wp_filter_post_kses');
-            wp_update_post(['ID' => $importer['ID'], 'post_content' => serialize($data)]);
-            add_filter('content_save_pre', 'wp_filter_post_kses');
+            $this->update_importer_post_content($importer['ID'], $data);
         }
     }
 
@@ -940,10 +935,7 @@ class Migrations
 
             $data['map'] = $tmp;
 
-
-            remove_filter('content_save_pre', 'wp_filter_post_kses');
-            wp_update_post(['ID' => $importer['ID'], 'post_content' => serialize($data)]);
-            add_filter('content_save_pre', 'wp_filter_post_kses');
+            $this->update_importer_post_content($importer['ID'], $data);
         }
     }
 
@@ -1034,10 +1026,30 @@ class Migrations
                 continue;
             }
 
-            remove_filter('content_save_pre', 'wp_filter_post_kses');
-            wp_update_post(['ID' => $importer['ID'], 'post_content' => serialize($migrated)]);
-            add_filter('content_save_pre', 'wp_filter_post_kses');
+            $this->update_importer_post_content($importer['ID'], $migrated);
         }
+    }
+
+    /**
+     * Persist serialized importer settings without corrupting backslashes.
+     *
+     * wp_update_post() only slashes the existing DB row, then merges in the
+     * caller-supplied fields. Those fields must already be slashed or
+     * wp_insert_post() will stripslashes() the payload and break serialize()
+     * strings such as the CSV escape character "\".
+     *
+     * @param int   $id
+     * @param array $data
+     * @return void
+     */
+    private function update_importer_post_content($id, array $data)
+    {
+        remove_filter('content_save_pre', 'wp_filter_post_kses');
+        wp_update_post([
+            'ID' => $id,
+            'post_content' => wp_slash(serialize($data)),
+        ]);
+        add_filter('content_save_pre', 'wp_filter_post_kses');
     }
 
     /**

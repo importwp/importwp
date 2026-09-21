@@ -3,6 +3,7 @@
 namespace ImportWPTests\Common\Migration;
 
 use ImportWP\Common\Migration\Migrations;
+use ImportWP\Common\Model\ImporterModel;
 
 class MigrationsTest extends \WP_UnitTestCase
 {
@@ -68,5 +69,100 @@ class MigrationsTest extends \WP_UnitTestCase
 
         $updated = maybe_unserialize(get_post($id)->post_content);
         $this->assertEquals('[iwp:strtoupper("{0}")]', $updated['map']['post.post_title']);
+    }
+
+    /**
+     * Imported configs (Tools → Import) are stored via wp_slash(serialize()).
+     * wp_update_post() does not slash incoming fields — only the copy loaded
+     * from the DB — so writing serialize() without wp_slash lets wp_insert_post()
+     * stripslashes() eat the CSV escape backslash and corrupt the payload.
+     * ImporterModel then treats the broken serialize as an empty importer.
+     */
+    public function test_migration_11_does_not_empty_imported_config_with_backslash_escape()
+    {
+        $data = [
+            'template' => 'woocommerce-product',
+            'template_type' => '',
+            'parser' => 'csv',
+            'file' => [
+                'settings' => [
+                    'enclosure' => '"',
+                    'delimiter' => ',',
+                    'escape' => '\\',
+                    'show_headings' => true,
+                ],
+            ],
+            'datasource' => [
+                'type' => 'remote',
+                'settings' => [
+                    'remote_url' => 'https://example.com/products.csv',
+                ],
+            ],
+            'map' => [
+                'post.post_title' => '{1}',
+                'shipping.dimensions._weight' => '[iwp_convert_kg_to_g({8})]',
+                'shipping.dimensions._length' => '[iwphd1359_seperate_dimensions("{9}", "0")]',
+                'shipping.dimensions._width' => '[iwphd1359_seperate_dimensions("{9}", "1")]',
+                'shipping.dimensions._height' => '[iwphd1359_seperate_dimensions("{9}", "2")]',
+                'product_gallery.0.location' => '[iwp_generate_image_urls_list({19})]',
+            ],
+            'enabled' => [
+                'shipping.dimensions' => true,
+            ],
+            'settings' => [
+                'unique_identifier' => '_sku',
+            ],
+        ];
+
+        $id = wp_insert_post([
+            'post_type' => IWP_POST_TYPE,
+            'post_status' => 'publish',
+            'post_title' => 'PMC (New)',
+            'post_content' => wp_slash(serialize($data)),
+        ]);
+        $this->assertGreaterThan(0, $id);
+
+        $before = new ImporterModel($id);
+        $this->assertSame('woocommerce-product', $before->getTemplate());
+        $this->assertSame('\\', $before->getFileSetting('escape'));
+        $this->assertSame(
+            '[iwp_convert_kg_to_g({8})]',
+            $before->getMap()['shipping.dimensions._weight']
+        );
+
+        $migrations = new Migrations();
+        $migrations->migration_11_prefix_custom_methods(true);
+
+        $raw = get_post($id)->post_content;
+        $updated = maybe_unserialize($raw);
+        $this->assertIsArray($updated, 'Migrated post_content must remain unserializable');
+        $this->assertArrayHasKey('map', $updated);
+        $this->assertNotEmpty($updated['map']);
+
+        $after = new ImporterModel($id);
+        $this->assertSame('woocommerce-product', $after->getTemplate(), 'Importer template should survive migration');
+        $this->assertSame('\\', $after->getFileSetting('escape'));
+        $this->assertSame('"', $after->getFileSetting('enclosure'));
+        $this->assertSame('{1}', $after->getMap()['post.post_title']);
+        $this->assertSame(
+            '[iwp:iwp_convert_kg_to_g({8})]',
+            $after->getMap()['shipping.dimensions._weight']
+        );
+        $this->assertSame(
+            '[iwp:iwphd1359_seperate_dimensions("{9}", "0")]',
+            $after->getMap()['shipping.dimensions._length']
+        );
+        $this->assertSame(
+            '[iwp:iwphd1359_seperate_dimensions("{9}", "1")]',
+            $after->getMap()['shipping.dimensions._width']
+        );
+        $this->assertSame(
+            '[iwp:iwphd1359_seperate_dimensions("{9}", "2")]',
+            $after->getMap()['shipping.dimensions._height']
+        );
+        $this->assertSame(
+            '[iwp:iwp_generate_image_urls_list({19})]',
+            $after->getMap()['product_gallery.0.location']
+        );
     }
 }
