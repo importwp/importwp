@@ -59,7 +59,31 @@ class AbstractParserTest extends \WP_UnitTestCase
             'Multiple custom methods with multiple arguments' => [str_pad("he\nllo", 12, "0") . ' WORLD', "[iwp:str_pad(\"he\nllo\", \"12\",\"0\")] [iwp:strtoupper(\"world\")]"],
             'Unprefixed custom method is left unchanged' => ['[strtoupper("hello")]', '[strtoupper("hello")]'],
             'Shortcode-like content is left unchanged' => ['[gallery ids="1,2,3"]', '[gallery ids="1,2,3"]'],
+            'Unbalanced custom method is left unchanged' => ['[iwp:strtoupper("hello"]', '[iwp:strtoupper("hello"]'],
         ];
+    }
+
+    public function test_query_string_does_not_let_data_close_unbalanced_method()
+    {
+        $this->abstract_parser->method('query')->willReturnCallback(function ($query) {
+            if ($query === '19') {
+                return '=Hyperlink("https://example.com/P0805Q13.jpg")';
+            }
+            return '';
+        });
+
+        $broken = $this->abstract_parser->query_string('[iwp:strtoupper({19}]');
+        $this->assertSame(
+            '[iwp:strtoupper(=Hyperlink("https://example.com/P0805Q13.jpg")]',
+            $broken,
+            'A missing ")" in the mapping must not be closed by parentheses in the cell value'
+        );
+
+        $valid = $this->abstract_parser->query_string('[iwp:strtoupper({19})]');
+        $this->assertSame(
+            '=HYPERLINK("HTTPS://EXAMPLE.COM/P0805Q13.JPG")',
+            $valid
+        );
     }
 
     /**

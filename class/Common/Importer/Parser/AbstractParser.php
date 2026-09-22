@@ -138,11 +138,10 @@ abstract class AbstractParser
      */
     public function query_string($query)
     {
-
-        $output = preg_replace_callback('/{(.*?)}/', array($this, 'query_matches'), $query);
-        $output = $this->handle_custom_methods($output);
-
-        return $output;
+        // Parse [iwp:method(...)] before substituting {column} values, otherwise
+        // parentheses in the data (e.g. Excel =Hyperlink("url")) can close a
+        // malformed mapping that is missing ")".
+        return $this->interpolate_braces($this->handle_custom_methods($query));
     }
 
     public function query_matches($matches)
@@ -164,32 +163,153 @@ abstract class AbstractParser
     public function handle_custom_methods($input)
     {
         // Prefixed [iwp:method(...)] to avoid colliding with shortcodes / Gutenberg content.
-        // m: Multiline modifier
-        // s: matches all characters including newlines
-        $input = preg_replace_callback('/\[iwp:([\w]+)\((.*?)\)\]/ms', function ($matches) {
+        if (!is_string($input) || $input === '' || strpos($input, '[iwp:') === false) {
+            return $input;
+        }
 
-            $method = $matches[1];
+        $offset = 0;
+        $output = '';
+        $length = strlen($input);
 
-            $result = [];
-            $args = [];
+        while (($start = strpos($input, '[iwp:', $offset)) !== false) {
+            $output .= substr($input, $offset, $start - $offset);
 
-            // Dont split comma's if they are inside a double quote
-            if (preg_match_all('/(?:".*?"|[^",\s]+)(?=\s*,|\s*$)/s', $matches[2], $result) > 0) {
-                $args = $result[0];
-                foreach ($args as &$arg) {
+            $parsed = $this->parse_custom_method_at($input, $start, $length);
+            if ($parsed === null) {
+                $output .= '[iwp:';
+                $offset = $start + 5;
+                continue;
+            }
 
-                    // Strip commas from start and end of string
-                    $arg = preg_replace('/^(\'(.*)\'|"(.*)")$/s', '$2$3', $arg);
+            $output .= $parsed[1];
+            $offset = $parsed[0];
+        }
+
+        return $output . substr($input, $offset);
+    }
+
+    /**
+     * Substitute {column} / {xpath} selectors.
+     *
+     * @param string $query
+     * @return string
+     */
+    private function interpolate_braces($query)
+    {
+        if (!is_string($query) || $query === '' || strpos($query, '{') === false) {
+            return $query;
+        }
+
+        return preg_replace_callback('/{(.*?)}/', array($this, 'query_matches'), $query);
+    }
+
+    /**
+     * @param string $input
+     * @param int    $start
+     * @param int    $length
+     * @return array{0:int,1:string}|null End offset and replacement, or null if not a complete call.
+     */
+    private function parse_custom_method_at($input, $start, $length)
+    {
+        $i = $start + 5;
+        $name_len = strspn($input, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_', $i);
+        if ($name_len < 1) {
+            return null;
+        }
+
+        $method = substr($input, $i, $name_len);
+        $i += $name_len;
+        if ($i >= $length || $input[$i] !== '(') {
+            return null;
+        }
+        $i++;
+
+        $extracted = $this->extract_balanced_method_args($input, $i, $length);
+        if ($extracted === null) {
+            return null;
+        }
+
+        list($raw_args, $after_paren) = $extracted;
+        if ($after_paren >= $length || $input[$after_paren] !== ']') {
+            return null;
+        }
+
+        $end = $after_paren + 1;
+        $original = substr($input, $start, $end - $start);
+        $args = $this->split_custom_method_args($raw_args);
+        foreach ($args as &$arg) {
+            $arg = $this->interpolate_braces($arg);
+        }
+        unset($arg);
+
+        if (is_callable($method)) {
+            return array($end, call_user_func_array($method, $args));
+        }
+
+        return array($end, $original);
+    }
+
+    /**
+     * Read until the method's closing ")", ignoring parentheses inside quotes.
+     *
+     * @param string $input
+     * @param int    $start
+     * @param int    $length
+     * @return array{0:string,1:int}|null Raw args and offset after ")", or null if unterminated.
+     */
+    private function extract_balanced_method_args($input, $start, $length)
+    {
+        $depth = 1;
+        $quote = null;
+        for ($i = $start; $i < $length; $i++) {
+            $ch = $input[$i];
+            if ($quote !== null) {
+                if ($ch === $quote) {
+                    $quote = null;
+                }
+                continue;
+            }
+            if ($ch === '"' || $ch === "'") {
+                $quote = $ch;
+                continue;
+            }
+            if ($ch === '(') {
+                $depth++;
+                continue;
+            }
+            if ($ch === ')') {
+                $depth--;
+                if ($depth === 0) {
+                    return array(substr($input, $start, $i - $start), $i + 1);
                 }
             }
+        }
 
-            if (is_callable($method)) {
-                return call_user_func_array($method, $args);
+        return null;
+    }
+
+    /**
+     * @param string $raw_args
+     * @return array
+     */
+    private function split_custom_method_args($raw_args)
+    {
+        $args = [];
+        if ($raw_args === '') {
+            return $args;
+        }
+
+        // Dont split comma's if they are inside a double quote
+        if (preg_match_all('/(?:".*?"|[^",\s]+)(?=\s*,|\s*$)/s', $raw_args, $result) > 0) {
+            $args = $result[0];
+            foreach ($args as &$arg) {
+                // Strip quotes from start and end of string
+                $arg = preg_replace('/^(\'(.*)\'|"(.*)")$/s', '$2$3', $arg);
             }
+            unset($arg);
+        }
 
-            return $matches[0];
-        }, $input);
-        return $input;
+        return $args;
     }
 
     public function map_field_data($input, $map)
