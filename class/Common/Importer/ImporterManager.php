@@ -26,6 +26,7 @@ use ImportWP\Common\Importer\Template\Template;
 use ImportWP\Common\Importer\Template\TemplateManager;
 use ImportWP\Common\Importer\Template\TermTemplate;
 use ImportWP\Common\Importer\Template\UserTemplate;
+use ImportWP\Common\Migration\Migrations;
 use ImportWP\Common\Model\ImporterModel;
 use ImportWP\Common\Properties\Properties;
 use ImportWP\Common\Runner\ImporterRunnerState;
@@ -683,6 +684,16 @@ class ImporterManager
     public function import($id, $user, $session = null)
     {
         Logger::timer();
+
+        // Run pending DB/data migrations before loading importer config so cron,
+        // CLI, and REST imports do not depend on the admin setup wizard.
+        $migrations = new Migrations();
+        if (!$migrations->isSetup()) {
+            $migrations->migrate();
+            if ($id instanceof ImporterModel) {
+                $id = $id->getId();
+            }
+        }
 
         $importer_data = $this->get_importer($id);
         $importer_id = $importer_data->getId();

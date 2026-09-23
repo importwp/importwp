@@ -165,4 +165,39 @@ class MigrationsTest extends \WP_UnitTestCase
             $after->getMap()['product_gallery.0.location']
         );
     }
+
+    public function test_import_runs_pending_migrations_before_loading_importer()
+    {
+        update_option('iwp_db_version', 10);
+        delete_option('iwp_is_migrating');
+
+        $id = wp_insert_post([
+            'post_type' => IWP_POST_TYPE,
+            'post_status' => 'publish',
+            'post_title' => 'Import Path Migration',
+            'post_content' => serialize([
+                'map' => [
+                    'post.post_title' => '[strtoupper("{0}")]',
+                ],
+                'settings' => [
+                    'post_type' => 'post',
+                ],
+                'template' => 'post',
+            ]),
+        ]);
+        $this->assertGreaterThan(0, $id);
+
+        $manager = \ImportWP\Container::getInstance()->get('importer_manager');
+        try {
+            $manager->import($id, uniqid('wptest'));
+        } catch (\Throwable $e) {
+            // Import may fail without a source file; migrations must still have run.
+        }
+
+        $this->assertSame(11, intval(get_option('iwp_db_version')));
+
+        $updated = maybe_unserialize(get_post($id)->post_content);
+        $this->assertIsArray($updated);
+        $this->assertSame('[iwp:strtoupper("{0}")]', $updated['map']['post.post_title']);
+    }
 }
