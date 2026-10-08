@@ -4,7 +4,7 @@ Tags: csv xml importer, export csv xml, google sheets import, import from ftp, i
 Requires at least: 4.0  
 Tested up to: 7.1  
 Requires PHP: 5.6  
-Stable tag: 2.15.1  
+Stable tag: 2.15.2  
 License: GPLv3  
 License URI: http://www.gnu.org/licenses/gpl.html  
 Donate link: https://www.importwp.com/
@@ -159,6 +159,12 @@ Use the [WordPress.org support forum](https://wordpress.org/support/plugin/jc-im
 4. Review import history and logs
 
 == Changelog ==
+
+= 2.15.2 =
+
+* ADD - Record navigation (first, previous, next, last, and record number) for addon file previews such as BLM, matching CSV/XML/JSON preview behaviour.
+* FIX - Pass the requested record index through to `iwp/file-preview/{parser}` so addons can page preview data.
+* FIX - Generic record preview content scrolls inside the preview panel instead of being clipped.
 
 = 2.15.1 =
 

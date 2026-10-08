@@ -1471,7 +1471,7 @@ class RestManager extends \WP_REST_Controller
                 return $this->http->end_rest_success($result);
             } else {
 
-                $result = apply_filters('iwp/file-preview/' . $importer->getParser(), null, $importer);
+                $result = apply_filters('iwp/file-preview/' . $importer->getParser(), null, $importer, $record_index);
                 if (is_wp_error($result)) {
                     return $this->http->end_rest_error($result);
                 }
