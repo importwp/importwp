@@ -272,18 +272,22 @@ class AbstractMapper
         global $wpdb;
 
         $import_ids = apply_filters('iwp/mapper/session_importer_ids', [$this->importer->getId()], $this->importer->getId());
-        if(empty($import_ids)){
+        $import_ids = array_values(array_filter(array_map('absint', (array) $import_ids)));
+        if (empty($import_ids)) {
             return false;
         }
-        
-        $query = "SELECT item_id FROM `{$wpdb->prefix}iwp_sessions` WHERE importer_id IN (" . implode(',', $import_ids) . ") AND item_type='{$type}' AND `session` != '{$this->importer->getStatusId()}'";
+
+        $placeholders = implode(',', array_fill(0, count($import_ids), '%d'));
+        $sql = "SELECT item_id FROM `{$wpdb->prefix}iwp_sessions` WHERE importer_id IN ({$placeholders}) AND item_type = %s AND `session` != %s";
+        $args = array_merge($import_ids, array($type, (string) $this->importer->getStatusId()));
 
         // TODO: is this needed as blog_id is more relevant since there is a sessions table per site?
         if (is_multisite()) {
-            $query .= " AND site_id='{$wpdb->siteid}'";
+            $sql .= " AND site_id = %d";
+            $args[] = (int) $wpdb->siteid;
         }
 
-        $item_ids = $wpdb->get_col($query);
+        $item_ids = $wpdb->get_col($wpdb->prepare($sql, $args));
         return $item_ids;
     }
 

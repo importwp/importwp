@@ -1569,11 +1569,17 @@ class RestManager extends \WP_REST_Controller
 
     public function run_import(\WP_REST_Request $request)
     {
+        // Sessions are issued by init_import() as md5 hashes. Reject anything else
+        // before it can be stored and later interpolated into the removal query.
+        $session = $request->get_param('session');
+        if (!is_string($session) || !preg_match('/\A[a-f0-9]{32}\z/', $session)) {
+            return $this->http->end_rest_error(__('Invalid session.', 'jc-importer'));
+        }
+
         $this->http->set_stream_headers();
 
         Logger::setRequestType('rest::run_import');
 
-        $session = $request->get_param('session');
         $user = uniqid('iwp', true);
         $id = intval($request->get_param('id'));
         Logger::write('run_import -session=' . $session, $id);

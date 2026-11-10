@@ -160,6 +160,10 @@ Use the [WordPress.org support forum](https://wordpress.org/support/plugin/jc-im
 
 == Changelog ==
 
+= 2.15.3 =
+
+* FIX - Fix VC-CVD-01712 by preventing SQL injection through the import session parameter when removing records that were not part of the current import.
+
 = 2.15.2 =
 
 * ADD - Record navigation (first, previous, next, last, and record number) for addon file previews such as BLM, matching CSV/XML/JSON preview behaviour.
